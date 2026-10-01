@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar compte - Tank2D</title>
+    <link rel="stylesheet" href="delete_account.css">
+</head>
+
+<body>
+    <h1>Eliminar compte de Tank2D</h1> <!-- LOGIN -->
+    <div id="loginSection">
+        <p> Inicia sessió per verificar la teva identitat abans d'eliminar el compte. </p> <input id="username"
+            type="text" placeholder="Nom d'usuari" autocomplete="username"> <input id="password" type="password"
+            placeholder="Contrasenya" autocomplete="current-password"> <button onclick="login()"> Iniciar sessió
+        </button>
+    </div> <!-- DELETE -->
+    <div id="deleteSection">
+        <p> Has iniciat sessió correctament. </p>
+        <div class="warning">
+            <p> <strong>Abans d'eliminar el compte</strong> </p>
+            <p> L'eliminació del compte és una acció permanent. Quan confirmis l'eliminació, eliminarem el teu compte i
+                les dades personals associades, d'acord amb la nostra política de privacitat i els terminis de
+                conservació legalment aplicables. </p>
+            <p> Això pot incloure les dades del teu perfil, les dades associades al teu compte i altres dades que hagin
+                estat proporcionades o generades en utilitzar el servei. </p>
+            <p> Les dades que estiguem obligats a conservar per motius legals, de seguretat o per a l'exercici o defensa
+                de reclamacions podran conservar-se durant el període necessari i quedaran subjectes a les mesures de
+                protecció corresponents. </p>
+        </div>
+        <p> <strong> Aquesta acció no es pot desfer. </strong> </p> <button class="danger" onclick="deleteAccount()">
+            ELIMINAR EL MEU COMPTE </button>
+        <p class="small"> Si no vols eliminar el compte, pots tancar aquesta pàgina sense fer cap altra acció. </p>
+    </div>
+    <p id="message"></p>
+    <script src="delete_accounts.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,123 @@
+@startuml
+left to right direction
+
+skinparam actorFontSize 36
+skinparam usecaseFontSize 36
+skinparam rectangleFontSize 40
+skinparam defaultFontSize 36
+skinparam actorStyle awesome
+
+actor "Usuari" as User
+actor "Sensors del camp" as Sensors
+actor "Servei meteorològic" as Weather
+actor "API de mercat" as Market
+actor "Sistema de reg" as Irrigation
+
+rectangle "Plataforma Agrícola" {
+
+  usecase "UC-01\nPrediccions" as UC01
+  usecase "UC-02\nDetecció de plagues" as UC02
+  usecase "UC-03\nEstat de la collita" as UC03
+
+  usecase "UC-04\nDashboard del camp" as UC04
+  usecase "UC-05\nGestió de tasques" as UC05
+  usecase "UC-06\nControl del reg" as UC06
+  usecase "UC-07\nRegistre de tasques" as UC07
+  usecase "UC-08\nHistorial de tasques" as UC08
+  usecase "UC-09\nGuia agrícola" as UC09
+
+  usecase "UC-10\nControl domòtic" as UC10
+  usecase "UC-11\nMeteorologia" as UC11
+    
+  usecase "UC-12\nCotitzacions" as UC12
+  usecase "UC-13\nFeed social / notícies" as UC13
+
+  usecase "UC-14\nCompte d'usuari" as UC14
+  usecase "UC-15\nSettings" as UC15
+  usecase "UC-15.1\nMultiidioma" as UC151
+  usecase "UC-16\nVisor 3D" as UC16
+  usecase "UC-17\nAutorriego" as UC17
+}
+
+' =========================
+' USUARI
+' =========================
+
+User -UP-> UC12
+
+User --> UC01
+User --> UC02
+User --> UC03
+User --> UC04
+User --> UC05
+User --> UC06
+User --> UC07
+User --> UC08
+User --> UC09
+User --> UC10
+User --> UC11
+User -UP-> UC13
+User -UP-> UC14
+User -UP-> UC15
+User --> UC16
+User --> UC17
+
+' =========================
+' SETTINGS
+' =========================
+
+UC15 --> UC151 
+' Left fletxes del USUARI  a un include es poden eliminar.
+
+
+' =========================
+' SENSORS
+' =========================
+
+Sensors -RIGHT-> UC01
+Sensors -RIGHT-> UC04
+Sensors -RIGHT-> UC05
+Sensors -RIGHT-> UC06
+Sensors -RIGHT-> UC17
+
+' =========================
+' METEOROLOGIA
+' =========================
+
+Weather -RIGHT-> UC11
+Weather -RIGHT-> UC01
+Weather --> UC09
+
+' =========================
+' MERCAT
+' =========================
+
+Market -UP-> UC12
+
+' =========================
+' SISTEMA DE REG
+' =========================
+
+Irrigation --> UC06
+Irrigation --> UC10
+Irrigation --> UC17
+
+' =========================
+' RELACIONS ENTRE USE CASES
+' =========================
+
+UC04 ..> UC01 : <<include>>
+UC04 ..> UC11 : <<include>>
+
+UC05 ..> UC04 : <<include>>
+UC06 ..> UC05 : <<include>>
+
+UC17 ..> UC06 : <<include>>
+UC17 ..> UC10 : <<include>>
+
+UC08 ..> UC07 : <<include>>
+
+UC09 ..> UC11 : <<include>>
+
+@enduml
+```
