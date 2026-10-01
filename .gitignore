@@ -35,3 +35,16 @@ google-services.json
 
 **/.venv
 **/.env
+**/.claude
+**/.vscode
+**/CLAUDE.md
+**/AGENTS.md
+**/node_moduñes
+
+**/node_modules/
+
+# Expo
+**/.expo/
+**/dist/
+**/web-build/
+**/expo-env.d.ts
