@@ -1,0 +1,272 @@
+@startuml
+
+skinparam packageStyle folder
+skinparam linetype ortho
+
+skinparam defaultFontSize 30
+
+package "PostgreSQL" {
+
+    entity USERS {
+        * username : string <<PK>>
+        --
+        email : string
+        password_hash : string
+        salt : string
+        created_at : datetime
+    }
+
+    entity USER_PROFILE {
+        * username : string <<PK>>
+        --
+        language : string
+        units : string
+        notifications_enabled : boolean
+        weather_alerts_enabled : boolean
+        irrigation_alerts_enabled : boolean
+        theme : string
+    }
+
+    entity USER_CONSENTS {
+        * id : int <<PK>>
+        --
+        username : string <<FK>>
+        document_type : string
+        document_version : string
+        accepted_at : datetime
+    }
+
+    entity FIELDS {
+        * id : int <<PK>>
+        --
+        username : string <<FK>>
+        name : string
+        parcel_number : string
+        poligon : string
+    }
+
+    entity CROPS {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        type : string
+        variety : string
+        planting_date : date
+        expected_harvest_date : date
+        harvest_date : date
+        status : string
+    }
+
+    entity SENSORS {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        type : string
+        name : string
+        model : string
+        serial_number : string
+        location : string
+        status : string
+        installed_at : datetime
+    }
+
+    entity TASKS {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        title : string
+        description : string
+        type : string
+        priority : string
+        status : string
+        due_date : date
+        created_at : datetime
+    }
+
+    entity TASK_RECORDS {
+        * id : int <<PK>>
+        --
+        task_id : int <<FK>>
+        username : string <<FK>>
+        started_at : datetime
+        finished_at : datetime
+        notes : string
+        result : string
+    }
+
+    entity IRRIGATION_SYSTEMS {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        name : string
+        type : string
+        status : string
+        automatic_mode : boolean
+    }
+
+    entity IRRIGATION_ZONES {
+        * id : int <<PK>>
+        --
+        irrigation_system_id : int <<FK>>
+        crop_id : int <<FK>>
+        sector : string
+        flow_rate : float
+    }
+
+    entity IRRIGATION_EVENTS {
+        * id : int <<PK>>
+        --
+        zone_id : int <<FK>>
+        start_time : datetime
+        end_time : datetime
+        water_amount : float
+        trigger_type : string
+        status : string
+    }
+
+    entity WEATHER_ALERTS {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        type : string
+        severity : string
+        message : string
+    }
+
+    entity IMAGES {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        crop_id : int <<FK>>
+        username : string <<FK>>
+        url : string
+        captured_at : datetime
+    }
+
+    entity PEST_DETECTIONS {
+        * id : int <<PK>>
+        --
+        image_id : int <<FK>>
+        pest_type : string
+        confidence : float
+        severity : string
+    }
+
+    entity PREDICTIONS {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        crop_id : int <<FK>>
+        type : string
+        value : float
+        confidence : float
+        model_version : string
+        created_at : datetime
+    }
+
+    entity CROP_PRICES {
+        * id : int <<PK>>
+        --
+        crop_type : string
+        market : string
+        price : float
+        currency : string
+        unit : string
+        timestamp : datetime
+    }
+
+    entity NEWS {
+        * id : int <<PK>>
+        --
+        title : string
+        description : string
+        url : string
+        image_url : string
+        source : string
+        published_at : datetime
+        category : string
+    }
+
+    entity ADVERTISEMENTS {
+        * id : int <<PK>>
+        --
+        title : string
+        description : string
+        image_url : string
+        url : string
+        start_date : date
+        end_date : date
+    }
+
+    entity FIELD_MODELS {
+        * id : int <<PK>>
+        --
+        field_id : int <<FK>>
+        model_url : string
+        terrain_url : string
+        version : string
+    }
+}
+
+package "InfluxDB" {
+
+    entity SENSOR_READINGS {
+        * timestamp : datetime
+        --
+        sensor_id : int
+        temperature : float
+        humidity : float
+        rain : float
+        unit : string
+    }
+
+    entity WEATHER_DATA {
+        * timestamp : datetime
+        --
+        field_id : int
+        temperature : float
+        humidity : float
+        rain : float
+        wind_speed : float
+        wind_direction : string
+        pressure : float
+        weather_condition : string
+    }
+}
+
+' =========================
+' RELACIONS
+' =========================
+
+USERS ||--o{ FIELDS : owns
+USERS ||--o{ TASK_RECORDS : performs
+USERS ||--o{ IMAGES : uploads
+
+USER_CONSENTS }o--|| USERS : provides
+USER_PROFILE ||--|| USERS : has
+
+FIELDS ||--o{ SENSORS : has
+FIELDS ||--o{ TASKS : has
+FIELDS ||--o{ WEATHER_DATA : receives
+FIELDS ||--o{ CROPS : contains
+FIELDS ||--o{ IRRIGATION_SYSTEMS : has
+FIELDS ||--o{ IMAGES : contains
+FIELDS ||--o{ PREDICTIONS : generates
+FIELDS ||--o{ FIELD_MODELS : has
+
+SENSORS ||--o{ SENSOR_READINGS : produces
+
+CROPS ||--o{ IRRIGATION_ZONES : irrigates
+
+PREDICTIONS }o--|| CROPS : predicts
+TASK_RECORDS }o--|| TASKS : belongs_to
+
+IRRIGATION_SYSTEMS ||--o{ IRRIGATION_ZONES : contains
+IRRIGATION_EVENTS }o--|| IRRIGATION_ZONES : generates
+
+IMAGES ||--o{ PEST_DETECTIONS : detects
+IMAGES }o--|| CROPS : has
+
+WEATHER_ALERTS }o--|| FIELDS : generates
+
+@enduml
