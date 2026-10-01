@@ -1,11 +1,40 @@
+import { useEffect, useState } from 'react';
 import { Tabs, router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
-import { currentUsername, accessToken } from '../../services/auth';
+import { getAuth } from '../../services/auth';
 
 export default function TabsLayout() {
-  // Temporalment.
-  // Més endavant vindrà de l'estat d'autenticació.
-  const username = currentUsername;
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAuth() {
+      try {
+        const auth = await getAuth();
+
+        if (!active) return;
+
+        if (!auth?.token) {
+          router.replace('/auth/login');
+          return;
+        }
+
+        setUsername(auth.username ?? '');
+      } catch (error) {
+        console.error('Error recuperant la sessió');
+        if (active) {
+          router.replace('/auth/login');
+        }
+      }
+    }
+
+    loadAuth();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <Tabs
@@ -56,9 +85,7 @@ export default function TabsLayout() {
         headerRight: () => (
           <Pressable
             onPress={() => router.push('/app/settings')}
-            style={{
-              marginRight: 16,
-            }}
+            style={{ marginRight: 16 }}
           >
             <Text style={{ fontSize: 24 }}>⚙️</Text>
           </Pressable>
@@ -69,7 +96,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Inici',
           tabBarLabel: 'Inici',
@@ -78,20 +105,11 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="fields"
+        name="explore"
         options={{
-          title: 'Camps',
-          tabBarLabel: 'Camps',
+          title: 'Explorar',
+          tabBarLabel: 'Explorar',
           tabBarIcon: () => <Text>🌱</Text>,
-        }}
-      />
-
-      <Tabs.Screen
-        name="tasks"
-        options={{
-          title: 'Tasques',
-          tabBarLabel: 'Tasques',
-          tabBarIcon: () => <Text>📋</Text>,
         }}
       />
 
