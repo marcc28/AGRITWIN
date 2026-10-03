@@ -7,9 +7,9 @@ import {
   signup,
   getPrivacyPolicy,
   getSecurityPolicy,
-} from '../../src/services/api';
+} from '../../../src/services/api';
 
-import SignupScreen from '../../src/app/auth/signup';
+import SignupScreen from '../../../src/app/auth/signup';
 
 jest.mock('expo-router', () => ({
   router: {
@@ -17,7 +17,7 @@ jest.mock('expo-router', () => ({
   },
 }));
 
-jest.mock('../../src/services/api', () => ({
+jest.mock('../../../src/services/api', () => ({
   signup: jest.fn(),
   getPrivacyPolicy: jest.fn(),
   getSecurityPolicy: jest.fn(),
@@ -27,7 +27,7 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('../../src/components/Alert', () => {
+jest.mock('../../../src/components/Alert', () => {
   const React = require('react');
   const { View, Text } = require('react-native');
 
@@ -47,9 +47,9 @@ jest.mock('../../src/components/Alert', () => {
   };
 });
 
-jest.mock('../../assets/images/google.png', () => 'google.png');
-jest.mock('../../assets/images/instagram.png', () => 'instagram.png');
-jest.mock('../../assets/images/twitter.png', () => 'twitter.png');
+jest.mock('../../../assets/images/google.png', () => 'google.png');
+jest.mock('../../../assets/images/instagram.png', () => 'instagram.png');
+jest.mock('../../../assets/images/twitter.png', () => 'twitter.png');
 
 const mockedSignup = signup as jest.MockedFunction<typeof signup>;
 const mockedGetPrivacyPolicy =
