@@ -127,7 +127,7 @@ export default function SignupScreen() {
     }
 
     if (!isValidEmail(email)) {
-      setErrorMessage('Format d\'email incorrecte');
+      setErrorMessage("Format d'email incorrecte");
       return;
     }
 

@@ -36,9 +36,7 @@ export async function signup(
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      data.detail || "No s'ha pogut crear l'usuari",
-    );
+    throw new Error(data.detail || "No s'ha pogut crear l'usuari");
   }
 
   return data;
@@ -48,10 +46,7 @@ export async function signup(
 // LOGIN
 // --------------------------------------------------
 
-export async function login(
-  username: string,
-  password: string,
-) {
+export async function login(username: string, password: string) {
   const body = new URLSearchParams({
     username,
     password,
@@ -68,9 +63,7 @@ export async function login(
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      data.detail || "Error iniciant sessió",
-    );
+    throw new Error(data.detail || 'Error iniciant sessió');
   }
 
   return data;
@@ -81,17 +74,12 @@ export async function login(
 // --------------------------------------------------
 
 export async function getPrivacyPolicy(): Promise<LegalDocument> {
-  const response = await fetch(
-    `${API_URL}/api/v1/legal/privacy`,
-  );
+  const response = await fetch(`${API_URL}/api/v1/legal/privacy`);
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      data.detail ||
-        'No s’ha pogut carregar la Privacy Notice',
-    );
+    throw new Error(data.detail || 'No s’ha pogut carregar la Privacy Notice');
   }
 
   return data as LegalDocument;
@@ -102,17 +90,12 @@ export async function getPrivacyPolicy(): Promise<LegalDocument> {
 // --------------------------------------------------
 
 export async function getSecurityPolicy(): Promise<LegalDocument> {
-  const response = await fetch(
-    `${API_URL}/api/v1/legal/security`,
-  );
+  const response = await fetch(`${API_URL}/api/v1/legal/security`);
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      data.detail ||
-        'No s’ha pogut carregar la Security Policy',
-    );
+    throw new Error(data.detail || 'No s’ha pogut carregar la Security Policy');
   }
 
   return data as LegalDocument;

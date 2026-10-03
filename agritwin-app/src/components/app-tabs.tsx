@@ -27,7 +27,7 @@ export default function AppTabs() {
           src={require('@/assets/images/tabIcons/explore.png')}
           renderingMode="template"
         />
-      </NativeTabs.Trigger>      
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="settings">
         <NativeTabs.Trigger.Label>settings</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
@@ -35,7 +35,7 @@ export default function AppTabs() {
           renderingMode="template"
         />
       </NativeTabs.Trigger>
-      
+
       <NativeTabs.Trigger name="home">
         <NativeTabs.Trigger.Label>home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
@@ -44,6 +44,5 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
     </NativeTabs>
-    
   );
 }

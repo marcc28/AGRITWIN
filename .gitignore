@@ -47,3 +47,4 @@ google-services.json
 **/dist/
 **/web-build/
 **/expo-env.d.ts
+backend/.coverage
