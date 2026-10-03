@@ -1,16 +1,15 @@
 import React from 'react';
 
-import SignupScreen from '../../src/app/auth/signup';
-
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { beforeEach, describe, expect, it } from '@jest/globals';
 
 import {
   signup,
   getPrivacyPolicy,
   getSecurityPolicy,
 } from '../../src/services/api';
+
+import SignupScreen from '../../src/app/auth/signup';
 
 jest.mock('expo-router', () => ({
   router: {
