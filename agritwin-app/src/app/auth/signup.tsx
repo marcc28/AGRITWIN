@@ -126,7 +126,7 @@ export default function SignupScreen() {
       return;
     }
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(trimmedEmail)) {
       setErrorMessage("Format d'email incorrecte");
       return;
     }
@@ -286,6 +286,9 @@ export default function SignupScreen() {
             <Pressable
               onPress={() => setPrivacyAccepted(!privacyAccepted)}
               disabled={loading}
+              accessibilityRole="checkbox"
+              accessibilityLabel="Accept privacy notice"
+              accessibilityState={{ checked: privacyAccepted, disabled: loading }}
             >
               <View
                 style={[
@@ -314,6 +317,9 @@ export default function SignupScreen() {
             <Pressable
               onPress={() => setSecurityAccepted(!securityAccepted)}
               disabled={loading}
+              accessibilityRole="checkbox"
+              accessibilityLabel="Accept security policy"
+              accessibilityState={{ checked: securityAccepted, disabled: loading }}
             >
               <View
                 style={[
