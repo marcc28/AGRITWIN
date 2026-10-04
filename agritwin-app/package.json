@@ -41,6 +41,7 @@
     "@types/react": "~19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.71.0",
     "@typescript-eslint/parser": "^8.71.0",
+    "detox": "^20.51.4",
     "eslint-config-prettier": "^10.1.8",
     "jest-expo": "~57.0.5",
     "prettier": "^3.9.9",
@@ -59,6 +60,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:e2e": "node ./scripts/run-detox-e2e.js android.att.release --build",
+    "test:e2e:debug": "node ./scripts/run-detox-e2e.js android.att.debug",
+    "test:e2e:detox": "detox test -c android.att.release",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint ."

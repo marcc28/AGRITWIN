@@ -234,6 +234,7 @@ export default function SignupScreen() {
 
         {/* Username */}
         <TextInput
+          testID="signup-username"
           style={styles.input}
           placeholder="Nom d'usuari"
           placeholderTextColor="#aaa"
@@ -246,6 +247,7 @@ export default function SignupScreen() {
 
         {/* Password */}
         <TextInput
+          testID="signup-password"
           style={styles.input}
           placeholder="Contrasenya"
           placeholderTextColor="#aaa"
@@ -257,6 +259,7 @@ export default function SignupScreen() {
 
         {/* Confirmació password */}
         <TextInput
+          testID="signup-password-confirm"
           style={styles.input}
           placeholder="Repetir contrasenya"
           placeholderTextColor="#aaa"
@@ -268,6 +271,7 @@ export default function SignupScreen() {
 
         {/* Email */}
         <TextInput
+          testID="signup-email"
           style={styles.input}
           placeholder="Email"
           placeholderTextColor="#aaa"
@@ -284,11 +288,15 @@ export default function SignupScreen() {
           {/* Privacy */}
           <View style={styles.checkboxRow}>
             <Pressable
+              testID="privacy-checkbox"
               onPress={() => setPrivacyAccepted(!privacyAccepted)}
               disabled={loading}
               accessibilityRole="checkbox"
               accessibilityLabel="Accept privacy notice"
-              accessibilityState={{ checked: privacyAccepted, disabled: loading }}
+              accessibilityState={{
+                checked: privacyAccepted,
+                disabled: loading,
+              }}
             >
               <View
                 style={[
@@ -315,11 +323,15 @@ export default function SignupScreen() {
           {/* Security */}
           <View style={styles.checkboxRow}>
             <Pressable
+              testID="security-checkbox"
               onPress={() => setSecurityAccepted(!securityAccepted)}
               disabled={loading}
               accessibilityRole="checkbox"
               accessibilityLabel="Accept security policy"
-              accessibilityState={{ checked: securityAccepted, disabled: loading }}
+              accessibilityState={{
+                checked: securityAccepted,
+                disabled: loading,
+              }}
             >
               <View
                 style={[
@@ -396,6 +408,7 @@ export default function SignupScreen() {
 
           {/* Sign Up */}
           <Pressable
+            testID="signup-button"
             style={styles.buttonWrapper}
             onPress={handleSignup}
             disabled={loading}
