@@ -2,6 +2,7 @@ const { spawn } = require('child_process');
 const http = require('http');
 process.env.APP_ENV = 'e2e';
 
+
 const config = process.argv[2] || 'android.att.release';
 const passthroughArgs = process.argv.slice(3).filter((arg) => arg !== '--build');
 const shouldBuild = process.argv.slice(3).includes('--build');
