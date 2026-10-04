@@ -1,6 +1,13 @@
+const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
 process.env.APP_ENV = 'e2e';
+
+const dotenv = require('dotenv');
+
+dotenv.config({
+  path: path.resolve(__dirname, '../.env.e2e'),
+});
 
 
 const config = process.argv[2] || 'android.att.release';
