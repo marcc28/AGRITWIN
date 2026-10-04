@@ -15,11 +15,11 @@ export default function Alert({
 }: AlertProps) {
   return (
     <View style={[styles.alert, styles[variant]]}>
-      {title && <Text style={[styles.title, styles[`${variant}Text`]]}>{title}</Text>}
+      {title && (
+        <Text style={[styles.title, styles[`${variant}Text`]]}>{title}</Text>
+      )}
 
-      <Text style={[styles.message, styles[`${variant}Text`]]}>
-        {children}
-      </Text>
+      <Text style={[styles.message, styles[`${variant}Text`]]}>{children}</Text>
     </View>
   );
 }

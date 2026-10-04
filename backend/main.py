@@ -6,7 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
+<<<<<<< HEAD
 from api.v1 import auth, legal, user
+=======
+from api.v1 import legal, user
+>>>>>>> feature/9-sprint-1-implement-signup-system
 
 load_dotenv()
 

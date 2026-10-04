@@ -13,6 +13,7 @@ async function setItem(key: string, value: string) {
   }
 }
 
+<<<<<<< HEAD
 async function getItem(key: string) {
   if (Platform.OS === 'web') {
     return localStorage.getItem(key);
@@ -62,4 +63,9 @@ export async function clearAuth() {
   await removeItem(TOKEN_KEY);
   await removeItem(REFRESH_TOKEN_KEY);
   await removeItem(USERNAME_KEY);
+=======
+export function clearAuth() {
+  currentUsername = '';
+  accessToken = '';
+>>>>>>> feature/9-sprint-1-implement-signup-system
 }

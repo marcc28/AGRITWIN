@@ -31,8 +31,25 @@ export default function LoginScreen() {
       return;
     }
 
+<<<<<<< HEAD
     if (!trimmedPassword) {
       setErrorMessage('Introdueix la contrasenya');
+=======
+    // Validació Privacy
+    if (!privacyAccepted) {
+      setErrorMessage('Has d’acceptar la Privacy Notice');
+      return;
+    }
+
+    // Validació Security
+    if (!securityAccepted) {
+      setErrorMessage('Has d’acceptar la Security Policy');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setErrorMessage("Format d'email incorrecte");
+>>>>>>> feature/9-sprint-1-implement-signup-system
       return;
     }
 
