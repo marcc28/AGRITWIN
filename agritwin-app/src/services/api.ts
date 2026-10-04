@@ -1,4 +1,8 @@
-const API_URL = 'https://backend-web-ur8z.onrender.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error('EXPO_PUBLIC_API_URL is not defined');
+}
 
 export type LegalDocument = {
   document_type: string;

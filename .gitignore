@@ -48,3 +48,6 @@ google-services.json
 **/web-build/
 **/expo-env.d.ts
 backend/.coverage
+
+./agritwin-app/.env**
+./agritwin-app/coverage/*
