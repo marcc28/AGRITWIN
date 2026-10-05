@@ -4,12 +4,12 @@
     "slug": "AgriTwin",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.jpg",
+    "icon": "./assets/images/logo.png",
     "scheme": "agritwin",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.AgriTwin",
+      "bundleIdentifier": "com.AgriTwin.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -22,7 +22,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.AgriTwin"
+      "package": "com.AgriTwin.app"
     },
     "web": {
       "output": "static",

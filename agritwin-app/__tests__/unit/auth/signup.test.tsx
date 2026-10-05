@@ -64,7 +64,6 @@ const getPrivacyCheckbox = () =>
 const getSecurityCheckbox = () =>
   screen.getByLabelText('Accept security policy');
 
-
 describe('SignupScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();

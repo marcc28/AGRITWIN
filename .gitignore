@@ -47,12 +47,9 @@ google-services.json
 **/dist/
 **/web-build/
 **/expo-env.d.ts
-<<<<<<< Updated upstream
-=======
 backend/.coverage
 
 ./agritwin-app/.env**
 ./agritwin-app/coverage/*
-**/__pycache__/**
 
->>>>>>> Stashed changes
+**/__pycache__/**

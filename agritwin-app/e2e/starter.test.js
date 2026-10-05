@@ -9,7 +9,6 @@ describe('Signup', () => {
     const email = `test_${suffix}@gmail.com`;
     const password = 'Password123!';
 
-    await element(by.id('signup-button')).tap();
     await expect(element(by.id('signup-username'))).toBeVisible();
     await element(by.id('signup-username')).typeText(username);
     await element(by.id('signup-password')).typeText(password);

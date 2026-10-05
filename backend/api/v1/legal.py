@@ -17,7 +17,6 @@ PRIVACY_FILE = BASE_DIR / "PRIVACY.md"
 SECURITY_FILE = BASE_DIR / "SECURITY.md"
 
 
-
 class LegalDocumentResponse(BaseModel):
     document_type: str
     version: str
@@ -38,11 +37,11 @@ def read_legal_document(
 
     try:
         content = file_path.read_text(encoding="utf-8")
-    except OSError:
+    except OSError as err:
         raise HTTPException(
             status_code=500,
             detail="Could not read legal document",
-        )
+        ) from err
 
     return LegalDocumentResponse(
         document_type=document_type,

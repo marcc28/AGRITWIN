@@ -3,6 +3,7 @@ describe('Login', () => {
     await device.launchApp({ newInstance: true, delete: true });
   });
 
+  
   it('logs in successfully', async () => {
     // Primer anem a Sign Up
     await element(by.id('signup-button')).tap();
