@@ -6,6 +6,7 @@ describe('Login', () => {
 
   it('logs in successfully', async () => {
     // Primer anem a Sign Up
+    
     await element(by.id('signup-button')).tap();
 
     await expect(element(by.id('signup-username'))).toBeVisible();
