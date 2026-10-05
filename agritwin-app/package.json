@@ -47,6 +47,15 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+<<<<<<< Updated upstream
+=======
+    "test": "jest __tests__",
+    "test:watch": "jest  __tests__ --watch",
+    "test:coverage": "jest  __tests__ --coverage",
+    "test:e2e": "node ./scripts/run-detox-e2e.js android.att.release --build",
+    "test:e2e:debug": "node ./scripts/run-detox-e2e.js android.att.debug",
+    "test:e2e:detox": "detox test -c android.att.release",
+>>>>>>> Stashed changes
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint ."

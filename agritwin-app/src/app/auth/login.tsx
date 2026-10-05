@@ -95,6 +95,7 @@ export default function LoginScreen() {
 
         {/* Username */}
         <TextInput
+          testID="username-button"
           style={styles.input}
           placeholder="Nom d'usuari"
           placeholderTextColor="#aaa"
@@ -107,6 +108,7 @@ export default function LoginScreen() {
 
         {/* Password */}
         <TextInput
+          testID="password-button"
           style={styles.input}
           placeholder="Contrasenya"
           placeholderTextColor="#aaa"
@@ -153,6 +155,7 @@ export default function LoginScreen() {
         <View style={styles.buttonsContainer}>
           {/* Sign Up */}
           <Pressable
+            testID="signup-button"
             style={styles.buttonWrapper}
             onPress={handleSignUp}
             disabled={loading}
@@ -167,6 +170,7 @@ export default function LoginScreen() {
 
           {/* Login */}
           <Pressable
+            testID="login-button"
             style={styles.buttonWrapper}
             onPress={handleLogin}
             disabled={loading}
