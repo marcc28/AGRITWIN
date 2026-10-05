@@ -89,4 +89,3 @@ async def test_create_user_username_already_exists():
 
     assert exc.value.status_code == 409
     assert exc.value.detail == "Username already registered"
-    

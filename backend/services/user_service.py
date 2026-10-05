@@ -1,4 +1,3 @@
-import secrets
 
 from fastapi import HTTPException
 from pwdlib import PasswordHash

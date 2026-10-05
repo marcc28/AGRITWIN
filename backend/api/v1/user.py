@@ -1,10 +1,9 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from db import AsyncSessionLocal, Base, engine, init_db
-from db.schema import User
 from models.user import UserCreate, UserRead
 from models.userProfile import UserProfileRead
 from services.user_service import UserService
