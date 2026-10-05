@@ -17,7 +17,6 @@ PRIVACY_FILE = BASE_DIR / "PRIVACY.md"
 SECURITY_FILE = BASE_DIR / "SECURITY.md"
 
 
-
 class LegalDocumentResponse(BaseModel):
     document_type: str
     version: str

@@ -31,9 +31,7 @@ router = APIRouter()
 
 password_hash = PasswordHash.recommended()
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/token"
-)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/token")
 
 
 async def get_user_service():
@@ -80,10 +78,7 @@ def create_access_token(
 
     to_encode = data.copy()
 
-    expire = datetime.now(UTC) + (
-        expires_delta
-        or timedelta(minutes=15)
-    )
+    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))
 
     to_encode.update({"exp": expire})
 
@@ -100,10 +95,12 @@ def create_refresh_token(data: dict) -> str:
 
     expire = datetime.now(UTC) + timedelta(days=7)
 
-    to_encode.update({
-        "exp": expire,
-        "type": "refresh",
-    })
+    to_encode.update(
+        {
+            "exp": expire,
+            "type": "refresh",
+        }
+    )
 
     return jwt.encode(
         to_encode,
@@ -165,18 +162,14 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token_expires = timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     access_token = create_access_token(
         data={"sub": user.username},
         expires_delta=access_token_expires,
     )
 
-    refresh_token = create_refresh_token(
-        data={"sub": user.username}
-    )
+    refresh_token = create_refresh_token(data={"sub": user.username})
 
     return {
         "access_token": access_token,
@@ -212,9 +205,7 @@ async def refresh_token_endpoint(
 
         new_access_token = create_access_token(
             data={"sub": username},
-            expires_delta=timedelta(
-                minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-            ),
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
         )
 
         return {
@@ -235,9 +226,7 @@ async def read_me(
     service: UserService = Depends(get_user_service),
 ) -> UserProfileRead:
 
-    userprofile = await service.get_user_profile(
-        current_user.username
-    )
+    userprofile = await service.get_user_profile(current_user.username)
 
     if not userprofile:
         raise HTTPException(

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from api.v1.user import get_user_service, router
 
+
 @pytest.fixture
 def mock_service():
     return AsyncMock()
@@ -257,6 +258,7 @@ def test_get_user_invalid_uuid(client, mock_service):
     assert response.status_code == 422
 
     mock_service.get_user.assert_not_awaited()
+
 
 def test_get_user_profile_not_found(client, mock_service):
     user_id = uuid.uuid4()

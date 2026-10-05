@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from services.user_service import UserService
 
+
 @pytest.mark.asyncio
 async def test_create_user_requires_privacy_terms():
     db = MagicMock()
@@ -48,9 +49,7 @@ async def test_create_user_email_already_exists():
 
     existing_user = MagicMock()
 
-    service.get_user_by_email = AsyncMock(
-        return_value=existing_user
-    )
+    service.get_user_by_email = AsyncMock(return_value=existing_user)
 
     with pytest.raises(HTTPException) as exc:
         await service.create_user(
@@ -70,13 +69,9 @@ async def test_create_user_username_already_exists():
     db = MagicMock()
     service = UserService(db)
 
-    service.get_user_by_email = AsyncMock(
-        return_value=None
-    )
+    service.get_user_by_email = AsyncMock(return_value=None)
 
-    service.get_user_by_username = AsyncMock(
-        return_value=MagicMock()
-    )
+    service.get_user_by_username = AsyncMock(return_value=MagicMock())
 
     with pytest.raises(HTTPException) as exc:
         await service.create_user(

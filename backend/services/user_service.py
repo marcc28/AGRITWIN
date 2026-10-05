@@ -1,4 +1,3 @@
-
 from fastapi import HTTPException
 from pwdlib import PasswordHash
 from sqlalchemy import select
@@ -22,11 +21,7 @@ class UserService:
         limit: int = 10,
     ) -> list[User]:
 
-        result = await self._db.execute(
-            select(User)
-            .offset(offset)
-            .limit(limit)
-        )
+        result = await self._db.execute(select(User).offset(offset).limit(limit))
 
         return list(result.scalars().all())
 
@@ -35,9 +30,7 @@ class UserService:
         username: str,
     ) -> User | None:
 
-        result = await self._db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self._db.execute(select(User).where(User.username == username))
 
         return result.scalar_one_or_none()
 
@@ -46,9 +39,7 @@ class UserService:
         email: str,
     ) -> User | None:
 
-        result = await self._db.execute(
-            select(User).where(User.email == email)
-        )
+        result = await self._db.execute(select(User).where(User.email == email))
 
         return result.scalar_one_or_none()
 
@@ -57,9 +48,7 @@ class UserService:
         username: str,
     ) -> User | None:
 
-        result = await self._db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self._db.execute(select(User).where(User.username == username))
 
         return result.scalar_one_or_none()
 
@@ -115,7 +104,7 @@ class UserService:
         )
 
         self._db.add(profile)
-        
+
         privacy_consent = UserConsent(
             username=user.username,
             document_type="privacy_terms",
@@ -135,16 +124,12 @@ class UserService:
         await self._db.refresh(user)
 
         return user
-    
+
     async def get_user_profile(
         self,
         username: str,
     ) -> UserProfile | None:
 
-        result = await self._db.execute(
-            select(UserProfile).where(
-                UserProfile.username == username
-            )
-        )
+        result = await self._db.execute(select(UserProfile).where(UserProfile.username == username))
 
         return result.scalar_one_or_none()
