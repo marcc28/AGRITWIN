@@ -3,7 +3,7 @@ describe('Login', () => {
     await device.launchApp({ newInstance: true, delete: true });
   });
 
-  
+
   it('logs in successfully', async () => {
     // Primer anem a Sign Up
     await element(by.id('signup-button')).tap();
@@ -32,7 +32,8 @@ describe('Login', () => {
     await waitFor(element(by.text("El compte s'ha creat correctament")))
       .toBeVisible()
       .withTimeout(10000);
-
+    
+    
     // Tornem al login
     await element(by.text('Log In')).tap();
 
@@ -41,6 +42,8 @@ describe('Login', () => {
     // Login
     await element(by.id('username-button')).typeText(username);
     await element(by.id('password-button')).typeText(password);
+    
+    await device.pressBack();
 
     await element(by.id('login-button')).tap();
 
