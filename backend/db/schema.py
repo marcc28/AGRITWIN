@@ -1,6 +1,7 @@
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
@@ -131,4 +132,81 @@ class UserConsent(Base):
     user: Mapped["User"] = relationship(
         "User",
         back_populates="consents",
+    )
+
+
+class Anunce(Base):
+    __tablename__ = "anunces"
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    title: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    subtile: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    agent: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    content: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+
+
+class ConteMercat(Base):
+    __tablename__ = "conte_mercat"
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    product: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    tecnical_name: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    price: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False,
+    )
+
+    price_per_kg: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2),
+        nullable=True,
+    )
+
+    left_units: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
     )
