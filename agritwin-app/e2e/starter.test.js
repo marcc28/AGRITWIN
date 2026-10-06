@@ -1,6 +1,11 @@
 describe('Signup', () => {
   beforeEach(async () => {
-    await device.launchApp({ newInstance: true, delete: true });
+    jest.clearAllMocks();
+
+    await device.launchApp({
+      newInstance: true,
+      delete: true,
+    });
   });
 
   it('creates an account', async () => {
@@ -10,7 +15,7 @@ describe('Signup', () => {
     const password = 'Password123!';
 
     await element(by.id('signup-button')).tap();
-    
+
     await expect(element(by.id('signup-username'))).toBeVisible();
     await element(by.id('signup-username')).typeText(username);
     await element(by.id('signup-password')).typeText(password);

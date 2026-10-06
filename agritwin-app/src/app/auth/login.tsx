@@ -44,7 +44,11 @@ export default function LoginScreen() {
 
       const data = await login(trimmedUsername, trimmedPassword);
 
-      await setAuth(trimmedUsername, data.access_token, data.refresh_token);
+      await setAuth(
+        trimmedUsername,
+        data.access_token,
+        data.refresh_token,
+      );
 
       router.replace('/app/home');
     } catch (error) {
@@ -82,18 +86,27 @@ export default function LoginScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.container}>
-        <Text style={styles.heading}>AgriTwin</Text>
+        <Text testID="login-title" style={styles.heading}>
+          AgriTwin
+        </Text>
 
-        <Text style={styles.subtitle}>{t('login.title')}</Text>
+        <Text testID="login-subtitle" style={styles.subtitle}>
+          {t('login.title')}
+        </Text>
 
         {errorMessage !== '' && (
-          <Alert variant="danger" title={t('common.error')}>
-            {errorMessage}
-          </Alert>
+          <View testID="login-error">
+            <Alert
+              variant="danger"
+              title={t('common.error')}
+            >
+              {errorMessage}
+            </Alert>
+          </View>
         )}
 
         <TextInput
-          testID="username-button"
+          testID="username-input"
           style={styles.input}
           placeholder={t('login.username')}
           placeholderTextColor="#aaa"
@@ -105,7 +118,7 @@ export default function LoginScreen() {
         />
 
         <TextInput
-          testID="password-button"
+          testID="password-input"
           style={styles.input}
           placeholder={t('login.password')}
           placeholderTextColor="#aaa"
@@ -115,11 +128,17 @@ export default function LoginScreen() {
           editable={!loading}
         />
 
-        <View style={styles.socialContainer}>
-          <Text style={styles.socialTitle}>{t('login.socialLogin')}</Text>
+        <View testID="social-login" style={styles.socialContainer}>
+          <Text style={styles.socialTitle}>
+            {t('login.socialLogin')}
+          </Text>
 
           <View style={styles.socialAccounts}>
-            <Pressable style={styles.socialButton} disabled={loading}>
+            <Pressable
+              testID="google-button"
+              style={styles.socialButton}
+              disabled={loading}
+            >
               <Image
                 source={require('../../../assets/images/google.png')}
                 style={styles.socialIcon}
@@ -127,7 +146,11 @@ export default function LoginScreen() {
               />
             </Pressable>
 
-            <Pressable style={styles.socialButton} disabled={loading}>
+            <Pressable
+              testID="instagram-button"
+              style={styles.socialButton}
+              disabled={loading}
+            >
               <Image
                 source={require('../../../assets/images/instagram.png')}
                 style={styles.socialIcon}
@@ -135,7 +158,11 @@ export default function LoginScreen() {
               />
             </Pressable>
 
-            <Pressable style={styles.socialButton} disabled={loading}>
+            <Pressable
+              testID="twitter-button"
+              style={styles.socialButton}
+              disabled={loading}
+            >
               <Image
                 source={require('../../../assets/images/twitter.png')}
                 style={styles.socialIcon}
@@ -152,8 +179,13 @@ export default function LoginScreen() {
             onPress={handleSignUp}
             disabled={loading}
           >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>{t('login.signUp')}</Text>
+            <LinearGradient
+              colors={Gradients.primary}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>
+                {t('login.signUp')}
+              </Text>
             </LinearGradient>
           </Pressable>
 
@@ -163,9 +195,14 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={loading}
           >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
+            <LinearGradient
+              colors={Gradients.primary}
+              style={styles.button}
+            >
               <Text style={styles.buttonText}>
-                {loading ? t('login.loggingIn') : t('login.logIn')}
+                {loading
+                  ? t('login.loggingIn')
+                  : t('login.logIn')}
               </Text>
             </LinearGradient>
           </Pressable>

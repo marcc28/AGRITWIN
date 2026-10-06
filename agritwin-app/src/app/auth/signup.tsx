@@ -211,20 +211,23 @@ export default function SignupScreen() {
         {/* Títol */}
         <Text style={styles.heading}>AgriTwin</Text>
 
-        <Text style={styles.subtitle}>{t('signup.title')}</Text>
+        <Text testID="signup-title" style={styles.subtitle}>{t('signup.title')}</Text>
 
         {/* Error */}
         {errorMessage !== '' && (
-          <Alert variant="danger" title="Error">
-            {errorMessage}
-          </Alert>
+          <View testID="signup-error">
+            <Alert variant="danger" title="Error">
+              {errorMessage}
+            </Alert>
+          </View>
         )}
 
-        {/* Success */}
         {successMessage !== '' && (
-          <Alert variant="success" title="Compte creat">
-            {successMessage}
-          </Alert>
+          <View testID="signup-success-message">
+            <Alert variant="success" title="Compte creat">
+              {successMessage}
+            </Alert>
+          </View>
         )}
 
         {/* Username */}
@@ -389,6 +392,7 @@ export default function SignupScreen() {
         <View style={styles.buttonsContainer}>
           {/* Login */}
           <Pressable
+            testID="login-button"
             style={styles.buttonWrapper}
             onPress={handleLogIn}
             disabled={loading}

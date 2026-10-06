@@ -34,10 +34,6 @@ describe('Login', () => {
       .toBeVisible()
       .withTimeout(10000);
     
-    
-    // Tornem al login
-    await element(by.text('Log In')).tap();
-
     await expect(element(by.id('username-button'))).toBeVisible();
 
     // Login

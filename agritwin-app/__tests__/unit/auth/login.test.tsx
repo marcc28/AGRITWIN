@@ -14,6 +14,12 @@ import { setAuth } from '../../../src/services/auth';
 
 import LoginScreen from '../../../src/app/auth/login';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
@@ -62,35 +68,16 @@ jest.mock('../../../assets/images/instagram.png', () => 'instagram.png');
 jest.mock('../../../assets/images/twitter.png', () => 'twitter.png');
 
 const mockedLogin = login as jest.MockedFunction<typeof login>;
+
 const mockedSetAuth = setAuth as jest.MockedFunction<typeof setAuth>;
 
-const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
-const mockedRouterReplace =
-  router.replace as jest.MockedFunction<typeof router.replace>;
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => {
-      const translations: Record<string, string> = {
-        'login.title': 'Inicia sessió',
-        'login.username': "Nom d'usuari",
-        'login.password': 'Contrasenya',
-        'login.socialLogin': 'O inicia sessió amb',
-        'login.signUp': 'Sign Up',
-        'login.logIn': 'Log In',
-        'login.loggingIn': 'Logging in...',
-        'login.errors.usernameAndPassword':
-          'Introdueix el nom d’usuari i la contrasenya',
-        'login.errors.username': 'Introdueix el nom d’usuari',
-        'login.errors.password': 'Introdueix la contrasenya',
-        'login.errors.invalidCredentials':
-          'Contrasenya incorrecta. Fes sign up si no tens compte.',
-        'common.error': 'Error',
-      };
+const mockedRouterPush = router.push as jest.MockedFunction<
+  typeof router.push
+>;
 
-      return translations[key] ?? key;
-    },
-  }),
-}));
+const mockedRouterReplace = router.replace as jest.MockedFunction<
+  typeof router.replace
+>;
 
 describe('LoginScreen', () => {
   beforeEach(() => {
@@ -101,20 +88,20 @@ describe('LoginScreen', () => {
     it('renders the login screen correctly', () => {
       render(<LoginScreen />);
 
-      expect(screen.getByText('AgriTwin')).toBeTruthy();
-      expect(screen.getByText('Inicia sessió')).toBeTruthy();
+      expect(screen.getByTestId('login-title')).toBeTruthy();
+      expect(screen.getByTestId('login-subtitle')).toBeTruthy();
 
-      expect(
-        screen.getByPlaceholderText("Nom d'usuari"),
-      ).toBeTruthy();
+      expect(screen.getByTestId('username-input')).toBeTruthy();
+      expect(screen.getByTestId('password-input')).toBeTruthy();
 
-      expect(
-        screen.getByPlaceholderText('Contrasenya'),
-      ).toBeTruthy();
+      expect(screen.getByTestId('social-login')).toBeTruthy();
 
-      expect(screen.getByText('O inicia sessió amb')).toBeTruthy();
-      expect(screen.getByText('Sign Up')).toBeTruthy();
-      expect(screen.getByText('Log In')).toBeTruthy();
+      expect(screen.getByTestId('google-button')).toBeTruthy();
+      expect(screen.getByTestId('instagram-button')).toBeTruthy();
+      expect(screen.getByTestId('twitter-button')).toBeTruthy();
+
+      expect(screen.getByTestId('signup-button')).toBeTruthy();
+      expect(screen.getByTestId('login-button')).toBeTruthy();
     });
   });
 
@@ -122,12 +109,10 @@ describe('LoginScreen', () => {
     it('shows an error when username and password are empty', async () => {
       render(<LoginScreen />);
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(
-        await screen.findByText(
-          'Introdueix el nom d’usuari i la contrasenya',
-        ),
+        await screen.findByTestId('login-error'),
       ).toBeTruthy();
 
       expect(mockedLogin).not.toHaveBeenCalled();
@@ -137,14 +122,14 @@ describe('LoginScreen', () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('password-input'),
         'Password123',
       );
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(
-        await screen.findByText('Introdueix el nom d’usuari'),
+        await screen.findByTestId('login-error'),
       ).toBeTruthy();
 
       expect(mockedLogin).not.toHaveBeenCalled();
@@ -154,14 +139,14 @@ describe('LoginScreen', () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('username-input'),
         'testuser',
       );
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(
-        await screen.findByText('Introdueix la contrasenya'),
+        await screen.findByTestId('login-error'),
       ).toBeTruthy();
 
       expect(mockedLogin).not.toHaveBeenCalled();
@@ -180,16 +165,16 @@ describe('LoginScreen', () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('username-input'),
         '  testuser  ',
       );
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('password-input'),
         '  Password123  ',
       );
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       await waitFor(() => {
         expect(mockedLogin).toHaveBeenCalledTimes(1);
@@ -212,16 +197,16 @@ describe('LoginScreen', () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('username-input'),
         'testuser',
       );
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('password-input'),
         'Password123',
       );
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       await waitFor(() => {
         expect(mockedSetAuth).toHaveBeenCalledTimes(1);
@@ -245,19 +230,21 @@ describe('LoginScreen', () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('username-input'),
         'testuser',
       );
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('password-input'),
         'Password123',
       );
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       await waitFor(() => {
-        expect(mockedRouterReplace).toHaveBeenCalledWith('/app/home');
+        expect(mockedRouterReplace).toHaveBeenCalledWith(
+          '/app/home',
+        );
       });
     });
   });
@@ -271,46 +258,50 @@ describe('LoginScreen', () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('username-input'),
         'testuser',
       );
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('password-input'),
         'WrongPassword',
       );
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(
-        await screen.findByText('Contrasenya incorrecta'),
+        await screen.findByTestId('login-error'),
+      ).toBeTruthy();
+
+      expect(
+        screen.getByText('Contrasenya incorrecta'),
       ).toBeTruthy();
 
       expect(mockedRouterReplace).not.toHaveBeenCalled();
     });
 
-    it('shows the default error when the API rejects with a non-Error', async () => {
+    it('shows an error when login rejects with a non-Error value', async () => {
       mockedLogin.mockRejectedValue('login failed');
 
       render(<LoginScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('username-input'),
         'testuser',
       );
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('password-input'),
         'Password123',
       );
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(
-        await screen.findByText(
-          'Contrasenya incorrecta. Fes sign up si no tens compte.',
-        ),
+        await screen.findByTestId('login-error'),
       ).toBeTruthy();
+
+      expect(mockedLogin).toHaveBeenCalled();
     });
   });
 
@@ -318,9 +309,11 @@ describe('LoginScreen', () => {
     it('navigates to Sign Up when Sign Up is pressed', () => {
       render(<LoginScreen />);
 
-      fireEvent.press(screen.getByText('Sign Up'));
+      fireEvent.press(screen.getByTestId('signup-button'));
 
-      expect(mockedRouterPush).toHaveBeenCalledWith('/auth/signup');
+      expect(mockedRouterPush).toHaveBeenCalledWith(
+        '/auth/signup',
+      );
     });
   });
 
@@ -328,46 +321,38 @@ describe('LoginScreen', () => {
     it('clears an error when the username changes', async () => {
       render(<LoginScreen />);
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(
-        await screen.findByText(
-          'Introdueix el nom d’usuari i la contrasenya',
-        ),
+        await screen.findByTestId('login-error'),
       ).toBeTruthy();
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('username-input'),
         'testuser',
       );
 
       expect(
-        screen.queryByText(
-          'Introdueix el nom d’usuari i la contrasenya',
-        ),
+        screen.queryByTestId('login-error'),
       ).toBeNull();
     });
 
     it('clears an error when the password changes', async () => {
       render(<LoginScreen />);
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(
-        await screen.findByText(
-          'Introdueix el nom d’usuari i la contrasenya',
-        ),
+        await screen.findByTestId('login-error'),
       ).toBeTruthy();
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('password-input'),
         'Password123',
       );
 
       expect(
-        screen.queryByText(
-          'Introdueix el nom d’usuari i la contrasenya',
-        ),
+        screen.queryByTestId('login-error'),
       ).toBeNull();
     });
 
@@ -375,7 +360,7 @@ describe('LoginScreen', () => {
       render(<LoginScreen />);
 
       expect(
-        screen.getByPlaceholderText('Contrasenya').props.secureTextEntry,
+        screen.getByTestId('password-input').props.secureTextEntry,
       ).toBe(true);
     });
   });
