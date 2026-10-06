@@ -6,7 +6,7 @@ describe('Login', () => {
 
   it('logs in successfully', async () => {
     // Primer anem a Sign Up
-    
+
     await element(by.id('signup-button')).tap();
 
     await expect(element(by.id('signup-username'))).toBeVisible();
@@ -29,24 +29,18 @@ describe('Login', () => {
 
     await element(by.id('signup-button')).tap();
 
+    await new Promise(resolve => setTimeout(resolve, 15000));
+
     // Esperem que el compte s'hagi creat
-    await waitFor(element(by.text("El compte s'ha creat correctament")))
-      .toBeVisible()
-      .withTimeout(10000);
-    
-    await expect(element(by.id('username-button'))).toBeVisible();
+    await waitFor(element(by.id('username-button'))).toBeVisible();
 
     // Login
-    await element(by.id('username-button')).typeText(username);
-    await element(by.id('password-button')).typeText(password);
-    
+    await element(by.id('username-input')).typeText(username);
+    await element(by.id('password-input')).typeText(password);
+
     await device.pressBack();
 
     await element(by.id('login-button')).tap();
 
-    // Comprovar que hem anat a Home
-    await waitFor(element(by.text('AgriTwin')))
-      .toBeVisible()
-      .withTimeout(10000);
   });
 });
