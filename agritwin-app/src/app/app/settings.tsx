@@ -23,68 +23,40 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {t('settings.title')}
-      </Text>
+      <Text style={styles.title}>{t('settings.title')}</Text>
 
-      <Text style={styles.item}>
-        {t('settings.profile')}
-      </Text>
+      <Text style={styles.item}>{t('settings.profile')}</Text>
 
       <View style={styles.languageContainer}>
-        <Text style={styles.languageLabel}>
-          {t('settings.language')}
-        </Text>
+        <Text style={styles.languageLabel}>{t('settings.language')}</Text>
 
         <Picker
           selectedValue={currentLanguage}
           onValueChange={handleLanguageChange}
           style={styles.picker}
         >
-          <Picker.Item
-            label={t('languages.catalan')}
-            value="ca"
-          />
+          <Picker.Item label={t('languages.catalan')} value="ca" />
 
-          <Picker.Item
-            label={t('languages.spanish')}
-            value="es"
-          />
+          <Picker.Item label={t('languages.spanish')} value="es" />
 
-          <Picker.Item
-            label={t('languages.english')}
-            value="en"
-          />
+          <Picker.Item label={t('languages.english')} value="en" />
+          
+          <Picker.Item label={t('languages.italian')} value="it" />
         </Picker>
       </View>
 
-      <Text style={styles.item}>
-        {t('settings.units')}
-      </Text>
+      <Text style={styles.item}>{t('settings.units')}</Text>
 
-      <Text style={styles.item}>
-        {t('settings.notifications')}
-      </Text>
+      <Text style={styles.item}>{t('settings.notifications')}</Text>
 
-      <Text style={styles.item}>
-        {t('settings.weatherAlerts')}
-      </Text>
+      <Text style={styles.item}>{t('settings.weatherAlerts')}</Text>
 
-      <Text style={styles.item}>
-        {t('settings.irrigationAlerts')}
-      </Text>
+      <Text style={styles.item}>{t('settings.irrigationAlerts')}</Text>
 
-      <Text style={styles.item}>
-        {t('settings.theme')}
-      </Text>
+      <Text style={styles.item}>{t('settings.theme')}</Text>
 
-      <Pressable
-        style={styles.logoutButton}
-        onPress={handleLogout}
-      >
-        <Text style={styles.logoutText}>
-          {t('settings.logout')}
-        </Text>
+      <Pressable style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>{t('settings.logout')}</Text>
       </Pressable>
     </View>
   );

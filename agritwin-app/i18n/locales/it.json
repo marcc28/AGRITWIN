@@ -1,0 +1,77 @@
+{
+  "common": {
+    "error": "Errore",
+    "success": "Successo"
+  },
+
+  "login": {
+    "title": "Accedi",
+    "username": "Nome utente",
+    "password": "Password",
+    "socialLogin": "Oppure accedi con",
+    "signUp": "Crea account",
+    "logIn": "Accedi",
+    "loggingIn": "Accesso in corso...",
+    "errors": {
+      "usernameAndPassword": "Inserisci il nome utente e la password",
+      "username": "Inserisci il nome utente",
+      "password": "Inserisci la password",
+      "invalidCredentials": "Password errata. Registrati se non hai un account."
+    }
+  },
+
+  "signup": {
+    "title": "Crea account",
+    "username": "Nome utente",
+    "email": "Email",
+    "password": "Password",
+    "passwordConfirmation": "Ripeti la password",
+
+    "acceptPrivacy": "Accetto l'Informativa sulla privacy",
+    "acceptSecurity": "Accetto la Politica di sicurezza",
+
+    "socialLogin": "Oppure registrati con",
+
+    "logIn": "Accedi",
+    "signUp": "Crea account",
+    "creatingAccount": "Creazione account...",
+
+    "success": "Account creato con successo",
+
+    "errors": {
+      "requiredFields": "Compila tutti i campi",
+      "invalidEmail": "Formato email non valido",
+      "passwordMismatch": "Le password non coincidono",
+      "privacyRequired": "Devi accettare l'Informativa sulla privacy",
+      "securityRequired": "Devi accettare la Politica di sicurezza",
+      "createFailed": "Non è stato possibile creare l'account"
+    },
+
+    "legal": {
+      "privacy": "Informativa sulla privacy",
+      "security": "Politica di sicurezza",
+      "version": "Versione",
+      "loading": "Caricamento documento...",
+      "close": "Chiudi",
+      "loadError": "Non è stato possibile caricare il documento"
+    }
+  },
+
+  "settings": {
+    "title": "Impostazioni",
+    "profile": "Profilo",
+    "language": "Lingua",
+    "units": "Unità",
+    "notifications": "Notifiche",
+    "weatherAlerts": "Avvisi meteorologici",
+    "irrigationAlerts": "Avvisi di irrigazione",
+    "theme": "Tema",
+    "logout": "Esci"
+  },
+  "languages": {
+    "catalan": "Catalano",
+    "spanish": "Spagnolo",
+    "english": "Inglese",
+    "italian": "Italiano"
+  }
+}

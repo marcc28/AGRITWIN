@@ -1,4 +1,62 @@
 {
+  "common": {
+    "error": "Error",
+    "success": "Éxito"
+  },
+
+  "login": {
+    "title": "Iniciar sesión",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "socialLogin": "O inicia sesión con",
+    "signUp": "Crear cuenta",
+    "logIn": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión...",
+    "errors": {
+      "usernameAndPassword": "Introduce el nombre de usuario y la contraseña",
+      "username": "Introduce el nombre de usuario",
+      "password": "Introduce la contraseña",
+      "invalidCredentials": "Contraseña incorrecta. Regístrate si no tienes una cuenta."
+    }
+  },
+
+  "signup": {
+    "title": "Crear cuenta",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "passwordConfirmation": "Repetir contraseña",
+
+    "acceptPrivacy": "Acepto el Aviso de privacidad",
+    "acceptSecurity": "Acepto la Política de seguridad",
+
+    "socialLogin": "O inicia sesión con",
+
+    "logIn": "Iniciar sesión",
+    "signUp": "Crear cuenta",
+    "creatingAccount": "Creando cuenta...",
+
+    "success": "La cuenta se ha creado correctamente",
+
+    "errors": {
+      "requiredFields": "Rellena todos los campos",
+      "invalidEmail": "Formato de correo electrónico incorrecto",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "privacyRequired": "Debes aceptar el Aviso de privacidad",
+      "securityRequired": "Debes aceptar la Política de seguridad",
+      "createFailed": "No se ha podido crear la cuenta"
+    },
+
+    "legal": {
+      "privacy": "Aviso de privacidad",
+      "security": "Política de seguridad",
+      "version": "Versión",
+      "loading": "Cargando documento...",
+      "close": "Cerrar",
+      "loadError": "No se ha podido cargar el documento"
+    }
+  },
+
   "settings": {
     "title": "Configuración",
     "profile": "Perfil",
@@ -7,11 +65,13 @@
     "notifications": "Notificaciones",
     "weatherAlerts": "Alertas meteorológicas",
     "irrigationAlerts": "Alertas de riego",
-    "theme": "Tema"
+    "theme": "Tema",
+    "logout": "Cerrar sesión"
   },
   "languages": {
     "catalan": "Catalán",
     "spanish": "Español",
-    "english": "Inglés"
+    "english": "Inglés",
+    "italian": "Italiano"
   }
 }

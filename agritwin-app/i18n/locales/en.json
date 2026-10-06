@@ -1,4 +1,62 @@
 {
+  "common": {
+    "error": "Error",
+    "success": "Success"
+  },
+
+  "login": {
+    "title": "Log in",
+    "username": "Username",
+    "password": "Password",
+    "socialLogin": "Or log in with",
+    "signUp": "Create account",
+    "logIn": "Log in",
+    "loggingIn": "Logging in...",
+    "errors": {
+      "usernameAndPassword": "Enter your username and password",
+      "username": "Enter your username",
+      "password": "Enter your password",
+      "invalidCredentials": "Incorrect password. Sign up if you don't have an account."
+    }
+  },
+
+  "signup": {
+    "title": "Create account",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "passwordConfirmation": "Repeat password",
+
+    "acceptPrivacy": "I accept the Privacy Notice",
+    "acceptSecurity": "I accept the Security Policy",
+
+    "socialLogin": "Or sign up with",
+
+    "logIn": "Log in",
+    "signUp": "Create account",
+    "creatingAccount": "Creating account...",
+
+    "success": "Account created successfully",
+
+    "errors": {
+      "requiredFields": "Fill in all fields",
+      "invalidEmail": "Invalid email format",
+      "passwordMismatch": "Passwords do not match",
+      "privacyRequired": "You must accept the Privacy Notice",
+      "securityRequired": "You must accept the Security Policy",
+      "createFailed": "The account could not be created"
+    },
+
+    "legal": {
+      "privacy": "Privacy Notice",
+      "security": "Security Policy",
+      "version": "Version",
+      "loading": "Loading document...",
+      "close": "Close",
+      "loadError": "The document could not be loaded"
+    }
+  },
+
   "settings": {
     "title": "Settings",
     "profile": "Profile",
@@ -7,11 +65,13 @@
     "notifications": "Notifications",
     "weatherAlerts": "Weather alerts",
     "irrigationAlerts": "Irrigation alerts",
-    "theme": "Theme"
+    "theme": "Theme",
+    "logout": "Log out"
   },
   "languages": {
     "catalan": "Catalan",
     "spanish": "Spanish",
-    "english": "English"
+    "english": "English",
+    "italian": "Italian"
   }
 }

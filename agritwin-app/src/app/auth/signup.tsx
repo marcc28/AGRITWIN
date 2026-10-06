@@ -12,6 +12,7 @@ import {
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import Alert from '../../components/Alert';
 import {
@@ -22,6 +23,7 @@ import {
 import { styles } from '../../styles/signup.styles';
 
 export default function SignupScreen() {
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [passwordconfirm, setPasswordConf] = useState('');
@@ -88,75 +90,66 @@ export default function SignupScreen() {
   // Signup
   // -----------------------------
 
-  async function handleSignup() {
+  async function handleSignUp() {
     setErrorMessage('');
-    setSuccessMessage('');
 
     const trimmedUsername = username.trim();
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
-    const trimmedPasswordConfirm = passwordconfirm.trim();
+    const trimmedPasswordConf = passwordconfirm.trim();
 
-    // Validació de camps
+    // Camps obligatoris
     if (
       !trimmedUsername ||
       !trimmedEmail ||
       !trimmedPassword ||
-      !trimmedPasswordConfirm
+      !trimmedPasswordConf
     ) {
-      setErrorMessage('Omple tots els camps');
+      setErrorMessage(t('signup.errors.requiredFields'));
       return;
     }
 
-    // Validació de contrasenyes
-    if (trimmedPassword !== trimmedPasswordConfirm) {
-      setErrorMessage('Les contrasenyes no coincideixen');
-      return;
-    }
-
-    // Validació Privacy
-    if (!privacyAccepted) {
-      setErrorMessage('Has d’acceptar la Privacy Notice');
-      return;
-    }
-
-    // Validació Security
-    if (!securityAccepted) {
-      setErrorMessage('Has d’acceptar la Security Policy');
-      return;
-    }
-
+    // Email
     if (!isValidEmail(trimmedEmail)) {
-      setErrorMessage("Format d'email incorrecte");
+      setErrorMessage(t('signup.errors.invalidEmail'));
+      return;
+    }
+
+    // Contrasenyes
+    if (trimmedPassword !== trimmedPasswordConf) {
+      setErrorMessage(t('signup.errors.passwordMismatch'));
+      return;
+    }
+
+    // Acceptació legal
+    if (!privacyAccepted) {
+      setErrorMessage(t('signup.errors.privacyRequired'));
+      return;
+    }
+
+    if (!securityAccepted) {
+      setErrorMessage(t('signup.errors.securityRequired'));
       return;
     }
 
     try {
       setLoading(true);
 
-      const user = await signup(
+      await signup(
         trimmedUsername,
         trimmedEmail,
         trimmedPassword,
-        trimmedPasswordConfirm,
+        trimmedPasswordConf,
         privacyAccepted,
         securityAccepted,
       );
 
-      console.log('Usuari creat:', user);
-
-      setSuccessMessage("El compte s'ha creat correctament");
-
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 1500);
+      setSuccessMessage(t('signup.success'));
     } catch (error) {
-      console.error('Error signup:', error);
-
       const message =
         error instanceof Error
           ? error.message
-          : "No s'ha pogut crear el compte";
+          : t('signup.errors.createFailed');
 
       setErrorMessage(message);
     } finally {
@@ -216,7 +209,7 @@ export default function SignupScreen() {
         {/* Títol */}
         <Text style={styles.heading}>AgriTwin</Text>
 
-        <Text style={styles.subtitle}>Crear compte</Text>
+        <Text style={styles.subtitle}>{t('signup.title')}</Text>
 
         {/* Error */}
         {errorMessage !== '' && (
@@ -410,7 +403,7 @@ export default function SignupScreen() {
           <Pressable
             testID="signup-button"
             style={styles.buttonWrapper}
-            onPress={handleSignup}
+            onPress={handleSignUp}
             disabled={loading}
           >
             <LinearGradient

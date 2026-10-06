@@ -1,4 +1,62 @@
 {
+  "common": {
+    "error": "Error",
+    "success": "Èxit"
+  },
+
+  "login": {
+    "title": "Inicia sessió",
+    "username": "Nom d'usuari",
+    "password": "Contrasenya",
+    "socialLogin": "O inicia sessió amb",
+    "signUp": "Crear compte",
+    "logIn": "Iniciar sessió",
+    "loggingIn": "Iniciant sessió...",
+    "errors": {
+      "usernameAndPassword": "Introdueix el nom d'usuari i la contrasenya",
+      "username": "Introdueix el nom d'usuari",
+      "password": "Introdueix la contrasenya",
+      "invalidCredentials": "Contrasenya incorrecta. Fes sign up si no tens compte."
+    }
+  },
+
+  "signup": {
+    "title": "Crear compte",
+    "username": "Nom d'usuari",
+    "email": "Correu electrònic",
+    "password": "Contrasenya",
+    "passwordConfirmation": "Repetir contrasenya",
+
+    "acceptPrivacy": "Accepto la Privacy Notice",
+    "acceptSecurity": "Accepto la Security Policy",
+
+    "socialLogin": "O inicia sessió amb",
+
+    "logIn": "Iniciar sessió",
+    "signUp": "Crear compte",
+    "creatingAccount": "Creant compte...",
+
+    "success": "El compte s'ha creat correctament",
+
+    "errors": {
+      "requiredFields": "Omple tots els camps",
+      "invalidEmail": "Format de correu electrònic incorrecte",
+      "passwordMismatch": "Les contrasenyes no coincideixen",
+      "privacyRequired": "Has d'acceptar la Privacy Notice",
+      "securityRequired": "Has d'acceptar la Security Policy",
+      "createFailed": "No s'ha pogut crear el compte"
+    },
+
+    "legal": {
+      "privacy": "Privacy Notice",
+      "security": "Security Policy",
+      "version": "Versió",
+      "loading": "Carregant document...",
+      "close": "Tancar",
+      "loadError": "No s'ha pogut carregar el document"
+    }
+  },
+
   "settings": {
     "title": "Configuració",
     "profile": "Perfil",
@@ -7,11 +65,13 @@
     "notifications": "Notificacions",
     "weatherAlerts": "Alertes meteorològiques",
     "irrigationAlerts": "Alertes de reg",
-    "theme": "Tema"
+    "theme": "Tema",
+    "logout": "Tancar sessió"
   },
   "languages": {
     "catalan": "Català",
     "spanish": "Castellà",
-    "english": "Anglès"
+    "english": "Anglès",
+    "italian": "Italià"
   }
 }
