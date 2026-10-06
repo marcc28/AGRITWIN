@@ -5,6 +5,9 @@ import { router } from 'expo-router';
 
 import { clearAuth } from '../../services/auth';
 
+
+import { styles } from '../../styles/settings.styles';
+
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
 
@@ -40,7 +43,7 @@ export default function SettingsScreen() {
           <Picker.Item label={t('languages.spanish')} value="es" />
 
           <Picker.Item label={t('languages.english')} value="en" />
-          
+
           <Picker.Item label={t('languages.italian')} value="it" />
         </Picker>
       </View>
@@ -62,50 +65,3 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-
-  item: {
-    fontSize: 17,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-
-  languageContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingVertical: 5,
-  },
-
-  languageLabel: {
-    fontSize: 17,
-    marginBottom: 5,
-  },
-
-  picker: {
-    width: '100%',
-  },
-
-  logoutButton: {
-    marginTop: 30,
-    padding: 15,
-    alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#1089D3',
-  },
-
-  logoutText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-});

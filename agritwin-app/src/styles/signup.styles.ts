@@ -1,24 +1,25 @@
 import { StyleSheet } from 'react-native';
+import { Colors } from '../constants/theme';
 
 export const styles = StyleSheet.create({
   screen: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#eef3f8',
+    backgroundColor: Colors.light.background,
     padding: 20,
   },
 
   container: {
     width: '100%',
     maxWidth: 350,
-    backgroundColor: '#f8f9fd',
+    backgroundColor: Colors.light.surface,
     borderRadius: 40,
     padding: 30,
     borderWidth: 5,
-    borderColor: '#ffffff',
+    borderColor: Colors.light.surface,
 
-    shadowColor: '#85bdd7',
+    shadowColor: Colors.light.shadow,
     shadowOffset: {
       width: 0,
       height: 20,
@@ -28,15 +29,24 @@ export const styles = StyleSheet.create({
 
     elevation: 10,
   },
-  socialContainer: { marginTop: 25 },
-  socialTitle: { textAlign: 'center', fontSize: 11, color: '#aaa' },
+
+  socialContainer: {
+    marginTop: 25,
+  },
+
+  socialTitle: {
+    textAlign: 'center',
+    fontSize: 11,
+    color: Colors.light.textMuted,
+  },
 
   heading: {
     textAlign: 'center',
     fontWeight: '900',
     fontSize: 30,
-    color: '#1089D3',
+    color: Colors.light.primaryDark,
   },
+
   socialAccounts: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -48,34 +58,44 @@ export const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 23,
-    backgroundColor: '#333',
+    backgroundColor: Colors.light.social,
     borderWidth: 4,
-    borderColor: '#ffffff',
+    borderColor: Colors.light.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#85bdd7',
-    shadowOffset: { width: 0, height: 8 },
+
+    shadowColor: Colors.light.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
     shadowOpacity: 0.5,
     shadowRadius: 8,
+
     elevation: 5,
   },
-  socialText: { color: '#ffffff', fontWeight: 'bold', fontSize: 18 },
+
+  socialText: {
+    color: Colors.light.surface,
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
 
   subtitle: {
     textAlign: 'center',
     marginTop: 8,
-    color: '#777',
+    color: Colors.light.textSecondary,
   },
 
   input: {
     width: '100%',
     height: 55,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.light.surface,
     borderRadius: 20,
     paddingHorizontal: 20,
     marginTop: 15,
 
-    shadowColor: '#cff0ff',
+    shadowColor: Colors.light.inputShadow,
     shadowOffset: {
       width: 0,
       height: 8,
@@ -84,6 +104,10 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
 
     elevation: 3,
+
+    color: Colors.light.text,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
   },
 
   buttonsContainer: {
@@ -91,10 +115,13 @@ export const styles = StyleSheet.create({
     gap: 10,
     marginTop: 20,
   },
+
   buttonWrapper: {
     flex: 1,
     borderRadius: 20,
+    overflow: 'hidden',
   },
+
   button: {
     height: 55,
     borderRadius: 20,
@@ -103,14 +130,16 @@ export const styles = StyleSheet.create({
   },
 
   buttonText: {
-    color: '#ffffff',
+    color: Colors.light.surface,
     fontWeight: 'bold',
     fontSize: 16,
   },
+
   socialIcon: {
     width: 24,
     height: 24,
   },
+
   legalContainer: {
     marginTop: 10,
     marginBottom: 20,
@@ -126,7 +155,7 @@ export const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderWidth: 1,
-    borderColor: '#aaa',
+    borderColor: Colors.light.border,
     borderRadius: 4,
     marginRight: 10,
     alignItems: 'center',
@@ -134,29 +163,29 @@ export const styles = StyleSheet.create({
   },
 
   checkboxChecked: {
-    backgroundColor: '#1089D3',
-    borderColor: '#1089D3',
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
   },
 
   checkmark: {
-    color: '#fff',
+    color: Colors.light.surface,
     fontWeight: 'bold',
   },
 
   legalText: {
     flex: 1,
     fontSize: 13,
-    color: '#666',
+    color: Colors.light.textSecondary,
   },
 
   link: {
-    color: '#1089D3',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Colors.light.overlay,
     justifyContent: 'center',
     padding: 20,
   },
@@ -164,7 +193,7 @@ export const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     maxHeight: '90%',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -176,7 +205,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: Colors.light.border,
   },
 
   modalTitleContainer: {
@@ -186,12 +215,13 @@ export const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
+    color: Colors.light.text,
   },
 
   modalVersion: {
     marginTop: 4,
     fontSize: 12,
-    color: '#777',
+    color: Colors.light.textMuted,
   },
 
   modalCloseButton: {
@@ -200,7 +230,7 @@ export const styles = StyleSheet.create({
 
   modalCloseText: {
     fontSize: 22,
-    color: '#555',
+    color: Colors.light.textSecondary,
   },
 
   modalScroll: {
@@ -214,7 +244,7 @@ export const styles = StyleSheet.create({
   legalDocumentText: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#222',
+    color: Colors.light.text,
   },
 
   modalLoading: {
@@ -226,7 +256,7 @@ export const styles = StyleSheet.create({
   modalLoadingText: {
     marginTop: 10,
     fontSize: 14,
-    color: '#666',
+    color: Colors.light.textSecondary,
   },
 
   modalError: {
@@ -238,19 +268,19 @@ export const styles = StyleSheet.create({
 
   modalErrorText: {
     textAlign: 'center',
-    color: '#c00',
+    color: Colors.light.dangerText,
   },
 
   modalButton: {
     margin: 16,
     paddingVertical: 14,
     borderRadius: 10,
-    backgroundColor: '#1089D3',
+    backgroundColor: Colors.light.primary,
     alignItems: 'center',
   },
 
   modalButtonText: {
-    color: '#fff',
+    color: Colors.light.surface,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -21,6 +21,7 @@ import {
   signup,
 } from '../../services/api';
 import { styles } from '../../styles/signup.styles';
+import { Gradients } from '@/constants/colors';
 
 export default function SignupScreen() {
   const { t } = useTranslation();
@@ -391,10 +392,7 @@ export default function SignupScreen() {
             onPress={handleLogIn}
             disabled={loading}
           >
-            <LinearGradient
-              colors={['#1089D3', '#12B1D1']}
-              style={styles.button}
-            >
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>Log In</Text>
             </LinearGradient>
           </Pressable>
@@ -406,10 +404,7 @@ export default function SignupScreen() {
             onPress={handleSignUp}
             disabled={loading}
           >
-            <LinearGradient
-              colors={['#1089D3', '#12B1D1']}
-              style={styles.button}
-            >
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>
                 {loading ? 'Creant compte...' : 'Sign Up'}
               </Text>

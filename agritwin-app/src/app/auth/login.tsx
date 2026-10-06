@@ -8,6 +8,7 @@ import Alert from '../../components/Alert';
 import { styles } from '../../styles/login.styles';
 import { login } from '../../services/api';
 import { setAuth } from '../../services/auth';
+import { Gradients } from '../../constants/theme';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -43,11 +44,7 @@ export default function LoginScreen() {
 
       const data = await login(trimmedUsername, trimmedPassword);
 
-      await setAuth(
-        trimmedUsername,
-        data.access_token,
-        data.refresh_token,
-      );
+      await setAuth(trimmedUsername, data.access_token, data.refresh_token);
 
       router.replace('/app/home');
     } catch (error) {
@@ -85,14 +82,9 @@ export default function LoginScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.container}>
+        <Text style={styles.heading}>AgriTwin</Text>
 
-        <Text style={styles.heading}>
-          AgriTwin
-        </Text>
-
-        <Text style={styles.subtitle}>
-          {t('login.title')}
-        </Text>
+        <Text style={styles.subtitle}>{t('login.title')}</Text>
 
         {errorMessage !== '' && (
           <Alert variant="danger" title={t('common.error')}>
@@ -124,15 +116,10 @@ export default function LoginScreen() {
         />
 
         <View style={styles.socialContainer}>
-          <Text style={styles.socialTitle}>
-            {t('login.socialLogin')}
-          </Text>
+          <Text style={styles.socialTitle}>{t('login.socialLogin')}</Text>
 
           <View style={styles.socialAccounts}>
-            <Pressable
-              style={styles.socialButton}
-              disabled={loading}
-            >
+            <Pressable style={styles.socialButton} disabled={loading}>
               <Image
                 source={require('../../../assets/images/google.png')}
                 style={styles.socialIcon}
@@ -140,10 +127,7 @@ export default function LoginScreen() {
               />
             </Pressable>
 
-            <Pressable
-              style={styles.socialButton}
-              disabled={loading}
-            >
+            <Pressable style={styles.socialButton} disabled={loading}>
               <Image
                 source={require('../../../assets/images/instagram.png')}
                 style={styles.socialIcon}
@@ -151,10 +135,7 @@ export default function LoginScreen() {
               />
             </Pressable>
 
-            <Pressable
-              style={styles.socialButton}
-              disabled={loading}
-            >
+            <Pressable style={styles.socialButton} disabled={loading}>
               <Image
                 source={require('../../../assets/images/twitter.png')}
                 style={styles.socialIcon}
@@ -165,20 +146,14 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.buttonsContainer}>
-
           <Pressable
             testID="signup-button"
             style={styles.buttonWrapper}
             onPress={handleSignUp}
             disabled={loading}
           >
-            <LinearGradient
-              colors={['#1089D3', '#12B1D1']}
-              style={styles.button}
-            >
-              <Text style={styles.buttonText}>
-                {t('login.signUp')}
-              </Text>
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
+              <Text style={styles.buttonText}>{t('login.signUp')}</Text>
             </LinearGradient>
           </Pressable>
 
@@ -188,18 +163,12 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={loading}
           >
-            <LinearGradient
-              colors={['#1089D3', '#12B1D1']}
-              style={styles.button}
-            >
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>
-                {loading
-                  ? t('login.loggingIn')
-                  : t('login.logIn')}
+                {loading ? t('login.loggingIn') : t('login.logIn')}
               </Text>
             </LinearGradient>
           </Pressable>
-
         </View>
       </View>
     </View>
