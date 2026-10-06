@@ -47,7 +47,7 @@ export default function TabTwoScreen() {
 
           <ExternalLink href="https://docs.expo.dev" asChild>
             <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
+              <ThemedView style={styles.linkButton}>
                 <ThemedText type="link">Expo documentation</ThemedText>
                 <SymbolView
                   tintColor={theme.text}
@@ -82,7 +82,6 @@ export default function TabTwoScreen() {
 
           <Collapsible title="Android, iOS, and web support">
             <ThemedView
-              type="backgroundElement"
               style={styles.collapsibleContent}
             >
               <ThemedText type="small">
@@ -195,5 +194,11 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     alignSelf: 'center',
+  },
+  backgroundElement: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: Spacing.three,
+    padding: Spacing.four,
+    marginTop: Spacing.two,
   },
 });

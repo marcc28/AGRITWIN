@@ -1,12 +1,12 @@
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { Text, View, Pressable, Image } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 
 import { clearAuth } from '../../services/auth';
 
-
 import { styles } from '../../styles/settings.styles';
+import { NativeTabs } from 'expo-router/build/native-tabs/NativeTabs';
 
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
@@ -59,9 +59,13 @@ export default function SettingsScreen() {
       <Text style={styles.item}>{t('settings.theme')}</Text>
 
       <Pressable style={styles.logoutButton} onPress={handleLogout}>
+        <Image
+          source={require('@/assets/images/logout.png')}
+          style={styles.logoutIcon}
+        />
+
         <Text style={styles.logoutText}>{t('settings.logout')}</Text>
       </Pressable>
     </View>
   );
 }
-

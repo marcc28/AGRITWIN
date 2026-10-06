@@ -1,125 +1,52 @@
-import { useEffect, useState } from 'react';
-import { Tabs, router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
-import { getAuth } from '../../services/auth';
+import { View, useColorScheme } from 'react-native';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
-export default function TabsLayout() {
-  const [username, setUsername] = useState('');
+import { Colors } from '@/constants/theme';
+import AppHeader from '@/components/AppHeader';
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadAuth() {
-      try {
-        const auth = await getAuth();
-
-        if (!active) return;
-
-        if (!auth?.token) {
-          router.replace('/auth/login');
-          return;
-        }
-
-        setUsername(auth.username ?? '');
-      } catch (error) {
-        console.error('Error recuperant la sessió');
-        if (active) {
-          router.replace('/auth/login');
-        }
-      }
-    }
-
-    loadAuth();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+export default function Layout() {
+  const scheme = useColorScheme();
+  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: true,
-        headerTitle: '',
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+      {/* A dalt */}
+      <AppHeader />
 
-        headerLeft: () => (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginLeft: 16,
-            }}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: '#1089D3',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  color: 'white',
-                  fontWeight: 'bold',
-                }}
-              >
-                {username.charAt(0).toUpperCase()}
-              </Text>
-            </View>
+      {/* Contingut + tabs a baix */}
+      <View style={{ flex: 1 }}>
+        <NativeTabs
+          backgroundColor={colors.surface}
+          indicatorColor={colors.primary}
+          labelStyle={{
+            selected: { color: colors.primary },
+          }}
+        >
+          <NativeTabs.Trigger name="home">
+            <NativeTabs.Trigger.Label>Inici</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon
+              src={require('@/assets/images/tabIcons/home.png')}
+              renderingMode="template"
+            />
+          </NativeTabs.Trigger>
 
-            <Text
-              style={{
-                marginLeft: 10,
-                fontSize: 16,
-                fontWeight: '600',
-              }}
-            >
-              {username}
-            </Text>
-          </View>
-        ),
+          <NativeTabs.Trigger name="explore">
+            <NativeTabs.Trigger.Label>Explorar</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon
+              src={require('@/assets/images/tabIcons/explore.png')}
+              renderingMode="template"
+            />
+          </NativeTabs.Trigger>
 
-        headerRight: () => (
-          <Pressable
-            onPress={() => router.push('/app/settings')}
-            style={{ marginRight: 16 }}
-          >
-            <Text style={{ fontSize: 24 }}>⚙️</Text>
-          </Pressable>
-        ),
-
-        tabBarActiveTintColor: '#1089D3',
-        tabBarInactiveTintColor: '#888',
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Inici',
-          tabBarLabel: 'Inici',
-          tabBarIcon: () => <Text>🏠</Text>,
-        }}
-      />
-
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explorar',
-          tabBarLabel: 'Explorar',
-          tabBarIcon: () => <Text>🌱</Text>,
-        }}
-      />
-
-      <Tabs.Screen
-        name="settings"
-        options={{
-          href: null,
-          title: 'Configuració',
-        }}
-      />
-    </Tabs>
+          <NativeTabs.Trigger name="settings">
+            <NativeTabs.Trigger.Label>Configuració</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon
+              src={require('@/assets/images/tabIcons/settings.png')}
+              renderingMode="template"
+            />
+          </NativeTabs.Trigger>
+        </NativeTabs>
+      </View>
+    </View>
   );
 }

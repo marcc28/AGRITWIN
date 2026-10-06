@@ -1,4 +1,3 @@
-
 import { StyleSheet } from 'react-native';
 
 import { Colors } from '../constants/theme';
@@ -42,16 +41,22 @@ export const styles = StyleSheet.create({
     color: Colors.light.text,
   },
 
+  logoutText: {
+    color: Colors.light.surface,
+    fontWeight: 'bold',
+  },
   logoutButton: {
-    marginTop: 30,
-    padding: 15,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
     borderRadius: 8,
     backgroundColor: Colors.light.primary,
   },
 
-  logoutText: {
-    color: Colors.light.surface,
-    fontWeight: 'bold',
+  logoutIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
   },
 });

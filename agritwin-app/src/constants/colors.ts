@@ -8,8 +8,9 @@ export const Colors = {
     primary: '#5F8068',
     primaryDark: '#46614F',
     secondary: '#BC9F8B',
-
+    
     background: '#E7E8D8',
+    backgroundElement: "#46614F",
     surface: '#FFFFFF',
     surfaceSecondary: '#CADABF',
 
