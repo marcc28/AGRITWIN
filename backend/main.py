@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from api.v1 import auth, legal, user
+from api.v1 import anunces, auth, legal, user, content_market
 
 load_dotenv()
 
@@ -36,6 +36,8 @@ app.add_middleware(
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(legal.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(anunces.router, prefix="/api/v1")
+app.include_router(content_market.router, prefix="/api/v1")
 
 # app.mount("/profile_images", StaticFiles(directory=UPLOAD_DIR), name="profile_images")
 

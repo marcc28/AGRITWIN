@@ -67,6 +67,25 @@ CREATE TABLE user_consents (
         ON DELETE CASCADE
 );
 
+CREATE TABLE anunces (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    subtile VARCHAR(255),
+    agent VARCHAR(255),
+    content TEXT,    
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE conte_mercat (
+    id SERIAL PRIMARY KEY,
+    product VARCHAR(255) NOT NULL,
+    tecnical_name VARCHAR(255),
+    price NUMERIC(10, 2) NOT NULL,
+    price_per_kg NUMERIC(10, 2),
+    left_units INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 
 -- ============================================================
 -- INDEX
