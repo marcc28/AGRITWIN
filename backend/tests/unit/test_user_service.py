@@ -5,11 +5,11 @@ from fastapi import HTTPException
 
 from services.user_service import UserService
 
+
 @pytest.mark.asyncio
 async def test_create_user_requires_privacy_terms():
     db = MagicMock()
     service = UserService(db)
-
 
     with pytest.raises(HTTPException) as exc:
         await service.create_user(

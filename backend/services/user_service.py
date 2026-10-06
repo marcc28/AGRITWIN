@@ -20,7 +20,6 @@ class UserService:
         offset: int = 0,
         limit: int = 10,
     ) -> list[User]:
-
         result = await self._db.execute(select(User).offset(offset).limit(limit))
 
         return list(result.scalars().all())
@@ -29,7 +28,6 @@ class UserService:
         self,
         username: str,
     ) -> User | None:
-
         result = await self._db.execute(select(User).where(User.username == username))
 
         return result.scalar_one_or_none()
@@ -38,7 +36,6 @@ class UserService:
         self,
         email: str,
     ) -> User | None:
-
         result = await self._db.execute(select(User).where(User.email == email))
 
         return result.scalar_one_or_none()
@@ -47,7 +44,6 @@ class UserService:
         self,
         username: str,
     ) -> User | None:
-
         result = await self._db.execute(select(User).where(User.username == username))
 
         return result.scalar_one_or_none()
@@ -60,7 +56,6 @@ class UserService:
         privacy_terms_accepted: bool,
         security_terms_accepted: bool,
     ) -> User:
-
         if not privacy_terms_accepted:
             raise HTTPException(
                 status_code=400,
@@ -129,7 +124,6 @@ class UserService:
         self,
         username: str,
     ) -> UserProfile | None:
-
         result = await self._db.execute(select(UserProfile).where(UserProfile.username == username))
 
         return result.scalar_one_or_none()

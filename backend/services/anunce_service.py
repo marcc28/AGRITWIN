@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.schema import Anunce
 
+
 class AnunceService:
     def __init__(self, session: AsyncSession):
         self._db = session
@@ -13,12 +14,7 @@ class AnunceService:
         offset: int = 0,
         limit: int = 10,
     ) -> list[Anunce]:
-
-        result = await self._db.execute(
-            select(Anunce)
-            .offset(offset)
-            .limit(limit)
-        )
+        result = await self._db.execute(select(Anunce).offset(offset).limit(limit))
 
         return list(result.scalars().all())
 
@@ -26,10 +22,7 @@ class AnunceService:
         self,
         id: int,
     ) -> Anunce | None:
-
-        result = await self._db.execute(
-            select(Anunce).where(Anunce.id == id)
-        )
+        result = await self._db.execute(select(Anunce).where(Anunce.id == id))
 
         return result.scalar_one_or_none()
 
@@ -37,10 +30,7 @@ class AnunceService:
         self,
         title: str,
     ) -> list[Anunce]:
-
-        result = await self._db.execute(
-            select(Anunce).where(Anunce.title.ilike(f"%{title}%"))
-        )
+        result = await self._db.execute(select(Anunce).where(Anunce.title.ilike(f"%{title}%")))
 
         return list(result.scalars().all())
 
@@ -48,10 +38,7 @@ class AnunceService:
         self,
         agent: str,
     ) -> list[Anunce]:
-
-        result = await self._db.execute(
-            select(Anunce).where(Anunce.agent == agent)
-        )
+        result = await self._db.execute(select(Anunce).where(Anunce.agent == agent))
 
         return list(result.scalars().all())
 
@@ -62,7 +49,6 @@ class AnunceService:
         agent: str | None = None,
         content: str | None = None,
     ) -> Anunce:
-
         anunce = Anunce(
             title=title,
             subtile=subtile,
@@ -81,7 +67,6 @@ class AnunceService:
         self,
         id: int,
     ) -> None:
-
         anunce = await self.get_anunce_by_id(id)
 
         if anunce is None:

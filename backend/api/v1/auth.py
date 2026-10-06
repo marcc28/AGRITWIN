@@ -53,7 +53,6 @@ async def authenticate_user(
     username: str,
     password: str,
 ) -> User | bool:
-
     async with AsyncSessionLocal() as db:
         service = UserService(db)
 
@@ -75,7 +74,6 @@ def create_access_token(
     data: dict,
     expires_delta: timedelta | None = None,
 ) -> str:
-
     to_encode = data.copy()
 
     expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))
@@ -90,7 +88,6 @@ def create_access_token(
 
 
 def create_refresh_token(data: dict) -> str:
-
     to_encode = data.copy()
 
     expire = datetime.now(UTC) + timedelta(days=7)
@@ -112,7 +109,6 @@ def create_refresh_token(data: dict) -> str:
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User:
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -149,7 +145,6 @@ async def get_current_user(
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> dict:
-
     user = await authenticate_user(
         form_data.username,
         form_data.password,
@@ -225,7 +220,6 @@ async def read_me(
     current_user: User = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
 ) -> UserProfileRead:
-
     userprofile = await service.get_user_profile(current_user.username)
 
     if not userprofile:

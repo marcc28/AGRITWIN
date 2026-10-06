@@ -73,5 +73,10 @@
     "spanish": "Spanish",
     "english": "English",
     "italian": "Italian"
+  },
+  "market": {
+    "prices": "Preus",
+    "news": "News",
+    "buy": "Compra"
   }
 }

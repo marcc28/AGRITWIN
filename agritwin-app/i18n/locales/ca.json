@@ -73,5 +73,10 @@
     "spanish": "Castellà",
     "english": "Anglès",
     "italian": "Italià"
+  },
+  "market": {
+    "prices": "Preus",
+    "news": "News",
+    "buy": "Compra"
   }
 }

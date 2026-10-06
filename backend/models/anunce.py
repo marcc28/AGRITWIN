@@ -2,6 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+
 class AnunceCreate(BaseModel):
     title: str
     subtile: str | None = None

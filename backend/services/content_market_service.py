@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.schema import ConteMercat
 
+
 class ConteMercatService:
     def __init__(self, session: AsyncSession):
         self._db = session
@@ -13,12 +14,7 @@ class ConteMercatService:
         offset: int = 0,
         limit: int = 10,
     ) -> list[ConteMercat]:
-
-        result = await self._db.execute(
-            select(ConteMercat)
-            .offset(offset)
-            .limit(limit)
-        )
+        result = await self._db.execute(select(ConteMercat).offset(offset).limit(limit))
 
         return list(result.scalars().all())
 
@@ -26,11 +22,7 @@ class ConteMercatService:
         self,
         id: int,
     ) -> ConteMercat | None:
-
-        result = await self._db.execute(
-            select(ConteMercat)
-            .where(ConteMercat.id == id)
-        )
+        result = await self._db.execute(select(ConteMercat).where(ConteMercat.id == id))
 
         return result.scalar_one_or_none()
 
@@ -38,10 +30,8 @@ class ConteMercatService:
         self,
         product: str,
     ) -> list[ConteMercat]:
-
         result = await self._db.execute(
-            select(ConteMercat)
-            .where(ConteMercat.product.ilike(f"%{product}%"))
+            select(ConteMercat).where(ConteMercat.product.ilike(f"%{product}%"))
         )
 
         return list(result.scalars().all())
@@ -54,7 +44,6 @@ class ConteMercatService:
         price_per_kg=None,
         left_units: int = 0,
     ) -> ConteMercat:
-
         conte_mercat = ConteMercat(
             product=product,
             tecnical_name=tecnical_name,
@@ -74,7 +63,6 @@ class ConteMercatService:
         self,
         id: int,
     ) -> None:
-
         conte_mercat = await self.get_conte_mercat_by_id(id)
 
         if conte_mercat is None:

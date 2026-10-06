@@ -37,6 +37,14 @@ export default function Layout() {
               renderingMode="template"
             />
           </NativeTabs.Trigger>
+          
+          <NativeTabs.Trigger name="market">
+            <NativeTabs.Trigger.Label>Mercat</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon
+              src={require('@/assets/images/tabIcons/market.png')}
+              renderingMode="template"
+            />
+          </NativeTabs.Trigger>
 
           <NativeTabs.Trigger name="settings">
             <NativeTabs.Trigger.Label>Configuració</NativeTabs.Trigger.Label>

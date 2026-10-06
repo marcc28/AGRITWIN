@@ -28,7 +28,6 @@ def read_legal_document(
     document_type: str,
     version: str,
 ) -> LegalDocumentResponse:
-
     if not file_path.exists():
         raise HTTPException(
             status_code=404,

@@ -19,7 +19,6 @@ class UserService:
         offset: int = 0,
         limit: int = 10,
     ) -> list[User]:
-
         result = await self._db.execute(select(User).offset(offset).limit(limit))
 
         return list(result.scalars().all())
@@ -28,7 +27,6 @@ class UserService:
         self,
         username: str,
     ) -> User | None:
-
         result = await self._db.execute(select(User).where(User.username == username))
 
         return result.scalar_one_or_none()
@@ -37,7 +35,6 @@ class UserService:
         self,
         email: str,
     ) -> User | None:
-
         result = await self._db.execute(select(User).where(User.email == email))
 
         return result.scalar_one_or_none()
@@ -46,7 +43,6 @@ class UserService:
         self,
         username: str,
     ) -> User | None:
-
         result = await self._db.execute(select(User).where(User.username == username))
 
         return result.scalar_one_or_none()
@@ -57,7 +53,6 @@ class UserService:
         email: str,
         password: str,
     ) -> User:
-
         existing_user = await self.get_user_by_email(email)
 
         if existing_user:
