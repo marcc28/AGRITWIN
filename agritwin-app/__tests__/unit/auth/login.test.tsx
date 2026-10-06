@@ -67,6 +67,30 @@ const mockedSetAuth = setAuth as jest.MockedFunction<typeof setAuth>;
 const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
 const mockedRouterReplace =
   router.replace as jest.MockedFunction<typeof router.replace>;
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'login.title': 'Inicia sessió',
+        'login.username': "Nom d'usuari",
+        'login.password': 'Contrasenya',
+        'login.socialLogin': 'O inicia sessió amb',
+        'login.signUp': 'Sign Up',
+        'login.logIn': 'Log In',
+        'login.loggingIn': 'Logging in...',
+        'login.errors.usernameAndPassword':
+          'Introdueix el nom d’usuari i la contrasenya',
+        'login.errors.username': 'Introdueix el nom d’usuari',
+        'login.errors.password': 'Introdueix la contrasenya',
+        'login.errors.invalidCredentials':
+          'Contrasenya incorrecta. Fes sign up si no tens compte.',
+        'common.error': 'Error',
+      };
+
+      return translations[key] ?? key;
+    },
+  }),
+}));
 
 describe('LoginScreen', () => {
   beforeEach(() => {

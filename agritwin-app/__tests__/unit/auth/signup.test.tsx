@@ -63,6 +63,28 @@ const getPrivacyCheckbox = () =>
   screen.getByLabelText('Accept privacy notice');
 const getSecurityCheckbox = () =>
   screen.getByLabelText('Accept security policy');
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'signup.title': 'Crear compte',
+        'signup.errors.requiredFields': 'Omple tots els camps',
+        'signup.errors.invalidEmail': "Format d'email incorrecte",
+        'signup.errors.passwordMismatch':
+          'Les contrasenyes no coincideixen',
+        'signup.errors.privacyRequired':
+          'Has d’acceptar la Privacy Notice',
+        'signup.errors.securityRequired':
+          'Has d’acceptar la Security Policy',
+        'signup.errors.createFailed':
+          'No s’ha pogut crear el compte',
+        'signup.success': "El compte s'ha creat correctament",
+      };
+
+      return translations[key] ?? key;
+    },
+  }),
+}));
 
 describe('SignupScreen', () => {
   beforeEach(() => {

@@ -69,8 +69,5 @@
     "format:check": "prettier --check .",
     "lint": "eslint ."
   },
-  "jest": {
-    "preset": "jest-expo"
-  },
   "private": true
 }

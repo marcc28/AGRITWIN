@@ -146,6 +146,7 @@ export default function SignupScreen() {
       );
 
       setSuccessMessage(t('signup.success'));
+      router.push('/auth/login');
     } catch (error) {
       const message =
         error instanceof Error
