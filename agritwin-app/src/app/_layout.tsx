@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Stack, router, useSegments } from 'expo-router';
+
 import { getAuth } from '../services/auth';
+import '../../i18n';
 
 export default function RootLayout() {
   const segments = useSegments();
@@ -13,6 +15,7 @@ export default function RootLayout() {
 
       if (auth?.token && inAuthGroup) {
         router.replace('/app/home');
+        return;
       }
 
       if (!auth?.token && !inAuthGroup) {
@@ -23,5 +26,7 @@ export default function RootLayout() {
     checkAuth();
   }, [segments]);
 
-  return <Stack />;
+  return (
+    <Stack screenOptions={{ headerShown: false }} />
+  );
 }

@@ -1,15 +1,25 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
-
-import { clearAuth } from '../../services/auth';
 import { router } from 'expo-router';
 
+import { clearAuth } from '../../services/auth';
 
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
 
   const currentLanguage = i18n.language;
+
+  const handleLanguageChange = async (value: string) => {
+    if (value !== i18n.language) {
+      await i18n.changeLanguage(value);
+    }
+  };
+
+  const handleLogout = async () => {
+    await clearAuth();
+    router.replace('/auth/login');
+  };
 
   return (
     <View style={styles.container}>
@@ -28,9 +38,7 @@ export default function SettingsScreen() {
 
         <Picker
           selectedValue={currentLanguage}
-          onValueChange={(value) => {
-            i18n.changeLanguage(value);
-          }}
+          onValueChange={handleLanguageChange}
           style={styles.picker}
         >
           <Picker.Item
@@ -69,6 +77,15 @@ export default function SettingsScreen() {
       <Text style={styles.item}>
         {t('settings.theme')}
       </Text>
+
+      <Pressable
+        style={styles.logoutButton}
+        onPress={handleLogout}
+      >
+        <Text style={styles.logoutText}>
+          {t('settings.logout')}
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -106,9 +123,17 @@ const styles = StyleSheet.create({
   picker: {
     width: '100%',
   },
-});
 
-async function handleLogout() {
-  await clearAuth();
-  router.replace('/auth/login');
-}
+  logoutButton: {
+    marginTop: 30,
+    padding: 15,
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#1089D3',
+  },
+
+  logoutText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+});

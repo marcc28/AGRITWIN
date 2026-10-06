@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "title": "Configuració",
+    "profile": "Perfil",
+    "language": "Idioma",
+    "units": "Unitats",
+    "notifications": "Notificacions",
+    "weatherAlerts": "Alertes meteorològiques",
+    "irrigationAlerts": "Alertes de reg",
+    "theme": "Tema"
+  },
+  "languages": {
+    "catalan": "Català",
+    "spanish": "Castellà",
+    "english": "Anglès"
+  }
+}
