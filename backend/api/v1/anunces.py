@@ -29,7 +29,6 @@ async def list_anunces(
         limit=limit,
     )
 
-
 @router.get(
     "/{id}",
     response_model=AnunceRead,
