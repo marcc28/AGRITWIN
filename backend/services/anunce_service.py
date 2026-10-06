@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.schema import Anunce
 
-
 class AnunceService:
     def __init__(self, session: AsyncSession):
         self._db = session
