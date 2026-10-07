@@ -75,8 +75,10 @@
     "italian": "Italian"
   },
   "market": {
-    "prices": "Preus",
+    "prices": "Prices",
     "news": "News",
-    "buy": "Compra"
+    "buy": "Buy",
+    "units": "units",
+    "errors": { "loadFailed": "Could not load market data" }
   }
 }

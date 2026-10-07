@@ -1,158 +1,168 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../constants/theme';
-const GREEN = '#00A651';
-const CARD = '#CCF8B5';
-const CHIP = '#0A9A3C';
-const TRACK = '#FADCDC';
 
-export const styles = StyleSheet.create({
-  trackWrap: { paddingHorizontal: 20, paddingTop: 12 },
-  track: {
-    flexDirection: 'row',
-    backgroundColor: TRACK,
-    borderRadius: 24,
-    padding: 4,
-    gap: 8,
-  },
-  segment: {
-    flex: 1,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#111',
-  },
-  segmentOn: { backgroundColor: GREEN },
-  segmentOff: { backgroundColor: '#fff' },
-  segmentText: { fontSize: 15, fontWeight: '700' },
-
-  list: { padding: 20, gap: 14, paddingBottom: 24 },
-
-  card: {
-    backgroundColor: CARD,
-    borderRadius: 28,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  productName: { fontSize: 22, fontWeight: '600', color: '#111' },
-  detail: { fontSize: 13, color: '#111', marginTop: 6 },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    marginTop: 14,
-  },
-  chip: {
-    alignSelf: 'flex-start',
-    backgroundColor: CHIP,
-    paddingHorizontal: 16,
-    paddingVertical: 3,
-    borderRadius: 14,
-    marginBottom: 8,
-  },
-  priceCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+export const getMarketStyles = (
+  colors: typeof Colors.light
+) => {
+  const styles = StyleSheet.create({
+    trackWrap: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
 
-  productHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
+    track: {
+      flexDirection: 'row',
+      backgroundColor: colors.surfaceSecondary,
+      borderRadius: 24,
+      padding: 4,
+      gap: 8,
+    },
 
-  mainPrice: {
-    backgroundColor: '#F3F8F1',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 14,
-  },
+    segment: {
+      flex: 1,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
 
-  priceLabel: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
+    segmentOn: {
+      backgroundColor: colors.primary,
+    },
 
-  priceInfoRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  priceInfo: {
-    flex: 1,
-    backgroundColor: '#F7F7F7',
-    borderRadius: 10,
-    padding: 12,
-  },
-  priceInfoLabel: {
-    fontSize: 12,
-    color: '#777',
-    marginBottom: 5,
-  },
-  priceInfoValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#222',
-  },
+    segmentOff: {
+      backgroundColor: colors.surface,
+    },
 
-  priceTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+    segmentText: {
+      fontSize: 15,
+      fontWeight: '700',
+    },
 
-  priceMain: {
-    marginLeft: 10,
-    alignItems: 'flex-end',
-  },
+    segmentTextOn: {
+      color: colors.surface,
+    },
 
-  priceValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2E7D32',
-  },
+    segmentTextOff: {
+      color: colors.text,
+    },
 
-  priceBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-    paddingTop: 9,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
+    list: {
+      padding: 20,
+      gap: 14,
+      paddingBottom: 24,
+    },
 
-  smallInfo: {
-    fontSize: 12,
-    color: '#666',
-    marginRight: 12,
-  },
+    priceCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 12,
+      marginBottom: 10,
 
-  buyBtn: {
-    marginLeft: 'auto',
-    backgroundColor: '#2E7D32',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 8,
-  },
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 3,
+    },
 
-  buyText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  chipText: { fontSize: 13, fontWeight: '600', color: '#fff' },
-  newsTitle: { fontSize: 15, fontWeight: '700', color: '#111' },
-  newsBody: { fontSize: 14, color: '#111', marginTop: 8, lineHeight: 20 },
-  source: { fontSize: 14, fontWeight: '700', color: '#111', marginTop: 10 },
-});
+    priceTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    productName: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+
+    detail: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+
+    priceMain: {
+      marginLeft: 10,
+      alignItems: 'flex-end',
+    },
+
+    priceValue: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+
+    priceBottom: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 10,
+      paddingTop: 9,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+
+    smallInfo: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginRight: 12,
+    },
+
+    buyBtn: {
+      marginLeft: 'auto',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 8,
+    },
+
+    buyText: {
+      color: colors.surface,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+
+    chip: {
+      alignSelf: 'flex-start',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 16,
+      paddingVertical: 3,
+      borderRadius: 14,
+      marginBottom: 8,
+    },
+
+    chipText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.surface,
+    },
+
+    newsTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    newsBody: {
+      fontSize: 14,
+      color: colors.text,
+      marginTop: 8,
+      lineHeight: 20,
+    },
+
+    source: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.textSecondary,
+      marginTop: 10,
+    },
+  });
+
+  return styles;
+};

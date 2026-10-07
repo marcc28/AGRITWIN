@@ -75,8 +75,12 @@
     "italian": "Italiano"
   },
   "market": {
-    "prices": "Preus",
-    "news": "News",
-    "buy": "Compra"
+    "prices": "Prezzi",
+    "news": "Notizie",
+    "buy": "Acquista",
+    "units": "unità",
+    "errors": {
+      "loadFailed": "Non è stato possibile caricare i dati del mercato"
+    }
   }
 }

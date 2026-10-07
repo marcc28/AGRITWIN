@@ -9,7 +9,8 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/constants/theme';
-import { styles } from '../../styles/market.styles';
+import { getMarketStyles } from '../../styles/market.styles';
+
 import { getcontentfeed, getnews } from '@/services/api';
 
 type Tab = 'prices' | 'news';
@@ -31,6 +32,8 @@ type News = {
   content: string;
 };
 
+const styles = getMarketStyles(Colors.light);
+
 export default function MarketScreen() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
@@ -40,21 +43,6 @@ export default function MarketScreen() {
   const [products, setProducts] = useState<Product[]>([]);
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadProducts() {
-      try {
-        const data = await getcontentfeed(0, 10);
-        setProducts(data);
-      } catch (error) {
-        console.error('Error carregant productes:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadProducts();
-  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -67,14 +55,14 @@ export default function MarketScreen() {
         setProducts(productsData);
         setNews(newsData);
       } catch (error) {
-        console.error('Error carregant dades del mercat:', error);
+        console.error(t('market.errors.loadFailed'), error);
       } finally {
         setLoading(false);
       }
     }
 
     loadData();
-  }, []);
+  }, [t]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -86,6 +74,7 @@ export default function MarketScreen() {
             return (
               <Pressable
                 key={k}
+                testID={`market-tab-${k}`}
                 onPress={() => setTab(k)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
@@ -114,10 +103,15 @@ export default function MarketScreen() {
       >
         {tab === 'prices'
           ? products.map((p) => (
-              <View key={p.id} style={styles.priceCard}>
+              <View
+                key={p.id}
+                testID={`product-item-${p.id}`}
+                style={styles.priceCard}
+              >
                 <View style={styles.priceTop}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.productName}>{p.product}</Text>
+
                     <Text style={styles.detail}>{p.tecnical_name}</Text>
                   </View>
 
@@ -134,10 +128,11 @@ export default function MarketScreen() {
                   </Text>
 
                   <Text style={styles.smallInfo}>
-                    {Number(p.left_units).toFixed(2)} unitats
+                    {Number(p.left_units).toFixed(2)} {t('market.units')}
                   </Text>
 
                   <Pressable
+                    testID={`buy-button-${p.id}`}
                     onPress={() => {}}
                     style={({ pressed }) => [
                       styles.buyBtn,
@@ -150,7 +145,11 @@ export default function MarketScreen() {
               </View>
             ))
           : news.map((n) => (
-              <View key={n.id} style={styles.card}>
+              <View
+                key={n.id}
+                testID={`news-item-${n.id}`}
+                style={styles.priceCard}
+              >
                 <View style={styles.chip}>
                   <Text style={styles.chipText}>{n.subtile}</Text>
                 </View>
@@ -158,6 +157,7 @@ export default function MarketScreen() {
                 <Text style={styles.newsTitle}>{n.title}</Text>
 
                 <Text style={styles.newsBody}>{n.content}</Text>
+
                 <Text style={styles.source}>{n.agent}</Text>
               </View>
             ))}

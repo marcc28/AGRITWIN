@@ -76,7 +76,9 @@
   },
   "market": {
     "prices": "Preus",
-    "news": "News",
-    "buy": "Compra"
+    "news": "Notícies",
+    "buy": "Compra",
+    "units": "unitats",
+    "errors": { "loadFailed": "No s'han pogut carregar les dades del mercat" }
   }
 }

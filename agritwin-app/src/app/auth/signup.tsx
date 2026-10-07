@@ -286,7 +286,7 @@ export default function SignupScreen() {
           {/* Privacy */}
           <View style={styles.checkboxRow}>
             <Pressable
-              testID="privacy-checkbox"
+              testID="privacy-checkbox-press"
               onPress={() => setPrivacyAccepted(!privacyAccepted)}
               disabled={loading}
               accessibilityRole="checkbox"
@@ -308,7 +308,8 @@ export default function SignupScreen() {
 
             <Text style={styles.legalText}>
               He llegit i accepto la{' '}
-              <Text
+              <Text 
+                testID="privacy-checkbox-open"
                 style={styles.link}
                 onPress={() => openLegalDocument('privacy')}
               >
@@ -321,7 +322,7 @@ export default function SignupScreen() {
           {/* Security */}
           <View style={styles.checkboxRow}>
             <Pressable
-              testID="security-checkbox"
+              testID="security-checkbox-press"
               onPress={() => setSecurityAccepted(!securityAccepted)}
               disabled={loading}
               accessibilityRole="checkbox"

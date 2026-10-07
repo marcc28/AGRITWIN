@@ -31,6 +31,14 @@ jest.mock('../../../src/services/api', () => ({
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      changeLanguage: jest.fn(),
+    },
+  }),
+}));
 
 jest.mock('../../../src/components/Alert', () => {
   const React = require('react');
@@ -100,8 +108,8 @@ describe('SignupScreen', () => {
       expect(screen.getByTestId('signup-password-confirm')).toBeTruthy();
       expect(screen.getByTestId('signup-email')).toBeTruthy();
 
-      expect(screen.getByTestId('privacy-checkbox')).toBeTruthy();
-      expect(screen.getByTestId('security-checkbox')).toBeTruthy();
+      expect(screen.getByTestId('privacy-checkbox-press')).toBeTruthy();
+      expect(screen.getByTestId('security-checkbox-press')).toBeTruthy();
 
       expect(screen.getByTestId('login-button')).toBeTruthy();
       expect(screen.getByTestId('signup-button')).toBeTruthy();
@@ -150,7 +158,7 @@ describe('SignupScreen', () => {
       fillValidSignupForm();
 
       // Privacy queda sense acceptar
-      fireEvent.press(screen.getByTestId('security-checkbox'));
+      fireEvent.press(screen.getByTestId('security-checkbox-press'));
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -164,7 +172,7 @@ describe('SignupScreen', () => {
       fillValidSignupForm();
 
       // Privacy acceptada, security no
-      fireEvent.press(screen.getByTestId('privacy-checkbox'));
+      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -189,8 +197,8 @@ describe('SignupScreen', () => {
         'Password123',
       );
 
-      fireEvent.press(screen.getByTestId('privacy-checkbox'));
-      fireEvent.press(screen.getByTestId('security-checkbox'));
+      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
+      fireEvent.press(screen.getByTestId('security-checkbox-press'));
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -259,8 +267,8 @@ describe('SignupScreen', () => {
 
       fillValidSignupForm();
 
-      fireEvent.press(screen.getByTestId('privacy-checkbox'));
-      fireEvent.press(screen.getByTestId('security-checkbox'));
+      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
+      fireEvent.press(screen.getByTestId('security-checkbox-press'));
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -278,8 +286,8 @@ describe('SignupScreen', () => {
 
       fillValidSignupForm();
 
-      fireEvent.press(screen.getByTestId('privacy-checkbox'));
-      fireEvent.press(screen.getByTestId('security-checkbox'));
+      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
+      fireEvent.press(screen.getByTestId('security-checkbox-press'));
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -372,19 +380,27 @@ describe('SignupScreen', () => {
 
       expect(mockedGetSecurityPolicy).toHaveBeenCalledTimes(1);
     });
-
+    
     it('shows an error when the privacy policy cannot be loaded', async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
       mockedGetPrivacyPolicy.mockRejectedValue(
         new Error('Error carregant Privacy Policy'),
       );
 
       render(<SignupScreen />);
 
-      fireEvent.press(screen.getByText('Privacy Notice'));
+      fireEvent.press(screen.getByTestId('privacy-checkbox-open'));
 
       expect(
         await screen.findByText('Error carregant Privacy Policy'),
       ).toBeTruthy();
+
+      expect(mockedGetPrivacyPolicy).toHaveBeenCalledTimes(1);
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('closes the legal modal', async () => {
