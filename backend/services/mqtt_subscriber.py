@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 
-
+from db.database import save_telemetry
 # MQTT CONFIGURATION
 
 MQTT_BROKER = "broker.hivemq.com"
@@ -30,10 +30,11 @@ def on_message(client, userdata, msg):
         
         print(f"\n[BACKEND-RECEIVE] New data intercepted on topic: {msg.topic}")
         # Pretty-print the JSON data
-        print(json.dumps(payload, indent=4))
+        print(json.dumps(payload, indent=4)) 
         
-        # TODO for Flavio: Pass this 'payload' dictionary to the database functions
-        # e.g., db.save_telemetry_data(payload)
+        # --- DATABASE CONNECTION ---
+        # Pass the 'payload' dictionary directly to the database function
+        save_telemetry(payload)
         
     except json.JSONDecodeError:
         print("[BACKEND-ERROR] Received message is not a valid JSON.")
