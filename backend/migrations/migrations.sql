@@ -95,7 +95,6 @@ CREATE INDEX idx_user_consents_username
     ON user_consents(username);
 
 
-
 INSERT INTO public.anunces (id, title, subtile, agent, content, created_at) VALUES
 (1, 'Oferta de tomàquets', 'Tomàquets ecològics', 'AgriTwin', 'Tomàquets ecològics disponibles a bon preu aquesta setmana, amb diferents formats per a venda directa.', '2026-10-06 08:15:32.112543'),
 (2, 'Nova línia d''ajudes per a joves agricultors', 'Política agrària', 'Departament d''Agricultura', 'El Departament d''Agricultura anuncia una nova línia d''ajudes directes per a joves agricultors, amb un màxim de 15.000€ per explotació.', '2026-10-06 09:42:18.524697'),
@@ -144,3 +143,29 @@ VALUES
 (18, 'Albergínia', 'Solanum melongena', '2.65', '2.65', 65, '2026-10-06 15:42:31.815294'),
 (19, 'Coliflor', 'Brassica oleracea var. botrytis', '2.40', '2.40', 90, '2026-10-06 16:11:26.394728'),
 (20, 'Bròquil', 'Brassica oleracea var. italica', '2.75', '2.75', 80, '2026-10-06 16:38:54.721635');
+-- ============================================================
+-- TELEMETRIA (IoT Sensors Data)
+-- ============================================================
+
+CREATE TABLE telemetria (
+    id SERIAL PRIMARY KEY,
+    
+    device_id VARCHAR(255) NOT NULL,
+    
+    timestamp TIMESTAMP NOT NULL,
+    
+    temperatura NUMERIC,
+    
+    umidita_aria NUMERIC,
+    
+    umidita_terreno NUMERIC,
+    
+    luce NUMERIC
+);
+
+-- ============================================================
+-- INDEX FOR TELEMETRIA
+-- ============================================================
+
+CREATE INDEX idx_telemetria_device_timestamp
+    ON telemetria(device_id, timestamp);
