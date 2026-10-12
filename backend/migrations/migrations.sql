@@ -171,8 +171,4 @@ CREATE TABLE telemetria (
 -- ============================================================
 
 CREATE INDEX idx_telemetria_device_timestamp
-<<<<<<< HEAD
     ON telemetria(device_id, timestamp);
-=======
-    ON telemetria(device_id, timestamp);
->>>>>>> d0c4216 (33 feat(iot/backend): ESP32 MQTT simulator, subscriber service and unit tests)
