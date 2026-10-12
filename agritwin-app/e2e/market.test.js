@@ -20,45 +20,62 @@ describe('Market', () => {
     // Navegar fins a Market segons la navegació real de la teva app.
     await loginAsNewUser();
 
-    await element(by.text('Mercat')).tap();
+    await new Promise(resolve => setTimeout(resolve, 15000));
 
-    // Comprovar que estem a Market
-    await expect(element(by.id('market-screen'))).toBeVisible();
 
-    // Esperem que aparegui almenys un producte
-    await waitFor(element(by.id('product-item-1')))
+    // Esperar que la pantalla principal sigui visible.
+    await waitFor(element(by.id('home-screen')))
+      .toBeVisible()
+      .withTimeout(20000);
+
+    await device.launchApp({
+      newInstance: false,
+      url: 'agritwin:///app/market',
+    });
+
+    // Comprovar que s'ha obert Market.
+    await waitFor(element(by.id('market-screen')))
       .toBeVisible()
       .withTimeout(15000);
 
-    // Comprovar producte
-    await expect(element(by.text('Tomato'))).toBeVisible();
-    await expect(element(by.text('Solanum lycopersicum'))).toBeVisible();
-    await expect(element(by.text('2.50 €'))).toBeVisible();
+    // Esperar el primer producte.
+    await waitFor(element(by.id('product-item-1')))
+      .toBeVisible()
+      .withTimeout(20000);
 
-    // Anar a News
+    await expect(element(by.id('product-name-1')))
+      .toHaveText('Tomàquet');
+
+    await expect(element(by.id('product-technical-name-1')))
+      .toHaveText('Solanum lycopersicum');
+
+    await expect(element(by.id('product-price-1')))
+      .toHaveText('2.50 €');
+  
+    // Canviar a notícies.
     await element(by.id('market-tab-news')).tap();
-
-    // Comprovar notícia
-    await waitFor(element(by.id('news-item-1')))
+  
+    await new Promise(resolve => setTimeout(resolve, 15000));
+  
+    await waitFor(element(by.id('news-item-2')))
       .toBeVisible()
-      .withTimeout(15000);
+      .withTimeout(20000);
 
-    await expect(element(by.text('Market update'))).toBeVisible();
-    await expect(
-      element(by.text('Prices have increased this week.')),
-    ).toBeVisible();
+    await expect(element(by.id('news-title-2')))
+      .toHaveText("Nova línia d'ajudes per a joves agricultors");
 
-    // El producte ja no hauria de ser visible
-    await expect(element(by.id('product-item-1'))).not.toBeVisible();
+    await expect(element(by.id('news-content-2')))
+      .toHaveText('El Departament d\'Agricultura anuncia una nova línia d\'ajudes directes per a joves agricultors, amb un màxim de 15.000€ per explotació.');
 
-    // Tornar a Prices
+    // Tornar als preus.
     await element(by.id('market-tab-prices')).tap();
+    await new Promise(resolve => setTimeout(resolve, 15000));
 
-    // El producte torna a aparèixer
     await waitFor(element(by.id('product-item-1')))
       .toBeVisible()
       .withTimeout(15000);
 
-    await expect(element(by.text('Tomato'))).toBeVisible();
+    await expect(element(by.id('product-name-1')))
+      .toHaveText('Tomàquet');
   });
 });

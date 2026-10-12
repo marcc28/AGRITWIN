@@ -1,3 +1,4 @@
+
 module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/**/*.test.js'],

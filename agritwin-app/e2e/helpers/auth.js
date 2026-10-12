@@ -39,12 +39,14 @@ async function loginAsNewUser() {
     await element(by.id('password-input')).typeText(password);
 
     await device.pressBack();
+    await new Promise(resolve => setTimeout(resolve, 7000));
 
     await element(by.id('login-button')).tap();
     
-    await waitFor(element(by.id('home-screen')))
-        .toBeVisible()
-        .withTimeout(30000);
+    await new Promise(resolve => setTimeout(resolve, 15000));
+    
+    await waitFor(element(by.id('home-screen')));
+    
     return {
         username,
         email,

@@ -12,4 +12,6 @@ __pycache__
 Dockerfile
 docker-compose.yaml
 *.md
+!PRIVACY.md
+!SECURITY.md
 

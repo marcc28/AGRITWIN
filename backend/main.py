@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from api.v1 import anunces, auth, legal, user, content_market
+from api.v1 import anunces, auth, content_market, legal, user
 
 load_dotenv()
 
