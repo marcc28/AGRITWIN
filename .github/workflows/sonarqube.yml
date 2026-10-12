@@ -19,6 +19,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install uv and Python dependencies
+        uses: astral-sh/setup-uv@v5
+
+      - name: Run pytest and generate coverage.xml for Backend and IoT
+        env:
+          local_database_URL: "postgresql+asyncpg://user:pass@localhost:5432/testdb"
+        run: |
+          cd backend
+          uv sync
+          uv run pip install coverage pytest-cov
+          cd ..
+          PYTHONPATH=backend:iot backend/.venv/bin/coverage run --source=backend/services,backend/db,iot -m pytest backend/tests/unit/test_mqtt_subscriber.py
+          backend/.venv/bin/coverage xml -o coverage.xml
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v7
         env:
