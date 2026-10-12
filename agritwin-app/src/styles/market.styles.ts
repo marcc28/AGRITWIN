@@ -1,10 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../constants/theme';
 
-export const getMarketStyles = (
-  colors: typeof Colors.light
-) => {
-  const styles = StyleSheet.create({
+export const getMarketStyles = (colors: typeof Colors.light) => {
+  return StyleSheet.create({
     trackWrap: {
       paddingHorizontal: 20,
       paddingTop: 12,
@@ -41,18 +39,15 @@ export const getMarketStyles = (
       fontWeight: '700',
     },
 
-    segmentTextOn: {
-      color: colors.surface,
-    },
-
-    segmentTextOff: {
-      color: colors.text,
+    scroll: {
+      flex: 1,
     },
 
     list: {
       padding: 20,
       gap: 14,
       paddingBottom: 24,
+      flexGrow: 1,
     },
 
     priceCard: {
@@ -162,7 +157,54 @@ export const getMarketStyles = (
       color: colors.textSecondary,
       marginTop: 10,
     },
-  });
 
-  return styles;
+    pagination: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 24,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+
+    arrowButton: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 22,
+      backgroundColor: colors.surfaceSecondary,
+    },
+
+    arrowIcon: {
+      width: 24,
+      height: 24,
+    },
+
+    arrowDisabled: {
+      opacity: 0.3,
+    },
+
+    arrowPressed: {
+      opacity: 0.6,
+    },
+
+    pageText: {
+      minWidth: 48,
+      textAlign: 'center',
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+
+    statusText: {
+      paddingVertical: 24,
+      textAlign: 'center',
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+  });
 };

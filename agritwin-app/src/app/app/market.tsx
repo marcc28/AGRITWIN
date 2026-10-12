@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   Text,
@@ -10,7 +11,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/constants/theme';
 import { getMarketStyles } from '../../styles/market.styles';
-
 import { getcontentfeed, getnews } from '@/services/api';
 
 type Tab = 'prices' | 'news';
@@ -32,17 +32,35 @@ type News = {
   content: string;
 };
 
-const styles = getMarketStyles(Colors.light);
+const PAGE_SIZE = 5;
 
 export default function MarketScreen() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const styles = getMarketStyles(colors);
 
   const [tab, setTab] = useState<Tab>('prices');
   const [products, setProducts] = useState<Product[]>([]);
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+
+  const currentItems = tab === 'prices' ? products : news;
+  const totalPages = Math.ceil(currentItems.length / PAGE_SIZE);
+
+  const visibleProducts = products.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
+
+  const visibleNews = news.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
+
+  const canGoBack = page > 0;
+  const canGoForward = page + 1 < totalPages;
 
   useEffect(() => {
     async function loadData() {
@@ -64,6 +82,21 @@ export default function MarketScreen() {
     loadData();
   }, [t]);
 
+  const changeTab = (nextTab: Tab) => {
+    setTab(nextTab);
+    setPage(0);
+  };
+
+  const goBack = () => {
+    setPage((current) => Math.max(0, current - 1));
+  };
+
+  const goForward = () => {
+    setPage((current) =>
+      Math.min(Math.max(0, totalPages - 1), current + 1),
+    );
+  };
+
   return (
     <View
       testID="market-screen"
@@ -78,7 +111,7 @@ export default function MarketScreen() {
               <Pressable
                 key={k}
                 testID={`market-tab-${k}`}
-                onPress={() => setTab(k)}
+                onPress={() => changeTab(k)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
                 style={[
@@ -89,7 +122,7 @@ export default function MarketScreen() {
                 <Text
                   style={[
                     styles.segmentText,
-                    { color: active ? '#fff' : '#111' },
+                    { color: active ? '#fff' : colors.text },
                   ]}
                 >
                   {t(`market.${k}`)}
@@ -101,11 +134,17 @@ export default function MarketScreen() {
       </View>
 
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
       >
-        {tab === 'prices'
-          ? products.map((p) => (
+        {loading ? (
+          <Text style={styles.statusText}>
+            {t('common.loading', 'Carregant...')}
+          </Text>
+        ) : tab === 'prices' ? (
+          visibleProducts.length > 0 ? (
+            visibleProducts.map((p) => (
               <View
                 key={p.id}
                 testID={`product-item-${p.id}`}
@@ -161,40 +200,105 @@ export default function MarketScreen() {
                       pressed && { opacity: 0.7 },
                     ]}
                   >
-                    <Text testID={`buy-text-${p.id}`} style={styles.buyText}>
+                    <Text
+                      testID={`buy-text-${p.id}`}
+                      style={styles.buyText}
+                    >
                       {t('market.buy')}
                     </Text>
                   </Pressable>
                 </View>
               </View>
             ))
-          : news.map((n) => (
-              <View
-                key={n.id}
-                testID={`news-item-${n.id}`}
-                style={styles.priceCard}
-              >
-                <View style={styles.chip}>
-                  <Text
-                    testID={`news-subtitle-${n.id}`}
-                    style={styles.chipText}
-                  >
-                    {n.subtile}
-                  </Text>
-                </View>
-
-                <Text testID={`news-title-${n.id}`} style={styles.newsTitle}>
-                  {n.title}
+          ) : (
+            <Text style={styles.statusText}>No hi ha productes.</Text>
+          )
+        ) : visibleNews.length > 0 ? (
+          visibleNews.map((n) => (
+            <View
+              key={n.id}
+              testID={`news-item-${n.id}`}
+              style={styles.priceCard}
+            >
+              <View style={styles.chip}>
+                <Text
+                  testID={`news-subtitle-${n.id}`}
+                  style={styles.chipText}
+                >
+                  {n.subtile}
                 </Text>
-
-                <Text testID={`news-content-${n.id}`} style={styles.newsBody}>
-                  {n.content}
-                </Text>
-
-                <Text style={styles.source}>{n.agent}</Text>
               </View>
-            ))}
+
+              <Text
+                testID={`news-title-${n.id}`}
+                style={styles.newsTitle}
+              >
+                {n.title}
+              </Text>
+
+              <Text
+                testID={`news-content-${n.id}`}
+                style={styles.newsBody}
+              >
+                {n.content}
+              </Text>
+
+              <Text style={styles.source}>{n.agent}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.statusText}>No hi ha notícies.</Text>
+        )}
       </ScrollView>
+
+      {!loading && totalPages > 1 && (
+        <View style={styles.pagination}>
+          <Pressable
+            testID="market-previous-page"
+            accessibilityRole="button"
+            accessibilityLabel="Cinc elements enrere"
+            disabled={!canGoBack}
+            onPress={goBack}
+            style={({ pressed }) => [
+              styles.arrowButton,
+              !canGoBack && styles.arrowDisabled,
+              pressed && canGoBack && styles.arrowPressed,
+            ]}
+          >
+            <Image
+              source={require('@/assets/images/left_arrow.png')}
+              style={styles.arrowIcon}
+              resizeMode="contain"
+            />
+          </Pressable>
+
+          <Text
+            testID="market-page-indicator"
+            style={styles.pageText}
+          >
+            {page + 1} / {totalPages}
+          </Text>
+
+          <Pressable
+            testID="market-next-page"
+            accessibilityRole="button"
+            accessibilityLabel="Cinc elements endavant"
+            disabled={!canGoForward}
+            onPress={goForward}
+            style={({ pressed }) => [
+              styles.arrowButton,
+              !canGoForward && styles.arrowDisabled,
+              pressed && canGoForward && styles.arrowPressed,
+            ]}
+          >
+            <Image
+              source={require('@/assets/images/right_arrow.png')}
+              style={styles.arrowIcon}
+              resizeMode="contain"
+            />
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
