@@ -19,6 +19,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Run pytest and generate coverage.xml
+        env:
+          # Use dummy local URL for test initialization
+          local_database_URL: "sqlite+aiosqlite:///:memory:"
+        run: |
+          pip install uv
+          cd backend
+          uv sync
+          uv run pip install coverage pytest-cov
+          cd ..
+          PYTHONPATH=backend:iot backend/.venv/bin/coverage run \
+            --source=backend/services,backend/db,iot \
+            --omit="*/__init__.py" \
+            -m pytest backend/tests/unit/test_mqtt_subscriber.py
+          backend/.venv/bin/coverage xml -o coverage.xml
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v7
         env:

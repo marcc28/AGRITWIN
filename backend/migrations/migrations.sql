@@ -74,3 +74,30 @@ CREATE TABLE user_consents (
 
 CREATE INDEX idx_user_consents_username
     ON user_consents(username);
+
+-- ============================================================
+-- TELEMETRIA (IoT Sensors Data)
+-- ============================================================
+
+CREATE TABLE telemetria (
+    id SERIAL PRIMARY KEY,
+    
+    device_id VARCHAR(255) NOT NULL,
+    
+    timestamp TIMESTAMP NOT NULL,
+    
+    temperatura NUMERIC,
+    
+    umidita_aria NUMERIC,
+    
+    umidita_terreno NUMERIC,
+    
+    luce NUMERIC
+);
+
+-- ============================================================
+-- INDEX FOR TELEMETRIA
+-- ============================================================
+
+CREATE INDEX idx_telemetria_device_timestamp
+    ON telemetria(device_id, timestamp);
