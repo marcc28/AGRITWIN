@@ -230,10 +230,3 @@ async def read_me(
 
     return userprofile
 
-
-@router.get("/")
-async def index(request: Request):
-    return templates.TemplateResponse(
-        name="home.html",
-        context={"request": request},
-    )
