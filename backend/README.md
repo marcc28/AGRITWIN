@@ -1,11 +1,31 @@
-Executar codi backend:
+## Executar el backend
 
-1. pip install uv
-2. uv sync
-3. uv run uvicorn main:app --reload
+1. Instal·lar `uv`:
 
+   ```bash
+   pip install uv
+   ```
 
-Executar linter:
+2. Instal·lar les dependències del projecte:
 
-Executar formater:
+   ```bash
+   uv sync
+   ```
+
+3. Iniciar el servidor backend:
+
+   ```bash
+   uv run uvicorn main:app --reload
+   ```
+
+## Executar el linter
+
+```bash
+uv run ruff check .
+```
+
+## Executar el formatador
+
+```bash
 uv run ruff format .
+```
