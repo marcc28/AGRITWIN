@@ -1,7 +1,9 @@
-import paho.mqtt.client as mqtt
 import json
 
+import paho.mqtt.client as mqtt
+
 from db.database import save_telemetry
+
 # MQTT CONFIGURATION
 
 MQTT_BROKER = "broker.hivemq.com"

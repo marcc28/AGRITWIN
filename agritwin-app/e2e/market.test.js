@@ -55,7 +55,7 @@ describe('Market', () => {
     // Canviar a notícies.
     await element(by.id('market-tab-news')).tap();
   
-    await new Promise(resolve => setTimeout(resolve, 15000));
+    await new Promise(resolve => setTimeout(resolve, 7000));
   
     await waitFor(element(by.id('news-item-2')))
       .toBeVisible()
@@ -69,7 +69,7 @@ describe('Market', () => {
 
     // Tornar als preus.
     await element(by.id('market-tab-prices')).tap();
-    await new Promise(resolve => setTimeout(resolve, 15000));
+    await new Promise(resolve => setTimeout(resolve, 7000));
 
     await waitFor(element(by.id('product-item-1')))
       .toBeVisible()

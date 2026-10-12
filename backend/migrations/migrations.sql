@@ -94,7 +94,6 @@ CREATE TABLE conte_mercat (
 CREATE INDEX idx_user_consents_username
     ON user_consents(username);
 
-<<<<<<< HEAD
 
 INSERT INTO public.anunces (id, title, subtile, agent, content, created_at) VALUES
 (1, 'Oferta de tomàquets', 'Tomàquets ecològics', 'AgriTwin', 'Tomàquets ecològics disponibles a bon preu aquesta setmana, amb diferents formats per a venda directa.', '2026-10-06 08:15:32.112543'),
@@ -144,8 +143,6 @@ VALUES
 (18, 'Albergínia', 'Solanum melongena', '2.65', '2.65', 65, '2026-10-06 15:42:31.815294'),
 (19, 'Coliflor', 'Brassica oleracea var. botrytis', '2.40', '2.40', 90, '2026-10-06 16:11:26.394728'),
 (20, 'Bròquil', 'Brassica oleracea var. italica', '2.75', '2.75', 80, '2026-10-06 16:38:54.721635');
-=======
->>>>>>> d0c4216 (33 feat(iot/backend): ESP32 MQTT simulator, subscriber service and unit tests)
 -- ============================================================
 -- TELEMETRIA (IoT Sensors Data)
 -- ============================================================

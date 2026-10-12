@@ -3,7 +3,8 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from supabase import create_client, Client
+from supabase import Client, create_client
+
 from db.schema import Base
 
 load_dotenv()
