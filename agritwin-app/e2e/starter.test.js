@@ -4,7 +4,6 @@ describe('Signup', () => {
 
     await device.launchApp({
       newInstance: true,
-      delete: true,
     });
   });
 
@@ -22,8 +21,8 @@ describe('Signup', () => {
     await element(by.id('signup-password-confirm')).typeText(password);
     await element(by.id('signup-email')).typeText(email);
     await device.pressBack();
-    await element(by.id('privacy-checkbox')).tap();
-    await element(by.id('security-checkbox')).tap();
+    await element(by.id('privacy-checkbox-press')).tap();
+    await element(by.id('security-checkbox-press')).tap();
     await element(by.id('signup-button')).tap();
 
   });

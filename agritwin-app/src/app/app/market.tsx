@@ -65,7 +65,10 @@ export default function MarketScreen() {
   }, [t]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View
+      testID="market-screen"
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       <View style={styles.trackWrap}>
         <View style={styles.track}>
           {(['prices', 'news'] as Tab[]).map((k) => {
@@ -110,24 +113,43 @@ export default function MarketScreen() {
               >
                 <View style={styles.priceTop}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.productName}>{p.product}</Text>
+                    <Text
+                      testID={`product-name-${p.id}`}
+                      style={styles.productName}
+                    >
+                      {p.product}
+                    </Text>
 
-                    <Text style={styles.detail}>{p.tecnical_name}</Text>
+                    <Text
+                      testID={`product-technical-name-${p.id}`}
+                      style={styles.detail}
+                    >
+                      {p.tecnical_name}
+                    </Text>
                   </View>
 
                   <View style={styles.priceMain}>
-                    <Text style={styles.priceValue}>
+                    <Text
+                      testID={`product-price-${p.id}`}
+                      style={styles.priceValue}
+                    >
                       {Number(p.price).toFixed(2)} €
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.priceBottom}>
-                  <Text style={styles.smallInfo}>
+                  <Text
+                    testID={`product-price-kg-${p.id}`}
+                    style={styles.smallInfo}
+                  >
                     {Number(p.price_per_kg).toFixed(2)} €/kg
                   </Text>
 
-                  <Text style={styles.smallInfo}>
+                  <Text
+                    testID={`product-units-${p.id}`}
+                    style={styles.smallInfo}
+                  >
                     {Number(p.left_units).toFixed(2)} {t('market.units')}
                   </Text>
 
@@ -139,7 +161,9 @@ export default function MarketScreen() {
                       pressed && { opacity: 0.7 },
                     ]}
                   >
-                    <Text style={styles.buyText}>{t('market.buy')}</Text>
+                    <Text testID={`buy-text-${p.id}`} style={styles.buyText}>
+                      {t('market.buy')}
+                    </Text>
                   </Pressable>
                 </View>
               </View>
@@ -151,12 +175,21 @@ export default function MarketScreen() {
                 style={styles.priceCard}
               >
                 <View style={styles.chip}>
-                  <Text style={styles.chipText}>{n.subtile}</Text>
+                  <Text
+                    testID={`news-subtitle-${n.id}`}
+                    style={styles.chipText}
+                  >
+                    {n.subtile}
+                  </Text>
                 </View>
 
-                <Text style={styles.newsTitle}>{n.title}</Text>
+                <Text testID={`news-title-${n.id}`} style={styles.newsTitle}>
+                  {n.title}
+                </Text>
 
-                <Text style={styles.newsBody}>{n.content}</Text>
+                <Text testID={`news-content-${n.id}`} style={styles.newsBody}>
+                  {n.content}
+                </Text>
 
                 <Text style={styles.source}>{n.agent}</Text>
               </View>

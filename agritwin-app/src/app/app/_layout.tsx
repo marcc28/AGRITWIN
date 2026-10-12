@@ -22,7 +22,7 @@ export default function Layout() {
             selected: { color: colors.primary },
           }}
         >
-          <NativeTabs.Trigger name="home">
+          <NativeTabs.Trigger name="home" testID="home-navigation-tab">
             <NativeTabs.Trigger.Label>Inici</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
               src={require('@/assets/images/tabIcons/home.png')}
@@ -30,15 +30,15 @@ export default function Layout() {
             />
           </NativeTabs.Trigger>
 
-          <NativeTabs.Trigger name="explore">
+          <NativeTabs.Trigger name="explore" testID="explore-navigation-tab">
             <NativeTabs.Trigger.Label>Explorar</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
               src={require('@/assets/images/tabIcons/explore.png')}
               renderingMode="template"
             />
           </NativeTabs.Trigger>
-          
-          <NativeTabs.Trigger name="market">
+
+          <NativeTabs.Trigger name="market" testID="market-navigation-tab">
             <NativeTabs.Trigger.Label>Mercat</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
               src={require('@/assets/images/tabIcons/market.png')}
@@ -46,7 +46,7 @@ export default function Layout() {
             />
           </NativeTabs.Trigger>
 
-          <NativeTabs.Trigger name="settings">
+          <NativeTabs.Trigger name="settings" testID="settings-navigation-tab">
             <NativeTabs.Trigger.Label>Configuració</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
               src={require('@/assets/images/tabIcons/settings.png')}

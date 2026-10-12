@@ -7,7 +7,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
 
-      <View style={{ flex: 1, padding: 20 }}>
+      <View testID="home-screen" style={{ flex: 1, padding: 20 }}>
         <Text style={styles.title}>
           Benvingut a AgriTwin 🌱
         </Text>

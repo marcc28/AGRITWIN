@@ -1,4 +1,4 @@
-# Create an apk 👋
+# Create an apk for Android
 
 1. npm install -g eas-cli
 2. eas login
