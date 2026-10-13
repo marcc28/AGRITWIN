@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["Backend unit tests"]
     types: [completed]
+    branches: [dev, staging, prod, feature/47-sprint-1-devops-automation-workflows]
 
 jobs:
   sonarqube:
@@ -21,3 +22,6 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v7
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.python.coverage.reportPaths=coverage.xml

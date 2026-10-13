@@ -54,4 +54,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+            -Dsonar.python.coverage.reportPaths=coverage.xml
