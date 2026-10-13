@@ -49,7 +49,7 @@ STATUS_LABELS = {
     "building": "Building",
     "review": "Review",
     "blocked": "Blocked",
-    "complete": "Complete",
+    "complete": "Closed",
     "no_status": "No status",
 }
 
@@ -145,7 +145,7 @@ def github_get_all_issues():
     while True:
         params["page"] = page
         response = requests.get(
-            f"https://api.github.com/repos/{REPOSITORY}/issues",
+            f"https://api.github.com/repos/{REPOSITORY}/issues?state=all",
             headers=headers,
             params=params,
             timeout=30,
@@ -163,11 +163,30 @@ def filter_issues(items):
     return [item for item in items if not item.get("pull_request")]
 
 
-def get_status(issue):
-    # A closed issue is complete even when it has no ``complete`` label.
-    # Otherwise closed issues are included in the total but incorrectly
-    # remain in the pending-work series.
-    if str(issue.get("state", "")).lower() == "closed":
+def parse_github_date(value):
+    """Parse a GitHub ISO timestamp and return its UTC calendar date."""
+    if not value:
+        return None
+    return datetime.fromisoformat(str(value).replace("Z", "+00:00")).date()
+
+
+def is_closed_as_of(issue, as_of=None):
+    """Return whether an issue was closed on or before the given date."""
+    closed_at = parse_github_date(issue.get("closed_at"))
+
+    if as_of is not None:
+        return closed_at is not None and closed_at <= as_of
+
+    return (
+        str(issue.get("state", "")).lower() == "closed"
+        and closed_at is not None
+    )
+
+
+def get_status(issue, as_of=None):
+    # Use closed_at for historical rows so an issue is not shown as complete
+    # before the day on which GitHub actually closed it.
+    if is_closed_as_of(issue, as_of):
         return "complete"
 
     labels = issue.get("labels", [])
@@ -200,6 +219,21 @@ def save_history(rows, fieldnames):
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def update_historical_statuses(rows, issue_items):
+    """Recalculate status counts using each issue's actual closed_at date."""
+    for row in rows:
+        row_date = parse_date(row["date"])
+        status_count = Counter(
+            get_status(issue, row_date) for issue in issue_items
+        )
+        row["completed"] = status_count["complete"]
+        row["remaining"] = int(row["total"]) - row["completed"]
+        for status in STATUS_ORDER:
+            row[status] = status_count[status]
+
+    return rows
 
 
 def style_axis(axis):
@@ -305,6 +339,7 @@ for status in STATUS_ORDER:
 
 history.append(snapshot)
 history.sort(key=lambda row: row["date"])
+history = update_historical_statuses(history, issues)
 
 save_history(history, fields)
 
