@@ -49,11 +49,10 @@ jobs:
           LOCAL_DATABASE_URL: ${{ secrets.LOCAL_DATABASE_URL }}
           EXTERN_DATABASE_URL: ${{ secrets.EXTERN_DATABASE_URL }}
         run: >
-          uv run pytest -v
-          --cov
-          --cov-report=term-missing
-          --cov-report=xml:coverage.xml
-
+            uv run pytest 
+            -v --cov 
+            --cov-report=term-missing 
+            --cov-report=xml:coverage.xml
       # -------------------------
       # FRONTEND - REACT NATIVE
       # -------------------------
