@@ -6,7 +6,6 @@ import pytest
 
 from services.content_market_service import ConteMercatService
 
-
 @pytest.fixture
 def db():
     return AsyncMock()

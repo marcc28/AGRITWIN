@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 
 from api.v1.user import get_user_service, router
 
-
 @pytest.fixture
 def mock_service():
     return AsyncMock()
