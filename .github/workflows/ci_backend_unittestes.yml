@@ -4,7 +4,6 @@ on:
   push:
     branches: ["dev", "staging", "prod"]
   pull_request:
-    branches: ["staging", "prod"]
   workflow_dispatch:
 
 permissions:
