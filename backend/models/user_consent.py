@@ -3,6 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+
 class UserConsentCreate(BaseModel):
     document_type: str
     document_version: str

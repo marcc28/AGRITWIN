@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
+
 class ConteMercatCreate(BaseModel):
     product: str
     tecnical_name: str | None = None

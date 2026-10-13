@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from services.anunce_service import AnunceService
 
+
 @pytest.mark.asyncio
 async def test_list_anunces():
     db = MagicMock()
@@ -116,9 +117,7 @@ async def test_get_anunces_by_title_not_found():
 
     db.execute = AsyncMock(return_value=result)
 
-    response = await service.get_anunces_by_title(
-        "Titol inexistent"
-    )
+    response = await service.get_anunces_by_title("Titol inexistent")
 
     assert response == []
 
@@ -159,9 +158,7 @@ async def test_get_anunces_by_agent_not_found():
 
     db.execute = AsyncMock(return_value=result)
 
-    response = await service.get_anunces_by_agent(
-        "Agent inexistent"
-    )
+    response = await service.get_anunces_by_agent("Agent inexistent")
 
     assert response == []
 
@@ -225,9 +222,7 @@ async def test_delete_anunce():
 
     anunce = MagicMock()
 
-    service.get_anunce_by_id = AsyncMock(
-        return_value=anunce
-    )
+    service.get_anunce_by_id = AsyncMock(return_value=anunce)
 
     db.delete = AsyncMock()
     db.commit = AsyncMock()
@@ -245,9 +240,7 @@ async def test_delete_anunce_not_found():
     db = MagicMock()
     service = AnunceService(db)
 
-    service.get_anunce_by_id = AsyncMock(
-        return_value=None
-    )
+    service.get_anunce_by_id = AsyncMock(return_value=None)
 
     db.delete = AsyncMock()
     db.commit = AsyncMock()

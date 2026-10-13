@@ -39,14 +39,15 @@ async def init_db():
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SECRET_KEY")
-#print("URL:", SUPABASE_URL) debug
-#print("KEY:", None if not SUPABASE_KEY else (len(SUPABASE_KEY), SUPABASE_KEY[:8], SUPABASE_KEY[-4:])) debug
+# print("URL:", SUPABASE_URL) debug
+# print("KEY:", None if not SUPABASE_KEY else (len(SUPABASE_KEY), SUPABASE_KEY[:8], SUPABASE_KEY[-4:])) debug
 # Initialize Supabase client if credentials exist
 if SUPABASE_URL and SUPABASE_KEY:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 else:
     supabase = None
     print("[WARNING] Supabase credentials not found in .env")
+
 
 def save_telemetry(payload: dict):
     """Function to save MQTT data directly to Supabase"""
@@ -58,7 +59,7 @@ def save_telemetry(payload: dict):
         device_id = payload.get("device_id")
         timestamp = payload.get("timestamp")
         sensors = payload.get("sensors", {})
-        
+
         # NOTE: Ensure these keys match the exact column names in Supabase
         data_to_insert = {
             "device_id": device_id,
@@ -66,12 +67,12 @@ def save_telemetry(payload: dict):
             "temperatura": sensors.get("air_temperature_c"),
             "umidita_aria": sensors.get("air_humidity_percent"),
             "umidita_terreno": sensors.get("soil_moisture_percent"),
-            "luce": sensors.get("light_intensity_lux")
+            "luce": sensors.get("light_intensity_lux"),
         }
-        
+
         # Insert data into the 'telemetria' table
-        supabase.table('telemetria').insert(data_to_insert).execute()
+        supabase.table("telemetria").insert(data_to_insert).execute()
         print(f"[DATABASE-SUCCESS] Telemetry data from {device_id} saved to Supabase!")
-        
+
     except Exception as e:
         print(f"[DATABASE-ERROR] Error saving telemetry: {e}")

@@ -6,6 +6,7 @@ import pytest
 
 from services.content_market_service import ConteMercatService
 
+
 @pytest.fixture
 def db():
     return AsyncMock()
@@ -135,7 +136,7 @@ async def test_get_conte_mercat_by_product_not_found(service, db):
 
 @pytest.mark.asyncio
 async def test_create_conte_mercat(service, db):
-    
+
     # Quan es fa refresh, el model ja queda actualitzat.
     async def refresh(obj):
         # Simulem que la BD assigna un ID
@@ -199,9 +200,7 @@ async def test_delete_conte_mercat(service, db):
 
     # Mockegem el mètode del mateix service perquè aquest test
     # només comprovi la lògica de delete.
-    service.get_conte_mercat_by_id = AsyncMock(
-        return_value=conte_mercat
-    )
+    service.get_conte_mercat_by_id = AsyncMock(return_value=conte_mercat)
 
     await service.delete_conte_mercat(1)
 
@@ -213,9 +212,7 @@ async def test_delete_conte_mercat(service, db):
 
 @pytest.mark.asyncio
 async def test_delete_conte_mercat_not_found(service, db):
-    service.get_conte_mercat_by_id = AsyncMock(
-        return_value=None
-    )
+    service.get_conte_mercat_by_id = AsyncMock(return_value=None)
 
     with pytest.raises(Exception) as exc_info:
         await service.delete_conte_mercat(999)

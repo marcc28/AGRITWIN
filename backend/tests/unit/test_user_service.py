@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from db.schema import User
 from services.user_service import UserService
 
+
 @pytest.mark.asyncio
 async def test_create_user_success():
     db = MagicMock()

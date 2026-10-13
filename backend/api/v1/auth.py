@@ -229,4 +229,3 @@ async def read_me(
         )
 
     return userprofile
-

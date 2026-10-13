@@ -17,8 +17,7 @@ for path_str in (str(PROJECT_ROOT), str(IOT_DIR)):
 # Set a fallback database URL for CI environments before importing db.database
 os.environ.setdefault("local_database_URL", "postgresql+asyncpg://user:pass@localhost:5432/testdb")
 
-import mqtt_sensor_simulator# type: ignore
-
+import mqtt_sensor_simulator  # type: ignore # noqa: E402
 
 # 1. UNIT TESTS FOR SAVE_TELEMETRY (backend/db/database.py)
 
@@ -42,21 +41,23 @@ def test_save_telemetry_success(monkeypatch):
             "air_temperature_c": 21.5,
             "air_humidity_percent": 62.0,
             "soil_moisture_percent": 44.0,
-            "light_intensity_lux": 29500.0
-        }
+            "light_intensity_lux": 29500.0,
+        },
     }
 
     db_module.save_telemetry(payload)
 
     mock_sb.table.assert_called_once_with("telemetria")
-    mock_sb.table.return_value.insert.assert_called_once_with({
-        "device_id": "esp32_sim_01",
-        "timestamp": "2026-10-12T10:00:00Z",
-        "temperatura": 21.5,
-        "umidita_aria": 62.0,
-        "umidita_terreno": 44.0,
-        "luce": 29500.0
-    })
+    mock_sb.table.return_value.insert.assert_called_once_with(
+        {
+            "device_id": "esp32_sim_01",
+            "timestamp": "2026-10-12T10:00:00Z",
+            "temperatura": 21.5,
+            "umidita_aria": 62.0,
+            "umidita_terreno": 44.0,
+            "luce": 29500.0,
+        }
+    )
     mock_sb.table.return_value.insert.return_value.execute.assert_called_once()
 
 
@@ -69,8 +70,8 @@ def test_save_telemetry_exception(monkeypatch):
     db_module.save_telemetry({"device_id": "esp32_sim_01", "sensors": {}})
 
 
-
 # 2. UNIT TESTS FOR MQTT SUBSCRIBER (backend/services/mqtt_subscriber.py)
+
 
 def test_subscriber_on_connect():
     """Verify MQTT subscriber on_connect callback for both success (rc=0) and error (rc!=0)."""
@@ -97,7 +98,7 @@ def test_subscriber_on_message(monkeypatch):
     sample_payload = {
         "device_id": "esp32_sim_01",
         "timestamp": "2026-10-12T10:00:00Z",
-        "sensors": {"air_temperature_c": 22.0}
+        "sensors": {"air_temperature_c": 22.0},
     }
     valid_msg.payload = json.dumps(sample_payload).encode("utf-8")
 
@@ -122,9 +123,7 @@ def test_start_mqtt_listener(monkeypatch):
 
     client_instance = mock_mqtt_client_cls.return_value
     client_instance.connect.assert_called_once_with(
-        mqtt_subscriber.MQTT_BROKER,
-        mqtt_subscriber.MQTT_PORT,
-        60
+        mqtt_subscriber.MQTT_BROKER, mqtt_subscriber.MQTT_PORT, 60
     )
     client_instance.loop_forever.assert_called_once()
 

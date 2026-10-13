@@ -9,10 +9,11 @@ from db.database import save_telemetry
 MQTT_BROKER = "broker.hivemq.com"
 MQTT_PORT = 1883
 # Using the '#' wildcard to subscribe to ALL fields (e.g., field_1, field_2)
-MQTT_TOPIC = "agritwin/sensors/#" 
+MQTT_TOPIC = "agritwin/sensors/#"
 
 
 # MQTT CALLBACKS
+
 
 def on_connect(client, userdata, flags, rc):
     """Callback triggered when connected to the broker."""
@@ -24,29 +25,31 @@ def on_connect(client, userdata, flags, rc):
     else:
         print(f"[BACKEND-ERROR] Connection failed. Code: {rc}")
 
+
 def on_message(client, userdata, msg):
     """Callback triggered when a new message is received from the broker."""
     try:
         # Decode the JSON payload received from the ESP32 (or simulator)
-        payload = json.loads(msg.payload.decode('utf-8'))
-        
+        payload = json.loads(msg.payload.decode("utf-8"))
+
         print(f"\n[BACKEND-RECEIVE] New data intercepted on topic: {msg.topic}")
         # Pretty-print the JSON data
-        print(json.dumps(payload, indent=4)) 
-        
+        print(json.dumps(payload, indent=4))
+
         # --- DATABASE CONNECTION ---
         # Pass the 'payload' dictionary directly to the database function
         save_telemetry(payload)
-        
+
     except json.JSONDecodeError:
         print("[BACKEND-ERROR] Received message is not a valid JSON.")
 
 
 # MAIN LISTENER FUNCTION
 
+
 def start_mqtt_listener():
     print("[BACKEND-INFO] Initializing MQTT Subscriber Service...")
-    
+
     # Initialize client with API Version 1
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, "AgriTwin_FastAPI_Backend")
     client.on_connect = on_connect
@@ -54,9 +57,10 @@ def start_mqtt_listener():
 
     print("[BACKEND-INFO] Attempting connection...")
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
-    
+
     # loop_forever() blocks the execution and keeps listening indefinitely
     client.loop_forever()
+
 
 if __name__ == "__main__":
     start_mqtt_listener()
