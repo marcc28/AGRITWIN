@@ -2,9 +2,19 @@ name: OWASP ZAP Security Scan
 
 on:
   push:
-    branches: [ "dev", "staging", "prod", "feature/47-sprint-1-devops-automation-workflows" ]
+    branches:
+      - dev
+      - staging
+      - prod
+      - feature/47-sprint-1-devops-automation-workflows
+
   pull_request:
-    branches: [ "dev" ,"staging", "prod", "feature/47-sprint-1-devops-automation-workflows" ]
+    branches:
+      - dev
+      - staging
+      - prod
+      - feature/47-sprint-1-devops-automation-workflows
+
   workflow_dispatch:
 
 permissions:
@@ -13,17 +23,18 @@ permissions:
 jobs:
   zap-scan:
     name: Scan Backend with OWASP ZAP
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
           target: 'https://backend-web-ur8z.onrender.com/'
           cmd_options: '-a'
+          allow_issue_writing: false
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
