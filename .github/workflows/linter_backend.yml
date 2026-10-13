@@ -30,10 +30,15 @@ jobs:
 
       # Install dependencies using uv
       - name: Install dependencies with uv
-        working-directory: .
+        working-directory: ./backend
         run: uv sync --frozen
-
+    
+     # Run Ruff format using uv run (virtualenv managed by uv)  
+      - name: Run Ruff format
+        working-directory: ./backend
+        run: uv run ruff format --check .
+    
       # Run Ruff checks using uv run (virtualenv managed by uv)
       - name: Run Ruff check
-        working-directory: .
+        working-directory: ./backend
         run: uv run ruff check .
