@@ -1,0 +1,63 @@
+name: Generate project progress charts
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    # Cada dia a les 06:17 UTC
+    - cron: "17 6 * * *" 
+
+permissions:
+  contents: write
+  issues: read
+
+concurrency:
+  group: project-progress-charts
+  cancel-in-progress: false
+
+jobs:
+  generate-charts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests matplotlib
+
+      - name: Generate burn up and burn down charts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+
+          # Deixa-ho buit per incloure totes les issues.
+          # Exemple: "Sprint 1" o "Sprint 2"
+          MILESTONE_TITLE: ""
+
+          # Data prevista de finalització per a la línia ideal.
+          # Format YYYY-MM-DD
+          SPRINT_END_DATE: "2026-11-01"
+
+        run: python .github/scripts/generate_progress_charts.py
+
+      - name: Commit charts and history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add docs/progress/
+
+          if git diff --cached --quiet; then
+            echo "No changes detected."
+          else
+            git commit -m "docs: update burn charts"
+            git push
+          fi
