@@ -14,10 +14,10 @@ for path_str in (str(PROJECT_ROOT), str(IOT_DIR)):
 # Set a fallback database URL for CI environments before importing db.database
 os.environ.setdefault("local_database_URL", "postgresql+asyncpg://user:pass@localhost:5432/testdb")
 
-import db.database as db_module
-from services import mqtt_subscriber
 import mqtt_sensor_simulator
 
+import db.database as db_module
+from services import mqtt_subscriber
 
 # 1. UNIT TESTS FOR SAVE_TELEMETRY (backend/db/database.py)
 
