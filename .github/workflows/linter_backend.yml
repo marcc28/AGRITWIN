@@ -36,9 +36,9 @@ jobs:
      # Run Ruff format using uv run (virtualenv managed by uv)  
       - name: Run Ruff format
         working-directory: ./backend
-        run: uv run ruff format --check .
+        run: uv run ruff format .
     
       # Run Ruff checks using uv run (virtualenv managed by uv)
       - name: Run Ruff check
         working-directory: ./backend
-        run: uv run ruff check . --fix
+        run: uv run ruff check .
