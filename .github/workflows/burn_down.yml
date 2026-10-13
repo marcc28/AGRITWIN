@@ -32,8 +32,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install requests matplotlib
-        
+        run: pip install matplotlib numpy scipy requests        
       - name: Generate burn up and burn down charts
         env:
           GH_TOKEN: ${{ github.token }}
@@ -57,3 +56,10 @@ jobs:
             git commit -m "docs: update burn charts"
             git push origin HEAD:${GITHUB_REF_NAME}
             fi
+      - name: Upload burn up and burn down charts
+        uses: actions/upload-artifact@v4
+        with:
+            name: project-progress-charts
+            path: docs/progress/*.svg
+            if-no-files-found: error
+            retention-days: 30

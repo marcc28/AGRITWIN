@@ -1,18 +1,27 @@
+
 import csv
 import os
 from collections import Counter
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
 import requests
+from scipy.interpolate import PchipInterpolator
 
+# ============================================================
+# CONFIGURACIÓ
+# ============================================================
 
 REPOSITORY = os.environ["REPOSITORY"]
 MILESTONE_TITLE = os.getenv("MILESTONE_TITLE", "").strip()
+SPRINT_START_DATE = os.getenv("SPRINT_START_DATE", "").strip()
 SPRINT_END_DATE = os.getenv("SPRINT_END_DATE", "").strip()
 
 OUTPUT_DIR = Path("docs/progress")
@@ -39,17 +48,58 @@ STATUS_LABELS = {
 }
 
 STATUS_COLORS = {
-    "planning": "#eab308",   # Groc
-    "building": "#fb923c",   # Taronja
-    "review": "#22c55e",     # Verd
-    "blocked": "#a855f7",    # Lila
-    "complete": "#2563eb",   # Blau
-    "no_status": "#ef4444",  # Vermell
+    "planning": "#F59E0B",
+    "building": "#F97316",
+    "review": "#10B981",
+    "blocked": "#A855F7",
+    "complete": "#3B82F6",
+    "no_status": "#EF4444",
 }
 
+COLORS = {
+    "blue": "#3B82F6",
+    "blue_dark": "#1D4ED8",
+    "blue_fill": "#93C5FD",
+    "green": "#10B981",
+    "green_fill": "#A7F3D0",
+    "orange": "#F97316",
+    "orange_fill": "#FED7AA",
+    "gray": "#94A3B8",
+    "text": "#1E293B",
+    "muted": "#64748B",
+    "grid": "#CBD5E1",
+}
+
+# Configuració gràfica moderna
+plt.rcParams.update({
+    "figure.figsize": (13, 6.5),
+    "figure.dpi": 120,
+    "figure.facecolor": "#FFFFFF",
+    "axes.facecolor": "#FFFFFF",
+    "axes.edgecolor": "#E2E8F0",
+    "axes.labelcolor": COLORS["muted"],
+    "axes.titlecolor": COLORS["text"],
+    "axes.titlesize": 17,
+    "axes.titleweight": "bold",
+    "axes.labelsize": 10,
+    "xtick.color": COLORS["muted"],
+    "ytick.color": COLORS["muted"],
+    "font.family": "DejaVu Sans",
+    "font.size": 10,
+    "legend.fontsize": 9,
+    "legend.frameon": False,
+    "svg.fonttype": "none",
+    "lines.solid_capstyle": "round",
+    "lines.solid_joinstyle": "round",
+})
+
+
+# ============================================================
+# GITHUB API
+# ============================================================
 
 def github_get_all_issues():
-    """Retorna totes les issues del repositori, obertes i tancades."""
+    """Retorna totes les issues obertes i tancades del repositori."""
     session = requests.Session()
 
     session.headers.update({
@@ -67,7 +117,11 @@ def github_get_all_issues():
     all_issues = []
 
     while url:
-        response = session.get(url, params=params, timeout=30)
+        response = session.get(
+            url,
+            params=params,
+            timeout=30,
+        )
         response.raise_for_status()
 
         all_issues.extend(response.json())
@@ -84,15 +138,15 @@ def github_get_all_issues():
 
 
 def filter_issues(issues):
-    """Filtra per milestone i exclou issues eliminades de l'abast."""
+    """Filtra per milestone i exclou feina descartada."""
     if MILESTONE_TITLE:
         issues = [
             issue
             for issue in issues
-            if (issue.get("milestone") or {}).get("title") == MILESTONE_TITLE
+            if (issue.get("milestone") or {}).get("title")
+            == MILESTONE_TITLE
         ]
 
-    # Si una issue s'ha tancat com "not planned", no compta com a feina feta.
     return [
         issue
         for issue in issues
@@ -104,11 +158,7 @@ def filter_issues(issues):
 
 
 def get_status(issue):
-    """
-    Extreu l'estat a partir de labels:
-    status:planning, status:building, status:review,
-    status:blocked o status:complete.
-    """
+    """Determina l'estat a partir de les etiquetes de GitHub."""
     labels = {
         label["name"].lower().strip()
         for label in issue.get("labels", [])
@@ -117,23 +167,34 @@ def get_status(issue):
     if issue["state"] == "closed":
         return "complete"
 
-    for status in ["blocked", "review", "building", "planning"]:
+    for status in ("blocked", "review", "building", "planning"):
         if f"status:{status}" in labels:
             return status
 
     return "no_status"
 
 
+# ============================================================
+# HISTORIAL
+# ============================================================
+
 def load_history():
     if not HISTORY_FILE.exists():
         return []
 
-    with HISTORY_FILE.open(newline="", encoding="utf-8") as file:
+    with HISTORY_FILE.open(
+        newline="",
+        encoding="utf-8",
+    ) as file:
         return list(csv.DictReader(file))
 
 
 def save_history(history, fields):
-    with HISTORY_FILE.open("w", newline="", encoding="utf-8") as file:
+    with HISTORY_FILE.open(
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as file:
         writer = csv.DictWriter(file, fieldnames=fields)
         writer.writeheader()
         writer.writerows(history)
@@ -144,10 +205,185 @@ def parse_date(value):
 
 
 def save_figure(filename):
-    plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / filename, format="svg", bbox_inches="tight")
-    plt.close()
+    """Exporta una figura vectorial SVG d'alta qualitat."""
+    fig = plt.gcf()
+    fig.tight_layout(pad=2.0)
+    fig.savefig(
+        OUTPUT_DIR / filename,
+        format="svg",
+        bbox_inches="tight",
+        facecolor=fig.get_facecolor(),
+    )
+    plt.close(fig)
 
+
+def style_axis(ax, horizontal_grid=True):
+    """Aplica un estil net i modern als eixos."""
+    ax.set_axisbelow(True)
+
+    ax.grid(
+        axis="y" if horizontal_grid else "x",
+        color=COLORS["grid"],
+        linewidth=0.8,
+        alpha=0.45,
+    )
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_color("#E2E8F0")
+    ax.spines["bottom"].set_color("#E2E8F0")
+
+    ax.tick_params(
+        axis="both",
+        which="both",
+        length=0,
+        pad=8,
+    )
+
+    ax.margins(x=0.025)
+
+
+def style_dates(ax):
+    """Millora la lectura de les dates."""
+    locator = mdates.AutoDateLocator(minticks=4, maxticks=9)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(
+        mdates.ConciseDateFormatter(locator)
+    )
+
+
+# ============================================================
+# INTERPOLACIÓ I CORBES
+# ============================================================
+
+def smooth_curve(dates, values, points_per_interval=35):
+    """
+    Genera una corba PCHIP suau sense oscil·lacions artificials.
+
+    Els punts originals es conserven exactament.
+    No s'utilitza extrapolació.
+    """
+    x = mdates.date2num(dates)
+    y = np.asarray(values, dtype=float)
+
+    if len(x) != len(y):
+        raise ValueError(
+            "Les dates i els valors han de tenir la mateixa longitud."
+        )
+
+    if len(x) == 0:
+        return np.array([]), np.array([])
+
+    # Un únic registre no permet calcular una corba.
+    if len(x) == 1:
+        return x, y
+
+    if np.any(np.diff(x) <= 0):
+        raise ValueError(
+            "Les dates de la corba han de ser úniques i ordenades."
+        )
+
+    interpolator = PchipInterpolator(x, y, extrapolate=False)
+
+    number_of_points = max(
+        len(x),
+        (len(x) - 1) * points_per_interval + 1,
+    )
+
+    smooth_x = np.linspace(
+        x[0],
+        x[-1],
+        number_of_points,
+    )
+
+    smooth_y = interpolator(smooth_x)
+
+    return smooth_x, smooth_y
+
+
+def smooth_plot(
+    ax,
+    dates,
+    values,
+    *,
+    color,
+    label,
+    linewidth=2.8,
+    marker=True,
+    markersize=5,
+    zorder=3,
+):
+    """Dibuixa una corba suau i conserva els punts observats."""
+    x, y = smooth_curve(dates, values)
+
+    if len(x) == 0:
+        return
+
+    ax.plot(
+        mdates.num2date(x),
+        y,
+        color=color,
+        linewidth=linewidth,
+        label=label,
+        solid_capstyle="round",
+        zorder=zorder,
+    )
+
+    if marker:
+        ax.plot(
+            dates,
+            values,
+            linestyle="none",
+            marker="o",
+            markersize=markersize,
+            markerfacecolor="#FFFFFF",
+            markeredgecolor=color,
+            markeredgewidth=1.8,
+            zorder=zorder + 1,
+        )
+
+
+def smooth_ideal_curve(start, end, initial_value):
+    """
+    Crea una trajectòria ideal corbada amb una funció smoothstep.
+
+    És una referència visual, no una previsió real del projecte.
+    """
+    start_num = mdates.date2num(start)
+    end_num = mdates.date2num(end)
+
+    x = np.linspace(start_num, end_num, 250)
+    t = (x - start_num) / (end_num - start_num)
+
+    # Descens progressiu, amb inici i final suaus.
+    progress = 3 * t**2 - 2 * t**3
+    y = initial_value * (1 - progress)
+
+    return mdates.num2date(x), y
+
+
+def smooth_area(ax, dates, values, color, alpha=0.18):
+    """Omple una àrea delimitada per una corba suau."""
+    x, y = smooth_curve(dates, values)
+
+    if len(x) == 0:
+        return
+
+    smooth_dates = mdates.num2date(x)
+
+    ax.fill_between(
+        smooth_dates,
+        0,
+        y,
+        color=color,
+        alpha=alpha,
+        linewidth=0,
+    )
+
+
+# ============================================================
+# CÀLCUL DE LES DADES
+# ============================================================
 
 issues = filter_issues(github_get_all_issues())
 
@@ -189,16 +425,19 @@ fields = [
 
 history = load_history()
 
-# Impedeix barrejar el seguiment de sprints diferents.
+# Impedeix barrejar historials de repositoris o milestones diferents.
 if history and any(row["scope"] != scope for row in history):
     raise RuntimeError(
         "Aquest historial correspon a un altre repositori o milestone. "
-        "Arxiva docs/progress/history.csv o usa una carpeta diferent "
-        "per a cada sprint."
+        "Arxiva docs/progress/history.csv o utilitza una carpeta diferent."
     )
 
-# Si s'executa més d'una vegada avui, només actualitza el punt d'avui.
-history = [row for row in history if row["date"] != today]
+# Actualitza el registre d'avui en lloc de duplicar-lo.
+history = [
+    row
+    for row in history
+    if row["date"] != today
+]
 
 new_row = {
     "date": today,
@@ -218,164 +457,355 @@ history.sort(key=lambda row: row["date"])
 
 save_history(history, fields)
 
-dates = [parse_date(row["date"]) for row in history]
+# Valida les dates del sprint.
+if not SPRINT_START_DATE or not SPRINT_END_DATE:
+    raise ValueError(
+        "Cal definir SPRINT_START_DATE i SPRINT_END_DATE."
+    )
 
-totals = [int(row["total"]) for row in history]
-completed_values = [int(row["completed"]) for row in history]
-remaining_values = [int(row["remaining"]) for row in history]
-planned_values = [int(row["planned"]) for row in history]
-unplanned_values = [int(row["unplanned"]) for row in history]
+sprint_start = parse_date(SPRINT_START_DATE)
+sprint_end = parse_date(SPRINT_END_DATE)
+
+if sprint_end <= sprint_start:
+    raise ValueError(
+        "La data final ha de ser posterior a la data inicial."
+    )
+
+# Historial específic del sprint.
+chart_history = [
+    row
+    for row in history
+    if sprint_start <= parse_date(row["date"]) <= sprint_end
+]
+
+if not chart_history:
+    raise ValueError(
+        "No hi ha registres d'historial dins del sprint. "
+        "Cal una primera execució que guardi dades dins del període."
+    )
+
+chart_history.sort(key=lambda row: row["date"])
+
+chart_dates = [
+    parse_date(row["date"])
+    for row in chart_history
+]
+
+chart_remaining = [
+    int(row["remaining"])
+    for row in chart_history
+]
+
+chart_planned = [
+    int(row["planned"])
+    for row in chart_history
+]
+
+chart_unplanned = [
+    int(row["unplanned"])
+    for row in chart_history
+]
 
 
-# ------------------------------------------------------------
-# GRÀFICA 1: BURN UP PER ESTAT
-# ------------------------------------------------------------
+# ============================================================
+# GRÀFICA 1: BURN-UP PER ESTAT
+# ============================================================
 
-plt.figure(figsize=(13, 6))
+fig, ax = plt.subplots(figsize=(13, 6.5))
 
-cumulative = [0] * len(history)
+# Interpolem cada estat per separat.
+# Això manté l'ordre de les àrees apilades i evita
+# que els contorns de diferents estats es creuin.
+status_curves = {}
 
 for status in STATUS_ORDER:
-    values = [int(row[status]) for row in history]
+    values = [
+        int(row[status])
+        for row in history
+    ]
 
-    plt.fill_between(
-        dates,
+    x, y = smooth_curve(dates=[
+        parse_date(row["date"])
+        for row in history
+    ], values=values)
+
+    status_curves[status] = y
+
+smooth_dates = mdates.num2date(
+    smooth_curve(
+        [parse_date(row["date"]) for row in history],
+        [int(row[STATUS_ORDER[0]]) for row in history],
+    )[0]
+) if len(history) > 1 else [
+    parse_date(history[0]["date"])
+]
+
+# Les corbes tenen la mateixa graella temporal.
+cumulative = np.zeros(len(smooth_dates))
+
+for status in STATUS_ORDER:
+    values = status_curves[status]
+
+    upper = cumulative + values
+
+    ax.fill_between(
+        smooth_dates,
         cumulative,
-        [current + value for current, value in zip(cumulative, values)],
-        step="post",
-        alpha=0.30,
+        upper,
         color=STATUS_COLORS[status],
+        alpha=0.22,
+        linewidth=0,
+    )
+
+    ax.plot(
+        smooth_dates,
+        upper,
+        color=STATUS_COLORS[status],
+        linewidth=1.8,
         label=STATUS_LABELS[status],
     )
 
-    plt.step(
-        dates,
-        [current + value for current, value in zip(cumulative, values)],
-        where="post",
+    cumulative = upper
+
+# Marcadors de la frontera superior de cada estat
+# en les dates reals de l'historial.
+observed_cumulative = np.zeros(len(history))
+
+for status in STATUS_ORDER:
+    observed_cumulative += np.array([
+        int(row[status])
+        for row in history
+    ])
+
+    ax.plot(
+        [parse_date(row["date"]) for row in history],
+        observed_cumulative,
+        linestyle="none",
+        marker="o",
+        markersize=3.5,
         color=STATUS_COLORS[status],
-        linewidth=1.5,
+        alpha=0.85,
     )
 
-    cumulative = [
-        current + value
-        for current, value in zip(cumulative, values)
-    ]
+ax.set_title("Burn-up per estat", loc="left", pad=18)
+ax.set_xlabel("Data (UTC)")
+ax.set_ylabel("Nombre d'issues")
+ax.set_ylim(bottom=0)
 
-plt.title("Burn up per status")
-plt.xlabel("Date (UTC)")
-plt.ylabel("Number of issues")
-plt.ylim(bottom=0)
-plt.grid(alpha=0.25)
-plt.legend(ncol=3, loc="upper left")
-plt.gcf().autofmt_xdate()
+style_axis(ax)
+style_dates(ax)
+
+ax.legend(
+    ncol=3,
+    loc="upper left",
+    bbox_to_anchor=(0, 1.01),
+    columnspacing=1.6,
+    handlelength=2.2,
+)
 
 save_figure("01-burnup-by-status.svg")
 
 
-# ------------------------------------------------------------
-# GRÀFICA 2: BURN DOWN D'ISSUES PENDENTS + LÍNIA IDEAL
-# ------------------------------------------------------------
+# ============================================================
+# GRÀFICA 2: SPRINT BURNDOWN
+# ============================================================
 
-plt.figure(figsize=(13, 6))
+fig, ax = plt.subplots(figsize=(13, 6.5))
 
-plt.plot(
-    dates,
-    remaining_values,
-    marker="o",
-    linewidth=2.5,
-    color="#2563eb",
-    label="Actual remaining work",
+# Àrea suau del treball pendent.
+smooth_area(
+    ax,
+    chart_dates,
+    chart_remaining,
+    color=COLORS["blue_fill"],
+    alpha=0.24,
 )
 
-if len(dates) >= 1 and SPRINT_END_DATE:
-    sprint_start = dates[0]
-    sprint_end = parse_date(SPRINT_END_DATE)
+# Corba del treball real pendent.
+smooth_plot(
+    ax,
+    chart_dates,
+    chart_remaining,
+    color=COLORS["blue"],
+    label="Treball pendent real",
+    linewidth=3.0,
+    marker=True,
+)
 
-    if sprint_end > sprint_start:
-        ideal_dates = [sprint_start, sprint_end]
-        ideal_values = [remaining_values[0], 0]
+# La referència ideal és corbada, no recta.
+initial_remaining = chart_remaining[0]
 
-        plt.plot(
-            ideal_dates,
-            ideal_values,
-            linestyle="--",
-            linewidth=2,
-            color="#94a3b8",
-            label="Ideal guideline",
-        )
+ideal_dates, ideal_values = smooth_ideal_curve(
+    sprint_start,
+    sprint_end,
+    initial_remaining,
+)
 
-plt.title("Burn down")
-plt.xlabel("Date (UTC)")
-plt.ylabel("Open issues")
-plt.ylim(bottom=0)
-plt.grid(alpha=0.25)
-plt.legend()
-plt.gcf().autofmt_xdate()
+ax.plot(
+    ideal_dates,
+    ideal_values,
+    linestyle=(0, (5, 4)),
+    linewidth=2.2,
+    color=COLORS["gray"],
+    label="Trajectòria ideal",
+)
+
+ax.set_title("Sprint Burndown", loc="left", pad=18)
+ax.set_xlabel("Data")
+ax.set_ylabel("Nombre d'issues pendents")
+
+ax.set_xlim(sprint_start, sprint_end)
+ax.set_ylim(bottom=0)
+
+style_axis(ax)
+style_dates(ax)
+
+ax.legend(
+    loc="upper right",
+    handlelength=2.8,
+)
 
 save_figure("02-burndown.svg")
 
 
-# ------------------------------------------------------------
-# GRÀFICA 3: BURN DOWN AMB ABAST PLANIFICAT / NO PLANIFICAT
-# ------------------------------------------------------------
+# ============================================================
+# GRÀFICA 3: BURNDOWN AMB CANVIS D'ABAST
+# ============================================================
 
-plt.figure(figsize=(13, 6))
+fig, ax = plt.subplots(figsize=(13, 6.5))
 
-plt.bar(
-    dates,
-    planned_values,
-    color="#bbf7d0",
-    edgecolor="#16a34a",
-    label="Planned scope",
-    width=0.8,
+# Àrea de l'abast planificat.
+smooth_area(
+    ax,
+    chart_dates,
+    chart_planned,
+    color=COLORS["green_fill"],
+    alpha=0.30,
 )
 
-plt.bar(
-    dates,
-    unplanned_values,
-    bottom=planned_values,
-    color="#ffedd5",
-    edgecolor="#ea580c",
-    label="Unplanned scope",
-    width=0.8,
+# Àrea de l'abast no planificat.
+# Es dibuixa sobre la frontera de l'abast planificat.
+x_planned, y_planned = smooth_curve(
+    chart_dates,
+    chart_planned,
 )
 
-plt.plot(
-    dates,
-    remaining_values,
-    marker="o",
-    linewidth=2.5,
-    color="#2563eb",
-    label="Actual remaining work",
+x_unplanned, y_unplanned = smooth_curve(
+    chart_dates,
+    chart_unplanned,
 )
 
-if len(dates) >= 1 and SPRINT_END_DATE:
-    sprint_start = dates[0]
-    sprint_end = parse_date(SPRINT_END_DATE)
+if len(x_planned) > 1 and len(x_unplanned) > 1:
+    # Les dues corbes comparteixen les dates originals,
+    # però poden tenir graelles diferents si hi ha un únic punt.
+    upper = y_planned + y_unplanned
 
-    if sprint_end > sprint_start:
-        plt.plot(
-            [sprint_start, sprint_end],
-            [remaining_values[0], 0],
-            linestyle="--",
-            linewidth=2,
-            color="#94a3b8",
-            label="Ideal guideline",
-        )
+    ax.fill_between(
+        mdates.num2date(x_planned),
+        y_planned,
+        upper,
+        color=COLORS["orange_fill"],
+        alpha=0.55,
+        linewidth=0,
+    )
 
-plt.title("Burn down with scope changes")
-plt.xlabel("Date (UTC)")
-plt.ylabel("Number of issues")
-plt.ylim(bottom=0)
-plt.grid(axis="y", alpha=0.25)
-plt.legend(ncol=2)
-plt.gcf().autofmt_xdate()
+# Contorns suaus de l'abast.
+smooth_plot(
+    ax,
+    chart_dates,
+    chart_planned,
+    color=COLORS["green"],
+    label="Abast planificat",
+    linewidth=2.0,
+    marker=False,
+    zorder=2,
+)
+
+smooth_plot(
+    ax,
+    chart_dates,
+    [
+        planned_value + unplanned_value
+        for planned_value, unplanned_value
+        in zip(chart_planned, chart_unplanned)
+    ],
+    color=COLORS["orange"],
+    label="Abast total",
+    linewidth=2.0,
+    marker=False,
+    zorder=2,
+)
+
+# Treball pendent real.
+smooth_area(
+    ax,
+    chart_dates,
+    chart_remaining,
+    color=COLORS["blue_fill"],
+    alpha=0.16,
+)
+
+smooth_plot(
+    ax,
+    chart_dates,
+    chart_remaining,
+    color=COLORS["blue"],
+    label="Treball pendent real",
+    linewidth=3.0,
+    marker=True,
+    zorder=4,
+)
+
+# Trajectòria ideal corbada.
+ideal_dates, ideal_values = smooth_ideal_curve(
+    sprint_start,
+    sprint_end,
+    initial_remaining,
+)
+
+ax.plot(
+    ideal_dates,
+    ideal_values,
+    linestyle=(0, (5, 4)),
+    linewidth=2.0,
+    color=COLORS["gray"],
+    label="Trajectòria ideal",
+    zorder=1,
+)
+
+ax.set_title(
+    "Sprint Burndown amb canvis d'abast",
+    loc="left",
+    pad=18,
+)
+ax.set_xlabel("Data")
+ax.set_ylabel("Nombre d'issues")
+
+ax.set_xlim(sprint_start, sprint_end)
+ax.set_ylim(bottom=0)
+
+style_axis(ax)
+style_dates(ax)
+
+ax.legend(
+    ncol=2,
+    loc="upper left",
+    columnspacing=1.6,
+    handlelength=2.4,
+)
 
 save_figure("03-burndown-scope.svg")
 
+
+# ============================================================
+# RESULTAT
+# ============================================================
+
 print(
     f"Charts generated for {today}: "
-    f"total={total}, completed={completed}, "
-    f"remaining={remaining}, planned={planned}, "
+    f"total={total}, "
+    f"completed={completed}, "
+    f"remaining={remaining}, "
+    f"planned={planned}, "
     f"unplanned={unplanned}"
 )
