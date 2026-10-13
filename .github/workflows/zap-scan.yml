@@ -1,0 +1,35 @@
+name: OWASP ZAP Security Scan
+
+on:
+  push:
+    branches: [ "dev", "staging", "prod", "feature/47-sprint-1-devops-automation-workflows" ]
+  pull_request:
+    branches: [ "dev" ,"staging", "prod", "feature/47-sprint-1-devops-automation-workflows" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zap-scan:
+    name: Scan Backend with OWASP ZAP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: 'https://backend-web-ur8z.onrender.com/'
+          cmd_options: '-a'
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-scan-report
+          path: report_html.html
+          if-no-files-found: warn
+          retention-days: 30
