@@ -11,6 +11,7 @@ load_dotenv()
 
 PRODUCTION = os.getenv("PRODUCTION") == "True"
 
+
 if PRODUCTION:
     DATABASE_URL = os.getenv("extern_database_URL")
 else:
