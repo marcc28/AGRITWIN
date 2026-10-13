@@ -1,0 +1,32 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ "dev", "staging", "prod" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build image
+        working-directory: ./backend
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-web:${{ github.sha }}  .
+      
+      - name: Push image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-web:${{ github.sha }} 
+
+      - name: Trigger Render deploy 
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      
+      - name: Trigger Render deploy E2E
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_E2E }}"
