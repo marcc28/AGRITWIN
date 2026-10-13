@@ -70,6 +70,13 @@ jobs:
       - name: Run frontend unit tests with coverage
         working-directory: ./agritwin-app
         run: npx jest __tests__ --coverage
+      
+      - name: Verify frontend coverage report
+        working-directory: ./agritwin-app
+        run: |
+          ls -la coverage/
+          test -s coverage/lcov.info
+          head -n 10 coverage/lcov.info
 
       # -------------------------
       # SONARQUBE
