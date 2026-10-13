@@ -1,0 +1,39 @@
+name: Backend unit tests
+
+on:
+  push:
+    branches: ["dev", "staging", "prod"]
+  pull_request:
+    branches: ["staging", "prod"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.11.4"
+
+      # Install dependencies using uv
+      - name: Install dependencies with uv
+        working-directory: .
+        run: uv sync --frozen
+
+      # Run Ruff checks using uv run (virtualenv managed by uv)
+      - name: Run Ruff check
+        working-directory: .
+        run: uv run ruff check .

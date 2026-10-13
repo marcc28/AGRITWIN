@@ -4,7 +4,7 @@ from typing import Annotated
 
 import jwt
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jwt.exceptions import InvalidTokenError

@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-
 class UserProfileCreate(BaseModel):
     language: str = "ca"
     units: str = "metric"

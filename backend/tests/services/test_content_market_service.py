@@ -135,8 +135,7 @@ async def test_get_conte_mercat_by_product_not_found(service, db):
 
 @pytest.mark.asyncio
 async def test_create_conte_mercat(service, db):
-    created_conte_mercat = MagicMock()
-
+    
     # Quan es fa refresh, el model ja queda actualitzat.
     async def refresh(obj):
         # Simulem que la BD assigna un ID

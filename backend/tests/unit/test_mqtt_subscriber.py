@@ -4,6 +4,9 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import db.database as db_module
+from services import mqtt_subscriber
+
 # Add project root and 'iot' directory to sys.path so pytest can import the IoT simulator
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 IOT_DIR = PROJECT_ROOT / "iot"
@@ -14,10 +17,8 @@ for path_str in (str(PROJECT_ROOT), str(IOT_DIR)):
 # Set a fallback database URL for CI environments before importing db.database
 os.environ.setdefault("local_database_URL", "postgresql+asyncpg://user:pass@localhost:5432/testdb")
 
-import mqtt_sensor_simulator
+import mqtt_sensor_simulator# type: ignore
 
-import db.database as db_module
-from services import mqtt_subscriber
 
 # 1. UNIT TESTS FOR SAVE_TELEMETRY (backend/db/database.py)
 

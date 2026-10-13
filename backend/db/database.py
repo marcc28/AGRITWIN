@@ -70,7 +70,7 @@ def save_telemetry(payload: dict):
         }
         
         # Insert data into the 'telemetria' table
-        response = supabase.table('telemetria').insert(data_to_insert).execute()
+        supabase.table('telemetria').insert(data_to_insert).execute()
         print(f"[DATABASE-SUCCESS] Telemetry data from {device_id} saved to Supabase!")
         
     except Exception as e:
