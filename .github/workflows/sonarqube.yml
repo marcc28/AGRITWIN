@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: ["Backend unit tests"]
     types: [completed]
-    branches: [dev, staging, prod]
 
 jobs:
   sonarqube:
