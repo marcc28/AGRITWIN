@@ -3,7 +3,6 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [ "staging", "prod" ]
-  pull_request:
   workflow_dispatch:
 
 jobs:
