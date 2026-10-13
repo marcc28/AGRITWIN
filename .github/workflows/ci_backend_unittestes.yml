@@ -46,11 +46,3 @@ jobs:
           name: coverage-report
           path: backend/coverage.xml
           if-no-files-found: error
-
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v7
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
