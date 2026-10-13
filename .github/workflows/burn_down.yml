@@ -34,22 +34,6 @@ jobs:
       - name: Install dependencies
         run: pip install requests matplotlib
         
-      - name: Inspect repository directories
-        run: |
-          echo "Directori actual:"
-          pwd
-
-          echo "Contingut de l'arrel:"
-          ls -la
-
-          echo "Contingut de .github:"
-          ls -la .github/
-
-          echo "Contingut de .github/scripts:"
-          ls -la .github/scripts/ || true
-
-          echo "Cerca de l'script:"
-          find . -iname "generate_progress_charts.py"
       - name: Generate burn up and burn down charts
         env:
           GH_TOKEN: ${{ github.token }}
