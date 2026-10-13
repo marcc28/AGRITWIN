@@ -1,4 +1,3 @@
-
 from collections import Counter
 from datetime import datetime, timezone
 
@@ -380,11 +379,10 @@ for status in STATUS_ORDER:
         linewidth=0,
     )
 
-    # Smooth status boundary.
-    ax.step(
-        dates,
-        upper,
-        where="post",
+    # Smooth status boundary through the recorded observations.
+    ax.plot(
+        smooth_x,
+        smooth_upper,
         color=STATUS_COLORS[status],
         linewidth=1.8,
         label=STATUS_LABELS[status],
@@ -509,10 +507,9 @@ ax.fill_between(
     alpha=0.30,
 )
 
-ax.step(
-    chart_dates,
-    chart_planned,
-    where="post",
+ax.plot(
+    smooth_planned_dates,
+    smooth_planned,
     color=COLORS["green"],
     linewidth=2,
     label="Abast planificat",
@@ -528,10 +525,9 @@ ax.fill_between(
     alpha=0.55,
 )
 
-ax.step(
-    chart_dates,
-    chart_total_scope,
-    where="post",
+ax.plot(
+    smooth_planned_dates,
+    smooth_total_scope,
     color=COLORS["orange"],
     linewidth=2,
     label="Abast total",
