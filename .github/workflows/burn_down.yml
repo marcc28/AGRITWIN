@@ -23,8 +23,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.repository.default_branch }}
-
+            ref: ${{ github.head_ref || github.ref_name }}
+            fetch-depth: 0
+            token: ${{ github.token }}
       - name: Configure Python
         uses: actions/setup-python@v5
         with:
@@ -66,14 +67,14 @@ jobs:
 
       - name: Commit charts and history
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add docs/progress/
+            git add docs/progress/
 
-          if git diff --cached --quiet; then
+            if git diff --cached --quiet; then
             echo "No changes detected."
-          else
+            else
             git commit -m "docs: update burn charts"
-            git push
-          fi
+            git push origin HEAD:${GITHUB_REF_NAME}
+            fi
