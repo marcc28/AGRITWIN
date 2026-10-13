@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from services.anunce_service import AnunceService
 
+
 @pytest.mark.asyncio
 async def test_list_anunces():
     db = MagicMock()
