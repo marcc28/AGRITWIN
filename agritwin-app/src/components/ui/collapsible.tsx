@@ -24,7 +24,7 @@ export function Collapsible({
         ]}
         onPress={() => setIsOpen((value) => !value)}
       >
-        <ThemedView type="backgroundElement" style={styles.button}>
+        <ThemedView type="surface" style={styles.button}>
           <SymbolView
             name={{
               ios: 'chevron.right',
@@ -42,7 +42,7 @@ export function Collapsible({
       </Pressable>
       {isOpen && (
         <Animated.View entering={FadeIn.duration(200)}>
-          <ThemedView type="backgroundElement" style={styles.content}>
+          <ThemedView type="surfaceSecondary" style={styles.content}>
             {children}
           </ThemedView>
         </Animated.View>

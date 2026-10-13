@@ -1,9 +1,4 @@
-const {
-  device,
-  element,
-  by,
-  waitFor,
-} = require('detox');
+const { device, element, by, waitFor } = require('detox');
 
 const { loginAsNewUser } = require('./helpers/auth');
 

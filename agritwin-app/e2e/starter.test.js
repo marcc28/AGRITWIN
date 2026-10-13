@@ -24,6 +24,5 @@ describe('Signup', () => {
     await element(by.id('privacy-checkbox-press')).tap();
     await element(by.id('security-checkbox-press')).tap();
     await element(by.id('signup-button')).tap();
-
   });
 });

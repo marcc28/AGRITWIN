@@ -54,10 +54,7 @@ export default function MarketScreen() {
     (page + 1) * PAGE_SIZE,
   );
 
-  const visibleNews = news.slice(
-    page * PAGE_SIZE,
-    (page + 1) * PAGE_SIZE,
-  );
+  const visibleNews = news.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const canGoBack = page > 0;
   const canGoForward = page + 1 < totalPages;
@@ -92,9 +89,7 @@ export default function MarketScreen() {
   };
 
   const goForward = () => {
-    setPage((current) =>
-      Math.min(Math.max(0, totalPages - 1), current + 1),
-    );
+    setPage((current) => Math.min(Math.max(0, totalPages - 1), current + 1));
   };
 
   return (
@@ -200,10 +195,7 @@ export default function MarketScreen() {
                       pressed && { opacity: 0.7 },
                     ]}
                   >
-                    <Text
-                      testID={`buy-text-${p.id}`}
-                      style={styles.buyText}
-                    >
+                    <Text testID={`buy-text-${p.id}`} style={styles.buyText}>
                       {t('market.buy')}
                     </Text>
                   </Pressable>
@@ -221,25 +213,16 @@ export default function MarketScreen() {
               style={styles.priceCard}
             >
               <View style={styles.chip}>
-                <Text
-                  testID={`news-subtitle-${n.id}`}
-                  style={styles.chipText}
-                >
+                <Text testID={`news-subtitle-${n.id}`} style={styles.chipText}>
                   {n.subtile}
                 </Text>
               </View>
 
-              <Text
-                testID={`news-title-${n.id}`}
-                style={styles.newsTitle}
-              >
+              <Text testID={`news-title-${n.id}`} style={styles.newsTitle}>
                 {n.title}
               </Text>
 
-              <Text
-                testID={`news-content-${n.id}`}
-                style={styles.newsBody}
-              >
+              <Text testID={`news-content-${n.id}`} style={styles.newsBody}>
                 {n.content}
               </Text>
 
@@ -272,10 +255,7 @@ export default function MarketScreen() {
             />
           </Pressable>
 
-          <Text
-            testID="market-page-indicator"
-            style={styles.pageText}
-          >
+          <Text testID="market-page-indicator" style={styles.pageText}>
             {page + 1} / {totalPages}
           </Text>
 

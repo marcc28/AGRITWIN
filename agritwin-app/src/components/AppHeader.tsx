@@ -53,7 +53,14 @@ export default function AppHeader() {
       }}
     >
       {/* Usuari */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
         <View
           style={{
             width: 44,
@@ -64,13 +71,17 @@ export default function AppHeader() {
             justifyContent: 'center',
           }}
         >
-          <Text style={{ color: colors.surface, fontSize: 18, fontWeight: 'bold' }}>
+          <Text
+            style={{ color: colors.surface, fontSize: 18, fontWeight: 'bold' }}
+          >
             {initial}
           </Text>
         </View>
 
         <View style={{ marginLeft: 12, flexShrink: 1 }}>
-          <Text style={{ fontSize: 13, color: colors.textSecondary }}>Benvingut</Text>
+          <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+            Benvingut
+          </Text>
           <Text
             style={{ fontSize: 17, fontWeight: '600', color: colors.text }}
             numberOfLines={1}

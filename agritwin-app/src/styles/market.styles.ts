@@ -1,7 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../constants/theme';
 
-export const getMarketStyles = (colors: typeof Colors.light) => {
+type ThemeColors = typeof Colors.light | typeof Colors.dark;
+
+export function getMarketStyles(colors: ThemeColors) {
   return StyleSheet.create({
     trackWrap: {
       paddingHorizontal: 20,
@@ -207,4 +209,4 @@ export const getMarketStyles = (colors: typeof Colors.light) => {
       color: colors.textSecondary,
     },
   });
-};
+}

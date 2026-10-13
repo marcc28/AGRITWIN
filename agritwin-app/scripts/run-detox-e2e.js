@@ -9,9 +9,10 @@ dotenv.config({
   path: path.resolve(__dirname, '../.env.e2e'),
 });
 
-
 const config = process.argv[2] || 'android.att.release';
-const passthroughArgs = process.argv.slice(3).filter((arg) => arg !== '--build');
+const passthroughArgs = process.argv
+  .slice(3)
+  .filter((arg) => arg !== '--build');
 const shouldBuild = process.argv.slice(3).includes('--build');
 const detoxTestArgs = ['detox', 'test', '-c', config, ...passthroughArgs];
 const detoxBuildArgs = ['detox', 'build', '-c', config];
@@ -43,7 +44,10 @@ function checkMetro() {
         body += chunk;
       });
       response.on('end', () => {
-        resolve(response.statusCode === 200 && body.includes('packager-status:running'));
+        resolve(
+          response.statusCode === 200 &&
+            body.includes('packager-status:running'),
+        );
       });
     });
 

@@ -24,13 +24,13 @@ export default function AppTabs() {
           <TabTrigger name="home" href="/" asChild>
             <TabButton>Home</TabButton>
           </TabTrigger>
-          <TabTrigger name="explore" href="/explore" asChild>
+          <TabTrigger name="explore" href="/app/explore" asChild>
             <TabButton>Explore</TabButton>
           </TabTrigger>
-          <TabTrigger name="login" href="/login" asChild>
+          <TabTrigger name="login" href="/auth/login" asChild>
             <TabButton>login</TabButton>
           </TabTrigger>
-          <TabTrigger name="signup" href="/signup" asChild>
+          <TabTrigger name="signup" href="/auth/signup" asChild>
             <TabButton>signup</TabButton>
           </TabTrigger>
         </CustomTabList>
@@ -47,7 +47,7 @@ export function TabButton({
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
+        type={isFocused ? 'surfaceSecondary' : 'surface'}
         style={styles.tabButtonView}
       >
         <ThemedText
@@ -67,7 +67,7 @@ export function CustomTabList(props: TabListProps) {
 
   return (
     <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
+      <ThemedView type="surface" style={styles.innerContainer}>
         <ThemedText type="smallBold" style={styles.brandText}>
           Expo Starter
         </ThemedText>

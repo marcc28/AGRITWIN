@@ -67,7 +67,8 @@
     "test:e2e:detox": "detox test -c android.att.release",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "private": true
 }

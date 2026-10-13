@@ -81,9 +81,7 @@ export default function TabTwoScreen() {
           </Collapsible>
 
           <Collapsible title="Android, iOS, and web support">
-            <ThemedView
-              style={styles.collapsibleContent}
-            >
+            <ThemedView style={styles.collapsibleContent}>
               <ThemedText type="small">
                 You can open this project on Android, iOS, and the web. To open
                 the web version, press{' '}

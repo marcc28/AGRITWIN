@@ -380,7 +380,7 @@ describe('SignupScreen', () => {
 
       expect(mockedGetSecurityPolicy).toHaveBeenCalledTimes(1);
     });
-    
+
     it('shows an error when the privacy policy cannot be loaded', async () => {
       const consoleErrorSpy = jest
         .spyOn(console, 'error')

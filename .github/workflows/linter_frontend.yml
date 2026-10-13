@@ -1,0 +1,43 @@
+name: Frontend lint and typecheck
+
+on:
+  push:
+    branches: ["dev", "staging", "prod", "feature/47-sprint-1-devops-automation-workflows"]
+  pull_request:
+    branches: ["staging", "prod", "feature/47-sprint-1-devops-automation-workflows"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Frontend quality checks
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./agritwin-app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./agritwin-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npm run typecheck
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Run ESLint
+        run: npm run lint

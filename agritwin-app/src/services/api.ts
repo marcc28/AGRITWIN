@@ -10,7 +10,6 @@ export type LegalDocument = {
   content: string;
 };
 
-
 export type News = {
   id: string | number;
   title: string;
@@ -81,10 +80,7 @@ export async function login(username: string, password: string) {
   return data;
 }
 
-export async function getnews(
-  offset: number,
-  limite: number
-): Promise<News[]> {
+export async function getnews(offset: number, limite: number): Promise<News[]> {
   const response = await fetch(
     `${API_URL}/api/v1/anunces?offset=${offset}&limite=${limite}`,
     {
@@ -92,7 +88,7 @@ export async function getnews(
       headers: {
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
 
   const data = await response.json();
@@ -104,10 +100,7 @@ export async function getnews(
   return data;
 }
 
-export async function getanunces(
-  offset: number,
-  limite: number
-) {
+export async function getanunces(offset: number, limite: number) {
   const response = await fetch(
     `${API_URL}/api/v1/anunces?offset=${offset}&limite=${limite}`,
     {
@@ -115,7 +108,7 @@ export async function getanunces(
       headers: {
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
 
   const data = await response.json();
@@ -127,10 +120,7 @@ export async function getanunces(
   return data;
 }
 
-export async function getcontentfeed(
-  offset: number,
-  limite: number
-) {
+export async function getcontentfeed(offset: number, limite: number) {
   const response = await fetch(
     `${API_URL}/api/v1/conte_mercat?offset=${offset}&limite=${limite}`,
     {
@@ -138,7 +128,7 @@ export async function getcontentfeed(
       headers: {
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
 
   const data = await response.json();

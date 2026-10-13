@@ -36,11 +36,7 @@ jest.mock('../../../src/services/auth', () => ({
 }));
 
 jest.mock('expo-linear-gradient', () => ({
-  LinearGradient: ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => children,
+  LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('../../../src/components/Alert', () => {
@@ -71,9 +67,7 @@ const mockedLogin = login as jest.MockedFunction<typeof login>;
 
 const mockedSetAuth = setAuth as jest.MockedFunction<typeof setAuth>;
 
-const mockedRouterPush = router.push as jest.MockedFunction<
-  typeof router.push
->;
+const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
 
 const mockedRouterReplace = router.replace as jest.MockedFunction<
   typeof router.replace
@@ -111,9 +105,7 @@ describe('LoginScreen', () => {
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      expect(
-        await screen.findByTestId('login-error'),
-      ).toBeTruthy();
+      expect(await screen.findByTestId('login-error')).toBeTruthy();
 
       expect(mockedLogin).not.toHaveBeenCalled();
     });
@@ -121,16 +113,11 @@ describe('LoginScreen', () => {
     it('shows an error when username is empty', async () => {
       render(<LoginScreen />);
 
-      fireEvent.changeText(
-        screen.getByTestId('password-input'),
-        'Password123',
-      );
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      expect(
-        await screen.findByTestId('login-error'),
-      ).toBeTruthy();
+      expect(await screen.findByTestId('login-error')).toBeTruthy();
 
       expect(mockedLogin).not.toHaveBeenCalled();
     });
@@ -138,16 +125,11 @@ describe('LoginScreen', () => {
     it('shows an error when password is empty', async () => {
       render(<LoginScreen />);
 
-      fireEvent.changeText(
-        screen.getByTestId('username-input'),
-        'testuser',
-      );
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      expect(
-        await screen.findByTestId('login-error'),
-      ).toBeTruthy();
+      expect(await screen.findByTestId('login-error')).toBeTruthy();
 
       expect(mockedLogin).not.toHaveBeenCalled();
     });
@@ -180,10 +162,7 @@ describe('LoginScreen', () => {
         expect(mockedLogin).toHaveBeenCalledTimes(1);
       });
 
-      expect(mockedLogin).toHaveBeenCalledWith(
-        'testuser',
-        'Password123',
-      );
+      expect(mockedLogin).toHaveBeenCalledWith('testuser', 'Password123');
     });
 
     it('saves authentication data after successful login', async () => {
@@ -196,15 +175,9 @@ describe('LoginScreen', () => {
 
       render(<LoginScreen />);
 
-      fireEvent.changeText(
-        screen.getByTestId('username-input'),
-        'testuser',
-      );
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
 
-      fireEvent.changeText(
-        screen.getByTestId('password-input'),
-        'Password123',
-      );
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
 
       fireEvent.press(screen.getByTestId('login-button'));
 
@@ -229,38 +202,25 @@ describe('LoginScreen', () => {
 
       render(<LoginScreen />);
 
-      fireEvent.changeText(
-        screen.getByTestId('username-input'),
-        'testuser',
-      );
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
 
-      fireEvent.changeText(
-        screen.getByTestId('password-input'),
-        'Password123',
-      );
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
 
       fireEvent.press(screen.getByTestId('login-button'));
 
       await waitFor(() => {
-        expect(mockedRouterReplace).toHaveBeenCalledWith(
-          '/app/home',
-        );
+        expect(mockedRouterReplace).toHaveBeenCalledWith('/app/home');
       });
     });
   });
 
   describe('login errors', () => {
     it('shows the API error message when login fails', async () => {
-      mockedLogin.mockRejectedValue(
-        new Error('Contrasenya incorrecta'),
-      );
+      mockedLogin.mockRejectedValue(new Error('Contrasenya incorrecta'));
 
       render(<LoginScreen />);
 
-      fireEvent.changeText(
-        screen.getByTestId('username-input'),
-        'testuser',
-      );
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
 
       fireEvent.changeText(
         screen.getByTestId('password-input'),
@@ -269,13 +229,9 @@ describe('LoginScreen', () => {
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      expect(
-        await screen.findByTestId('login-error'),
-      ).toBeTruthy();
+      expect(await screen.findByTestId('login-error')).toBeTruthy();
 
-      expect(
-        screen.getByText('Contrasenya incorrecta'),
-      ).toBeTruthy();
+      expect(screen.getByText('Contrasenya incorrecta')).toBeTruthy();
 
       expect(mockedRouterReplace).not.toHaveBeenCalled();
     });
@@ -285,21 +241,13 @@ describe('LoginScreen', () => {
 
       render(<LoginScreen />);
 
-      fireEvent.changeText(
-        screen.getByTestId('username-input'),
-        'testuser',
-      );
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
 
-      fireEvent.changeText(
-        screen.getByTestId('password-input'),
-        'Password123',
-      );
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      expect(
-        await screen.findByTestId('login-error'),
-      ).toBeTruthy();
+      expect(await screen.findByTestId('login-error')).toBeTruthy();
 
       expect(mockedLogin).toHaveBeenCalled();
     });
@@ -311,9 +259,7 @@ describe('LoginScreen', () => {
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
-      expect(mockedRouterPush).toHaveBeenCalledWith(
-        '/auth/signup',
-      );
+      expect(mockedRouterPush).toHaveBeenCalledWith('/auth/signup');
     });
   });
 
@@ -323,18 +269,11 @@ describe('LoginScreen', () => {
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      expect(
-        await screen.findByTestId('login-error'),
-      ).toBeTruthy();
+      expect(await screen.findByTestId('login-error')).toBeTruthy();
 
-      fireEvent.changeText(
-        screen.getByTestId('username-input'),
-        'testuser',
-      );
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
 
-      expect(
-        screen.queryByTestId('login-error'),
-      ).toBeNull();
+      expect(screen.queryByTestId('login-error')).toBeNull();
     });
 
     it('clears an error when the password changes', async () => {
@@ -342,26 +281,19 @@ describe('LoginScreen', () => {
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      expect(
-        await screen.findByTestId('login-error'),
-      ).toBeTruthy();
+      expect(await screen.findByTestId('login-error')).toBeTruthy();
 
-      fireEvent.changeText(
-        screen.getByTestId('password-input'),
-        'Password123',
-      );
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
 
-      expect(
-        screen.queryByTestId('login-error'),
-      ).toBeNull();
+      expect(screen.queryByTestId('login-error')).toBeNull();
     });
 
     it('uses secure text entry for the password', () => {
       render(<LoginScreen />);
 
-      expect(
-        screen.getByTestId('password-input').props.secureTextEntry,
-      ).toBe(true);
+      expect(screen.getByTestId('password-input').props.secureTextEntry).toBe(
+        true,
+      );
     });
   });
 });

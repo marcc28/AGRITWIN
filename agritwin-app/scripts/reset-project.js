@@ -16,7 +16,6 @@ const exampleDir = 'example';
 const newAppDir = 'src/app';
 const exampleDirPath = path.join(root, exampleDir);
 
-
 const indexContent = `import { Text, View, StyleSheet } from "react-native";
 
 export default function Index() {

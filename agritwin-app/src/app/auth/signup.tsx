@@ -211,7 +211,9 @@ export default function SignupScreen() {
         {/* Títol */}
         <Text style={styles.heading}>AgriTwin</Text>
 
-        <Text testID="signup-title" style={styles.subtitle}>{t('signup.title')}</Text>
+        <Text testID="signup-title" style={styles.subtitle}>
+          {t('signup.title')}
+        </Text>
 
         {/* Error */}
         {errorMessage !== '' && (
@@ -308,7 +310,7 @@ export default function SignupScreen() {
 
             <Text style={styles.legalText}>
               He llegit i accepto la{' '}
-              <Text 
+              <Text
                 testID="privacy-checkbox-open"
                 style={styles.link}
                 onPress={() => openLegalDocument('privacy')}

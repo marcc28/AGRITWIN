@@ -44,11 +44,7 @@ export default function LoginScreen() {
 
       const data = await login(trimmedUsername, trimmedPassword);
 
-      await setAuth(
-        trimmedUsername,
-        data.access_token,
-        data.refresh_token,
-      );
+      await setAuth(trimmedUsername, data.access_token, data.refresh_token);
 
       router.replace('/app/home');
     } catch (error) {
@@ -96,10 +92,7 @@ export default function LoginScreen() {
 
         {errorMessage !== '' && (
           <View testID="login-error">
-            <Alert
-              variant="danger"
-              title={t('common.error')}
-            >
+            <Alert variant="danger" title={t('common.error')}>
               {errorMessage}
             </Alert>
           </View>
@@ -129,9 +122,7 @@ export default function LoginScreen() {
         />
 
         <View testID="social-login" style={styles.socialContainer}>
-          <Text style={styles.socialTitle}>
-            {t('login.socialLogin')}
-          </Text>
+          <Text style={styles.socialTitle}>{t('login.socialLogin')}</Text>
 
           <View style={styles.socialAccounts}>
             <Pressable
@@ -179,13 +170,8 @@ export default function LoginScreen() {
             onPress={handleSignUp}
             disabled={loading}
           >
-            <LinearGradient
-              colors={Gradients.primary}
-              style={styles.button}
-            >
-              <Text style={styles.buttonText}>
-                {t('login.signUp')}
-              </Text>
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
+              <Text style={styles.buttonText}>{t('login.signUp')}</Text>
             </LinearGradient>
           </Pressable>
 
@@ -195,14 +181,9 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={loading}
           >
-            <LinearGradient
-              colors={Gradients.primary}
-              style={styles.button}
-            >
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>
-                {loading
-                  ? t('login.loggingIn')
-                  : t('login.logIn')}
+                {loading ? t('login.loggingIn') : t('login.logIn')}
               </Text>
             </LinearGradient>
           </Pressable>

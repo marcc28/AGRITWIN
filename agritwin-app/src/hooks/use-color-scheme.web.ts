@@ -9,7 +9,7 @@ export function useColorScheme() {
   const hasHydrated = useSyncExternalStore(
     emptySubscribe,
     () => true,
-    () => false
+    () => false,
   );
 
   return hasHydrated ? colorScheme : 'light';
