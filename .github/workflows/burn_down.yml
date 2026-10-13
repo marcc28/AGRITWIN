@@ -37,8 +37,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          MILESTONE_TITLE: "Sprint 1"
-          SPRINT_START_DATE: "2026-10-01"
+          SPRINT_START_DATE: "2026-09-30"
           SPRINT_END_DATE: "2026-10-21"
 
         run: python .github/scripts/generate_progress_charts.py

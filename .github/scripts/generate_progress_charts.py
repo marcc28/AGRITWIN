@@ -165,6 +165,12 @@ def filter_issues(items):
 
 
 def get_status(issue):
+    # A closed issue is complete even when it has no ``complete`` label.
+    # Otherwise closed issues are included in the total but incorrectly
+    # remain in the pending-work series.
+    if str(issue.get("state", "")).lower() == "closed":
+        return "complete"
+
     labels = issue.get("labels", [])
     names = {
         str(label.get("name", label) if isinstance(label, dict) else label)
@@ -215,6 +221,20 @@ def style_dates(axis):
 def save_figure(filename):
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / filename, format="svg", bbox_inches="tight")
+
+
+def interpolate_series(values, series_dates):
+    """Create a smooth, shape-preserving curve through observed values."""
+    x = mdates.date2num(series_dates)
+    y = np.asarray(values, dtype=float)
+
+    if len(x) < 3:
+        return x, y
+
+    smooth_x = np.linspace(x[0], x[-1], max(200, len(x) * 20))
+    smooth_y = PchipInterpolator(x, y)(smooth_x)
+    return smooth_x, smooth_y
+
 
 issues = filter_issues(github_get_all_issues())
 
@@ -326,6 +346,10 @@ chart_unplanned = [
 
 # Use configured sprint boundaries, or the first and last recorded dates.
 initial_remaining = chart_remaining[0]
+smooth_dates, smooth_remaining = interpolate_series(
+    chart_remaining,
+    chart_dates,
+)
 
 
 # ============================================================
@@ -343,19 +367,20 @@ for status in STATUS_ORDER:
     )
 
     upper = cumulative + values
+    smooth_x, smooth_upper = interpolate_series(upper, dates)
+    _, smooth_cumulative = interpolate_series(cumulative, dates)
 
-    # Stacked area from real observations.
+    # Smooth area through the real observations.
     ax.fill_between(
-        dates,
-        cumulative,
-        upper,
+        smooth_x,
+        smooth_cumulative,
+        smooth_upper,
         color=STATUS_COLORS[status],
         alpha=0.22,
         linewidth=0,
-        step="post",
     )
 
-    # Actual observed status boundary.
+    # Smooth status boundary.
     ax.step(
         dates,
         upper,
@@ -406,23 +431,28 @@ fig, ax = plt.subplots(figsize=(13, 6.5))
 
 # Real pending-work observations.
 ax.fill_between(
-    chart_dates,
-    chart_remaining,
+    smooth_dates,
+    smooth_remaining,
     0,
     color=COLORS["blue_fill"],
     alpha=0.24,
-    step="post",
+)
+
+ax.plot(
+    smooth_dates,
+    smooth_remaining,
+    color=COLORS["blue"],
+    linewidth=2.5,
+    label="Treball pendent real",
 )
 
 ax.plot(
     chart_dates,
     chart_remaining,
-    color=COLORS["blue"],
-    linewidth=2.5,
+    linestyle="none",
     marker="o",
     markersize=5,
-    drawstyle="default",
-    label="Treball pendent real",
+    color=COLORS["blue"],
 )
 
 # Ideal reference: linear decrease to zero.
@@ -464,15 +494,19 @@ chart_total_scope = [
     p + u
     for p, u in zip(chart_planned, chart_unplanned)
 ]
+smooth_planned_dates, smooth_planned = interpolate_series(
+    chart_planned,
+    chart_dates,
+)
+_, smooth_total_scope = interpolate_series(chart_total_scope, chart_dates)
 
 # Planned scope.
 ax.fill_between(
-    chart_dates,
-    chart_planned,
+    smooth_planned_dates,
+    smooth_planned,
     0,
     color=COLORS["green_fill"],
     alpha=0.30,
-    step="post",
 )
 
 ax.step(
@@ -487,12 +521,11 @@ ax.step(
 
 # Unplanned scope, stacked above planned scope.
 ax.fill_between(
-    chart_dates,
-    chart_planned,
-    chart_total_scope,
+    smooth_planned_dates,
+    smooth_planned,
+    smooth_total_scope,
     color=COLORS["orange_fill"],
     alpha=0.55,
-    step="post",
 )
 
 ax.step(
@@ -507,23 +540,30 @@ ax.step(
 
 # Actual remaining work.
 ax.fill_between(
-    chart_dates,
-    chart_remaining,
+    smooth_dates,
+    smooth_remaining,
     0,
     color=COLORS["blue_fill"],
     alpha=0.16,
-    step="post",
+)
+
+ax.plot(
+    smooth_dates,
+    smooth_remaining,
+    color=COLORS["blue"],
+    linewidth=2.5,
+    label="Treball pendent real",
+    zorder=4,
 )
 
 ax.plot(
     chart_dates,
     chart_remaining,
-    color=COLORS["blue"],
-    linewidth=2.5,
+    linestyle="none",
     marker="o",
     markersize=5,
-    label="Treball pendent real",
-    zorder=4,
+    color=COLORS["blue"],
+    zorder=5,
 )
 
 # Ideal reference trajectory.
