@@ -38,14 +38,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-
-          # Deixa-ho buit per incloure totes les issues.
-          # Exemple: "Sprint 1" o "Sprint 2"
           MILESTONE_TITLE: ""
-
-          # Data prevista de finalització per a la línia ideal.
-          # Format YYYY-MM-DD
-          SPRINT_END_DATE: "2026-11-01"
+          SPRINT_START_DATE: "2026-10-01"
+          SPRINT_END_DATE: "2026-10-21"
 
         run: python .github/scripts/generate_progress_charts.py
 
