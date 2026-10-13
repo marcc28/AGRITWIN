@@ -31,6 +31,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# necessari for OWASP ZAP
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000"
+    )
+    return response
 
 # Register routes
 app.include_router(user.router, prefix="/api/v1")

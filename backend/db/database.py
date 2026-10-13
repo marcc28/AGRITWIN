@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from supabase import Client, create_client
@@ -11,7 +12,6 @@ load_dotenv()
 
 PRODUCTION = os.getenv("PRODUCTION") == "True"
 
-
 if PRODUCTION:
     DATABASE_URL = os.getenv("EXTERN_DATABASE_URL")
 else:
@@ -19,9 +19,10 @@ else:
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL no està configurat. Revisa el teu .env")
-
+url = make_url(DATABASE_URL)
+url = url.difference_update_query(["pgbouncer"])
 engine = create_async_engine(
-    DATABASE_URL,
+    url,
     pool_pre_ping=True,
 )
 
