@@ -119,3 +119,16 @@ async def test_create_user_username_already_exists():
 
     assert exc.value.status_code == 409
     assert exc.value.detail == "Username already registered"
+
+def mock_result(scalar=None, scalars=None):
+    result = MagicMock()
+    result.scalar_one_or_none.return_value = scalar
+    result.scalars.return_value.all.return_value = scalars or []
+    return result
+
+
+@pytest.mark.asyncio
+async def test_list_users():
+    db = MagicMock()
+    users = [MagicMock(spec=User), MagicMock(spec=User)]
+    db.execute.return_value = mock_result(scalars=users)
