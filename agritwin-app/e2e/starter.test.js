@@ -8,6 +8,5 @@ describe('Signup', () => {
 
   it('creates an account', async () => {
     await signupNewUser();
-
   });
 });

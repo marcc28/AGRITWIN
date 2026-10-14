@@ -24,11 +24,7 @@ if (!allowedConfigs.has(requestedConfig)) {
 
 const config = requestedConfig;
 
-
-const allowedTestArgs = new Set([
-  '--record-logs',
-  '--take-screenshots',
-]);
+const allowedTestArgs = new Set(['--record-logs', '--take-screenshots']);
 
 const passthroughArgs = process.argv.slice(3).filter((arg) => {
   if (arg === '--build') return false;
@@ -59,9 +55,16 @@ function spawnCommand(name, args) {
     throw new Error(`Comanda no permesa: ${name}`);
   }
 
-  const npxScript = process.platform === 'win32'
-    ? path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npx-cli.js')
-    : require.resolve('npm/bin/npx-cli.js');
+  const npxScript =
+    process.platform === 'win32'
+      ? path.join(
+          path.dirname(process.execPath),
+          'node_modules',
+          'npm',
+          'bin',
+          'npx-cli.js',
+        )
+      : require.resolve('npm/bin/npx-cli.js');
 
   return spawn(process.execPath, [npxScript, ...args], {
     shell: false,
@@ -82,7 +85,7 @@ function checkMetro() {
       response.on('end', () => {
         resolve(
           response.statusCode === 200 &&
-          body.includes('packager-status:running'),
+            body.includes('packager-status:running'),
         );
       });
     });
@@ -94,7 +97,6 @@ function checkMetro() {
     });
   });
 }
-
 
 function startMetro() {
   metroProcess = spawnExpo();
@@ -128,7 +130,6 @@ async function waitForMetro() {
 
   throw new Error('Timed out waiting for Metro on port 8081');
 }
-
 
 function runDetox(operation, extraArgs = []) {
   return new Promise((resolve, reject) => {

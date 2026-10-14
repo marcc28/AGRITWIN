@@ -1,4 +1,3 @@
-
 const { device, element, by, waitFor } = require('detox');
 
 async function signupNewUser() {
@@ -41,7 +40,6 @@ async function loginAsNewUser() {
 
   await device.pressBack();
   await new Promise((resolve) => setTimeout(resolve, 3000));
-
 
   await element(by.id('login-button')).tap();
 
