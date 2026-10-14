@@ -89,7 +89,7 @@ export default function TabTwoScreen() {
                 running this project.
               </ThemedText>
               <Image
-                source={require('@/assets/images/tutorial-web.png')}
+                source={require('@assets/images/tutorial-web.png')}
                 style={styles.imageTutorial}
               />
             </ThemedView>
@@ -103,7 +103,7 @@ export default function TabTwoScreen() {
               for different screen densities.
             </ThemedText>
             <Image
-              source={require('@/assets/images/react-logo.png')}
+              source={require('@assets/images/react-logo.png')}
               style={styles.imageReact}
             />
             <ExternalLink href="https://reactnative.dev/docs/images">

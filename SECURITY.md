@@ -1,10 +1,10 @@
 # SECURITY POLICY
 
-**Last updated:** __________
+**Last updated:** 14/10/2026
 
 ## Introduction
 
-This Security Policy for **__________** ("we", "us", or "our") describes the technical and organisational measures we use to protect information processed through our services ("Services").
+This Security Policy for AgriTwin describes the technical and organisational measures we use to protect information processed through our services.
 
 Security is an integral part of the design, development, operation, and maintenance of our Services. We apply appropriate measures to protect information against unauthorised access, alteration, disclosure, destruction, loss, and other security threats.
 
@@ -59,7 +59,7 @@ This Security Policy should be read together with our Privacy Notice, Terms of S
 
 # 1. Purpose and Scope
 
-This Security Policy establishes the general principles and security measures applicable to the Services provided by **__________**.
+This Security Policy establishes the general principles and security measures applicable to the Services provided by **Agritwin**.
 
 The policy applies to the application, backend services, APIs, databases, storage systems, cloud infrastructure, connected devices, development environments, production environments, and other systems used to provide the Services.
 
@@ -376,7 +376,7 @@ We encourage responsible reporting of suspected security vulnerabilities affecti
 
 Security vulnerabilities may be reported to:
 
-**Security contact:** __________
+**Security contact:** holaworldf@gmail.com
 
 Reports should contain sufficient information to reproduce or understand the suspected vulnerability without unnecessarily exposing personal information or accessing information belonging to other users.
 
@@ -388,7 +388,7 @@ Security researchers are expected to avoid actions that may disrupt the Services
 
 We may update this Security Policy from time to time to reflect changes in our Services, infrastructure, security practices, technology, threats, or applicable requirements.
 
-The current version of this Security Policy will be identified by its **Last updated** date.
+The current version of this Security Policy will be identified by its 14/10/2026 date.
 
 Material changes may be communicated through appropriate channels when required.
 
@@ -398,13 +398,13 @@ Material changes may be communicated through appropriate channels when required.
 
 Questions, concerns, or reports regarding the security of our Services may be submitted to:
 
-**Organisation:** __________
+**Organisation:** AgriTwin
 
-**Security contact:** __________
+**Security contact:** Manel
 
-**Email:** __________
+**Email:** holaworld@gmail.com
 
-**Address:** __________
+**Address:** Escola Politècnica Superior, Universitat de Lleida, Campus de Cappont, C. de Jaume II, 69, 25001 Lleida, Catalunya, Espanya
 
 ---
 
@@ -420,4 +420,4 @@ This Security Policy should be read together with:
 ---
 
 **Document version:** 1.0  
-**Last updated:** __________
+**Last updated:** 14/10/2026

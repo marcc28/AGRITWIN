@@ -249,7 +249,7 @@ export default function MarketScreen() {
             ]}
           >
             <Image
-              source={require('@/assets/images/left_arrow.png')}
+              source={require('@assets/images/left_arrow.png')}
               style={styles.arrowIcon}
               resizeMode="contain"
             />
@@ -272,7 +272,7 @@ export default function MarketScreen() {
             ]}
           >
             <Image
-              source={require('@/assets/images/right_arrow.png')}
+              source={require('@assets/images/right_arrow.png')}
               style={styles.arrowIcon}
               resizeMode="contain"
             />

@@ -1,6 +1,6 @@
-const path = require('path');
-const { spawn } = require('child_process');
-const http = require('http');
+const path = require('node:path');
+const { spawn } = require('node:child_process');
+const http = require('node:http');
 process.env.APP_ENV = 'e2e';
 
 const dotenv = require('dotenv');
@@ -9,11 +9,35 @@ dotenv.config({
   path: path.resolve(__dirname, '../.env.e2e'),
 });
 
-const config = process.argv[2] || 'android.att.release';
-const passthroughArgs = process.argv
-  .slice(3)
-  .filter((arg) => arg !== '--build');
+const allowedConfigs = new Set([
+  'android.att.release',
+  'android.att.debug',
+  'ios.att.release',
+  'ios.att.debug',
+]);
+
+const requestedConfig = process.argv[2] || 'android.att.release';
+
+if (!allowedConfigs.has(requestedConfig)) {
+  throw new Error('Configuració no vàlida');
+}
+
+const config = requestedConfig;
+
+const allowedTestArgs = new Set(['--record-logs', '--take-screenshots']);
+
+const passthroughArgs = process.argv.slice(3).filter((arg) => {
+  if (arg === '--build') return false;
+
+  if (!allowedTestArgs.has(arg)) {
+    throw new Error(`Argument no permès: ${arg}`);
+  }
+
+  return true;
+});
+
 const shouldBuild = process.argv.slice(3).includes('--build');
+
 const detoxTestArgs = ['detox', 'test', '-c', config, ...passthroughArgs];
 const detoxBuildArgs = ['detox', 'build', '-c', config];
 const metroStatusUrl = 'http://localhost:8081/status';
@@ -27,8 +51,23 @@ function command(name) {
 }
 
 function spawnCommand(name, args) {
-  return spawn(command(name), args, {
-    shell: isWindows,
+  if (name !== 'npx') {
+    throw new Error(`Comanda no permesa: ${name}`);
+  }
+
+  const npxScript =
+    process.platform === 'win32'
+      ? path.join(
+          path.dirname(process.execPath),
+          'node_modules',
+          'npm',
+          'bin',
+          'npx-cli.js',
+        )
+      : require.resolve('npm/bin/npx-cli.js');
+
+  return spawn(process.execPath, [npxScript, ...args], {
+    shell: false,
     stdio: 'inherit',
     windowsHide: true,
   });
@@ -59,13 +98,60 @@ function checkMetro() {
   });
 }
 
+function spawnExpo() {
+  const expoCli = require.resolve('expo/bin/cli');
+
+  return spawn(
+    process.execPath,
+    [expoCli, 'start', '--dev-client', '--localhost'],
+    {
+      shell: false,
+      stdio: 'inherit',
+      windowsHide: true,
+      cwd: process.cwd(),
+    },
+  );
+}
+
+function spawnDetox(operation, config, extraArgs = []) {
+  const allowedOperations = new Set(['test', 'build']);
+
+  if (!allowedOperations.has(operation)) {
+    throw new Error('Operació Detox no permesa');
+  }
+
+  if (!allowedConfigs.has(config)) {
+    throw new Error('Configuració Detox no permesa');
+  }
+
+  if (operation === 'build' && extraArgs.length > 0) {
+    throw new Error('Arguments no permesos per a build');
+  }
+
+  if (!extraArgs.every((arg) => allowedTestArgs.has(arg))) {
+    throw new Error('Arguments Detox no permesos');
+  }
+
+  const detoxCli = require.resolve('detox/local-cli/cli.js');
+
+  return spawn(
+    process.execPath,
+    [detoxCli, operation, '-c', config, ...extraArgs],
+    {
+      shell: false,
+      stdio: 'inherit',
+      windowsHide: true,
+      cwd: process.cwd(),
+    },
+  );
+}
+
 function startMetro() {
-  metroProcess = spawnCommand('npx', [
-    'expo',
-    'start',
-    '--dev-client',
-    '--localhost',
-  ]);
+  metroProcess = spawnExpo();
+
+  metroProcess.on('error', (error) => {
+    console.error(`No s'ha pogut iniciar Metro: ${error.message}`);
+  });
 
   metroProcess.on('exit', (code, signal) => {
     if (code !== null && code !== 0) {
@@ -93,9 +179,11 @@ async function waitForMetro() {
   throw new Error('Timed out waiting for Metro on port 8081');
 }
 
-function runDetox(args) {
-  return new Promise((resolve) => {
-    const detox = spawnCommand('npx', args);
+function runDetox(operation, extraArgs = []) {
+  return new Promise((resolve, reject) => {
+    const detox = spawnDetox(operation, config, extraArgs);
+
+    detox.on('error', reject);
 
     detox.on('exit', (code, signal) => {
       if (signal) {
@@ -104,7 +192,7 @@ function runDetox(args) {
         return;
       }
 
-      resolve(code || 0);
+      resolve(code ?? 1);
     });
   });
 }
@@ -122,21 +210,18 @@ async function main() {
     startMetro();
     await waitForMetro();
   }
-
   if (shouldBuild) {
-    const buildExitCode = await runDetox(detoxBuildArgs);
+    const buildExitCode = await runDetox('build');
 
     if (buildExitCode !== 0) {
+      stopMetro();
       process.exit(buildExitCode);
     }
   }
 
-  const exitCode = await runDetox(detoxTestArgs);
+  const exitCode = await runDetox('test', passthroughArgs);
 
-  if (usesMetro && !metroAlreadyRunning) {
-    stopMetro();
-  }
-
+  stopMetro();
   process.exit(exitCode);
 }
 
