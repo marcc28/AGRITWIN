@@ -101,12 +101,16 @@ function checkMetro() {
 function spawnExpo() {
   const expoCli = require.resolve('expo/bin/cli');
 
-  return spawn(process.execPath, [expoCli, 'start', '--dev-client', '--localhost'], {
-    shell: false,
-    stdio: 'inherit',
-    windowsHide: true,
-    cwd: process.cwd(),
-  });
+  return spawn(
+    process.execPath,
+    [expoCli, 'start', '--dev-client', '--localhost'],
+    {
+      shell: false,
+      stdio: 'inherit',
+      windowsHide: true,
+      cwd: process.cwd(),
+    },
+  );
 }
 
 function spawnDetox(operation, config, extraArgs = []) {
