@@ -5,8 +5,15 @@ import { Colors } from '../constants/theme';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    alignItems: 'center',
     backgroundColor: Colors.light.background,
+  },
+
+  content: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 350,
+    padding: 20,
   },
 
   title: {

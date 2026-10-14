@@ -1,3 +1,5 @@
+import { getAuth } from './auth';
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!API_URL) {
@@ -169,4 +171,44 @@ export async function getSecurityPolicy(): Promise<LegalDocument> {
   }
 
   return data as LegalDocument;
+}
+
+// --------------------------------------------------
+// GET DASHBOARD DATA
+// --------------------------------------------------
+
+export type Reading = {
+  timestamp: string;
+  temperature: number;
+  air_humidity: number;
+  soil_humidity: number;
+  light: number;
+};
+
+export type Dashboard = {
+  device_id: string | null;
+  latest: Reading | null;
+  history: Reading[];
+};
+
+export async function getDashboard(): Promise<Dashboard> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/dashboard`, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || 'No s’ha pogut carregar el dashboard');
+  }
+
+  return data as Dashboard;
 }
