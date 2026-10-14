@@ -53,4 +53,6 @@ backend/.coverage
 ./agritwin-app/coverage/*
 
 **/__pycache__/**
-./backend/coverage.xml
+./backend/coverage.xm
+**/**/__pycache__/**
+**/**/**/__pycache__/**
