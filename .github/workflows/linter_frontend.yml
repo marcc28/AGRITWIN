@@ -2,7 +2,7 @@ name: Frontend lint and typecheck
 
 on:
   push:
-    branches: ["dev", "staging", "prod"]
+    branches: ["dev", "staging", "prod", "feature/47-sprint-1-devops-automation-workflows"]
   pull_request:
     branches: ["staging", "prod"]
   workflow_dispatch:
