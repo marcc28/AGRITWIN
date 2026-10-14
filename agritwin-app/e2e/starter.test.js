@@ -7,7 +7,7 @@ describe('Signup', () => {
   });
 
   it('creates an account', async () => {
-    const user = await signupNewUser();
-    
+    await signupNewUser();
+
   });
 });
