@@ -1,10 +1,10 @@
 # PRIVACY NOTICE
 
-**Last updated:** __________
+**Last updated:** 14/10/2026
 
 ## Introduction
 
-This Privacy Notice for **__________** ("we", "us", or "our") describes how and why we may access, collect, store, use, and share ("process") your personal information when you use our services ("Services").
+This Privacy Notice for **Agritwin** ("we", "us", or "our") describes how and why we may access, collect, store, use, and share ("process") your personal information when you use our services ("Services").
 
 Our Services include agricultural management and monitoring features such as field management, crop information, sensor data, irrigation management, weather information, images, predictions, and other related functionality.
 
@@ -395,4 +395,4 @@ This Privacy Notice should be read together with:
 ---
 
 **Document version:** 1.0  
-**Last updated:** __________
+**Last updated:** 14/10/2026

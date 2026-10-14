@@ -98,6 +98,50 @@ function checkMetro() {
   });
 }
 
+function spawnExpo() {
+  const expoCli = require.resolve('expo/bin/cli');
+
+  return spawn(process.execPath, [expoCli, 'start', '--dev-client', '--localhost'], {
+    shell: false,
+    stdio: 'inherit',
+    windowsHide: true,
+    cwd: process.cwd(),
+  });
+}
+
+function spawnDetox(operation, config, extraArgs = []) {
+  const allowedOperations = new Set(['test', 'build']);
+
+  if (!allowedOperations.has(operation)) {
+    throw new Error('Operació Detox no permesa');
+  }
+
+  if (!allowedConfigs.has(config)) {
+    throw new Error('Configuració Detox no permesa');
+  }
+
+  if (operation === 'build' && extraArgs.length > 0) {
+    throw new Error('Arguments no permesos per a build');
+  }
+
+  if (!extraArgs.every((arg) => allowedTestArgs.has(arg))) {
+    throw new Error('Arguments Detox no permesos');
+  }
+
+  const detoxCli = require.resolve('detox/local-cli/cli.js');
+
+  return spawn(
+    process.execPath,
+    [detoxCli, operation, '-c', config, ...extraArgs],
+    {
+      shell: false,
+      stdio: 'inherit',
+      windowsHide: true,
+      cwd: process.cwd(),
+    },
+  );
+}
+
 function startMetro() {
   metroProcess = spawnExpo();
 
