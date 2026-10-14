@@ -8,8 +8,12 @@ export default function RootLayout() {
   const segments = useSegments();
 
   useEffect(() => {
+    let active = true;
+
     async function checkAuth() {
       const auth = await getAuth();
+
+      if (!active) return;
 
       const inAuthGroup = segments[0] === 'auth';
 
@@ -23,7 +27,13 @@ export default function RootLayout() {
       }
     }
 
-    checkAuth();
+    void checkAuth().catch((error: unknown) => {
+      console.error('Error comprovant l autenticació:', error);
+    });
+
+    return () => {
+      active = false;
+    };
   }, [segments]);
 
   return (
