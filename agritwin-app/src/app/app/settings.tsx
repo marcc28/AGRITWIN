@@ -60,7 +60,7 @@ export default function SettingsScreen() {
 
       <Pressable style={styles.logoutButton} onPress={handleLogout}>
         <Image
-          source={require('@/assets/images/logout.png')}
+          source={require('@assets/images/logout.png')}
           style={styles.logoutIcon}
         />
 

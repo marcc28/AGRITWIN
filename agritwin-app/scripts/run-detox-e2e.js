@@ -1,6 +1,6 @@
-const path = require('path');
-const { spawn } = require('child_process');
-const http = require('http');
+const path = require('node:path');
+const { spawn } = require('node:child_process');
+const http = require('node:http');
 process.env.APP_ENV = 'e2e';
 
 const dotenv = require('dotenv');
@@ -9,11 +9,39 @@ dotenv.config({
   path: path.resolve(__dirname, '../.env.e2e'),
 });
 
-const config = process.argv[2] || 'android.att.release';
-const passthroughArgs = process.argv
-  .slice(3)
-  .filter((arg) => arg !== '--build');
+const allowedConfigs = new Set([
+  'android.att.release',
+  'android.att.debug',
+  'ios.att.release',
+  'ios.att.debug',
+]);
+
+const requestedConfig = process.argv[2] || 'android.att.release';
+
+if (!allowedConfigs.has(requestedConfig)) {
+  throw new Error('Configuració no vàlida');
+}
+
+const config = requestedConfig;
+
+
+const allowedTestArgs = new Set([
+  '--record-logs',
+  '--take-screenshots',
+]);
+
+const passthroughArgs = process.argv.slice(3).filter((arg) => {
+  if (arg === '--build') return false;
+
+  if (!allowedTestArgs.has(arg)) {
+    throw new Error(`Argument no permès: ${arg}`);
+  }
+
+  return true;
+});
+
 const shouldBuild = process.argv.slice(3).includes('--build');
+
 const detoxTestArgs = ['detox', 'test', '-c', config, ...passthroughArgs];
 const detoxBuildArgs = ['detox', 'build', '-c', config];
 const metroStatusUrl = 'http://localhost:8081/status';
@@ -27,8 +55,16 @@ function command(name) {
 }
 
 function spawnCommand(name, args) {
-  return spawn(command(name), args, {
-    shell: isWindows,
+  if (name !== 'npx') {
+    throw new Error(`Comanda no permesa: ${name}`);
+  }
+
+  const npxScript = process.platform === 'win32'
+    ? path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npx-cli.js')
+    : require.resolve('npm/bin/npx-cli.js');
+
+  return spawn(process.execPath, [npxScript, ...args], {
+    shell: false,
     stdio: 'inherit',
     windowsHide: true,
   });

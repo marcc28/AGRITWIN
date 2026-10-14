@@ -9,6 +9,6 @@ module.exports = {
   moduleNameMapper: {
     '^@/global\\.css$': '<rootDir>/__mocks__/styleMock.js',
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@/assets/(.*)$': '<rootDir>/assets/$1',
+    '^@assets/(.*)$': '<rootDir>/assets/$1',
   },
 };
