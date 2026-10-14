@@ -82,7 +82,7 @@ function checkMetro() {
       response.on('end', () => {
         resolve(
           response.statusCode === 200 &&
-            body.includes('packager-status:running'),
+          body.includes('packager-status:running'),
         );
       });
     });
@@ -95,13 +95,13 @@ function checkMetro() {
   });
 }
 
+
 function startMetro() {
-  metroProcess = spawnCommand('npx', [
-    'expo',
-    'start',
-    '--dev-client',
-    '--localhost',
-  ]);
+  metroProcess = spawnExpo();
+
+  metroProcess.on('error', (error) => {
+    console.error(`No s'ha pogut iniciar Metro: ${error.message}`);
+  });
 
   metroProcess.on('exit', (code, signal) => {
     if (code !== null && code !== 0) {
@@ -129,9 +129,12 @@ async function waitForMetro() {
   throw new Error('Timed out waiting for Metro on port 8081');
 }
 
-function runDetox(args) {
-  return new Promise((resolve) => {
-    const detox = spawnCommand('npx', args);
+
+function runDetox(operation, extraArgs = []) {
+  return new Promise((resolve, reject) => {
+    const detox = spawnDetox(operation, config, extraArgs);
+
+    detox.on('error', reject);
 
     detox.on('exit', (code, signal) => {
       if (signal) {
@@ -140,7 +143,7 @@ function runDetox(args) {
         return;
       }
 
-      resolve(code || 0);
+      resolve(code ?? 1);
     });
   });
 }
@@ -158,21 +161,18 @@ async function main() {
     startMetro();
     await waitForMetro();
   }
-
   if (shouldBuild) {
-    const buildExitCode = await runDetox(detoxBuildArgs);
+    const buildExitCode = await runDetox('build');
 
     if (buildExitCode !== 0) {
+      stopMetro();
       process.exit(buildExitCode);
     }
   }
 
-  const exitCode = await runDetox(detoxTestArgs);
+  const exitCode = await runDetox('test', passthroughArgs);
 
-  if (usesMetro && !metroAlreadyRunning) {
-    stopMetro();
-  }
-
+  stopMetro();
   process.exit(exitCode);
 }
 
