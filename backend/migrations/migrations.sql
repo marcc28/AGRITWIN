@@ -1,7 +1,14 @@
 -- ============================================================
 -- AgriTwin
 -- Initial migration
--- PostgreSQL
+-- PostgreSQL (Supabase)
+--
+-- Issue #79 - DB restructuring:
+--   * A user can own many fields; each field has many devices
+--     (Arduino / ESP32 boards).
+--   * Sensor readings (telemetry) and weather data are linked to
+--     devices and fields.
+--   * Every table and column name is in English.
 -- ============================================================
 
 
@@ -67,33 +74,195 @@ CREATE TABLE user_consents (
         ON DELETE CASCADE
 );
 
+-- ============================================================
+-- ANUNCES (news / ads feed)
+-- ============================================================
+
 CREATE TABLE anunces (
     id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    subtile VARCHAR(255),
-    agent VARCHAR(255),
-    content TEXT,    
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
 
-CREATE TABLE conte_mercat (
-    id SERIAL PRIMARY KEY,
-    product VARCHAR(255) NOT NULL,
-    tecnical_name VARCHAR(255),
-    price NUMERIC(10, 2) NOT NULL,
-    price_per_kg NUMERIC(10, 2),
-    left_units INTEGER NOT NULL DEFAULT 0,
+    title VARCHAR(255) NOT NULL,
+
+    subtile VARCHAR(255),
+
+    agent VARCHAR(255),
+
+    content TEXT,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 
 -- ============================================================
--- INDEX
+-- CONTE_MERCAT (market prices)
+-- ============================================================
+
+CREATE TABLE conte_mercat (
+    id SERIAL PRIMARY KEY,
+
+    product VARCHAR(255) NOT NULL,
+
+    tecnical_name VARCHAR(255),
+
+    price NUMERIC(10, 2) NOT NULL,
+
+    price_per_kg NUMERIC(10, 2),
+
+    left_units INTEGER NOT NULL DEFAULT 0,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- ============================================================
+-- FIELDS
+-- A user can own many fields (a home garden, a big field...).
+-- ============================================================
+
+CREATE TABLE fields (
+    id SERIAL PRIMARY KEY,
+
+    username VARCHAR(255) NOT NULL,
+
+    name VARCHAR(100) NOT NULL,
+
+    -- Human readable place (town, address...)
+    location VARCHAR(255),
+
+    -- GPS coordinates, used by the weather API
+    lat DOUBLE PRECISION,
+
+    lon DOUBLE PRECISION,
+
+    -- e.g. 'home_garden', 'open_field', 'greenhouse'
+    field_type VARCHAR(50),
+
+    -- e.g. 'clay', 'sandy', 'loam'
+    soil_type VARCHAR(50),
+
+    -- Surface in square meters
+    size_m2 NUMERIC(10, 2),
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_fields_user
+        FOREIGN KEY (username)
+        REFERENCES users(username)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_fields_lat
+        CHECK (lat IS NULL OR lat BETWEEN -90 AND 90),
+
+    CONSTRAINT chk_fields_lon
+        CHECK (lon IS NULL OR lon BETWEEN -180 AND 180),
+
+    CONSTRAINT chk_fields_size
+        CHECK (size_m2 IS NULL OR size_m2 > 0)
+);
+
+
+-- ============================================================
+-- DEVICES
+-- IoT boards (Arduino / ESP32) installed in a field.
+-- The id is the hardware identifier sent in the MQTT payload
+-- (e.g. 'esp32_sim_01').
+-- ============================================================
+
+CREATE TABLE devices (
+    id VARCHAR(255) PRIMARY KEY,
+
+    field_id INTEGER NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_devices_field
+        FOREIGN KEY (field_id)
+        REFERENCES fields(id)
+        ON DELETE CASCADE
+);
+
+
+-- ============================================================
+-- TELEMETRY
+-- Sensor readings received from the devices through MQTT.
+-- Column names match the keys of the MQTT 'sensors' payload.
+-- ============================================================
+
+CREATE TABLE telemetry (
+    id SERIAL PRIMARY KEY,
+
+    device_id VARCHAR(255) NOT NULL,
+
+    timestamp TIMESTAMP NOT NULL,
+
+    air_temperature_c NUMERIC,
+
+    air_humidity_percent NUMERIC,
+
+    soil_moisture_percent NUMERIC,
+
+    light_intensity_lux NUMERIC,
+
+    CONSTRAINT fk_telemetry_device
+        FOREIGN KEY (device_id)
+        REFERENCES devices(id)
+        ON DELETE CASCADE
+);
+
+
+-- ============================================================
+-- WEATHER_CACHE
+-- Last weather forecast fetched for each field (one row per
+-- field), plus the active weather alert, if any.
+-- ============================================================
+
+CREATE TABLE weather_cache (
+    field_id INTEGER PRIMARY KEY,
+
+    forecast_rain_mm NUMERIC,
+
+    forecast_temperature_c NUMERIC,
+
+    -- When the forecast was fetched from the weather API
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Raw daily forecast returned by the weather API
+    forecast_days JSONB,
+
+    alert_active BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- e.g. 'hail', 'heavy_rain', 'frost'
+    alert_type VARCHAR(50),
+
+    alert_message TEXT,
+
+    CONSTRAINT fk_weather_cache_field
+        FOREIGN KEY (field_id)
+        REFERENCES fields(id)
+        ON DELETE CASCADE
+);
+
+
+-- ============================================================
+-- INDEXES
 -- ============================================================
 
 CREATE INDEX idx_user_consents_username
     ON user_consents(username);
 
+CREATE INDEX idx_fields_username
+    ON fields(username);
+
+CREATE INDEX idx_devices_field_id
+    ON devices(field_id);
+
+CREATE INDEX idx_telemetry_device_timestamp
+    ON telemetry(device_id, timestamp);
+
+
+-- ============================================================
+-- SEED DATA
+-- ============================================================
 
 INSERT INTO public.anunces (id, title, subtile, agent, content, created_at) VALUES
 (1, 'Oferta de tomàquets', 'Tomàquets ecològics', 'AgriTwin', 'Tomàquets ecològics disponibles a bon preu aquesta setmana, amb diferents formats per a venda directa.', '2026-10-06 08:15:32.112543'),
@@ -116,9 +285,6 @@ INSERT INTO public.anunces (id, title, subtile, agent, content, created_at) VALU
 (18, 'Bones perspectives per a la campanya d''olives', 'Olivicultura', 'Cooperativa Agrària', 'Les primeres estimacions apunten a una campanya d''olives amb bons rendiments en diverses zones productores.', '2026-10-06 17:31:46.225781'),
 (19, 'Preu de la fruita de pinyol', 'Mercat de fruita', 'AgriTwin', 'Els preus de la fruita de pinyol es mantenen estables després del final de la temporada d''estiu i l''entrada de nous productes de tardor.', '2026-10-06 18:02:37.519624'),
 (20, 'Recomanacions abans de les primeres gelades', 'Prevenció agrícola', 'Servei Meteorològic', 'Es recomana als agricultors revisar els sistemes de protecció dels cultius sensibles davant la possibilitat de temperatures baixes durant les pròximes setmanes.', '2026-10-06 18:34:21.847362');
-
-
-
 
 INSERT INTO public.conte_mercat
 (id, product, tecnical_name, price, price_per_kg, left_units, created_at)
@@ -143,41 +309,9 @@ VALUES
 (18, 'Albergínia', 'Solanum melongena', '2.65', '2.65', 65, '2026-10-06 15:42:31.815294'),
 (19, 'Coliflor', 'Brassica oleracea var. botrytis', '2.40', '2.40', 90, '2026-10-06 16:11:26.394728'),
 (20, 'Bròquil', 'Brassica oleracea var. italica', '2.75', '2.75', 80, '2026-10-06 16:38:54.721635');
--- ============================================================
--- TELEMETRIA (IoT Sensors Data)
--- ============================================================
 
-CREATE TABLE telemetria (
-    id SERIAL PRIMARY KEY,
-    
-    device_id VARCHAR(255) NOT NULL,
-    
-    timestamp TIMESTAMP NOT NULL,
-    
-    temperatura NUMERIC,
-    
-    umidita_aria NUMERIC,
-    
-    umidita_terreno NUMERIC,
-    
-    luce NUMERIC
-);
-
--- ============================================================
--- INDEX FOR TELEMETRIA
--- ============================================================
-
-CREATE INDEX idx_telemetria_device_timestamp
-    ON telemetria(device_id, timestamp);
-
-
-CREATE TABLE Garden (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    localization VARCHAR(255) NOT NULL,
-    type_of_garden VARCHAR(50),
-    type_of_soil VARCHAR(50),
-    size DECIMAL(10,2),
-    user_id INT,
-    FOREIGN KEY (user_id) REFERENCES User(id)
-);
+-- The seed rows above use explicit ids, so move the SERIAL
+-- sequences forward; otherwise the next INSERT would fail with
+-- a duplicate primary key.
+SELECT setval(pg_get_serial_sequence('anunces', 'id'), (SELECT MAX(id) FROM anunces));
+SELECT setval(pg_get_serial_sequence('conte_mercat', 'id'), (SELECT MAX(id) FROM conte_mercat));
