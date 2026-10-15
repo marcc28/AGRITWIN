@@ -169,3 +169,15 @@ CREATE TABLE telemetria (
 
 CREATE INDEX idx_telemetria_device_timestamp
     ON telemetria(device_id, timestamp);
+
+
+CREATE TABLE Garden (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    localization VARCHAR(255) NOT NULL,
+    type_of_garden VARCHAR(50),
+    type_of_soil VARCHAR(50),
+    size DECIMAL(10,2),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES User(id)
+);

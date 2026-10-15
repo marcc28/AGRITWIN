@@ -359,13 +359,13 @@ Where required by applicable law, significant changes may also be communicated t
 
 If you have questions, concerns, or requests regarding this Privacy Notice or the processing of your personal information, you can contact us using the information below.
 
-**Organisation:** __________
+**Organisation:** AgriTwin
 
-**Privacy contact:** __________
+**Privacy contact:** Manel
 
-**Email:** __________
+**Email:** holaworld@gmail.com
 
-**Address:** __________
+**Address:** Escola Politècnica Superior, Universitat de Lleida, Campus de Cappont, C. de Jaume II, 69, 25001 Lleida, Catalunya, Espanya
 
 ---
 

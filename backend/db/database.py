@@ -24,6 +24,9 @@ url = url.difference_update_query(["pgbouncer"])
 engine = create_async_engine(
     url,
     pool_pre_ping=True,
+    connect_args={
+        "statement_cache_size": 0,
+    },
 )
 
 AsyncSessionLocal = sessionmaker(

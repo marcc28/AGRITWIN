@@ -29,6 +29,9 @@ COPY --chown=appuser:appuser services/ ./services/
 COPY --chown=appuser:appuser templates/ ./templates/
 COPY --chown=root:root --chmod=644 main.py ./
 
+COPY PRIVACY.md PRIVACY.md 
+COPY SECURITY.md SECURITY.md
+
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
