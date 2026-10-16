@@ -68,14 +68,14 @@ def save_telemetry(payload: dict):
         data_to_insert = {
             "device_id": device_id,
             "timestamp": timestamp,
-            "temperatura": sensors.get("air_temperature_c"),
-            "umidita_aria": sensors.get("air_humidity_percent"),
-            "umidita_terreno": sensors.get("soil_moisture_percent"),
-            "luce": sensors.get("light_intensity_lux"),
+            "air_temperature_c": sensors.get("air_temperature_c"),
+            "air_humidity_percent": sensors.get("air_humidity_percent"),
+            "soil_moisture_percent": sensors.get("soil_moisture_percent"),
+            "light_intensity_lux": sensors.get("light_intensity_lux"),
         }
 
-        # Insert data into the 'telemetria' table
-        supabase.table("telemetria").insert(data_to_insert).execute()
+        # Insert data into the 'telemetry' table
+        supabase.table("telemetry").insert(data_to_insert).execute()
         print(f"[DATABASE-SUCCESS] Telemetry data from {device_id} saved to Supabase!")
 
     except Exception as e:
