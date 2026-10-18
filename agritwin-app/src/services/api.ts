@@ -186,7 +186,8 @@ export type Reading = {
 };
 
 export type Dashboard = {
-  device_id: string | null;
+  field_name: string | null;
+  device_ids: string[];
   latest: Reading | null;
   history: Reading[];
 };
@@ -210,5 +211,16 @@ export async function getDashboard(): Promise<Dashboard> {
     throw new Error(data.detail || 'No s’ha pogut carregar el dashboard');
   }
 
-  return data as Dashboard;
+  const deviceIds: string[] = Array.isArray(data.device_ids)
+    ? data.device_ids
+    : data.device_id
+      ? [data.device_id]
+      : [];
+
+  return {
+    field_name: data.field_name ?? null,
+    device_ids: deviceIds,
+    latest: data.latest ?? null,
+    history: data.history ?? [],
+  };
 }

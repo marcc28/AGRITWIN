@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
-import { getDashboard, type Dashboard } from '../../services/api';
-import { styles } from '../../styles/home.styles';
+import { SensorCard } from '@/components/SensorCard';
+import { SensorModal } from '@/components/SensorModal';
+import { getDashboard, type Dashboard } from '@/services/api';
+import { styles } from '@/styles/home.styles';
 
 export default function HomeScreen() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     async function loadDashboard() {
@@ -26,53 +29,40 @@ export default function HomeScreen() {
     loadDashboard();
   }, []);
 
+  const today = new Date()
+    .toLocaleDateString('ca', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    })
+    .toUpperCase();
+
   return (
     <View style={styles.container}>
-      <View testID="home-screen" style={styles.content}>
-        <Text style={styles.title}>Benvingut a AgriTwin 🌱</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View testID="home-screen" style={styles.content}>
+          <Text style={styles.date}>{today}</Text>
+          <Text style={styles.title}>El teu hort,{'\n'}cada dia millor.</Text>
+          <Text style={styles.subtitle}>
+            Tasques, temps i cultius adaptats al teu hort.
+          </Text>
 
-        <Text style={styles.subtitle}>
-          Aquí tindràs el resum de la teva explotació agrícola.
-        </Text>
+          <SensorCard
+            dashboard={dashboard}
+            errorMessage={errorMessage}
+            onPress={() => setModalVisible(true)}
+          />
+        </View>
+      </ScrollView>
 
-        {errorMessage ? (
-          <Text style={styles.subtitle}>{errorMessage}</Text>
-        ) : null}
-
-        {dashboard && dashboard.device_id === null ? (
-          <Text style={styles.subtitle}>Encara no tens cap dispositiu.</Text>
-        ) : null}
-
-        {dashboard &&
-        dashboard.device_id !== null &&
-        dashboard.latest === null ? (
-          <Text style={styles.subtitle}>Encara no hi ha cap lectura.</Text>
-        ) : null}
-
-        {dashboard && dashboard.latest ? (
-          <View style={styles.info}>
-            <Text style={styles.label}>Dispositiu</Text>
-            <Text style={styles.value}>{dashboard.device_id}</Text>
-
-            <Text style={styles.label}>Última lectura</Text>
-            <Text style={styles.value}>
-              {new Date(dashboard.latest.timestamp).toLocaleString('ca')}
-            </Text>
-
-            <Text style={styles.label}>Temperatura</Text>
-            <Text style={styles.value}>{dashboard.latest.temperature} °C</Text>
-
-            <Text style={styles.label}>Humitat de l’aire</Text>
-            <Text style={styles.value}>{dashboard.latest.air_humidity} %</Text>
-
-            <Text style={styles.label}>Humitat del sòl</Text>
-            <Text style={styles.value}>{dashboard.latest.soil_humidity} %</Text>
-
-            <Text style={styles.label}>Llum</Text>
-            <Text style={styles.value}>{dashboard.latest.light} lux</Text>
-          </View>
-        ) : null}
-      </View>
+      {dashboard && dashboard.latest ? (
+        <SensorModal
+          visible={modalVisible}
+          dashboard={dashboard}
+          latest={dashboard.latest}
+          onClose={() => setModalVisible(false)}
+        />
+      ) : null}
     </View>
   );
 }
