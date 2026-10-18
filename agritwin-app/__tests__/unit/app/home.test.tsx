@@ -10,7 +10,7 @@ import {
 import HomeScreen from '../../../src/app/app/home';
 import { getDashboard } from '../../../src/services/api';
 
-est.mock('../../../src/services/api', () => ({
+jest.mock('../../../src/services/api', () => ({
   getDashboard: jest.fn(),
 }));
 
