@@ -26,7 +26,7 @@ export default function HomeScreen() {
       }
     }
 
-    loadDashboard();
+    void loadDashboard();
   }, []);
 
   const today = new Date()
