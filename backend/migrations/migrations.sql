@@ -10,7 +10,9 @@
 -- ============================================================
 
 CREATE TABLE users (
-    username VARCHAR(255) PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    username VARCHAR(255) NOT NULL UNIQUE ,
 
     email VARCHAR(255) NOT NULL UNIQUE,
 
@@ -51,11 +53,9 @@ CREATE TABLE user_profile (
 -- ============================================================
 
 CREATE TABLE user_consents (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
 
     username VARCHAR(255) NOT NULL,
-
-    document_type VARCHAR(100) NOT NULL,
 
     document_version VARCHAR(50) NOT NULL,
 
@@ -68,7 +68,7 @@ CREATE TABLE user_consents (
 );
 
 CREATE TABLE anunces (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     subtile VARCHAR(255),
     agent VARCHAR(255),
@@ -77,7 +77,7 @@ CREATE TABLE anunces (
 );
 
 CREATE TABLE conte_mercat (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     product VARCHAR(255) NOT NULL,
     tecnical_name VARCHAR(255),
     price NUMERIC(10, 2) NOT NULL,
@@ -172,7 +172,7 @@ CREATE INDEX idx_telemetria_device_timestamp
 
 
 CREATE TABLE Garden (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     localization VARCHAR(255) NOT NULL,
     type_of_garden VARCHAR(50),
