@@ -34,7 +34,7 @@ async def test_create_user_success():
     service.get_user_by_email.assert_awaited_once_with("joan@test.com")
     service.get_user_by_username.assert_awaited_once_with("joan")
     db.add.assert_called()
-    assert db.add.call_count == 4
+    assert db.add.call_count == 3
 
     db.flush.assert_awaited_once()
     db.commit.assert_awaited_once()
@@ -119,6 +119,7 @@ async def test_create_user_username_already_exists():
 
     assert exc.value.status_code == 409
     assert exc.value.detail == "Username already registered"
+
 
 def mock_result(scalar=None, scalars=None):
     result = MagicMock()
