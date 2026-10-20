@@ -192,14 +192,19 @@ export type Dashboard = {
   history: Reading[];
 };
 
-export async function getDashboard(): Promise<Dashboard> {
+export async function getDashboard(fieldId?: number): Promise<Dashboard> {
   const auth = await getAuth();
 
   if (!auth?.token) {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/dashboard`, {
+  const url =
+    fieldId == null
+      ? `${API_URL}/api/v1/dashboard`
+      : `${API_URL}/api/v1/dashboard?field_id=${fieldId}`;
+
+  const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -223,4 +228,197 @@ export async function getDashboard(): Promise<Dashboard> {
     latest: data.latest ?? null,
     history: data.history ?? [],
   };
+}
+
+export type Me = {
+  username: string;
+  email: string;
+  language: string;
+  notifications_enabled: boolean;
+  weather_alerts_enabled: boolean;
+};
+
+export type MeUpdate = {
+  language: string;
+  notifications_enabled: boolean;
+  weather_alerts_enabled: boolean;
+};
+
+function errorDetail(data: unknown, fallback: string): string {
+  if (data && typeof data === 'object' && 'detail' in data) {
+    const detail = (data as { detail: unknown }).detail;
+    if (typeof detail === 'string') {
+      return detail;
+    }
+  }
+  return fallback;
+}
+
+export async function getMe(): Promise<Me> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me`, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut carregar el perfil'));
+  }
+
+  return data as Me;
+}
+
+export async function updateMe(payload: MeUpdate): Promise<Me> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut guardar el perfil'));
+  }
+
+  return data as Me;
+}
+
+export async function updateMyEmail(email: string): Promise<Me> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me/email`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut canviar el correu'));
+  }
+
+  return data as Me;
+}
+
+export async function updateMyPassword(
+  currentPassword: string,
+  newPassword: string,
+  newPasswordConf: string,
+): Promise<void> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me/password`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+      new_password_conf: newPasswordConf,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut canviar la contrasenya'));
+  }
+}
+
+export type Field = {
+  id: number;
+  name: string;
+  location: string | null;
+  field_type: string | null;
+  soil_type: string | null;
+  size_m2: number | null;
+  device_count: number;
+};
+
+export async function getFields(): Promise<Field[]> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields`, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || 'No s’ha pogut carregar els camps');
+  }
+
+  return data as Field[];
+}
+
+export async function updateField(
+  id: number,
+  payload: {
+    name: string;
+    location: string | null;
+    field_type: string | null;
+    soil_type: string | null;
+    size_m2: number | null;
+  },
+): Promise<Field> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || 'No s’ha pogut guardar el camp');
+  }
+
+  return data as Field;
 }

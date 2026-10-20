@@ -58,14 +58,20 @@
   },
 
   "settings": {
-    "title": "Configuració",
+    "title": "Perfil",
     "profile": "Perfil",
+    "preferences": "Preferències",
     "language": "Idioma",
     "units": "Unitats",
+    "metric": "Mètric",
+    "imperial": "Imperial",
     "notifications": "Notificacions",
     "weatherAlerts": "Alertes meteorològiques",
     "irrigationAlerts": "Alertes de reg",
     "theme": "Tema",
+    "themeSystem": "Sistema",
+    "themeLight": "Clar",
+    "themeDark": "Fosc",
     "logout": "Tancar sessió"
   },
   "languages": {

@@ -58,14 +58,20 @@
   },
 
   "settings": {
-    "title": "Impostazioni",
+    "title": "Profilo",
     "profile": "Profilo",
+    "preferences": "Preferenze",
     "language": "Lingua",
     "units": "Unità",
+    "metric": "Metrico",
+    "imperial": "Imperiale",
     "notifications": "Notifiche",
     "weatherAlerts": "Avvisi meteorologici",
     "irrigationAlerts": "Avvisi di irrigazione",
     "theme": "Tema",
+    "themeSystem": "Sistema",
+    "themeLight": "Chiaro",
+    "themeDark": "Scuro",
     "logout": "Esci"
   },
   "languages": {

@@ -47,7 +47,7 @@ export default function Layout() {
           </NativeTabs.Trigger>
 
           <NativeTabs.Trigger name="settings">
-            <NativeTabs.Trigger.Label>Configuració</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
               src={require('@assets/images/tabIcons/settings.png')}
               renderingMode="template"

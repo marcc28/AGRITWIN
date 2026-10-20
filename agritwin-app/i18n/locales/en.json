@@ -58,14 +58,20 @@
   },
 
   "settings": {
-    "title": "Settings",
+    "title": "Profile",
     "profile": "Profile",
+    "preferences": "Preferences",
     "language": "Language",
     "units": "Units",
+    "metric": "Metric",
+    "imperial": "Imperial",
     "notifications": "Notifications",
     "weatherAlerts": "Weather alerts",
     "irrigationAlerts": "Irrigation alerts",
     "theme": "Theme",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
     "logout": "Log out"
   },
   "languages": {

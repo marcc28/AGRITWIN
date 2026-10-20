@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserProfileCreate(BaseModel):
@@ -23,3 +23,27 @@ class UserProfileRead(BaseModel):
     weather_alerts_enabled: bool
     irrigation_alerts_enabled: bool
     theme: str
+
+
+class MeRead(BaseModel):
+    username: str
+    email: str
+    language: str
+    notifications_enabled: bool
+    weather_alerts_enabled: bool
+
+
+class MeUpdate(BaseModel):
+    language: str
+    notifications_enabled: bool
+    weather_alerts_enabled: bool
+
+
+class EmailUpdate(BaseModel):
+    email: EmailStr
+
+
+class PasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+    new_password_conf: str

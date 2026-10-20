@@ -91,11 +91,11 @@ export default function AppHeader() {
         </View>
       </View>
 
-      {/* Configuració */}
+      {/* Perfil */}
       <Pressable
         onPress={() => router.push('/app/settings')}
         accessibilityRole="button"
-        accessibilityLabel="Configuració"
+        accessibilityLabel="Perfil"
         hitSlop={8}
         style={({ pressed }) => ({
           width: 44,

@@ -9,10 +9,11 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
+from sqlalchemy import text
 
 from db import AsyncSessionLocal, User
 from models.token import Token
-from models.userProfile import UserProfileRead
+from models.userProfile import EmailUpdate, MeRead, MeUpdate, PasswordUpdate
 from services.user_service import UserService
 
 load_dotenv()
@@ -215,11 +216,24 @@ async def refresh_token_endpoint(
         ) from err
 
 
+PROFILE_COLUMNS = "language, notifications_enabled, weather_alerts_enabled"
+
+
+def _me_from_row(current_user: User, row) -> MeRead:
+    return MeRead(
+        username=current_user.username,
+        email=current_user.email,
+        language=row.language,
+        notifications_enabled=row.notifications_enabled,
+        weather_alerts_enabled=row.weather_alerts_enabled,
+    )
+
+
 @router.get("/me")
 async def read_me(
     current_user: User = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
-) -> UserProfileRead:
+) -> MeRead:
     userprofile = await service.get_user_profile(current_user.id)
 
     if not userprofile:
@@ -228,4 +242,112 @@ async def read_me(
             detail="User profile not found",
         )
 
-    return userprofile
+    return _me_from_row(current_user, userprofile)
+
+
+@router.put("/me")
+async def update_me(
+    body: MeUpdate,
+    current_user: User = Depends(get_current_user),
+) -> MeRead:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            text(
+                "UPDATE user_profile SET "
+                "language = :language, "
+                "notifications_enabled = :notifications_enabled, "
+                "weather_alerts_enabled = :weather_alerts_enabled "
+                "WHERE id = :user_id "
+                f"RETURNING {PROFILE_COLUMNS}"
+            ),
+            {
+                "language": body.language,
+                "notifications_enabled": body.notifications_enabled,
+                "weather_alerts_enabled": body.weather_alerts_enabled,
+                "user_id": current_user.id,
+            },
+        )
+        row = result.one_or_none()
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail="User profile not found",
+            )
+        await session.commit()
+
+    return _me_from_row(current_user, row)
+
+
+@router.put("/me/email")
+async def update_my_email(
+    body: EmailUpdate,
+    current_user: User = Depends(get_current_user),
+) -> MeRead:
+    new_email = str(body.email).strip().lower()
+    async with AsyncSessionLocal() as session:
+        taken = await session.execute(
+            text("SELECT id FROM users WHERE lower(email) = :email AND id <> :user_id"),
+            {"email": new_email, "user_id": current_user.id},
+        )
+        if taken.one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already registered",
+            )
+
+        await session.execute(
+            text("UPDATE users SET email = :email WHERE id = :user_id"),
+            {"email": new_email, "user_id": current_user.id},
+        )
+        result = await session.execute(
+            text(f"SELECT {PROFILE_COLUMNS} FROM user_profile WHERE id = :user_id"),
+            {"user_id": current_user.id},
+        )
+        row = result.one_or_none()
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail="User profile not found",
+            )
+        await session.commit()
+
+    current_user.email = new_email
+    return _me_from_row(current_user, row)
+
+
+@router.put("/me/password")
+async def update_my_password(
+    body: PasswordUpdate,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    if body.new_password != body.new_password_conf:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match",
+        )
+    if len(body.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters",
+        )
+
+    try:
+        current_ok = verify_password(body.current_password, current_user.password_hash)
+    except Exception:
+        current_ok = False
+
+    if not current_ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect current password",
+        )
+
+    hashed = password_hash.hash(body.new_password)
+    async with AsyncSessionLocal() as session:
+        await session.execute(
+            text("UPDATE users SET password_hash = :password_hash WHERE id = :user_id"),
+            {"password_hash": hashed, "user_id": current_user.id},
+        )
+        await session.commit()
+
+    return {"detail": "Password updated"}
