@@ -30,7 +30,7 @@ def test_save_telemetry_without_supabase(monkeypatch):
 
 
 def test_save_telemetry_success(monkeypatch):
-    """Verify that save_telemetry maps sensor keys and inserts data into 'telemetria'."""
+    """Verify that save_telemetry maps sensor keys and inserts data into 'telemetry'."""
     mock_sb = MagicMock()
     monkeypatch.setattr(db_module, "supabase", mock_sb)
 
@@ -47,15 +47,15 @@ def test_save_telemetry_success(monkeypatch):
 
     db_module.save_telemetry(payload)
 
-    mock_sb.table.assert_called_once_with("telemetria")
+    mock_sb.table.assert_called_once_with("telemetry")
     mock_sb.table.return_value.insert.assert_called_once_with(
         {
             "device_id": "esp32_sim_01",
             "timestamp": "2026-10-12T10:00:00Z",
-            "temperatura": 21.5,
-            "umidita_aria": 62.0,
-            "umidita_terreno": 44.0,
-            "luce": 29500.0,
+            "air_temperature_c": 21.5,
+            "air_humidity_percent": 62.0,
+            "soil_moisture_percent": 44.0,
+            "light_intensity_lux": 29500.0,
         }
     )
     mock_sb.table.return_value.insert.return_value.execute.assert_called_once()

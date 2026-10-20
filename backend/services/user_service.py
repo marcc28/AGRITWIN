@@ -7,8 +7,7 @@ from db.schema import User, UserConsent, UserProfile
 
 password_hash = PasswordHash.recommended()
 
-PRIVACY_TERMS_VERSION = "1.0"
-SECURITY_TERMS_VERSION = "1.0"
+TERMS_VERSION = "1.0"
 
 
 class UserService:
@@ -95,25 +94,18 @@ class UserService:
         await self._db.flush()
 
         profile = UserProfile(
-            username=user.username,
+            id=user.id,
+            name=user.username,
+            user=user,
         )
 
         self._db.add(profile)
 
-        privacy_consent = UserConsent(
+        segurity_consent = UserConsent(
             username=user.username,
-            document_type="privacy_terms",
-            document_version=PRIVACY_TERMS_VERSION,
+            document_version=TERMS_VERSION,
         )
-
-        security_consent = UserConsent(
-            username=user.username,
-            document_type="security_terms",
-            document_version=SECURITY_TERMS_VERSION,
-        )
-
-        self._db.add(privacy_consent)
-        self._db.add(security_consent)
+        self._db.add(segurity_consent)
 
         await self._db.commit()
         await self._db.refresh(user)

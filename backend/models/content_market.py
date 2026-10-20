@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID as PyUUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -15,7 +16,7 @@ class ConteMercatCreate(BaseModel):
 class ConteMercatRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: PyUUID
     product: str
     tecnical_name: str | None
     price: Decimal

@@ -65,6 +65,7 @@ async def create_user(
             detail="Passwords do not match",
         )
 
+    print("HI")
     return await service.create_user(
         user.username,
         user.email,

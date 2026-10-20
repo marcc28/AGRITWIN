@@ -4,8 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from services.user_service import (
-    PRIVACY_TERMS_VERSION,
-    SECURITY_TERMS_VERSION,
+    TERMS_VERSION,
 )
 
 router = APIRouter(prefix="/legal", tags=["Legal"])
@@ -54,7 +53,7 @@ async def get_privacy_policy():
     return read_legal_document(
         PRIVACY_FILE,
         "privacy_terms",
-        PRIVACY_TERMS_VERSION,
+        TERMS_VERSION,
     )
 
 
@@ -63,5 +62,5 @@ async def get_security_policy():
     return read_legal_document(
         SECURITY_FILE,
         "security_terms",
-        SECURITY_TERMS_VERSION,
+        TERMS_VERSION,
     )
