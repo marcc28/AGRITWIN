@@ -1,46 +1,41 @@
 import { StyleSheet } from 'react-native';
 
-import { Colors } from '../constants/theme';
+import { Colors, Fonts } from '@/constants/theme';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: Colors.light.background,
   },
 
+  scrollContent: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+
+  content: {
+    width: '100%',
+    maxWidth: 420,
+  },
+
+  date: {
+    fontSize: 11,
+    letterSpacing: 1.2,
+    color: Colors.light.textMuted,
+  },
+
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-  },
-
-  subtitle: {
-    marginTop: 10,
-    fontSize: 16,
-    color: Colors.light.textSecondary,
-  },
-
-  info: {
-    marginTop: 30,
-  },
-
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 15,
+    marginTop: 8,
+    fontFamily: Fonts.serif,
+    fontSize: 32,
+    lineHeight: 38,
     color: Colors.light.primaryDark,
   },
 
-  value: {
-    fontSize: 16,
-    marginTop: 5,
-    color: Colors.light.text,
-  },
-
-  token: {
-    fontSize: 12,
-    marginTop: 5,
-    color: Colors.light.textMuted,
+  subtitle: {
+    marginTop: 8,
+    fontSize: 13,
+    color: Colors.light.textSecondary,
   },
 });
