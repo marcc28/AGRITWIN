@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +22,7 @@ class ConteMercatService:
 
     async def get_conte_mercat_by_id(
         self,
-        id: int,
+        id: UUID,
     ) -> ConteMercat | None:
         result = await self._db.execute(select(ConteMercat).where(ConteMercat.id == id))
 
@@ -61,7 +63,7 @@ class ConteMercatService:
 
     async def delete_conte_mercat(
         self,
-        id: int,
+        id: UUID,
     ) -> None:
         conte_mercat = await self.get_conte_mercat_by_id(id)
 

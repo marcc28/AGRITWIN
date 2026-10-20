@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,7 +14,7 @@ class DashboardService:
 
     async def get_dashboard(
         self,
-        username: str,
+        user_id: UUID,
         field_id: int | None = None,
     ) -> DashboardResponse:
         # 1. Obtenir un camp de l'usuari.
@@ -22,12 +24,12 @@ class DashboardService:
                     """
                     SELECT id, name
                     FROM fields
-                    WHERE username = :username
+                    WHERE user_id = :user_id
                     ORDER BY id
                     LIMIT 1
                     """
                 ),
-                {"username": username},
+                {"user_id": user_id},
             )
         else:
             result = await self._db.execute(
@@ -35,12 +37,12 @@ class DashboardService:
                     """
                     SELECT id, name
                     FROM fields
-                    WHERE username = :username
+                    WHERE user_id = :user_id
                       AND id = :field_id
                     """
                 ),
                 {
-                    "username": username,
+                    "user_id": user_id,
                     "field_id": field_id,
                 },
             )

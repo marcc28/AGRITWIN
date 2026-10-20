@@ -26,6 +26,6 @@ async def get_dashboard(
     service: DashboardService = Depends(get_dashboard_service),
 ) -> DashboardResponse:
     return await service.get_dashboard(
-        username=current_user.username,
+        user_id=current_user.id,
         field_id=field_id,
     )

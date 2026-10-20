@@ -82,7 +82,7 @@ class UserService:
 
         profile = UserProfile(
             id=user_id,
-            username=user.username,
+            name=user.username,
         )
 
         self._db.add(profile)

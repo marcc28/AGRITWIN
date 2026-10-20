@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
 
 
 class UserProfileCreate(BaseModel):
@@ -11,7 +13,10 @@ class UserProfileCreate(BaseModel):
 
 
 class UserProfileRead(BaseModel):
-    username: str
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
     language: str
     units: str
     notifications_enabled: bool

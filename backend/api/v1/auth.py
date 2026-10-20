@@ -220,7 +220,7 @@ async def read_me(
     current_user: User = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
 ) -> UserProfileRead:
-    userprofile = await service.get_user_profile(current_user.username)
+    userprofile = await service.get_user_profile(current_user.id)
 
     if not userprofile:
         raise HTTPException(

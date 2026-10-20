@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +22,7 @@ class AnunceService:
 
     async def get_anunce_by_id(
         self,
-        id: int,
+        id: UUID,
     ) -> Anunce | None:
         result = await self._db.execute(select(Anunce).where(Anunce.id == id))
 
@@ -65,7 +67,7 @@ class AnunceService:
 
     async def delete_anunce(
         self,
-        id: int,
+        id: UUID,
     ) -> None:
         anunce = await self.get_anunce_by_id(id)
 
