@@ -87,9 +87,22 @@
     "emptyGardens": "You don't have any gardens yet.",
     "data": "Data",
     "edit": "Edit",
+    "currentBadge": "Current",
+    "setCurrent": "Set as current",
     "arduinos_one": "{{count}} Arduino",
     "arduinos_other": "{{count}} Arduinos",
     "editGarden": "Edit garden",
+    "fieldTypes": {
+      "home_garden": "Home garden",
+      "open_field": "Open field",
+      "greenhouse": "Greenhouse"
+    },
+    "soilTypes": {
+      "loam": "Loam",
+      "clay": "Clay",
+      "sandy": "Sandy"
+    },
+    "photo": "Photo",
     "name": "Name",
     "location": "Location",
     "type": "Type",
@@ -97,6 +110,20 @@
     "size": "Size (m²)",
     "loading": "Loading…",
     "saving": "Saving…",
+    "fieldDetail": {
+      "back": "My gardens",
+      "eyebrow": "FIELD INFORMATION",
+      "info": "Information",
+      "edit": "Edit",
+      "devices": "Devices",
+      "noDevices": "This field has no device yet.",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "sensorTitle": "Collected data",
+      "sensorSubtitle": "What the sensors in this garden collect.",
+      "sensorHint": "Tap to see the trend and every reading",
+      "dataBack": "Field information"
+    },
     "passwordScreen": {
       "back": "My account",
       "eyebrow": "ACCOUNT SECURITY",

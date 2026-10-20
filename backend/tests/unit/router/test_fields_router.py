@@ -118,6 +118,92 @@ def test_list_fields_empty():
     assert response.json() == []
 
 
+def test_get_field_requires_auth():
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    response = client.get("/fields/3")
+
+    assert response.status_code == 401
+
+
+def test_get_field():
+    client = make_client()
+    field_row = SimpleNamespace(
+        id=3,
+        name="Hort de l'Ainhoa",
+        location="Andorra la Vella",
+        field_type="home_garden",
+        soil_type="loam",
+        size_m2=40.0,
+    )
+    devices = [
+        SimpleNamespace(id="dev-1", battery_status=True),
+        SimpleNamespace(id="dev-2", battery_status=False),
+    ]
+    session = FakeSession(
+        [
+            FakeResult(one=field_row),
+            FakeResult(rows=devices),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields/3")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": 3,
+        "name": "Hort de l'Ainhoa",
+        "location": "Andorra la Vella",
+        "field_type": "home_garden",
+        "soil_type": "loam",
+        "size_m2": 40.0,
+        "device_count": 2,
+        "devices": [
+            {"id": "dev-1", "battery_status": True},
+            {"id": "dev-2", "battery_status": False},
+        ],
+    }
+
+
+def test_get_field_without_devices():
+    client = make_client()
+    field_row = SimpleNamespace(
+        id=3,
+        name="Hort de l'Ainhoa",
+        location="Andorra la Vella",
+        field_type="home_garden",
+        soil_type="loam",
+        size_m2=40.0,
+    )
+    session = FakeSession(
+        [
+            FakeResult(one=field_row),
+            FakeResult(rows=[]),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields/3")
+
+    assert response.status_code == 200
+    assert response.json()["device_count"] == 0
+    assert response.json()["devices"] == []
+
+
+def test_get_field_not_found():
+    client = make_client()
+    session = FakeSession([FakeResult(one=None)])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields/99")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Field not found"
+
+
 def test_update_field():
     client = make_client()
     updated = SimpleNamespace(

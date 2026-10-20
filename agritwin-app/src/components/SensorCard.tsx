@@ -15,6 +15,9 @@ type Props = {
   dashboard: Dashboard | null;
   errorMessage: string;
   onPress: () => void;
+  title?: string;
+  subtitle?: string;
+  hint?: string;
 };
 
 function EmptyCard({ title, message }: { title: string; message: string }) {
@@ -26,9 +29,18 @@ function EmptyCard({ title, message }: { title: string; message: string }) {
   );
 }
 
-export function SensorCard({ dashboard, errorMessage, onPress }: Props) {
+export function SensorCard({
+  dashboard,
+  errorMessage,
+  onPress,
+  title,
+  subtitle,
+  hint,
+}: Props) {
+  const heading = title ?? 'Dades del camp';
+
   if (errorMessage) {
-    return <EmptyCard title="Dades del camp" message={errorMessage} />;
+    return <EmptyCard title={heading} message={errorMessage} />;
   }
 
   if (!dashboard) {
@@ -41,14 +53,14 @@ export function SensorCard({ dashboard, errorMessage, onPress }: Props) {
 
   if (dashboard.field_name === null) {
     return (
-      <EmptyCard title="Dades del camp" message="Encara no tens cap camp." />
+      <EmptyCard title={heading} message="Encara no tens cap camp." />
     );
   }
 
   if (dashboard.device_ids.length === 0) {
     return (
       <EmptyCard
-        title={dashboard.field_name}
+        title={heading}
         message="Aquest camp encara no té cap dispositiu."
       />
     );
@@ -56,10 +68,7 @@ export function SensorCard({ dashboard, errorMessage, onPress }: Props) {
 
   if (!dashboard.latest) {
     return (
-      <EmptyCard
-        title={dashboard.field_name}
-        message="Encara no hi ha cap lectura."
-      />
+      <EmptyCard title={heading} message="Encara no hi ha cap lectura." />
     );
   }
 
@@ -68,11 +77,15 @@ export function SensorCard({ dashboard, errorMessage, onPress }: Props) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.cardTitle}>{dashboard.field_name}</Text>
-          <Text style={styles.cardSubtitle}>
+        <View style={styles.cardHeaderText}>
+          <Text style={styles.cardTitle}>{heading}</Text>
+          {subtitle ? (
+            <Text style={styles.cardSubtitle}>{subtitle}</Text>
+          ) : null}
+          <Text style={styles.cardHint}>
             Darrera lectura · {formatDateTime(latest.timestamp)}
           </Text>
+          {hint ? <Text style={styles.cardHint}>{hint}</Text> : null}
         </View>
         <Ionicons
           name="chevron-forward"

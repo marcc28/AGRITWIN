@@ -369,6 +369,47 @@ export type Field = {
   device_count: number;
 };
 
+export type FieldDevice = {
+  id: string;
+  battery_status: boolean;
+};
+
+export type FieldDetail = Field & {
+  devices: FieldDevice[];
+};
+
+export async function getField(id: number): Promise<FieldDetail> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut carregar el camp'));
+  }
+
+  return data as FieldDetail;
+}
+
+export function isAuthError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return (
+    error.message === 'Not authenticated' ||
+    error.message === 'Could not validate credentials'
+  );
+}
+
 export async function getFields(): Promise<Field[]> {
   const auth = await getAuth();
 
@@ -382,13 +423,26 @@ export async function getFields(): Promise<Field[]> {
     },
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'No s’ha pogut carregar els camps');
+  let data: unknown = null;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('No s’ha pogut carregar els camps');
   }
 
-  return data as Field[];
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut carregar els camps'));
+  }
+
+  if (!Array.isArray(data)) {
+    throw new Error('No s’ha pogut carregar els camps');
+  }
+
+  return data.map((field) => ({
+    ...field,
+    id: Number(field.id),
+    device_count: Number(field.device_count),
+  }));
 }
 
 export async function updateField(

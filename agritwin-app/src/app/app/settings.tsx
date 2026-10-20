@@ -7,7 +7,6 @@ import {
   ScrollView,
   Switch,
   TextInput,
-  type ImageSourcePropType,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -16,25 +15,21 @@ import { router } from 'expo-router';
 import {
   getMe,
   getFields,
-  getDashboard,
+  isAuthError,
   updateMe,
   updateMyEmail,
   type Me,
   type Field,
-  type Dashboard,
 } from '../../services/api';
 import { clearAuth } from '../../services/auth';
-import { SensorModal } from '../../components/SensorModal';
+import {
+  getCurrentField,
+  setCurrentField,
+  subscribeCurrentField,
+} from '../../services/currentField';
+import { FieldPhoto } from '../../components/FieldPhoto';
 import { styles } from '../../styles/settings.styles';
 import { Colors } from '../../constants/theme';
-
-const GARDEN_PHOTOS: ImageSourcePropType[] = [
-  require('@assets/images/garden-home.jpg'),
-  require('@assets/images/garden-field.jpg'),
-  require('@assets/images/garden-greenhouse.jpg'),
-  require('@assets/images/garden-orchard.jpg'),
-  require('@assets/images/garden-herbs.jpg'),
-];
 
 const LANGUAGES = [
   { value: 'ca', labelKey: 'languages.catalan' },
@@ -42,10 +37,6 @@ const LANGUAGES = [
   { value: 'en', labelKey: 'languages.english' },
   { value: 'it', labelKey: 'languages.italian' },
 ] as const;
-
-function gardenPhoto(index: number): ImageSourcePropType {
-  return GARDEN_PHOTOS[index % GARDEN_PHOTOS.length];
-}
 
 function Chip({
   label,
@@ -76,13 +67,11 @@ export default function SettingsScreen() {
   const [fields, setFields] = useState<Field[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [saving, setSaving] = useState(false);
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [dataMessage, setDataMessage] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailDraft, setEmailDraft] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
+  const [currentFieldId, setCurrentFieldId] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadMe() {
@@ -94,7 +83,32 @@ export default function SettingsScreen() {
         }
         const gardenList = await getFields();
         setFields(gardenList);
+        const stored = await getCurrentField();
+        const storedStillMine = gardenList.some(
+          (field) => field.id === stored?.id,
+        );
+        const nextCurrent = storedStillMine
+          ? stored
+          : gardenList[0]
+            ? { id: gardenList[0].id, name: gardenList[0].name }
+            : null;
+        if (nextCurrent) {
+          setCurrentFieldId(nextCurrent.id);
+          if (
+            stored?.id !== nextCurrent.id ||
+            stored?.name !== nextCurrent.name
+          ) {
+            await setCurrentField(nextCurrent);
+          }
+        } else {
+          setCurrentFieldId(null);
+        }
       } catch (error) {
+        if (isAuthError(error)) {
+          await clearAuth();
+          router.replace('/auth/login');
+          return;
+        }
         const message =
           error instanceof Error
             ? error.message
@@ -104,6 +118,11 @@ export default function SettingsScreen() {
     }
 
     void loadMe();
+    return subscribeCurrentField(() => {
+      void getCurrentField().then((stored) => {
+        setCurrentFieldId(stored?.id ?? null);
+      });
+    });
     // Load once when opening the profile screen.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -215,29 +234,16 @@ export default function SettingsScreen() {
     }
   }
 
-  async function handleDatos(fieldId: number) {
-    try {
-      setDataMessage('');
-      const data = await getDashboard(fieldId);
-      setDashboard(data);
+  async function handleSetCurrent(field: Field) {
+    await setCurrentField({ id: field.id, name: field.name });
+    setCurrentFieldId(field.id);
+  }
 
-      if (!data.latest) {
-        setDataMessage(
-          data.device_ids.length === 0
-            ? t('settings.errors.noDevice')
-            : t('settings.errors.noReading'),
-        );
-        setModalVisible(false);
-        return;
-      }
-
-      setModalVisible(true);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : t('settings.errors.loadData');
-      setDataMessage(message);
-      setModalVisible(false);
-    }
+  function openField(fieldId: number) {
+    router.push({
+      pathname: '/field-detail',
+      params: { id: String(fieldId) },
+    });
   }
 
   return (
@@ -435,68 +441,63 @@ export default function SettingsScreen() {
 
           <Text style={styles.gardenTitle}>{t('settings.myGardens')}</Text>
 
-          {dataMessage ? (
-            <Text style={styles.errorText}>{dataMessage}</Text>
-          ) : null}
-
           {fields.length === 0 ? (
             <Text style={styles.emptyGardens}>
               {t('settings.emptyGardens')}
             </Text>
           ) : (
             <View style={styles.gardenGrid}>
-              {fields.map((field, index) => (
-                <View key={field.id} style={styles.gardenCard}>
-                  <Image
-                    source={gardenPhoto(index)}
-                    style={styles.gardenPhoto}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.gardenBody}>
-                    <Text style={styles.gardenName} numberOfLines={1}>
-                      {field.name}
-                    </Text>
-                    <Text style={styles.gardenMeta} numberOfLines={1}>
-                      {field.location ?? '—'}
-                    </Text>
-                    <Text style={styles.gardenMeta}>
-                      {t('settings.arduinos', {
-                        count: field.device_count,
-                      })}
-                    </Text>
+              {fields.map((field) => (
+                <View
+                  key={field.id}
+                  style={[
+                    styles.gardenCard,
+                    currentFieldId === field.id
+                      ? styles.gardenCardCurrent
+                      : null,
+                  ]}
+                >
+                  <Pressable onPress={() => openField(field.id)}>
+                    <View>
+                      <FieldPhoto
+                        fieldId={field.id}
+                        style={styles.gardenPhoto}
+                      />
+                      {currentFieldId === field.id ? (
+                        <View style={styles.gardenBadge}>
+                          <Text style={styles.gardenBadgeText}>
+                            {t('settings.currentBadge')}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                    <View style={styles.gardenBody}>
+                      <Text style={styles.gardenName} numberOfLines={1}>
+                        {field.name}
+                      </Text>
+                      <Text style={styles.gardenMeta} numberOfLines={1}>
+                        {field.location ?? '—'}
+                      </Text>
+                      <Text style={styles.gardenMeta}>
+                        {t('settings.arduinos', {
+                          count: field.device_count,
+                        })}
+                      </Text>
+                    </View>
+                  </Pressable>
+                  {currentFieldId === field.id ? null : (
                     <View style={styles.gardenActions}>
-                      <Pressable onPress={() => void handleDatos(field.id)}>
+                      <Pressable onPress={() => void handleSetCurrent(field)}>
                         <Text style={styles.gardenEdit}>
-                          {t('settings.data')}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() =>
-                          router.push({
-                            pathname: '/edit-field',
-                            params: { id: String(field.id) },
-                          })
-                        }
-                      >
-                        <Text style={styles.gardenEdit}>
-                          {t('settings.edit')}
+                          {t('settings.setCurrent')}
                         </Text>
                       </Pressable>
                     </View>
-                  </View>
+                  )}
                 </View>
               ))}
             </View>
           )}
-
-          {dashboard && dashboard.latest ? (
-            <SensorModal
-              visible={modalVisible}
-              dashboard={dashboard}
-              latest={dashboard.latest}
-              onClose={() => setModalVisible(false)}
-            />
-          ) : null}
 
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Image

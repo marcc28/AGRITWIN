@@ -19,34 +19,35 @@ type Props = {
   dashboard: Dashboard;
   latest: Reading;
   onClose: () => void;
+  asScreen?: boolean;
 };
 
 const SOIL_DRY_THRESHOLD = 35;
 const CHART_WIDTH = 240;
 
-export function SensorModal({ visible, dashboard, latest, onClose }: Props) {
+export function SensorModal({
+  visible,
+  dashboard,
+  latest,
+  onClose,
+  asScreen = false,
+}: Props) {
   const [selectedKey, setSelectedKey] = useState<MeasureKey>('temperature');
+  const [chartWidth, setChartWidth] = useState(CHART_WIDTH);
 
   const measure =
     MEASURES.find((item) => item.key === selectedKey) ?? MEASURES[0];
   const values = dashboard.history.map((reading) =>
     getMeasureValue(reading, measure),
   );
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const first = dashboard.history[0];
+  const latestValue = getMeasureValue(latest, measure);
+  const max = values.length > 0 ? Math.max(...values) : latestValue;
+  const min = values.length > 0 ? Math.min(...values) : latestValue;
+  const first = dashboard.history[0] ?? latest;
   const soilDry = latest.soil_humidity < SOIL_DRY_THRESHOLD;
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+  const body = (
+    <>
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>{dashboard.field_name}</Text>
@@ -56,9 +57,11 @@ export function SensorModal({ visible, dashboard, latest, onClose }: Props) {
                     : `Dades del camp · ${dashboard.device_ids.length} sensors`}
                 </Text>
               </View>
-              <Pressable style={styles.closeButton} onPress={onClose}>
-                <Ionicons name="close" size={18} color={Colors.light.text} />
-              </Pressable>
+              {asScreen ? null : (
+                <Pressable style={styles.closeButton} onPress={onClose}>
+                  <Ionicons name="close" size={18} color={Colors.light.text} />
+                </Pressable>
+              )}
             </View>
 
             <View style={styles.hero}>
@@ -94,11 +97,20 @@ export function SensorModal({ visible, dashboard, latest, onClose }: Props) {
                 Últimes {dashboard.history.length} lectures
               </Text>
             </View>
-            <ReadingChart
-              history={dashboard.history}
-              getValue={(reading) => getMeasureValue(reading, measure)}
-              width={CHART_WIDTH}
-            />
+            <View
+              onLayout={(event) => {
+                const next = Math.floor(event.nativeEvent.layout.width);
+                if (next > 0 && next !== chartWidth) {
+                  setChartWidth(next);
+                }
+              }}
+            >
+              <ReadingChart
+                history={dashboard.history}
+                getValue={(reading) => getMeasureValue(reading, measure)}
+                width={chartWidth}
+              />
+            </View>
 
             <View style={styles.grid}>
               {MEASURES.map((item) => {
@@ -176,7 +188,31 @@ export function SensorModal({ visible, dashboard, latest, onClose }: Props) {
                 : `Mitjana de ${dashboard.device_ids.length} sensors del camp.`}{' '}
               No inclou previsió meteorològica.
             </Text>
-          </ScrollView>
+    </>
+  );
+
+  if (asScreen) {
+    return (
+      <ScrollView
+        style={styles.pageScroll}
+        contentContainerStyle={styles.pageContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.pageCard}>{body}</View>
+      </ScrollView>
+    );
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <ScrollView showsVerticalScrollIndicator={false}>{body}</ScrollView>
         </View>
       </View>
     </Modal>

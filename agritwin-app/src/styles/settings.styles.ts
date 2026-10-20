@@ -208,11 +208,33 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
     borderRadius: 18,
     overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'transparent',
     shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 10,
     elevation: 4,
+  },
+
+  gardenCardCurrent: {
+    borderColor: Colors.light.primary,
+  },
+
+  gardenBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: Colors.light.primary,
+  },
+
+  gardenBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.light.surface,
   },
 
   gardenPhoto: {
@@ -239,8 +261,10 @@ export const styles = StyleSheet.create({
 
   gardenActions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
-    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
   },
 
   gardenEdit: {

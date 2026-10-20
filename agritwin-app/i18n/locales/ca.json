@@ -87,9 +87,22 @@
     "emptyGardens": "Encara no tens cap jardí.",
     "data": "Dades",
     "edit": "Editar",
+    "currentBadge": "Actual",
+    "setCurrent": "Fer actual",
     "arduinos_one": "{{count}} Arduino",
     "arduinos_other": "{{count}} Arduinos",
     "editGarden": "Editar jardí",
+    "fieldTypes": {
+      "home_garden": "Hort casolà",
+      "open_field": "Camp obert",
+      "greenhouse": "Hivernacle"
+    },
+    "soilTypes": {
+      "loam": "Franc",
+      "clay": "Argilós",
+      "sandy": "Sorrenc"
+    },
+    "photo": "Foto",
     "name": "Nom",
     "location": "Ubicació",
     "type": "Tipus",
@@ -97,6 +110,20 @@
     "size": "Mida (m²)",
     "loading": "Carregant…",
     "saving": "Guardant…",
+    "fieldDetail": {
+      "back": "Els meus jardins",
+      "eyebrow": "INFORMACIÓ DEL CAMP",
+      "info": "Informació",
+      "edit": "Editar",
+      "devices": "Dispositius",
+      "noDevices": "Aquest camp encara no té cap dispositiu.",
+      "connected": "Connectat",
+      "disconnected": "Desconnectat",
+      "sensorTitle": "Dades recollides",
+      "sensorSubtitle": "El que recullen els sensors d’aquest hort.",
+      "sensorHint": "Toca per veure l’evolució i totes les lectures",
+      "dataBack": "Informació del camp"
+    },
     "passwordScreen": {
       "back": "El meu compte",
       "eyebrow": "SEGURETAT DEL COMPTE",

@@ -87,9 +87,22 @@
     "emptyGardens": "Non hai ancora nessun giardino.",
     "data": "Dati",
     "edit": "Modifica",
+    "currentBadge": "Attuale",
+    "setCurrent": "Imposta come attuale",
     "arduinos_one": "{{count}} Arduino",
     "arduinos_other": "{{count}} Arduino",
     "editGarden": "Modifica giardino",
+    "fieldTypes": {
+      "home_garden": "Orto casalingo",
+      "open_field": "Campo aperto",
+      "greenhouse": "Serra"
+    },
+    "soilTypes": {
+      "loam": "Franco",
+      "clay": "Argilloso",
+      "sandy": "Sabbioso"
+    },
+    "photo": "Foto",
     "name": "Nome",
     "location": "Posizione",
     "type": "Tipo",
@@ -97,6 +110,20 @@
     "size": "Dimensione (m²)",
     "loading": "Caricamento…",
     "saving": "Salvataggio…",
+    "fieldDetail": {
+      "back": "I miei giardini",
+      "eyebrow": "INFORMAZIONI DEL CAMPO",
+      "info": "Informazioni",
+      "edit": "Modifica",
+      "devices": "Dispositivi",
+      "noDevices": "Questo campo non ha ancora nessun dispositivo.",
+      "connected": "Connesso",
+      "disconnected": "Disconnesso",
+      "sensorTitle": "Dati raccolti",
+      "sensorSubtitle": "Quel che raccolgono i sensori di questo orto.",
+      "sensorHint": "Tocca per vedere l’andamento e tutte le letture",
+      "dataBack": "Informazioni del campo"
+    },
     "passwordScreen": {
       "back": "Il mio account",
       "eyebrow": "SICUREZZA DELL'ACCOUNT",
