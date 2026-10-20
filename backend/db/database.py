@@ -1,5 +1,6 @@
 import os
 
+import aurora_dsql_asyncpg as dsql
 from dotenv import load_dotenv
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -10,24 +11,50 @@ from db.schema import Base
 
 load_dotenv()
 
-PRODUCTION = os.getenv("PRODUCTION") == "True"
+PRODUCTION = os.getenv("PROD") == "True"
 
 if PRODUCTION:
-    DATABASE_URL = os.getenv("EXTERN_DATABASE_URL")
-else:
-    DATABASE_URL = os.getenv("LOCAL_DATABASE_URL")
+    # Producció: Aurora DSQL amb autenticació IAM
+    DSQL_HOST = os.getenv("DSQL_HOST", "").strip()
+    AWS_REGION = os.getenv("AWS_REGION", "us-east-1").strip()
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL no està configurat. Revisa el teu .env")
-url = make_url(DATABASE_URL)
-url = url.difference_update_query(["pgbouncer"])
-engine = create_async_engine(
-    url,
-    pool_pre_ping=True,
-    connect_args={
-        "statement_cache_size": 0,
-    },
-)
+    if not DSQL_HOST:
+        raise RuntimeError(
+            "Falta DSQL_HOST al fitxer .env"
+        )
+
+    async def connect_dsql():
+        return await dsql.connect(
+            host=DSQL_HOST,
+            region=AWS_REGION,
+            user="admin",
+            database="postgres",
+        )
+
+    engine = create_async_engine(
+        "postgresql+asyncpg://",
+        async_creator=connect_dsql,
+        pool_pre_ping=True,
+        connect_args={"statement_cache_size": 0},
+    )
+
+else:
+    # Desenvolupament: base de dades local actual
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    if not DATABASE_URL:
+        raise RuntimeError(
+            "Falta DATABASE_URL al fitxer .env"
+        )
+
+    url = make_url(DATABASE_URL)
+    url = url.difference_update_query(["pgbouncer"])
+
+    engine = create_async_engine(
+        url,
+        pool_pre_ping=True,
+        connect_args={"statement_cache_size": 0},
+    )
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
