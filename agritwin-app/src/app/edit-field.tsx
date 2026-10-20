@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  Text,
-  View,
-  Pressable,
-  TextInput,
-  ScrollView,
-} from 'react-native';
+import { Text, View, Pressable, TextInput, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { getFields, updateField } from '../services/api';
 import { styles } from '../styles/edit-field.styles';
@@ -16,6 +11,7 @@ const FIELD_TYPES = ['home_garden', 'open_field', 'greenhouse'] as const;
 const SOIL_TYPES = ['loam', 'clay', 'sandy'] as const;
 
 export default function EditFieldScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string | string[] }>();
   const idValue = Array.isArray(params.id) ? params.id[0] : params.id;
   const fieldId = Number(idValue);
@@ -36,7 +32,7 @@ export default function EditFieldScreen() {
         const field = list.find((item) => item.id === fieldId);
 
         if (!field) {
-          setErrorMessage('No s’ha trobat aquest jardí');
+          setErrorMessage(t('settings.errors.gardenNotFound'));
           return;
         }
 
@@ -49,7 +45,7 @@ export default function EditFieldScreen() {
         const message =
           error instanceof Error
             ? error.message
-            : 'No s’ha pogut carregar el jardí';
+            : t('settings.errors.loadGarden');
         setErrorMessage(message);
       } finally {
         setLoading(false);
@@ -57,25 +53,25 @@ export default function EditFieldScreen() {
     }
 
     if (!Number.isFinite(fieldId)) {
-      setErrorMessage('Identificador invàlid');
+      setErrorMessage(t('settings.errors.invalidId'));
       setLoading(false);
       return;
     }
 
     void loadField();
-  }, [fieldId]);
+  }, [fieldId, t]);
 
   async function handleAccept() {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      setErrorMessage('El nom és obligatori');
+      setErrorMessage(t('settings.errors.nameRequired'));
       return;
     }
 
     const parsedSize = sizeM2.trim() === '' ? null : Number(sizeM2);
     if (parsedSize != null && !Number.isFinite(parsedSize)) {
-      setErrorMessage('La mida ha de ser un número');
+      setErrorMessage(t('settings.errors.sizeNumber'));
       return;
     }
 
@@ -94,7 +90,7 @@ export default function EditFieldScreen() {
       const message =
         error instanceof Error
           ? error.message
-          : 'No s’ha pogut guardar el jardí';
+          : t('settings.errors.saveGarden');
       setErrorMessage(message);
     } finally {
       setSaving(false);
@@ -109,17 +105,17 @@ export default function EditFieldScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.card}>
-          <Text style={styles.title}>Edit garden</Text>
+          <Text style={styles.title}>{t('settings.editGarden')}</Text>
 
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
 
           {loading ? (
-            <Text style={styles.label}>Carregant…</Text>
+            <Text style={styles.label}>{t('settings.loading')}</Text>
           ) : (
             <>
-              <Text style={styles.label}>Name</Text>
+              <Text style={styles.label}>{t('settings.name')}</Text>
               <TextInput
                 style={styles.input}
                 value={name}
@@ -127,7 +123,7 @@ export default function EditFieldScreen() {
                 editable={!saving}
               />
 
-              <Text style={styles.label}>Location</Text>
+              <Text style={styles.label}>{t('settings.location')}</Text>
               <TextInput
                 style={styles.input}
                 value={location}
@@ -135,7 +131,7 @@ export default function EditFieldScreen() {
                 editable={!saving}
               />
 
-              <Text style={styles.label}>Type</Text>
+              <Text style={styles.label}>{t('settings.type')}</Text>
               <View style={styles.pickerBox}>
                 <Picker
                   selectedValue={fieldType}
@@ -149,7 +145,7 @@ export default function EditFieldScreen() {
                 </Picker>
               </View>
 
-              <Text style={styles.label}>Soil</Text>
+              <Text style={styles.label}>{t('settings.soil')}</Text>
               <View style={styles.pickerBox}>
                 <Picker
                   selectedValue={soilType}
@@ -163,7 +159,7 @@ export default function EditFieldScreen() {
                 </Picker>
               </View>
 
-              <Text style={styles.label}>Size (m²)</Text>
+              <Text style={styles.label}>{t('settings.size')}</Text>
               <TextInput
                 style={styles.input}
                 value={sizeM2}
@@ -180,7 +176,7 @@ export default function EditFieldScreen() {
               onPress={() => router.replace('/app/settings')}
               disabled={saving}
             >
-              <Text style={styles.cancelText}>Cancelar</Text>
+              <Text style={styles.cancelText}>{t('settings.cancel')}</Text>
             </Pressable>
             <Pressable
               style={[styles.button, styles.acceptButton]}
@@ -188,7 +184,7 @@ export default function EditFieldScreen() {
               disabled={saving || loading}
             >
               <Text style={styles.acceptText}>
-                {saving ? 'Guardant…' : 'Acceptar'}
+                {saving ? t('settings.saving') : t('settings.accept')}
               </Text>
             </Pressable>
           </View>

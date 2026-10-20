@@ -19,7 +19,6 @@ import {
   getDashboard,
   updateMe,
   updateMyEmail,
-  updateMyPassword,
   type Me,
   type Field,
   type Dashboard,
@@ -82,10 +81,6 @@ export default function SettingsScreen() {
   const [dataMessage, setDataMessage] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailDraft, setEmailDraft] = useState('');
-  const [editingPassword, setEditingPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newPasswordConf, setNewPasswordConf] = useState('');
 
   useEffect(() => {
     async function loadMe() {
@@ -101,7 +96,7 @@ export default function SettingsScreen() {
         const message =
           error instanceof Error
             ? error.message
-            : 'No s’ha pogut carregar el perfil';
+            : t('settings.errors.loadProfile');
         setErrorMessage(message);
       }
     }
@@ -126,7 +121,7 @@ export default function SettingsScreen() {
       const message =
         error instanceof Error
           ? error.message
-          : 'No s’ha pogut guardar el perfil';
+          : t('settings.errors.saveProfile');
       setErrorMessage(message);
     } finally {
       setSaving(false);
@@ -148,25 +143,15 @@ export default function SettingsScreen() {
   };
 
   function openEmailEdit() {
-    setEditingPassword(false);
     setEmailDraft(me?.email ?? '');
     setEditingEmail(true);
-    setErrorMessage('');
-  }
-
-  function openPasswordEdit() {
-    setEditingEmail(false);
-    setCurrentPassword('');
-    setNewPassword('');
-    setNewPasswordConf('');
-    setEditingPassword(true);
     setErrorMessage('');
   }
 
   async function handleSaveEmail() {
     const next = emailDraft.trim().toLowerCase();
     if (!next.includes('@') || !next.includes('.')) {
-      setErrorMessage('Introdueix un correu vàlid');
+      setErrorMessage(t('settings.errors.invalidEmail'));
       return;
     }
 
@@ -180,36 +165,7 @@ export default function SettingsScreen() {
       const message =
         error instanceof Error
           ? error.message
-          : 'No s’ha pogut canviar el correu';
-      setErrorMessage(message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleSavePassword() {
-    if (newPassword.length < 8) {
-      setErrorMessage('La contrasenya ha de tenir almenys 8 caràcters');
-      return;
-    }
-    if (newPassword !== newPasswordConf) {
-      setErrorMessage('Les contrasenyes no coincideixen');
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setErrorMessage('');
-      await updateMyPassword(currentPassword, newPassword, newPasswordConf);
-      setEditingPassword(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setNewPasswordConf('');
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'No s’ha pogut canviar la contrasenya';
+          : t('settings.errors.changeEmail');
       setErrorMessage(message);
     } finally {
       setSaving(false);
@@ -225,8 +181,8 @@ export default function SettingsScreen() {
       if (!data.latest) {
         setDataMessage(
           data.device_ids.length === 0
-            ? 'Aquest camp encara no té cap dispositiu.'
-            : 'Encara no hi ha cap lectura.',
+            ? t('settings.errors.noDevice')
+            : t('settings.errors.noReading'),
         );
         setModalVisible(false);
         return;
@@ -235,9 +191,7 @@ export default function SettingsScreen() {
       setModalVisible(true);
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : 'No s’han pogut carregar les dades';
+        error instanceof Error ? error.message : t('settings.errors.loadData');
       setDataMessage(message);
       setModalVisible(false);
     }
@@ -251,7 +205,7 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator
       >
         <View style={styles.container}>
-          <Text style={styles.date}>USER PROFILE</Text>
+          <Text style={styles.date}>{t('settings.eyebrow')}</Text>
           <Text style={styles.title}>{t('settings.title')}</Text>
 
           {errorMessage ? (
@@ -263,7 +217,7 @@ export default function SettingsScreen() {
 
             {editingEmail ? (
               <View style={styles.languageBlock}>
-                <Text style={styles.editLabel}>Email</Text>
+                <Text style={styles.editLabel}>{t('settings.email')}</Text>
                 <TextInput
                   style={styles.accountInput}
                   value={emailDraft}
@@ -279,21 +233,25 @@ export default function SettingsScreen() {
                     onPress={() => setEditingEmail(false)}
                     disabled={saving}
                   >
-                    <Text style={styles.accountCancelText}>Cancelar</Text>
+                    <Text style={styles.accountCancelText}>
+                      {t('settings.cancel')}
+                    </Text>
                   </Pressable>
                   <Pressable
                     style={[styles.accountButton, styles.accountAccept]}
                     onPress={() => void handleSaveEmail()}
                     disabled={saving}
                   >
-                    <Text style={styles.accountAcceptText}>Acceptar</Text>
+                    <Text style={styles.accountAcceptText}>
+                      {t('settings.accept')}
+                    </Text>
                   </Pressable>
                 </View>
               </View>
             ) : (
               <Pressable style={styles.editRow} onPress={openEmailEdit}>
                 <View style={styles.editText}>
-                  <Text style={styles.editLabel}>Email</Text>
+                  <Text style={styles.editLabel}>{t('settings.email')}</Text>
                   <Text style={styles.editValue}>{me?.email ?? '…'}</Text>
                 </View>
                 <Ionicons
@@ -304,66 +262,22 @@ export default function SettingsScreen() {
               </Pressable>
             )}
 
-            {editingPassword ? (
-              <View style={styles.languageBlock}>
-                <Text style={styles.editLabel}>Password</Text>
-                <TextInput
-                  style={styles.accountInput}
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  placeholder="Contrasenya actual"
-                  placeholderTextColor={Colors.light.textMuted}
-                  secureTextEntry
-                  editable={!saving}
-                />
-                <TextInput
-                  style={styles.accountInput}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  placeholder="Contrasenya nova"
-                  placeholderTextColor={Colors.light.textMuted}
-                  secureTextEntry
-                  editable={!saving}
-                />
-                <TextInput
-                  style={styles.accountInput}
-                  value={newPasswordConf}
-                  onChangeText={setNewPasswordConf}
-                  placeholder="Confirma la contrasenya"
-                  placeholderTextColor={Colors.light.textMuted}
-                  secureTextEntry
-                  editable={!saving}
-                />
-                <View style={styles.accountButtons}>
-                  <Pressable
-                    style={[styles.accountButton, styles.accountCancel]}
-                    onPress={() => setEditingPassword(false)}
-                    disabled={saving}
-                  >
-                    <Text style={styles.accountCancelText}>Cancelar</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.accountButton, styles.accountAccept]}
-                    onPress={() => void handleSavePassword()}
-                    disabled={saving}
-                  >
-                    <Text style={styles.accountAcceptText}>Acceptar</Text>
-                  </Pressable>
-                </View>
+            <Pressable
+              style={styles.editRow}
+              onPress={() => router.push('/change-password')}
+            >
+              <View style={styles.editText}>
+                <Text style={styles.editLabel}>{t('settings.password')}</Text>
+                <Text style={styles.editValue}>
+                  {t('settings.changePassword')}
+                </Text>
               </View>
-            ) : (
-              <Pressable style={styles.editRow} onPress={openPasswordEdit}>
-                <View style={styles.editText}>
-                  <Text style={styles.editLabel}>Password</Text>
-                  <Text style={styles.editValue}>Change password</Text>
-                </View>
-                <Ionicons
-                  name="create-outline"
-                  size={18}
-                  color={Colors.light.primary}
-                />
-              </Pressable>
-            )}
+              <Ionicons
+                name="create-outline"
+                size={18}
+                color={Colors.light.primary}
+              />
+            </Pressable>
 
             <View style={styles.languageBlock}>
               <Text style={styles.languageLabel}>{t('settings.language')}</Text>
@@ -427,14 +341,16 @@ export default function SettingsScreen() {
             </View>
           </View>
 
-          <Text style={styles.gardenTitle}>My gardens</Text>
+          <Text style={styles.gardenTitle}>{t('settings.myGardens')}</Text>
 
           {dataMessage ? (
             <Text style={styles.errorText}>{dataMessage}</Text>
           ) : null}
 
           {fields.length === 0 ? (
-            <Text style={styles.emptyGardens}>Encara no tens cap jardí.</Text>
+            <Text style={styles.emptyGardens}>
+              {t('settings.emptyGardens')}
+            </Text>
           ) : (
             <View style={styles.gardenGrid}>
               {fields.map((field, index) => (
@@ -452,12 +368,15 @@ export default function SettingsScreen() {
                       {field.location ?? '—'}
                     </Text>
                     <Text style={styles.gardenMeta}>
-                      {field.device_count} Arduino
-                      {field.device_count === 1 ? '' : 's'}
+                      {t('settings.arduinos', {
+                        count: field.device_count,
+                      })}
                     </Text>
                     <View style={styles.gardenActions}>
                       <Pressable onPress={() => void handleDatos(field.id)}>
-                        <Text style={styles.gardenEdit}>Datos</Text>
+                        <Text style={styles.gardenEdit}>
+                          {t('settings.data')}
+                        </Text>
                       </Pressable>
                       <Pressable
                         onPress={() =>
@@ -467,7 +386,9 @@ export default function SettingsScreen() {
                           })
                         }
                       >
-                        <Text style={styles.gardenEdit}>Edit</Text>
+                        <Text style={styles.gardenEdit}>
+                          {t('settings.edit')}
+                        </Text>
                       </Pressable>
                     </View>
                   </View>
