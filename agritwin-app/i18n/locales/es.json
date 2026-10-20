@@ -74,6 +74,7 @@
     "themeLight": "Claro",
     "themeDark": "Oscuro",
     "logout": "Cerrar sesión",
+    "profileName": "Nombre",
     "email": "Correo",
     "password": "Contraseña",
     "changePassword": "Cambiar contraseña",

@@ -74,6 +74,7 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "logout": "Log out",
+    "profileName": "Name",
     "email": "Email",
     "password": "Password",
     "changePassword": "Change password",

@@ -28,12 +28,14 @@ class UserProfileRead(BaseModel):
 class MeRead(BaseModel):
     username: str
     email: str
+    name: str
     language: str
     notifications_enabled: bool
     weather_alerts_enabled: bool
 
 
 class MeUpdate(BaseModel):
+    name: str
     language: str
     notifications_enabled: bool
     weather_alerts_enabled: bool

@@ -81,6 +81,8 @@ export default function SettingsScreen() {
   const [dataMessage, setDataMessage] = useState('');
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailDraft, setEmailDraft] = useState('');
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
 
   useEffect(() => {
     async function loadMe() {
@@ -112,6 +114,7 @@ export default function SettingsScreen() {
       setSaving(true);
       setErrorMessage('');
       const saved = await updateMe({
+        name: next.name,
         language: next.language,
         notifications_enabled: next.notifications_enabled,
         weather_alerts_enabled: next.weather_alerts_enabled,
@@ -142,10 +145,50 @@ export default function SettingsScreen() {
     router.replace('/auth/login');
   };
 
+  function openNameEdit() {
+    setEditingEmail(false);
+    setNameDraft(me?.name ?? '');
+    setEditingName(true);
+    setErrorMessage('');
+  }
+
   function openEmailEdit() {
+    setEditingName(false);
     setEmailDraft(me?.email ?? '');
     setEditingEmail(true);
     setErrorMessage('');
+  }
+
+  async function handleSaveName() {
+    const next = nameDraft.trim();
+    if (!next) {
+      setErrorMessage(t('settings.errors.nameRequired'));
+      return;
+    }
+    if (!me) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setErrorMessage('');
+      const saved = await updateMe({
+        name: next,
+        language: me.language,
+        notifications_enabled: me.notifications_enabled,
+        weather_alerts_enabled: me.weather_alerts_enabled,
+      });
+      setMe(saved);
+      setEditingName(false);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t('settings.errors.saveProfile');
+      setErrorMessage(message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleSaveEmail() {
@@ -214,6 +257,55 @@ export default function SettingsScreen() {
 
           <View style={styles.profileCard}>
             <Text style={styles.sectionTitle}>{t('settings.profile')}</Text>
+
+            {editingName ? (
+              <View style={styles.languageBlock}>
+                <Text style={styles.editLabel}>
+                  {t('settings.profileName')}
+                </Text>
+                <TextInput
+                  style={styles.accountInput}
+                  value={nameDraft}
+                  onChangeText={setNameDraft}
+                  autoCorrect={false}
+                  editable={!saving}
+                />
+                <View style={styles.accountButtons}>
+                  <Pressable
+                    style={[styles.accountButton, styles.accountCancel]}
+                    onPress={() => setEditingName(false)}
+                    disabled={saving}
+                  >
+                    <Text style={styles.accountCancelText}>
+                      {t('settings.cancel')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.accountButton, styles.accountAccept]}
+                    onPress={() => void handleSaveName()}
+                    disabled={saving}
+                  >
+                    <Text style={styles.accountAcceptText}>
+                      {t('settings.accept')}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable style={styles.editRow} onPress={openNameEdit}>
+                <View style={styles.editText}>
+                  <Text style={styles.editLabel}>
+                    {t('settings.profileName')}
+                  </Text>
+                  <Text style={styles.editValue}>{me?.name ?? '…'}</Text>
+                </View>
+                <Ionicons
+                  name="create-outline"
+                  size={18}
+                  color={Colors.light.primary}
+                />
+              </Pressable>
+            )}
 
             {editingEmail ? (
               <View style={styles.languageBlock}>

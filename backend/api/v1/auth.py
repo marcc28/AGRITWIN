@@ -216,13 +216,14 @@ async def refresh_token_endpoint(
         ) from err
 
 
-PROFILE_COLUMNS = "language, notifications_enabled, weather_alerts_enabled"
+PROFILE_COLUMNS = "name, language, notifications_enabled, weather_alerts_enabled"
 
 
 def _me_from_row(current_user: User, row) -> MeRead:
     return MeRead(
         username=current_user.username,
         email=current_user.email,
+        name=row.name,
         language=row.language,
         notifications_enabled=row.notifications_enabled,
         weather_alerts_enabled=row.weather_alerts_enabled,
@@ -250,10 +251,18 @@ async def update_me(
     body: MeUpdate,
     current_user: User = Depends(get_current_user),
 ) -> MeRead:
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name is required",
+        )
+
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text(
                 "UPDATE user_profile SET "
+                "name = :name, "
                 "language = :language, "
                 "notifications_enabled = :notifications_enabled, "
                 "weather_alerts_enabled = :weather_alerts_enabled "
@@ -261,6 +270,7 @@ async def update_me(
                 f"RETURNING {PROFILE_COLUMNS}"
             ),
             {
+                "name": name,
                 "language": body.language,
                 "notifications_enabled": body.notifications_enabled,
                 "weather_alerts_enabled": body.weather_alerts_enabled,

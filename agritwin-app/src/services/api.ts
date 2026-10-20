@@ -233,12 +233,14 @@ export async function getDashboard(fieldId?: number): Promise<Dashboard> {
 export type Me = {
   username: string;
   email: string;
+  name: string;
   language: string;
   notifications_enabled: boolean;
   weather_alerts_enabled: boolean;
 };
 
 export type MeUpdate = {
+  name: string;
   language: string;
   notifications_enabled: boolean;
   weather_alerts_enabled: boolean;
