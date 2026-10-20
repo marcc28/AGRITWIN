@@ -81,7 +81,7 @@ class UserProfile(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     language: Mapped[str] = mapped_column(
         String(50), nullable=False, default="ca", server_default=text("'ca'")
     )
@@ -108,7 +108,7 @@ class UserProfile(Base):
 
 class UserConsent(Base):
     __tablename__ = "user_consents"
-    __table_args__ = (Index("idx_user_consents_username", "username"),)
+    __table_args__ = (Index("idx_user_consents_user_id", "user_id"),)
 
     id: Mapped[PyUUID] = mapped_column(
         UUID(as_uuid=True),
@@ -116,9 +116,9 @@ class UserConsent(Base):
         default=uuid4,
         server_default=text("gen_random_uuid()"),
     )
-    username: Mapped[str] = mapped_column(
-        String(255),
-        ForeignKey("users.username", ondelete="CASCADE"),
+    user_id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
     document_version: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -194,13 +194,13 @@ class Field(Base):
             "size_m2 IS NULL OR size_m2 > 0",
             name="chk_fields_size",
         ),
-        Index("idx_fields_username", "username"),
+        Index("idx_fields_user_id", "user_id"),
     )
 
     id: Mapped[int] = mapped_column(BigIntType, primary_key=True, autoincrement=True)
-    username: Mapped[str] = mapped_column(
-        String(255),
-        ForeignKey("users.username", ondelete="CASCADE"),
+    user_id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -248,6 +248,14 @@ class Device(Base):
     warranty_until: Mapped[datetime | None] = mapped_column(Date)
     device_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default=text("TRUE")
+    )
+    # Binary battery status:
+    #   True  (1) = board on and connected
+    #   False (0) = battery empty OR board not connected to the Internet
+    # A board with an empty battery cannot report False itself: the backend
+    # sets it when it stops receiving telemetry from the board.
+    battery_status: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("FALSE")
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
