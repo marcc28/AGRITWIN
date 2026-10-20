@@ -3,7 +3,8 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from fastapi.exceptions import RequestValidationError
 
-from db import AsyncSessionLocal
+from api.v1.auth import get_current_user
+from db import AsyncSessionLocal, User
 from models.weather import WeatherForecastResponse
 from services.field_weather_service import FieldWeatherService
 from services.weather_service import (
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/weather", tags=["Weather"])
 
 Units = Literal["metric", "imperial"]
 MAX_DB_INTEGER = 2_147_483_647
-LANG_PATTERN = r"^[a-zA-Z_]+$"
+LANG_PATTERN = r"^[a-zA-Z_-]+$"
 
 
 def get_weather_service() -> WeatherService:
@@ -49,10 +50,13 @@ async def get_field_weather(
         description="Si no s'envia, l'idioma del perfil de l'usuari (user_profile.language)",
     ),
     days: int = _days_query(),
+    current_user: User = Depends(get_current_user),
     service: FieldWeatherService = Depends(get_field_weather_service),
 ):
     try:
-        return await service.get_forecast(field_id, units=units, lang=lang, days=days)
+        return await service.get_forecast(
+            field_id, units=units, lang=lang, days=days, username=current_user.username
+        )
     except WeatherServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 

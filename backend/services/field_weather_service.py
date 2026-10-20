@@ -4,10 +4,11 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from pydantic import ValidationError
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.schema import Field, UserProfile, WeatherCache
+from db.schema import Field, User, UserProfile, WeatherCache
 from models.weather import WeatherForecastResponse
 from services.weather_service import (
     MAX_FORECAST_DAYS,
@@ -61,12 +62,13 @@ class FieldWeatherService:
         units: str = "metric",
         lang: str | None = None,
         days: int = MAX_FORECAST_DAYS,
+        username: str | None = None,
     ) -> WeatherForecastResponse:
         field = await self._db.get(Field, field_id)
-        if field is None:
+        if field is None or (username is not None and not await self._owns(username, field_id)):
             raise WeatherDataError("Field not found")
 
-        lang = normalize_lang(lang or await self._profile_language(field.username))
+        lang = normalize_lang(lang or await self._profile_language(field.id))
         now = _utc_now_without_timezone()
         row = await self._db.get(WeatherCache, field_id)
 
@@ -78,9 +80,20 @@ class FieldWeatherService:
 
         return result.model_copy(update={"daily": result.daily[:days]})
 
-    async def _profile_language(self, username: str) -> str | None:
-        profile = await self._db.get(UserProfile, username)
-        return profile.language if profile is not None else None
+    async def _owns(self, username: str, field_id: int) -> bool:
+        result = await self._db.execute(
+            select(Field.id).join(Field.user).where(Field.id == field_id, User.username == username)
+        )
+        return result.first() is not None
+
+    async def _profile_language(self, field_id: int) -> str | None:
+        result = await self._db.execute(
+            select(UserProfile.language)
+            .join(UserProfile.user)
+            .join(User.fields)
+            .where(Field.id == field_id)
+        )
+        return result.scalars().first()
 
     def _cached_forecast(
         self, field: Field, row: WeatherCache | None, now: datetime, units: str, lang: str
