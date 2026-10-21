@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from urllib.error import URLError
 
 from services.geocode_service import lookup_location
 
@@ -27,3 +28,21 @@ def test_lookup_location_handles_bad_payload():
 
     with patch("services.geocode_service.urlopen", return_value=response):
         assert lookup_location("xxxx") is None
+
+
+def test_lookup_location_handles_network_error():
+    with patch(
+        "services.geocode_service.urlopen",
+        side_effect=URLError("offline"),
+    ):
+        assert lookup_location("Andorra") is None
+
+
+def test_lookup_location_handles_bad_coords():
+    response = MagicMock()
+    response.read.return_value = b'[{"lat": "nope", "lon": "1.5"}]'
+    response.__enter__.return_value = response
+    response.__exit__.return_value = False
+
+    with patch("services.geocode_service.urlopen", return_value=response):
+        assert lookup_location("Andorra") is None

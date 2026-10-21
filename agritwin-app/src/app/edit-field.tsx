@@ -38,32 +38,7 @@ import { styles } from '../styles/edit-field.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
 import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
-
-function Chip({
-  label,
-  selected,
-  onPress,
-  disabled,
-}: Readonly<{
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  disabled: boolean;
-}>) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={[styles.chip, selected ? styles.chipSelected : null]}
-    >
-      <Text
-        style={[styles.chipText, selected ? styles.chipTextSelected : null]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
+import { OptionChip } from '../components/OptionChip';
 
 export default function EditFieldScreen() {
   const { t } = useTranslation();
@@ -275,12 +250,16 @@ export default function EditFieldScreen() {
                 <Text style={styles.label}>{t('settings.type')}</Text>
                 <View style={styles.chipRow}>
                   {FIELD_TYPES.map((type) => (
-                    <Chip
+                    <OptionChip
                       key={type}
                       label={t(`settings.fieldTypes.${type}`)}
                       selected={fieldType === type}
                       onPress={() => setFieldType(type)}
                       disabled={saving}
+                      style={styles.chip}
+                      selectedStyle={styles.chipSelected}
+                      textStyle={styles.chipText}
+                      selectedTextStyle={styles.chipTextSelected}
                     />
                   ))}
                 </View>
@@ -288,12 +267,16 @@ export default function EditFieldScreen() {
                 <Text style={styles.label}>{t('settings.soil')}</Text>
                 <View style={styles.chipRow}>
                   {SOIL_TYPES.map((type) => (
-                    <Chip
+                    <OptionChip
                       key={type}
                       label={t(`settings.soilTypes.${type}`)}
                       selected={soilType === type}
                       onPress={() => setSoilType(type)}
                       disabled={saving}
+                      style={styles.chip}
+                      selectedStyle={styles.chipSelected}
+                      textStyle={styles.chipText}
+                      selectedTextStyle={styles.chipTextSelected}
                     />
                   ))}
                 </View>

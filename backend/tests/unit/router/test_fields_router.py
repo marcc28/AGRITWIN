@@ -11,6 +11,7 @@ os.environ.setdefault(
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import IntegrityError
 
 from api.v1.auth import get_current_user
 from api.v1.fields import router
@@ -62,7 +63,10 @@ class FakeSession:
         self.committed = False
 
     async def execute(self, *_args, **_kwargs):
-        return self._results.pop(0)
+        next_result = self._results.pop(0)
+        if isinstance(next_result, BaseException):
+            raise next_result
+        return next_result
 
     async def commit(self):
         self.committed = True
@@ -507,3 +511,106 @@ def test_create_device_requires_auth():
     )
 
     assert response.status_code == 401
+
+
+def test_create_field_rejects_partial_coords():
+    client = make_client()
+    response = client.post("/fields", json={"name": "Hort", "lat": 42.5})
+    assert response.status_code == 400
+
+
+def test_create_field_rejects_invalid_coords_and_size():
+    client = make_client()
+    assert (
+        client.post(
+            "/fields", json={"name": "Hort", "lat": 99, "lon": 1}
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            "/fields", json={"name": "Hort", "lat": 42, "lon": 200}
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post("/fields", json={"name": "Hort", "size_m2": 0}).status_code
+        == 400
+    )
+
+
+def test_create_device_requires_brand():
+    client = make_client()
+    response = client.post(
+        "/fields/3/devices",
+        json={"id": "esp32_sim_01", "brand": "  ", "serial_number": "SN-1"},
+    )
+    assert response.status_code == 400
+
+
+def test_create_device_conflict():
+    client = make_client()
+    session = FakeSession(
+        [
+            FakeResult(one=SimpleNamespace(id=3)),
+            IntegrityError("insert", {}, Exception("dup")),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.post(
+            "/fields/3/devices",
+            json={
+                "id": "esp32_sim_01",
+                "brand": "ESP32",
+                "serial_number": "SN-1",
+            },
+        )
+
+    assert response.status_code == 409
+
+
+def test_update_device_requires_serial():
+    client = make_client()
+    response = client.put(
+        "/fields/3/devices/esp32_sim_01",
+        json={"brand": "ESP32", "serial_number": "  "},
+    )
+    assert response.status_code == 400
+
+
+def test_update_device_not_found():
+    client = make_client()
+    session = FakeSession(
+        [
+            FakeResult(one=SimpleNamespace(id=3)),
+            FakeResult(one=None),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.put(
+            "/fields/3/devices/missing",
+            json={"brand": "ESP32", "serial_number": "SN-9"},
+        )
+
+    assert response.status_code == 404
+
+
+def test_update_device_conflict():
+    client = make_client()
+    session = FakeSession(
+        [
+            FakeResult(one=SimpleNamespace(id=3)),
+            IntegrityError("update", {}, Exception("dup")),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.put(
+            "/fields/3/devices/esp32_sim_01",
+            json={"brand": "ESP32", "serial_number": "SN-9"},
+        )
+
+    assert response.status_code == 409
+

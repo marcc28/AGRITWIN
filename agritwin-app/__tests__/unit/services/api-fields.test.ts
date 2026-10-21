@@ -274,4 +274,60 @@ describe('fields api', () => {
       'Not authenticated',
     );
   });
+
+  it('throws without a token on field writes', async () => {
+    mockedGetAuth.mockResolvedValue(null);
+    await expect(
+      createField({
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+      }),
+    ).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(geocodeLocation('Andorra')).rejects.toThrow(
+      'Not authenticated',
+    );
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(
+      createDevice(3, { id: 'd1', brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(
+      updateDevice(3, 'd1', { brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(deleteDevice(3, 'd1')).rejects.toThrow('Not authenticated');
+  });
+
+  it('throws the api detail when field writes fail', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'This device is already registered' }),
+    }) as jest.Mock;
+
+    await expect(
+      createField({
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+      }),
+    ).rejects.toThrow('This device is already registered');
+    await expect(geocodeLocation('xxxx')).rejects.toThrow(
+      'This device is already registered',
+    );
+    await expect(
+      createDevice(3, { id: 'd1', brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('This device is already registered');
+    await expect(
+      updateDevice(3, 'd1', { brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('This device is already registered');
+    await expect(deleteDevice(3, 'd1')).rejects.toThrow(
+      'This device is already registered',
+    );
+  });
 });

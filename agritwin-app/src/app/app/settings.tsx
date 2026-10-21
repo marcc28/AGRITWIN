@@ -28,6 +28,7 @@ import {
   subscribeCurrentField,
 } from '../../services/currentField';
 import { FieldPhoto } from '../../components/FieldPhoto';
+import { OptionChip } from '../../components/OptionChip';
 import { styles } from '../../styles/settings.styles';
 import { Colors } from '../../constants/theme';
 
@@ -43,29 +44,6 @@ function openField(fieldId: number) {
     pathname: '/field-detail',
     params: { id: String(fieldId) },
   });
-}
-
-function Chip({
-  label,
-  selected,
-  onPress,
-}: Readonly<{
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}>) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.chip, selected ? styles.chipSelected : null]}
-    >
-      <Text
-        style={[styles.chipText, selected ? styles.chipTextSelected : null]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
 }
 
 export default function SettingsScreen() {
@@ -383,13 +361,17 @@ export default function SettingsScreen() {
               <Text style={styles.languageLabel}>{t('settings.language')}</Text>
               <View style={styles.languageGrid}>
                 {LANGUAGES.map((language) => (
-                  <Chip
+                  <OptionChip
                     key={language.value}
                     label={t(language.labelKey)}
                     selected={(me?.language ?? i18n.language).startsWith(
                       language.value,
                     )}
                     onPress={() => void handleLanguageChange(language.value)}
+                    style={styles.chip}
+                    selectedStyle={styles.chipSelected}
+                    textStyle={styles.chipText}
+                    selectedTextStyle={styles.chipTextSelected}
                   />
                 ))}
               </View>

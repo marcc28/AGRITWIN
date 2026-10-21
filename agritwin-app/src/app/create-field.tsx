@@ -33,33 +33,22 @@ import {
 import { clearAuth } from '../services/auth';
 import { setCurrentField } from '../services/currentField';
 import { setFieldPhotoIndex } from '../services/fieldPhoto';
+import { OptionChip } from '../components/OptionChip';
 import { styles } from '../styles/create-field.styles';
 import { Colors } from '../constants/theme';
 
-function Chip({
-  label,
-  selected,
-  onPress,
-  disabled,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  disabled: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={[styles.chip, selected ? styles.chipSelected : null]}
-    >
-      <Text
-        style={[styles.chipText, selected ? styles.chipTextSelected : null]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
+function createSubmitLabel(
+  saving: boolean,
+  fromProfile: boolean,
+  t: (key: string) => string,
+) {
+  if (saving) {
+    return t('settings.saving');
+  }
+  if (fromProfile) {
+    return t('settings.createField.submitNext');
+  }
+  return t('settings.createField.submitFirst');
 }
 
 export default function CreateFieldScreen() {
@@ -325,12 +314,16 @@ export default function CreateFieldScreen() {
             <Text style={styles.label}>{t('settings.type')}</Text>
             <View style={styles.chipRow}>
               {FIELD_TYPES.map((type) => (
-                <Chip
+                <OptionChip
                   key={type}
                   label={t(`settings.fieldTypes.${type}`)}
                   selected={fieldType === type}
                   onPress={() => setFieldType(type)}
                   disabled={saving}
+                  style={styles.chip}
+                  selectedStyle={styles.chipSelected}
+                  textStyle={styles.chipText}
+                  selectedTextStyle={styles.chipTextSelected}
                 />
               ))}
             </View>
@@ -338,12 +331,16 @@ export default function CreateFieldScreen() {
             <Text style={styles.label}>{t('settings.soil')}</Text>
             <View style={styles.chipRow}>
               {SOIL_TYPES.map((type) => (
-                <Chip
+                <OptionChip
                   key={type}
                   label={t(`settings.soilTypes.${type}`)}
                   selected={soilType === type}
                   onPress={() => setSoilType(type)}
                   disabled={saving}
+                  style={styles.chip}
+                  selectedStyle={styles.chipSelected}
+                  textStyle={styles.chipText}
+                  selectedTextStyle={styles.chipTextSelected}
                 />
               ))}
             </View>
@@ -386,11 +383,7 @@ export default function CreateFieldScreen() {
             disabled={saving}
           >
             <Text style={styles.primaryText}>
-              {saving
-                ? t('settings.saving')
-                : fromProfile
-                  ? t('settings.createField.submitNext')
-                  : t('settings.createField.submitFirst')}
+              {createSubmitLabel(saving, fromProfile, t)}
             </Text>
           </Pressable>
 
