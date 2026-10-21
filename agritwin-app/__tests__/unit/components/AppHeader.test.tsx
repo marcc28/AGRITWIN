@@ -104,4 +104,21 @@ describe('AppHeader', () => {
       );
     });
   });
+
+  it('hides the garden button when there is no session', async () => {
+    mockedGetAuth.mockResolvedValue(null);
+    render(<AppHeader />);
+    expect(screen.getByText('AGRITWIN')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.queryByText('Hort')).toBeNull();
+    });
+  });
+
+  it('uses the first garden when the stored one is gone', async () => {
+    mockedGetCurrentField.mockResolvedValue({ id: 99, name: 'Old' });
+    render(<AppHeader />);
+    await waitFor(() => {
+      expect(screen.getByText('Hort')).toBeTruthy();
+    });
+  });
 });

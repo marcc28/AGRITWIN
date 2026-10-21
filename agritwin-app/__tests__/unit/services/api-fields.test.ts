@@ -5,11 +5,16 @@ import {
   createDevice,
   createField,
   deleteDevice,
-  updateDevice,
   geocodeLocation,
   getField,
   getFields,
+  getMe,
   isAuthError,
+  updateDevice,
+  updateField,
+  updateMe,
+  updateMyEmail,
+  updateMyPassword,
 } from '../../../src/services/api';
 
 jest.mock('../../../src/services/auth', () => ({
@@ -186,5 +191,87 @@ describe('fields api', () => {
     }) as jest.Mock;
 
     await expect(deleteDevice(3, 'esp32_sim_01')).resolves.toBeUndefined();
+  });
+
+  it('rejects a fields payload that is not a list', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ nope: true }),
+    }) as jest.Mock;
+
+    await expect(getFields()).rejects.toThrow(TypeError);
+  });
+
+  it('loads and updates the profile', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        username: 'ainhoa',
+        email: 'a@test.com',
+        name: 'Ainhoa',
+        language: 'ca',
+        notifications_enabled: true,
+        weather_alerts_enabled: true,
+      }),
+    }) as jest.Mock;
+
+    await expect(getMe()).resolves.toMatchObject({ name: 'Ainhoa' });
+    await expect(
+      updateMe({
+        name: 'Ainhoa',
+        language: 'ca',
+        notifications_enabled: true,
+        weather_alerts_enabled: true,
+      }),
+    ).resolves.toMatchObject({ email: 'a@test.com' });
+  });
+
+  it('updates email, password and a field', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 3,
+        name: 'Hort',
+        email: 'new@test.com',
+      }),
+    }) as jest.Mock;
+
+    await expect(updateMyEmail('new@test.com')).resolves.toMatchObject({
+      email: 'new@test.com',
+    });
+    await expect(
+      updateMyPassword('old', 'newpass12', 'newpass12'),
+    ).resolves.toBeUndefined();
+    await expect(
+      updateField(3, {
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+      }),
+    ).resolves.toMatchObject({ id: 3 });
+  });
+
+  it('throws the profile detail when getMe fails', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'User profile not found' }),
+    }) as jest.Mock;
+
+    await expect(getMe()).rejects.toThrow('User profile not found');
+  });
+
+  it('throws without a token on profile calls', async () => {
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(getMe()).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(updateMyEmail('a@test.com')).rejects.toThrow(
+      'Not authenticated',
+    );
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(updateMyPassword('a', 'b', 'b')).rejects.toThrow(
+      'Not authenticated',
+    );
   });
 });

@@ -30,8 +30,90 @@ function mapPasswordApiError(
   return message || t('settings.passwordScreen.errors.saveFailed');
 }
 
+function passwordFormError(
+  currentPassword: string,
+  newPassword: string,
+  newPasswordConf: string,
+  t: (key: string) => string,
+): string | null {
+  if (!currentPassword) {
+    return t('settings.passwordScreen.errors.currentRequired');
+  }
+  if (!newPassword) {
+    return t('settings.passwordScreen.errors.newRequired');
+  }
+  if (!newPasswordConf) {
+    return t('settings.passwordScreen.errors.confirmRequired');
+  }
+  if (newPassword.length < 8) {
+    return t('settings.passwordScreen.errors.tooShort');
+  }
+  if (newPassword !== newPasswordConf) {
+    return t('settings.passwordScreen.errors.mismatch');
+  }
+  if (newPassword === currentPassword) {
+    return t('settings.passwordScreen.errors.sameAsCurrent');
+  }
+  return null;
+}
+
 function goToProfile() {
   router.replace('/app/settings');
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  shown,
+  onToggle,
+  hideLabel,
+  showLabel,
+  disabled,
+  hint,
+}: Readonly<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  shown: boolean;
+  onToggle: () => void;
+  hideLabel: string;
+  showLabel: string;
+  disabled: boolean;
+  hint?: string;
+}>) {
+  return (
+    <>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.input}
+          value={value}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor={Colors.light.textMuted}
+          secureTextEntry={!shown}
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable={!disabled}
+        />
+        <Pressable
+          style={styles.eyeButton}
+          onPress={onToggle}
+          accessibilityLabel={shown ? hideLabel : showLabel}
+        >
+          <Ionicons
+            name={shown ? 'eye-off-outline' : 'eye-outline'}
+            size={20}
+            color={Colors.light.textMuted}
+          />
+        </Pressable>
+      </View>
+      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+    </>
+  );
 }
 
 export default function ChangePasswordScreen() {
@@ -47,28 +129,14 @@ export default function ChangePasswordScreen() {
   const [errorMessage, setErrorMessage] = useState('');
 
   async function handleSave() {
-    if (!currentPassword) {
-      setErrorMessage(t('settings.passwordScreen.errors.currentRequired'));
-      return;
-    }
-    if (!newPassword) {
-      setErrorMessage(t('settings.passwordScreen.errors.newRequired'));
-      return;
-    }
-    if (!newPasswordConf) {
-      setErrorMessage(t('settings.passwordScreen.errors.confirmRequired'));
-      return;
-    }
-    if (newPassword.length < 8) {
-      setErrorMessage(t('settings.passwordScreen.errors.tooShort'));
-      return;
-    }
-    if (newPassword !== newPasswordConf) {
-      setErrorMessage(t('settings.passwordScreen.errors.mismatch'));
-      return;
-    }
-    if (newPassword === currentPassword) {
-      setErrorMessage(t('settings.passwordScreen.errors.sameAsCurrent'));
+    const formError = passwordFormError(
+      currentPassword,
+      newPassword,
+      newPasswordConf,
+      t,
+    );
+    if (formError) {
+      setErrorMessage(formError);
       return;
     }
 
@@ -90,6 +158,9 @@ export default function ChangePasswordScreen() {
       setSaving(false);
     }
   }
+
+  const hideLabel = t('settings.passwordScreen.hidePassword');
+  const showLabel = t('settings.passwordScreen.showPassword');
 
   return (
     <View style={styles.screen}>
@@ -147,108 +218,40 @@ export default function ChangePasswordScreen() {
               </Text>
 
               <View style={styles.card}>
-                <Text style={styles.label}>
-                  {t('settings.passwordScreen.current')}
-                </Text>
-                <View style={styles.inputRow}>
-                  <TextInput
-                    style={styles.input}
-                    value={currentPassword}
-                    onChangeText={setCurrentPassword}
-                    placeholder={t(
-                      'settings.passwordScreen.currentPlaceholder',
-                    )}
-                    placeholderTextColor={Colors.light.textMuted}
-                    secureTextEntry={!showCurrent}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!saving}
-                  />
-                  <Pressable
-                    style={styles.eyeButton}
-                    onPress={() => setShowCurrent((value) => !value)}
-                    accessibilityLabel={
-                      showCurrent
-                        ? t('settings.passwordScreen.hidePassword')
-                        : t('settings.passwordScreen.showPassword')
-                    }
-                  >
-                    <Ionicons
-                      name={showCurrent ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color={Colors.light.textMuted}
-                    />
-                  </Pressable>
-                </View>
-
-                <Text style={styles.label}>
-                  {t('settings.passwordScreen.new')}
-                </Text>
-                <View style={styles.inputRow}>
-                  <TextInput
-                    style={styles.input}
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    placeholder={t('settings.passwordScreen.newPlaceholder')}
-                    placeholderTextColor={Colors.light.textMuted}
-                    secureTextEntry={!showNew}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!saving}
-                  />
-                  <Pressable
-                    style={styles.eyeButton}
-                    onPress={() => setShowNew((value) => !value)}
-                    accessibilityLabel={
-                      showNew
-                        ? t('settings.passwordScreen.hidePassword')
-                        : t('settings.passwordScreen.showPassword')
-                    }
-                  >
-                    <Ionicons
-                      name={showNew ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color={Colors.light.textMuted}
-                    />
-                  </Pressable>
-                </View>
-                <Text style={styles.hint}>
-                  {t('settings.passwordScreen.hint')}
-                </Text>
-
-                <Text style={styles.label}>
-                  {t('settings.passwordScreen.confirm')}
-                </Text>
-                <View style={styles.inputRow}>
-                  <TextInput
-                    style={styles.input}
-                    value={newPasswordConf}
-                    onChangeText={setNewPasswordConf}
-                    placeholder={t(
-                      'settings.passwordScreen.confirmPlaceholder',
-                    )}
-                    placeholderTextColor={Colors.light.textMuted}
-                    secureTextEntry={!showConfirm}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!saving}
-                  />
-                  <Pressable
-                    style={styles.eyeButton}
-                    onPress={() => setShowConfirm((value) => !value)}
-                    accessibilityLabel={
-                      showConfirm
-                        ? t('settings.passwordScreen.hidePassword')
-                        : t('settings.passwordScreen.showPassword')
-                    }
-                  >
-                    <Ionicons
-                      name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color={Colors.light.textMuted}
-                    />
-                  </Pressable>
-                </View>
+                <PasswordField
+                  label={t('settings.passwordScreen.current')}
+                  value={currentPassword}
+                  onChange={setCurrentPassword}
+                  placeholder={t('settings.passwordScreen.currentPlaceholder')}
+                  shown={showCurrent}
+                  onToggle={() => setShowCurrent((value) => !value)}
+                  hideLabel={hideLabel}
+                  showLabel={showLabel}
+                  disabled={saving}
+                />
+                <PasswordField
+                  label={t('settings.passwordScreen.new')}
+                  value={newPassword}
+                  onChange={setNewPassword}
+                  placeholder={t('settings.passwordScreen.newPlaceholder')}
+                  shown={showNew}
+                  onToggle={() => setShowNew((value) => !value)}
+                  hideLabel={hideLabel}
+                  showLabel={showLabel}
+                  disabled={saving}
+                  hint={t('settings.passwordScreen.hint')}
+                />
+                <PasswordField
+                  label={t('settings.passwordScreen.confirm')}
+                  value={newPasswordConf}
+                  onChange={setNewPasswordConf}
+                  placeholder={t('settings.passwordScreen.confirmPlaceholder')}
+                  shown={showConfirm}
+                  onToggle={() => setShowConfirm((value) => !value)}
+                  hideLabel={hideLabel}
+                  showLabel={showLabel}
+                  disabled={saving}
+                />
 
                 {errorMessage ? (
                   <Text style={styles.errorText}>{errorMessage}</Text>

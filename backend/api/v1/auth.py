@@ -217,6 +217,7 @@ async def refresh_token_endpoint(
 
 
 PROFILE_COLUMNS = "name, language, notifications_enabled, weather_alerts_enabled"
+PROFILE_NOT_FOUND = "User profile not found"
 
 
 def _me_from_row(current_user: User, row) -> MeRead:
@@ -240,7 +241,7 @@ async def read_me(
     if not userprofile:
         raise HTTPException(
             status_code=404,
-            detail="User profile not found",
+            detail=PROFILE_NOT_FOUND,
         )
 
     return _me_from_row(current_user, userprofile)
@@ -267,7 +268,7 @@ async def update_me(
                 "notifications_enabled = :notifications_enabled, "
                 "weather_alerts_enabled = :weather_alerts_enabled "
                 "WHERE id = :user_id "
-                f"RETURNING {PROFILE_COLUMNS}"
+                "RETURNING " + PROFILE_COLUMNS
             ),
             {
                 "name": name,
@@ -281,7 +282,7 @@ async def update_me(
         if not row:
             raise HTTPException(
                 status_code=404,
-                detail="User profile not found",
+                detail=PROFILE_NOT_FOUND,
             )
         await session.commit()
 
@@ -310,14 +311,14 @@ async def update_my_email(
             {"email": new_email, "user_id": current_user.id},
         )
         result = await session.execute(
-            text(f"SELECT {PROFILE_COLUMNS} FROM user_profile WHERE id = :user_id"),
+            text("SELECT " + PROFILE_COLUMNS + " FROM user_profile WHERE id = :user_id"),
             {"user_id": current_user.id},
         )
         row = result.one_or_none()
         if not row:
             raise HTTPException(
                 status_code=404,
-                detail="User profile not found",
+                detail=PROFILE_NOT_FOUND,
             )
         await session.commit()
 

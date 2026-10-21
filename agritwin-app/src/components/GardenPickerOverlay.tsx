@@ -12,6 +12,11 @@ import {
 } from '@/services/gardenPicker';
 import type { Field } from '@/services/api';
 
+async function selectGarden(field: Field) {
+  await setCurrentField({ id: field.id, name: field.name });
+  setGardenPicker({ open: false, currentId: field.id });
+}
+
 export default function GardenPickerOverlay() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
@@ -26,11 +31,6 @@ export default function GardenPickerOverlay() {
 
   if (!picker.open || picker.fields.length <= 1) {
     return null;
-  }
-
-  async function handleSelect(field: Field) {
-    await setCurrentField({ id: field.id, name: field.name });
-    setGardenPicker({ open: false, currentId: field.id });
   }
 
   return (
@@ -79,7 +79,7 @@ export default function GardenPickerOverlay() {
           return (
             <Pressable
               key={field.id}
-              onPress={() => void handleSelect(field)}
+              onPress={() => void selectGarden(field)}
               style={({ pressed }) => ({
                 flexDirection: 'row',
                 alignItems: 'center',

@@ -11,14 +11,14 @@ import { Colors } from '@/constants/theme';
 import type { Dashboard } from '@/services/api';
 import { styles } from '@/styles/sensor.styles';
 
-type Props = {
+type Props = Readonly<{
   dashboard: Dashboard | null;
   errorMessage: string;
   onPress: () => void;
   title?: string;
   subtitle?: string;
   hint?: string;
-};
+}>;
 
 function EmptyCard({ title, message }: { title: string; message: string }) {
   return (
@@ -52,9 +52,7 @@ export function SensorCard({
   }
 
   if (dashboard.field_name === null) {
-    return (
-      <EmptyCard title={heading} message="Encara no tens cap camp." />
-    );
+    return <EmptyCard title={heading} message="Encara no tens cap camp." />;
   }
 
   if (dashboard.device_ids.length === 0) {
@@ -67,9 +65,7 @@ export function SensorCard({
   }
 
   if (!dashboard.latest) {
-    return (
-      <EmptyCard title={heading} message="Encara no hi ha cap lectura." />
-    );
+    return <EmptyCard title={heading} message="Encara no hi ha cap lectura." />;
   }
 
   const { latest } = dashboard;

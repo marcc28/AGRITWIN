@@ -38,15 +38,22 @@ const LANGUAGES = [
   { value: 'it', labelKey: 'languages.italian' },
 ] as const;
 
+function openField(fieldId: number) {
+  router.push({
+    pathname: '/field-detail',
+    params: { id: String(fieldId) },
+  });
+}
+
 function Chip({
   label,
   selected,
   onPress,
-}: {
+}: Readonly<{
   label: string;
   selected: boolean;
   onPress: () => void;
-}) {
+}>) {
   return (
     <Pressable
       onPress={onPress}
@@ -87,11 +94,13 @@ export default function SettingsScreen() {
         const storedStillMine = gardenList.some(
           (field) => field.id === stored?.id,
         );
-        const nextCurrent = storedStillMine
-          ? stored
-          : gardenList[0]
-            ? { id: gardenList[0].id, name: gardenList[0].name }
-            : null;
+        let nextCurrent = storedStillMine ? stored : null;
+        if (!nextCurrent && gardenList[0]) {
+          nextCurrent = {
+            id: gardenList[0].id,
+            name: gardenList[0].name,
+          };
+        }
         if (nextCurrent) {
           setCurrentFieldId(nextCurrent.id);
           if (
@@ -237,13 +246,6 @@ export default function SettingsScreen() {
   async function handleSetCurrent(field: Field) {
     await setCurrentField({ id: field.id, name: field.name });
     setCurrentFieldId(field.id);
-  }
-
-  function openField(fieldId: number) {
-    router.push({
-      pathname: '/field-detail',
-      params: { id: String(fieldId) },
-    });
   }
 
   return (
