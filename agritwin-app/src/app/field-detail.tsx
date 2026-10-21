@@ -25,6 +25,21 @@ function dash(value: string | number | null | undefined): string {
   return String(value);
 }
 
+function goToProfile() {
+  router.replace('/app/settings');
+}
+
+function optionLabel(
+  t: (key: string, options?: { defaultValue: string }) => string,
+  group: 'fieldTypes' | 'soilTypes',
+  value: string | null,
+): string {
+  if (!value) {
+    return '—';
+  }
+  return t(`settings.${group}.${value}`, { defaultValue: value });
+}
+
 export default function FieldDetailScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ id: string | string[] }>();
@@ -78,10 +93,6 @@ export default function FieldDetailScreen() {
 
     void load();
   }, [fieldId, t]);
-
-  function goToProfile() {
-    router.replace('/app/settings');
-  }
 
   function goToEdit() {
     router.push({
@@ -152,21 +163,13 @@ export default function FieldDetailScreen() {
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>{t('settings.type')}</Text>
                   <Text style={styles.infoValue}>
-                    {field.field_type
-                      ? t(`settings.fieldTypes.${field.field_type}`, {
-                          defaultValue: field.field_type,
-                        })
-                      : '—'}
+                    {optionLabel(t, 'fieldTypes', field.field_type)}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>{t('settings.soil')}</Text>
                   <Text style={styles.infoValue}>
-                    {field.soil_type
-                      ? t(`settings.soilTypes.${field.soil_type}`, {
-                          defaultValue: field.soil_type,
-                        })
-                      : '—'}
+                    {optionLabel(t, 'soilTypes', field.soil_type)}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>

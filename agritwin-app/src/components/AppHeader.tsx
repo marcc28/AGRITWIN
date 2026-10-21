@@ -69,11 +69,10 @@ export default function AppHeader() {
         const storedStillMine = gardens.some(
           (field) => field.id === stored?.id,
         );
-        const next = storedStillMine
-          ? stored
-          : gardens[0]
-            ? { id: gardens[0].id, name: gardens[0].name }
-            : null;
+        let next = storedStillMine ? stored : null;
+        if (!next && gardens[0]) {
+          next = { id: gardens[0].id, name: gardens[0].name };
+        }
 
         if (next) {
           setCurrentId(next.id);
@@ -216,7 +215,6 @@ export default function AppHeader() {
               />
             ) : null}
           </Pressable>
-
         </View>
       ) : null}
     </View>

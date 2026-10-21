@@ -435,7 +435,7 @@ export async function getFields(): Promise<Field[]> {
   }
 
   if (!Array.isArray(data)) {
-    throw new Error('No s’ha pogut carregar els camps');
+    throw new TypeError('No s’ha pogut carregar els camps');
   }
 
   return data.map((field) => ({

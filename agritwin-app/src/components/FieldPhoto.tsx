@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Image, type ImageStyle, type StyleProp } from 'react-native';
 
-import {
-  defaultPhotoIndex,
-  gardenPhotoAt,
-} from '../constants/gardenPhotos';
+import { defaultPhotoIndex, gardenPhotoAt } from '../constants/gardenPhotos';
 import {
   getFieldPhotoIndex,
   subscribeFieldPhotos,
 } from '../services/fieldPhoto';
 
-type Props = {
+type Props = Readonly<{
   fieldId: number;
   style?: StyleProp<ImageStyle>;
-};
+}>;
 
 export function FieldPhoto({ fieldId, style }: Props) {
   const [index, setIndex] = useState(defaultPhotoIndex(fieldId));

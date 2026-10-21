@@ -88,6 +88,61 @@ describe('FieldDetailScreen', () => {
     expect(screen.getByText('settings.fieldDetail.connected')).toBeTruthy();
   });
 
+  it('goes back to profile and opens the data page', async () => {
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('settings.fieldDetail.back')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText('settings.fieldDetail.back'));
+    expect(router.replace).toHaveBeenCalledWith('/app/settings');
+    fireEvent.press(screen.getByText('settings.fieldDetail.sensorTitle'));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/field-data',
+      params: { id: '3' },
+    });
+  });
+
+  it('shows a disconnected device and empty types', async () => {
+    mockedGetField.mockResolvedValue({
+      id: 3,
+      name: 'Hort',
+      location: null,
+      field_type: null,
+      soil_type: null,
+      size_m2: null,
+      device_count: 1,
+      devices: [{ id: 'dev-2', battery_status: false }],
+    });
+
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('settings.fieldDetail.disconnected'),
+      ).toBeTruthy();
+    });
+  });
+
+  it('shows when there are no devices', async () => {
+    mockedGetField.mockResolvedValue({
+      id: 3,
+      name: 'Hort',
+      location: 'Andorra',
+      field_type: 'home_garden',
+      soil_type: 'loam',
+      size_m2: 40,
+      device_count: 0,
+      devices: [],
+    });
+
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('settings.fieldDetail.noDevices')).toBeTruthy();
+    });
+  });
+
   it('opens the edit page', async () => {
     render(<FieldDetailScreen />);
 

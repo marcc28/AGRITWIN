@@ -32,12 +32,12 @@ function Chip({
   selected,
   onPress,
   disabled,
-}: {
+}: Readonly<{
   label: string;
   selected: boolean;
   onPress: () => void;
   disabled: boolean;
-}) {
+}>) {
   return (
     <Pressable
       onPress={onPress}

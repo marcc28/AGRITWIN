@@ -60,4 +60,34 @@ describe('FieldDataScreen', () => {
       expect(screen.getByText('sensor-modal')).toBeTruthy();
     });
   });
+
+  it('shows a message when there is no reading', async () => {
+    mockedGetDashboard.mockResolvedValue({
+      field_name: 'Hort',
+      device_ids: ['dev-1'],
+      latest: null,
+      history: [],
+    });
+
+    render(<FieldDataScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('settings.errors.noReading')).toBeTruthy();
+    });
+  });
+
+  it('shows a message when there is no device', async () => {
+    mockedGetDashboard.mockResolvedValue({
+      field_name: 'Hort',
+      device_ids: [],
+      latest: null,
+      history: [],
+    });
+
+    render(<FieldDataScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('settings.errors.noDevice')).toBeTruthy();
+    });
+  });
 });

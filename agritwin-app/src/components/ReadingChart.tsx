@@ -12,11 +12,11 @@ import Svg, {
 import { Colors } from '@/constants/theme';
 import type { Reading } from '@/services/api';
 
-type Props = {
+type Props = Readonly<{
   history: Reading[];
   getValue: (reading: Reading) => number;
   width?: number;
-};
+}>;
 
 const HEIGHT = 132;
 const PAD_LEFT = 36;
@@ -56,10 +56,13 @@ export function ReadingChart({ history, getValue, width = 280 }: Props) {
   const line = points
     .map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x} ${point.y}`)
     .join(' ');
-  const area = `${line} L${points[points.length - 1].x} ${PAD_TOP + innerHeight} L${points[0].x} ${PAD_TOP + innerHeight} Z`;
+  const lastPoint = points.at(-1);
+  const area = `${line} L${lastPoint?.x} ${PAD_TOP + innerHeight} L${points[0].x} ${PAD_TOP + innerHeight} Z`;
   const ticks = [max, (max + min) / 2, min];
-  const shownPoints =
-    points.length <= 16 ? points : [points[0], points[points.length - 1]];
+  let shownPoints = points;
+  if (points.length > 16 && lastPoint) {
+    shownPoints = [points[0], lastPoint];
+  }
 
   return (
     <View style={{ marginTop: 12, overflow: 'visible' }}>
@@ -71,11 +74,7 @@ export function ReadingChart({ history, getValue, width = 280 }: Props) {
               stopColor={Colors.light.primary}
               stopOpacity={0.28}
             />
-            <Stop
-              offset="1"
-              stopColor={Colors.light.primary}
-              stopOpacity={0}
-            />
+            <Stop offset="1" stopColor={Colors.light.primary} stopOpacity={0} />
           </LinearGradient>
         </Defs>
 
@@ -111,7 +110,7 @@ export function ReadingChart({ history, getValue, width = 280 }: Props) {
 
         {shownPoints.map((point, index) => (
           <Circle
-            key={`point-${index}`}
+            key={`point-${point.x}-${point.y}`}
             cx={point.x}
             cy={point.y}
             r={values.length === 1 ? 5 : 3.5}
