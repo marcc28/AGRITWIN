@@ -1,21 +1,10 @@
 import { useState } from 'react';
-import {
-  Text,
-  View,
-  Pressable,
-  TextInput,
-  ScrollView,
-  Image,
-} from 'react-native';
+import { Text, View, Pressable, TextInput, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import {
-  GARDEN_PHOTOS,
-  defaultPhotoIndex,
-  gardenPhotoAt,
-} from '../constants/gardenPhotos';
+import { defaultPhotoIndex } from '../constants/gardenPhotos';
 import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
 import {
   createDevice,
@@ -30,10 +19,11 @@ import {
   hasIncompleteDevices,
   type DeviceDraft,
 } from '../components/DeviceDraftFields';
+import { FieldOptionChips } from '../components/FieldOptionChips';
+import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
 import { clearAuth } from '../services/auth';
 import { setCurrentField } from '../services/currentField';
 import { setFieldPhotoIndex } from '../services/fieldPhoto';
-import { OptionChip } from '../components/OptionChip';
 import { styles } from '../styles/create-field.styles';
 import { Colors } from '../constants/theme';
 
@@ -49,6 +39,15 @@ function createSubmitLabel(
     return t('settings.createField.submitNext');
   }
   return t('settings.createField.submitFirst');
+}
+
+function goToSettings() {
+  router.replace('/app/settings');
+}
+
+async function logoutToLogin() {
+  await clearAuth();
+  router.replace('/auth/login');
 }
 
 export default function CreateFieldScreen() {
@@ -71,15 +70,6 @@ export default function CreateFieldScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [later, setLater] = useState(true);
   const [deviceDrafts, setDeviceDrafts] = useState<DeviceDraft[]>([]);
-
-  function goBack() {
-    router.replace('/app/settings');
-  }
-
-  async function handleLogout() {
-    await clearAuth();
-    router.replace('/auth/login');
-  }
 
   async function handleLocate() {
     const query = location.trim();
@@ -150,9 +140,9 @@ export default function CreateFieldScreen() {
       });
       await setFieldPhotoIndex(created.id, photoIndex);
       await setCurrentField({ id: created.id, name: created.name });
-      for (const device of devices) {
-        await createDevice(created.id, device);
-      }
+      await Promise.all(
+        devices.map((device) => createDevice(created.id, device)),
+      );
       if (fromProfile) {
         router.replace({
           pathname: '/field-detail',
@@ -197,7 +187,7 @@ export default function CreateFieldScreen() {
           {fromProfile ? (
             <Pressable
               style={styles.backRow}
-              onPress={goBack}
+              onPress={goToSettings}
               disabled={saving}
             >
               <Ionicons
@@ -225,30 +215,12 @@ export default function CreateFieldScreen() {
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
 
-          <Image
-            source={gardenPhotoAt(photoIndex)}
-            style={styles.hero}
-            resizeMode="cover"
+          <GardenPhotoPicker
+            photoIndex={photoIndex}
+            onChange={setPhotoIndex}
+            disabled={saving}
+            photoStyle={styles.hero}
           />
-          <View style={styles.photoRow}>
-            {GARDEN_PHOTOS.map((_, index) => (
-              <Pressable
-                key={index}
-                onPress={() => setPhotoIndex(index)}
-                disabled={saving}
-                style={[
-                  styles.photoThumbWrap,
-                  photoIndex === index ? styles.photoThumbSelected : null,
-                ]}
-              >
-                <Image
-                  source={gardenPhotoAt(index)}
-                  style={styles.photoThumb}
-                  resizeMode="cover"
-                />
-              </Pressable>
-            ))}
-          </View>
 
           <View style={styles.card}>
             <View style={styles.cardHeader}>
@@ -311,39 +283,13 @@ export default function CreateFieldScreen() {
               </Text>
             )}
 
-            <Text style={styles.label}>{t('settings.type')}</Text>
-            <View style={styles.chipRow}>
-              {FIELD_TYPES.map((type) => (
-                <OptionChip
-                  key={type}
-                  label={t(`settings.fieldTypes.${type}`)}
-                  selected={fieldType === type}
-                  onPress={() => setFieldType(type)}
-                  disabled={saving}
-                  style={styles.chip}
-                  selectedStyle={styles.chipSelected}
-                  textStyle={styles.chipText}
-                  selectedTextStyle={styles.chipTextSelected}
-                />
-              ))}
-            </View>
-
-            <Text style={styles.label}>{t('settings.soil')}</Text>
-            <View style={styles.chipRow}>
-              {SOIL_TYPES.map((type) => (
-                <OptionChip
-                  key={type}
-                  label={t(`settings.soilTypes.${type}`)}
-                  selected={soilType === type}
-                  onPress={() => setSoilType(type)}
-                  disabled={saving}
-                  style={styles.chip}
-                  selectedStyle={styles.chipSelected}
-                  textStyle={styles.chipText}
-                  selectedTextStyle={styles.chipTextSelected}
-                />
-              ))}
-            </View>
+            <FieldOptionChips
+              fieldType={fieldType}
+              soilType={soilType}
+              onFieldType={setFieldType}
+              onSoilType={setSoilType}
+              disabled={saving}
+            />
 
             <Text style={styles.label}>{t('settings.size')}</Text>
             <TextInput
@@ -388,7 +334,7 @@ export default function CreateFieldScreen() {
           </Pressable>
 
           {fromProfile ? null : (
-            <Pressable onPress={() => void handleLogout()} disabled={saving}>
+            <Pressable onPress={() => void logoutToLogin()} disabled={saving}>
               <Text style={styles.logoutLink}>{t('settings.logout')}</Text>
             </Pressable>
           )}

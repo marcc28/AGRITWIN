@@ -61,6 +61,17 @@ FIELD_COLUMNS = (
     "fields.id, fields.name, fields.location, fields.lat, fields.lon, "
     "fields.field_type, fields.soil_type, fields.size_m2"
 )
+SELECT_PREFIX = "SELECT "
+FIELD_NOT_FOUND = "Field not found"
+DEVICE_NOT_FOUND = "Device not found"
+DEVICE_CONFLICT = "This device is already registered"
+HTTP_400 = {400: {"description": "Invalid request"}}
+HTTP_404 = {404: {"description": "Not found"}}
+HTTP_409 = {409: {"description": "Conflict"}}
+
+
+class FieldAccessError(Exception):
+    pass
 
 
 def _read_field(row) -> FieldRead:
@@ -80,7 +91,7 @@ def _read_field(row) -> FieldRead:
 def _clean_name(name: str) -> str:
     cleaned = name.strip()
     if not cleaned:
-        raise HTTPException(status_code=400, detail="Name is required")
+        raise ValueError("Name is required")
     return cleaned
 
 
@@ -91,14 +102,11 @@ def _clean_coords(
     if lat is None and lon is None:
         return None, None
     if lat is None or lon is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Latitude and longitude must be sent together",
-        )
+        raise ValueError("Latitude and longitude must be sent together")
     if lat < -90 or lat > 90:
-        raise HTTPException(status_code=400, detail="Latitude is invalid")
+        raise ValueError("Latitude is invalid")
     if lon < -180 or lon > 180:
-        raise HTTPException(status_code=400, detail="Longitude is invalid")
+        raise ValueError("Longitude is invalid")
     return lat, lon
 
 
@@ -106,14 +114,14 @@ def _clean_size(size_m2: float | None) -> float | None:
     if size_m2 is None:
         return None
     if size_m2 <= 0:
-        raise HTTPException(status_code=400, detail="Size must be greater than 0")
+        raise ValueError("Size must be greater than 0")
     return size_m2
 
 
 async def _load_field(session, field_id: int, user_id) -> FieldRead:
     read = await session.execute(
         text(
-            "SELECT " + FIELD_COLUMNS + ", COUNT(devices.id) AS device_count "
+            SELECT_PREFIX + FIELD_COLUMNS + ", COUNT(devices.id) AS device_count "
             "FROM fields "
             "LEFT JOIN devices ON devices.field_id = fields.id "
             "WHERE fields.id = :field_id AND "
@@ -128,7 +136,7 @@ async def _load_field(session, field_id: int, user_id) -> FieldRead:
     return _read_field(read.one())
 
 
-@router.get("/geocode")
+@router.get("/geocode", responses=HTTP_404)
 async def geocode_location(
     q: str = "",
     current_user: User = Depends(get_current_user),
@@ -147,7 +155,7 @@ async def list_fields(
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text(
-                "SELECT " + FIELD_COLUMNS + ", COUNT(devices.id) AS device_count "
+                SELECT_PREFIX + FIELD_COLUMNS + ", COUNT(devices.id) AS device_count "
                 "FROM fields "
                 "LEFT JOIN devices ON devices.field_id = fields.id "
                 "WHERE fields.user_id = :user_id "
@@ -161,14 +169,17 @@ async def list_fields(
     return [_read_field(row) for row in rows]
 
 
-@router.post("/fields")
+@router.post("/fields", responses=HTTP_400)
 async def create_field(
     body: FieldCreate,
     current_user: User = Depends(get_current_user),
 ) -> FieldRead:
-    name = _clean_name(body.name)
-    lat, lon = _clean_coords(body.lat, body.lon)
-    size_m2 = _clean_size(body.size_m2)
+    try:
+        name = _clean_name(body.name)
+        lat, lon = _clean_coords(body.lat, body.lon)
+        size_m2 = _clean_size(body.size_m2)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
 
     async with AsyncSessionLocal() as session:
         result = await session.execute(
@@ -195,7 +206,7 @@ async def create_field(
         return await _load_field(session, created.id, current_user.id)
 
 
-@router.get("/fields/{field_id}")
+@router.get("/fields/{field_id}", responses=HTTP_404)
 async def get_field(
     field_id: int,
     current_user: User = Depends(get_current_user),
@@ -203,7 +214,7 @@ async def get_field(
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text(
-                "SELECT " + FIELD_COLUMNS + " FROM fields "
+                SELECT_PREFIX + FIELD_COLUMNS + " FROM fields "
                 "WHERE fields.id = :field_id AND "
                 "fields.user_id = :user_id"
             ),
@@ -214,11 +225,11 @@ async def get_field(
         )
         row = result.one_or_none()
         if not row:
-            raise HTTPException(status_code=404, detail="Field not found")
+            raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND)
 
         devices_result = await session.execute(
             text(
-                "SELECT id, battery_status, brand, serial_number "
+                SELECT_PREFIX + "id, battery_status, brand, serial_number "
                 "FROM devices WHERE field_id = :field_id ORDER BY id"
             ),
             {"field_id": field_id},
@@ -250,15 +261,19 @@ async def get_field(
 async def _require_owned_field(session, field_id: int, user_id) -> None:
     result = await session.execute(
         text(
-            "SELECT fields.id FROM fields WHERE fields.id = :field_id AND fields.user_id = :user_id"
+            SELECT_PREFIX
+            + "fields.id FROM fields WHERE fields.id = :field_id AND fields.user_id = :user_id"
         ),
         {"field_id": field_id, "user_id": user_id},
     )
     if result.one_or_none() is None:
-        raise HTTPException(status_code=404, detail="Field not found")
+        raise FieldAccessError()
 
 
-@router.post("/fields/{field_id}/devices")
+@router.post(
+    "/fields/{field_id}/devices",
+    responses=HTTP_400 | HTTP_404 | HTTP_409,
+)
 async def create_device(
     field_id: int,
     body: DeviceCreate,
@@ -274,7 +289,12 @@ async def create_device(
         )
 
     async with AsyncSessionLocal() as session:
-        await _require_owned_field(session, field_id, current_user.id)
+        try:
+            await _require_owned_field(session, field_id, current_user.id)
+        except FieldAccessError:
+            raise HTTPException(
+                status_code=404, detail=FIELD_NOT_FOUND
+            ) from None
         try:
             await session.execute(
                 text(
@@ -293,7 +313,7 @@ async def create_device(
             await session.rollback()
             raise HTTPException(
                 status_code=409,
-                detail="This device is already registered",
+                detail=DEVICE_CONFLICT,
             ) from None
 
     return FieldDeviceRead(
@@ -309,7 +329,10 @@ class DeviceUpdate(BaseModel):
     serial_number: str
 
 
-@router.put("/fields/{field_id}/devices/{device_id}")
+@router.put(
+    "/fields/{field_id}/devices/{device_id}",
+    responses=HTTP_400 | HTTP_404 | HTTP_409,
+)
 async def update_device(
     field_id: int,
     device_id: str,
@@ -325,7 +348,12 @@ async def update_device(
         )
 
     async with AsyncSessionLocal() as session:
-        await _require_owned_field(session, field_id, current_user.id)
+        try:
+            await _require_owned_field(session, field_id, current_user.id)
+        except FieldAccessError:
+            raise HTTPException(
+                status_code=404, detail=FIELD_NOT_FOUND
+            ) from None
         try:
             result = await session.execute(
                 text(
@@ -343,13 +371,15 @@ async def update_device(
             )
             row = result.one_or_none()
             if not row:
-                raise HTTPException(status_code=404, detail="Device not found")
+                raise HTTPException(
+                    status_code=404, detail=DEVICE_NOT_FOUND
+                )
             await session.commit()
         except IntegrityError:
             await session.rollback()
             raise HTTPException(
                 status_code=409,
-                detail="This device is already registered",
+                detail=DEVICE_CONFLICT,
             ) from None
 
     return FieldDeviceRead(
@@ -360,34 +390,45 @@ async def update_device(
     )
 
 
-@router.delete("/fields/{field_id}/devices/{device_id}")
+@router.delete(
+    "/fields/{field_id}/devices/{device_id}",
+    responses=HTTP_404,
+)
 async def delete_device(
     field_id: int,
     device_id: str,
     current_user: User = Depends(get_current_user),
 ) -> dict:
     async with AsyncSessionLocal() as session:
-        await _require_owned_field(session, field_id, current_user.id)
+        try:
+            await _require_owned_field(session, field_id, current_user.id)
+        except FieldAccessError:
+            raise HTTPException(
+                status_code=404, detail=FIELD_NOT_FOUND
+            ) from None
         result = await session.execute(
             text("DELETE FROM devices WHERE id = :id AND field_id = :field_id RETURNING id"),
             {"id": device_id, "field_id": field_id},
         )
         deleted = result.one_or_none()
         if not deleted:
-            raise HTTPException(status_code=404, detail="Device not found")
+            raise HTTPException(status_code=404, detail=DEVICE_NOT_FOUND)
         await session.commit()
 
     return {"ok": True}
 
 
-@router.put("/fields/{field_id}")
+@router.put("/fields/{field_id}", responses=HTTP_400 | HTTP_404)
 async def update_field(
     field_id: int,
     body: FieldUpdate,
     current_user: User = Depends(get_current_user),
 ) -> FieldRead:
-    name = _clean_name(body.name)
-    size_m2 = _clean_size(body.size_m2)
+    try:
+        name = _clean_name(body.name)
+        size_m2 = _clean_size(body.size_m2)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
 
     async with AsyncSessionLocal() as session:
         result = await session.execute(
@@ -411,7 +452,7 @@ async def update_field(
         )
         updated = result.one_or_none()
         if not updated:
-            raise HTTPException(status_code=404, detail="Field not found")
+            raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND)
 
         await session.commit()
         return await _load_field(session, field_id, current_user.id)

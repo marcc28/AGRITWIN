@@ -1,21 +1,10 @@
 import { useEffect, useState } from 'react';
-import {
-  Text,
-  View,
-  Pressable,
-  TextInput,
-  ScrollView,
-  Image,
-} from 'react-native';
+import { Text, View, Pressable, TextInput, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import {
-  GARDEN_PHOTOS,
-  defaultPhotoIndex,
-  gardenPhotoAt,
-} from '../constants/gardenPhotos';
+import { defaultPhotoIndex } from '../constants/gardenPhotos';
 import {
   createDevice,
   deleteDevice,
@@ -38,7 +27,8 @@ import { styles } from '../styles/edit-field.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
 import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
-import { OptionChip } from '../components/OptionChip';
+import { FieldOptionChips } from '../components/FieldOptionChips';
+import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
 
 export default function EditFieldScreen() {
   const { t } = useTranslation();
@@ -147,15 +137,15 @@ export default function EditFieldScreen() {
         size_m2: parsedSize,
       });
       await setFieldPhotoIndex(fieldId, photoIndex);
-      for (const device of existingDevices) {
-        await updateDevice(fieldId, device.id, {
-          brand: (device.brand ?? '').trim(),
-          serial_number: (device.serial_number ?? '').trim(),
-        });
-      }
-      for (const device of devices) {
-        await createDevice(fieldId, device);
-      }
+      await Promise.all(
+        existingDevices.map((device) =>
+          updateDevice(fieldId, device.id, {
+            brand: (device.brand ?? '').trim(),
+            serial_number: (device.serial_number ?? '').trim(),
+          }),
+        ),
+      );
+      await Promise.all(devices.map((device) => createDevice(fieldId, device)));
       const current = await getCurrentField();
       if (current?.id === fieldId) {
         await setCurrentField({ id: fieldId, name: trimmedName });
@@ -206,30 +196,12 @@ export default function EditFieldScreen() {
             ) : (
               <>
                 <Text style={styles.label}>{t('settings.photo')}</Text>
-                <Image
-                  source={gardenPhotoAt(photoIndex)}
-                  style={styles.photo}
-                  resizeMode="cover"
+                <GardenPhotoPicker
+                  photoIndex={photoIndex}
+                  onChange={setPhotoIndex}
+                  disabled={saving}
+                  photoStyle={styles.photo}
                 />
-                <View style={styles.photoRow}>
-                  {GARDEN_PHOTOS.map((_, index) => (
-                    <Pressable
-                      key={index}
-                      onPress={() => setPhotoIndex(index)}
-                      disabled={saving}
-                      style={[
-                        styles.photoThumbWrap,
-                        photoIndex === index ? styles.photoThumbSelected : null,
-                      ]}
-                    >
-                      <Image
-                        source={gardenPhotoAt(index)}
-                        style={styles.photoThumb}
-                        resizeMode="cover"
-                      />
-                    </Pressable>
-                  ))}
-                </View>
 
                 <Text style={styles.label}>{t('settings.name')}</Text>
                 <TextInput
@@ -247,39 +219,13 @@ export default function EditFieldScreen() {
                   editable={!saving}
                 />
 
-                <Text style={styles.label}>{t('settings.type')}</Text>
-                <View style={styles.chipRow}>
-                  {FIELD_TYPES.map((type) => (
-                    <OptionChip
-                      key={type}
-                      label={t(`settings.fieldTypes.${type}`)}
-                      selected={fieldType === type}
-                      onPress={() => setFieldType(type)}
-                      disabled={saving}
-                      style={styles.chip}
-                      selectedStyle={styles.chipSelected}
-                      textStyle={styles.chipText}
-                      selectedTextStyle={styles.chipTextSelected}
-                    />
-                  ))}
-                </View>
-
-                <Text style={styles.label}>{t('settings.soil')}</Text>
-                <View style={styles.chipRow}>
-                  {SOIL_TYPES.map((type) => (
-                    <OptionChip
-                      key={type}
-                      label={t(`settings.soilTypes.${type}`)}
-                      selected={soilType === type}
-                      onPress={() => setSoilType(type)}
-                      disabled={saving}
-                      style={styles.chip}
-                      selectedStyle={styles.chipSelected}
-                      textStyle={styles.chipText}
-                      selectedTextStyle={styles.chipTextSelected}
-                    />
-                  ))}
-                </View>
+                <FieldOptionChips
+                  fieldType={fieldType}
+                  soilType={soilType}
+                  onFieldType={setFieldType}
+                  onSoilType={setSoilType}
+                  disabled={saving}
+                />
 
                 <Text style={styles.label}>{t('settings.size')}</Text>
                 <TextInput

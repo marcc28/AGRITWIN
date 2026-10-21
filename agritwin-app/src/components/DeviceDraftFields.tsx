@@ -19,9 +19,12 @@ type DevicePayload = {
   serial_number: string;
 };
 
+let nextDraftKey = 0;
+
 export function emptyDeviceDraft(): DeviceDraft {
+  nextDraftKey += 1;
   return {
-    key: `${Date.now()}-${Math.random()}`,
+    key: `device-${nextDraftKey}`,
     id: '',
     brand: '',
     serial: '',
@@ -70,7 +73,7 @@ function DeviceForm({
   onBrand,
   onSerial,
   onRemove,
-}: {
+}: Readonly<{
   id: string;
   brand: string;
   serial: string;
@@ -80,7 +83,7 @@ function DeviceForm({
   onBrand: (value: string) => void;
   onSerial: (value: string) => void;
   onRemove?: () => void;
-}) {
+}>) {
   const { t } = useTranslation();
 
   return (
@@ -157,7 +160,7 @@ export function DeviceDraftFields({
   onSave,
   mode = 'create',
   disabled,
-}: Props) {
+}: Readonly<Props>) {
   const { t } = useTranslation();
   const manage = mode === 'manage';
 
