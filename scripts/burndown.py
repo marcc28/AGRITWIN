@@ -94,3 +94,103 @@ def main() -> None:
         })
         if "pull_request" not in issue
     ]
+    if not issues:
+        raise ValueError(f"No issues in milestone {MILESTONE!r}")
+    print(f"Found {len(issues)} issues in {MILESTONE!r}; retrieving sub-issues and closure history...", flush=True)
+
+    by_number = {issue["number"]: issue for issue in issues}
+    parents: set[int] = set()
+    for issue in issues:
+        children = get_all(f"issues/{issue['number']}/sub_issues", {"per_page": 100})
+        # Exclude a parent only if at least one of its children is also in the sprint.
+        if any(child["number"] in by_number for child in children):
+            parents.add(issue["number"])
+
+    leaf_issues = [i for i in issues if i["number"] not in parents]
+    print(f"Counting {len(leaf_issues)} leaf issues (excluding {len(parents)} parent issues).", flush=True)
+    histories: dict[int, list[tuple[datetime, str]]] = {}
+    for issue in leaf_issues:
+        raw_events = get_all(f"issues/{issue['number']}/events", {"per_page": 100})
+        events = sorted(
+            (parsed(e["created_at"]), e["event"])
+            for e in raw_events
+            if e.get("event") in ("closed", "reopened") and e.get("created_at")
+        )
+        # Extra fallback if GitHub's current closed_at is missing from the events feed.
+        if issue.get("closed_at"):
+            final_close = parsed(issue["closed_at"])
+            if not any(t == final_close and event == "closed" for t, event in events):
+                events.append((final_close, "closed"))
+                events.sort()
+        histories[issue["number"]] = events
+
+    # Baseline is the work already open when the sprint begins.
+    day_before = START - timedelta(days=1)
+    initial = sum(
+        remaining_on(i, histories[i["number"]], day_before)
+        for i in leaf_issues
+    )
+    today = datetime.now(TZ).date()
+    rows: list[dict] = []
+    day = START
+    while day <= END:
+        progress = (day - START).days / (END - START).days
+        ideal = initial * (1 - progress)
+        if day <= today:
+            in_scope = sum(parsed(i["created_at"]).date() <= day for i in leaf_issues)
+            remaining = sum(remaining_on(i, histories[i["number"]], day) for i in leaf_issues)
+            completed = in_scope - remaining
+            rows.append({"date": day.isoformat(), "ideal": round(ideal, 2),
+                         "remaining": remaining, "completed": completed, "in_scope": in_scope})
+        else:
+            rows.append({"date": day.isoformat(), "ideal": round(ideal, 2),
+                         "remaining": "", "completed": "", "in_scope": ""})
+        day += timedelta(days=1)
+
+    OUTPUT.mkdir(parents=True, exist_ok=True)
+    print(f"Writing PNG and CSV to {OUTPUT.resolve()}", flush=True)
+    png = OUTPUT / "sprint-1-burndown.png"
+    csv_path = OUTPUT / "sprint-1-burndown.csv"
+    with csv_path.open("w", newline="", encoding="utf-8") as fp:
+        writer = csv.DictWriter(fp, fieldnames=["date", "ideal", "remaining", "completed", "in_scope"])
+        writer.writeheader()
+        writer.writerows(rows)
+
+    x = [date.fromisoformat(row["date"]) for row in rows]
+    ideal_y = [row["ideal"] for row in rows]
+    actual_y = [row["remaining"] if row["remaining"] != "" else float("nan") for row in rows]
+    scope_y = [row["in_scope"] if row["in_scope"] != "" else float("nan") for row in rows]
+
+    fig, ax = plt.subplots(figsize=(12, 6.2))
+    ax.plot(x, ideal_y, "--", color="#72809a", lw=2, label="Ideal (initial scope)")
+    ax.plot(x, actual_y, "-o", color="#d97706", lw=2.5, markersize=3.5,
+            label="Actual (remaining)")
+    ax.plot(x, scope_y, ":", color="#0f766e", lw=1.7, label="Scope (issues created)")
+    if START <= today <= END:
+        ax.axvline(today, color="#9ca3af", lw=1, alpha=0.8)
+    ax.set(title=f"AGRITWIN | {MILESTONE} Burndown", xlabel="Date", ylabel="Issues / subissues")
+    ax.set_ylim(bottom=0)
+    ax.set_xlim(START, END)
+    ax.grid(alpha=0.20)
+    ax.legend(loc="best")
+    ax.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=5, maxticks=10))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
+    fig.autofmt_xdate()
+    fig.tight_layout()
+    fig.savefig(png, dpi=160)
+    plt.close(fig)
+    for generated in (png, csv_path):
+        if not generated.is_file() or generated.stat().st_size == 0:
+            raise RuntimeError(f"Expected output missing or empty: {generated}")
+
+    current = next((r for r in reversed(rows) if r["remaining"] != ""), None)
+    if current:
+        print(f"{MILESTONE}: {current['remaining']} remaining / {current['in_scope']} scoped "
+              f"({current['completed']} closed as of {current['date']}).")
+    print(f"Excluded {len(parents)} parent issues to avoid double counting.")
+    print(f"Initial pending scope: {initial}. Saved {png} and {csv_path}")
+
+
+if __name__ == "__main__":
+    main()
+
