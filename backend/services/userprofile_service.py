@@ -1,4 +1,4 @@
-import secrets
+from uuid import uuid4
 
 from fastapi import HTTPException
 from pwdlib import PasswordHash
@@ -68,14 +68,12 @@ class UserService:
                 status_code=409,
                 detail="Username already registered",
             )
-
-        salt = secrets.token_hex(16)
-
+        user_id = uuid4()
         user = User(
+            id=user_id,
             username=username,
             email=email,
             password_hash=password_hash.hash(password),
-            salt=salt,
         )
 
         self._db.add(user)
@@ -83,7 +81,8 @@ class UserService:
         await self._db.flush()
 
         profile = UserProfile(
-            username=user.username,
+            id=user_id,
+            name=user.username,
         )
 
         self._db.add(profile)

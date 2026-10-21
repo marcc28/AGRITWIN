@@ -1,11 +1,16 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
+from uuid import UUID as PyUUID
+from uuid import uuid4
 
 from sqlalchemy import (
     JSON,
+    UUID,
+    BigInteger,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -14,12 +19,17 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-# JSONB on PostgreSQL (Supabase), plain JSON on SQLite (local tests)
+# PostgreSQL: JSONB. SQLite: JSON.
 JSONType = JSON().with_variant(JSONB(), "postgresql")
+
+# BIGINT in PostgreSQL, INTEGER in SQLite so autoincrement works locally.
+BigIntType = BigInteger().with_variant(Integer, "sqlite")
 
 
 class Base(DeclarativeBase):
@@ -29,445 +39,283 @@ class Base(DeclarativeBase):
 class User(Base):
     __tablename__ = "users"
 
-    username: Mapped[str] = mapped_column(
-        String(255),
+    id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
+        default=uuid4,
+        server_default=text("gen_random_uuid()"),
     )
-
-    email: Mapped[str] = mapped_column(
-        String(255),
-        unique=True,
-        index=True,
-        nullable=False,
-    )
-
-    password_hash: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-    )
-
+    username: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
         nullable=False,
+        server_default=func.current_timestamp(),
+        default=datetime.utcnow,
     )
 
-    profile: Mapped["UserProfile"] = relationship(
-        "UserProfile",
+    profile: Mapped["UserProfile | None"] = relationship(
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
-
     consents: Mapped[list["UserConsent"]] = relationship(
-        "UserConsent",
         back_populates="user",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
-
     fields: Mapped[list["Field"]] = relationship(
-        "Field",
         back_populates="user",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
 class UserProfile(Base):
     __tablename__ = "user_profile"
 
-    username: Mapped[str] = mapped_column(
-        String(255),
-        ForeignKey("users.username"),
+    id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     language: Mapped[str] = mapped_column(
-        String(50),
-        default="ca",
-        nullable=False,
+        String(50), nullable=False, default="ca", server_default=text("'ca'")
     )
-
     units: Mapped[str] = mapped_column(
-        String(50),
-        default="metric",
-        nullable=False,
+        String(50), nullable=False, default="metric", server_default=text("'metric'")
     )
-
     notifications_enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False,
+        Boolean, nullable=False, default=True, server_default=text("TRUE")
     )
-
     weather_alerts_enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False,
+        Boolean, nullable=False, default=True, server_default=text("TRUE")
     )
-
     irrigation_alerts_enabled: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
-        nullable=False,
+        Boolean, nullable=False, default=True, server_default=text("TRUE")
     )
-
     theme: Mapped[str] = mapped_column(
         String(50),
-        default="system",
         nullable=False,
+        default="system",
     )
 
-    user: Mapped["User"] = relationship(
-        "User",
-        back_populates="profile",
-    )
+    user: Mapped["User"] = relationship(back_populates="profile")
 
 
 class UserConsent(Base):
     __tablename__ = "user_consents"
+    __table_args__ = (Index("idx_user_consents_user_id", "user_id"),)
 
-    id: Mapped[int] = mapped_column(
+    id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
+        default=uuid4,
+        server_default=text("gen_random_uuid()"),
     )
-
-    username: Mapped[str] = mapped_column(
-        String(255),
-        ForeignKey("users.username"),
+    user_id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-
-    document_type: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-    )
-
-    document_version: Mapped[str] = mapped_column(
-        String(50),
-        nullable=False,
-    )
-
+    document_version: Mapped[str] = mapped_column(String(50), nullable=False)
     accepted_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
         nullable=False,
+        default=datetime.utcnow,
+        server_default=func.current_timestamp(),
     )
 
-    user: Mapped["User"] = relationship(
-        "User",
-        back_populates="consents",
-    )
+    user: Mapped["User"] = relationship(back_populates="consents")
 
 
 class Anunce(Base):
     __tablename__ = "anunces"
 
-    id: Mapped[int] = mapped_column(
+    id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
+        default=uuid4,
+        server_default=text("gen_random_uuid()"),
     )
-
-    title: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-    )
-
-    subtile: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-    )
-
-    agent: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-    )
-
-    content: Mapped[str | None] = mapped_column(
-        Text,
-        nullable=True,
-    )
-
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    subtile: Mapped[str | None] = mapped_column(String(255))
+    agent: Mapped[str | None] = mapped_column(String(255))
+    content: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         default=datetime.utcnow,
+        server_default=func.current_timestamp(),
     )
 
 
 class ConteMercat(Base):
     __tablename__ = "conte_mercat"
 
-    id: Mapped[int] = mapped_column(
+    id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
+        default=uuid4,
+        server_default=text("gen_random_uuid()"),
     )
-
-    product: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-    )
-
-    tecnical_name: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-    )
-
-    price: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2),
-        nullable=False,
-    )
-
-    price_per_kg: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 2),
-        nullable=True,
-    )
-
+    product: Mapped[str] = mapped_column(String(255), nullable=False)
+    tecnical_name: Mapped[str | None] = mapped_column(String(255))
+    price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    price_per_kg: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
     left_units: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=0,
+        Integer, nullable=False, default=0, server_default=text("0")
     )
-
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         default=datetime.utcnow,
+        server_default=func.current_timestamp(),
     )
 
 
 class Field(Base):
-    """A piece of land owned by a user (home garden, open field, greenhouse...)."""
+    """A piece of land owned by a user."""
 
     __tablename__ = "fields"
     __table_args__ = (
-        CheckConstraint("lat IS NULL OR lat BETWEEN -90 AND 90", name="chk_fields_lat"),
-        CheckConstraint("lon IS NULL OR lon BETWEEN -180 AND 180", name="chk_fields_lon"),
-        CheckConstraint("size_m2 IS NULL OR size_m2 > 0", name="chk_fields_size"),
-        Index("idx_fields_username", "username"),
+        CheckConstraint(
+            "lat IS NULL OR lat BETWEEN -90 AND 90",
+            name="chk_fields_lat",
+        ),
+        CheckConstraint(
+            "lon IS NULL OR lon BETWEEN -180 AND 180",
+            name="chk_fields_lon",
+        ),
+        CheckConstraint(
+            "size_m2 IS NULL OR size_m2 > 0",
+            name="chk_fields_size",
+        ),
+        Index("idx_fields_user_id", "user_id"),
     )
 
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
-
-    username: Mapped[str] = mapped_column(
-        String(255),
-        ForeignKey("users.username", ondelete="CASCADE"),
+    id: Mapped[int] = mapped_column(BigIntType, primary_key=True, autoincrement=True)
+    user_id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-
-    name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-    )
-
-    # Human readable place (town, address...)
-    location: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-    )
-
-    # GPS coordinates, used by the weather API
-    lat: Mapped[float | None] = mapped_column(
-        Float,
-        nullable=True,
-    )
-
-    lon: Mapped[float | None] = mapped_column(
-        Float,
-        nullable=True,
-    )
-
-    # e.g. 'home_garden', 'open_field', 'greenhouse'
-    field_type: Mapped[str | None] = mapped_column(
-        String(50),
-        nullable=True,
-    )
-
-    # e.g. 'clay', 'sandy', 'loam'
-    soil_type: Mapped[str | None] = mapped_column(
-        String(50),
-        nullable=True,
-    )
-
-    # Surface in square meters
-    size_m2: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 2),
-        nullable=True,
-    )
-
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    location: Mapped[str | None] = mapped_column(String(255))
+    lat: Mapped[float | None] = mapped_column(Float)
+    lon: Mapped[float | None] = mapped_column(Float)
+    field_type: Mapped[str | None] = mapped_column(String(50))
+    soil_type: Mapped[str | None] = mapped_column(String(50))
+    size_m2: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
         nullable=False,
+        default=datetime.utcnow,
+        server_default=func.current_timestamp(),
     )
 
-    user: Mapped["User"] = relationship(
-        "User",
-        back_populates="fields",
-    )
-
+    user: Mapped["User"] = relationship(back_populates="fields")
     devices: Mapped[list["Device"]] = relationship(
-        "Device",
         back_populates="field",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
-
     weather: Mapped["WeatherCache | None"] = relationship(
-        "WeatherCache",
         back_populates="field",
         uselist=False,
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
 class Device(Base):
-    """An IoT board (Arduino / ESP32) installed in a field.
-
-    The id is the hardware identifier sent in the MQTT payload (e.g. 'esp32_sim_01').
-    """
+    """An Arduino/ESP32 device installed in a field."""
 
     __tablename__ = "devices"
     __table_args__ = (Index("idx_devices_field_id", "field_id"),)
 
-    id: Mapped[str] = mapped_column(
-        String(255),
-        primary_key=True,
-    )
-
+    id: Mapped[str] = mapped_column(String(255), primary_key=True)
     field_id: Mapped[int] = mapped_column(
-        Integer,
+        BigIntType,
         ForeignKey("fields.id", ondelete="CASCADE"),
         nullable=False,
     )
-
+    brand: Mapped[str | None] = mapped_column(String(100))
+    serial_number: Mapped[str | None] = mapped_column(String(100), unique=True)
+    warranty_until: Mapped[datetime | None] = mapped_column(Date)
+    device_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("TRUE")
+    )
+    # Binary battery status:
+    #   True  (1) = board on and connected
+    #   False (0) = battery empty OR board not connected to the Internet
+    # A board with an empty battery cannot report False itself: the backend
+    # sets it when it stops receiving telemetry from the board.
+    battery_status: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("FALSE")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
         nullable=False,
+        default=datetime.utcnow,
+        server_default=func.current_timestamp(),
     )
 
-    field: Mapped["Field"] = relationship(
-        "Field",
-        back_populates="devices",
-    )
-
+    field: Mapped["Field"] = relationship(back_populates="devices")
     telemetry: Mapped[list["Telemetry"]] = relationship(
-        "Telemetry",
         back_populates="device",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
 class Telemetry(Base):
-    """A sensor reading received from a device through MQTT.
-
-    Column names match the keys of the MQTT 'sensors' payload.
-    """
+    """Sensor readings received through MQTT."""
 
     __tablename__ = "telemetry"
-    __table_args__ = (
-        # Used to read the latest readings of a device quickly
-        Index("idx_telemetry_device_timestamp", "device_id", "timestamp"),
-    )
+    __table_args__ = (Index("idx_telemetry_device_timestamp", "device_id", "timestamp"),)
 
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
-
+    id: Mapped[int] = mapped_column(BigIntType, primary_key=True, autoincrement=True)
     device_id: Mapped[str] = mapped_column(
         String(255),
         ForeignKey("devices.id", ondelete="CASCADE"),
         nullable=False,
     )
+    timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    air_temperature_c: Mapped[Decimal | None] = mapped_column(Numeric)
+    air_humidity_percent: Mapped[Decimal | None] = mapped_column(Numeric)
+    soil_moisture_percent: Mapped[Decimal | None] = mapped_column(Numeric)
+    light_intensity_lux: Mapped[Decimal | None] = mapped_column(Numeric)
 
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-    )
-
-    air_temperature_c: Mapped[Decimal | None] = mapped_column(
-        Numeric,
-        nullable=True,
-    )
-
-    air_humidity_percent: Mapped[Decimal | None] = mapped_column(
-        Numeric,
-        nullable=True,
-    )
-
-    soil_moisture_percent: Mapped[Decimal | None] = mapped_column(
-        Numeric,
-        nullable=True,
-    )
-
-    light_intensity_lux: Mapped[Decimal | None] = mapped_column(
-        Numeric,
-        nullable=True,
-    )
-
-    device: Mapped["Device"] = relationship(
-        "Device",
-        back_populates="telemetry",
-    )
+    device: Mapped["Device"] = relationship(back_populates="telemetry")
 
 
 class WeatherCache(Base):
-    """Last weather forecast fetched for a field, plus the active alert (if any)."""
+    """Latest cached forecast and alert for a field."""
 
     __tablename__ = "weather_cache"
 
     field_id: Mapped[int] = mapped_column(
-        Integer,
+        BigIntType,
         ForeignKey("fields.id", ondelete="CASCADE"),
         primary_key=True,
     )
-
-    forecast_rain_mm: Mapped[Decimal | None] = mapped_column(
-        Numeric,
-        nullable=True,
-    )
-
-    forecast_temperature_c: Mapped[Decimal | None] = mapped_column(
-        Numeric,
-        nullable=True,
-    )
-
-    # When the forecast was fetched from the weather API
+    forecast_rain_mm: Mapped[Decimal | None] = mapped_column(Numeric)
+    forecast_temperature_c: Mapped[Decimal | None] = mapped_column(Numeric)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime,
+        nullable=False,
         default=datetime.utcnow,
-        nullable=False,
+        server_default=func.current_timestamp(),
     )
-
-    # Raw daily forecast returned by the weather API
-    forecast_days: Mapped[Any | None] = mapped_column(
-        JSONType,
-        nullable=True,
-    )
-
+    forecast_days: Mapped[Any | None] = mapped_column(JSONType)
     alert_active: Mapped[bool] = mapped_column(
-        Boolean,
-        default=False,
-        nullable=False,
+        Boolean, nullable=False, default=False, server_default=text("FALSE")
     )
+    alert_type: Mapped[str | None] = mapped_column(String(50))
+    alert_message: Mapped[str | None] = mapped_column(Text)
 
-    # e.g. 'hail', 'heavy_rain', 'frost'
-    alert_type: Mapped[str | None] = mapped_column(
-        String(50),
-        nullable=True,
-    )
-
-    alert_message: Mapped[str | None] = mapped_column(
-        Text,
-        nullable=True,
-    )
-
-    field: Mapped["Field"] = relationship(
-        "Field",
-        back_populates="weather",
-    )
+    field: Mapped["Field"] = relationship(back_populates="weather")

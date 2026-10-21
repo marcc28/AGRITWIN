@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException
 from pwdlib import PasswordHash
 from sqlalchemy import select
@@ -7,8 +9,7 @@ from db.schema import User, UserConsent, UserProfile
 
 password_hash = PasswordHash.recommended()
 
-PRIVACY_TERMS_VERSION = "1.0"
-SECURITY_TERMS_VERSION = "1.0"
+TERMS_VERSION = "1.0"
 
 
 class UserService:
@@ -95,25 +96,18 @@ class UserService:
         await self._db.flush()
 
         profile = UserProfile(
-            username=user.username,
+            id=user.id,
+            name=user.username,
+            user=user,
         )
 
         self._db.add(profile)
 
-        privacy_consent = UserConsent(
-            username=user.username,
-            document_type="privacy_terms",
-            document_version=PRIVACY_TERMS_VERSION,
+        consent = UserConsent(
+            user_id=user.id,
+            document_version=TERMS_VERSION,
         )
-
-        security_consent = UserConsent(
-            username=user.username,
-            document_type="security_terms",
-            document_version=SECURITY_TERMS_VERSION,
-        )
-
-        self._db.add(privacy_consent)
-        self._db.add(security_consent)
+        self._db.add(consent)
 
         await self._db.commit()
         await self._db.refresh(user)
@@ -122,8 +116,8 @@ class UserService:
 
     async def get_user_profile(
         self,
-        username: str,
+        user_id: UUID,
     ) -> UserProfile | None:
-        result = await self._db.execute(select(UserProfile).where(UserProfile.username == username))
+        result = await self._db.execute(select(UserProfile).where(UserProfile.id == user_id))
 
         return result.scalar_one_or_none()

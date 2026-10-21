@@ -33,24 +33,21 @@ app.add_middleware(
 
 # necessari for OWASP ZAP
 
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     # HSTS: activa'l només quan la petició original és HTTPS.
     # Si Render/proxy acaba TLS, configura correctament aquesta detecció.
 
-    response.headers["Strict-Transport-Security"] = (
-        "max-age=31536000"
-    )
+    response.headers["Strict-Transport-Security"] = "max-age=31536000"
 
-    response.headers["Cache-Control"] = (
-        "no-store, no-cache, must-revalidate, private"
-    )
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
 
-    
     return response
+
 
 # Register routes
 app.include_router(user.router, prefix="/api/v1")

@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID as PyUUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -13,7 +14,7 @@ class AnunceCreate(BaseModel):
 class AnunceRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: PyUUID
     title: str
     subtile: str | None
     agent: str | None
