@@ -1,67 +1,76 @@
-name: Generar CSV de costes
+name: Generate costs CSV
 
 on:
   workflow_dispatch:
-
+    inputs:
+      commit_csv:
+        description: Commit reports/costes.csv to the repository
+        required: false
+        type: boolean
+        default: true
   issues:
     types:
       - opened
       - edited
+      - deleted
       - closed
       - reopened
       - assigned
       - unassigned
+      - labeled
+      - unlabeled
+      - milestoned
+      - demilestoned
       - field_added
       - field_removed
-
   schedule:
     - cron: "17 5 * * *"
-
-permissions:
-  contents: write
-  issues: read
+      timezone: "Europe/Madrid"
 
 concurrency:
   group: generate-costs-csv
   cancel-in-progress: false
 
+permissions:
+  contents: write
+  issues: read
+
 jobs:
   generate:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      OUTPUT_CSV: reports/costes.csv
 
     steps:
-      - name: Descargar repositorio
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Generar CSV
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+      - name: Generate CSV
         run: python scripts/generate_costs_csv.py
 
-      - name: Publicar CSV como artefacto
+      - name: Upload CSV artifact
         uses: actions/upload-artifact@v4
         with:
-          name: costes-proyecto
+          name: project-costs
           path: reports/costes.csv
           if-no-files-found: error
 
-      - name: Guardar CSV en el repositorio
+      - name: Commit updated CSV
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.commit_csv }}
         run: |
           if [ -z "$(git status --porcelain -- reports/costes.csv)" ]; then
-            echo "El CSV ya está actualizado"
+            echo "reports/costes.csv is already up to date"
             exit 0
           fi
-
           git config user.name "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
-
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/costes.csv
-          git commit -m "chore: actualizar costes [skip ci]"
+          git commit -m "chore: update project costs [skip ci]"
           git push
