@@ -17,7 +17,7 @@ import { clearAuth } from '../../../src/services/auth';
 import { router } from 'expo-router';
 
 const mockUseLocalSearchParams = jest.fn();
-const mockIsAuthError = jest.fn(() => false);
+const mockIsAuthError = jest.fn((_error?: unknown) => false);
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -37,7 +37,7 @@ jest.mock('../../../src/services/api', () => ({
   createField: jest.fn(),
   createDevice: jest.fn(),
   geocodeLocation: jest.fn(),
-  isAuthError: (error: unknown) => mockIsAuthError(error),
+  isAuthError: (error?: unknown) => mockIsAuthError(error),
 }));
 
 jest.mock('../../../src/services/auth', () => ({
