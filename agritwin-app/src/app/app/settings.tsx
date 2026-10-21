@@ -381,7 +381,7 @@ export default function SettingsScreen() {
 
             <View style={styles.languageBlock}>
               <Text style={styles.languageLabel}>{t('settings.language')}</Text>
-              <View style={styles.chipRow}>
+              <View style={styles.languageGrid}>
                 {LANGUAGES.map((language) => (
                   <Chip
                     key={language.value}
@@ -395,7 +395,7 @@ export default function SettingsScreen() {
               </View>
             </View>
 
-            <Text style={styles.preferencesTitle}>
+            <Text style={[styles.sectionTitle, styles.preferencesTitle]}>
               {t('settings.preferences')}
             </Text>
 
@@ -460,19 +460,7 @@ export default function SettingsScreen() {
                   ]}
                 >
                   <Pressable onPress={() => openField(field.id)}>
-                    <View>
-                      <FieldPhoto
-                        fieldId={field.id}
-                        style={styles.gardenPhoto}
-                      />
-                      {currentFieldId === field.id ? (
-                        <View style={styles.gardenBadge}>
-                          <Text style={styles.gardenBadgeText}>
-                            {t('settings.currentBadge')}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
+                    <FieldPhoto fieldId={field.id} style={styles.gardenPhoto} />
                     <View style={styles.gardenBody}>
                       <Text style={styles.gardenName} numberOfLines={1}>
                         {field.name}
@@ -488,13 +476,14 @@ export default function SettingsScreen() {
                     </View>
                   </Pressable>
                   {currentFieldId === field.id ? null : (
-                    <View style={styles.gardenActions}>
-                      <Pressable onPress={() => void handleSetCurrent(field)}>
-                        <Text style={styles.gardenEdit}>
-                          {t('settings.setCurrent')}
-                        </Text>
-                      </Pressable>
-                    </View>
+                    <Pressable
+                      style={styles.gardenSetCurrent}
+                      onPress={() => void handleSetCurrent(field)}
+                    >
+                      <Text style={styles.gardenEdit}>
+                        {t('settings.setCurrent')}
+                      </Text>
+                    </Pressable>
                   )}
                 </View>
               ))}
