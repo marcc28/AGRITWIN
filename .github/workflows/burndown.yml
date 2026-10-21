@@ -54,15 +54,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Working directory:"
-          pwd
-
-          mkdir -p docs/burndown
+          echo "Checking Python script..."
+          tail -n 10 scripts/burndown.py
 
           echo "Generating burndown..."
-          python -u scripts/burndown.py
+          mkdir -p docs/burndown
 
-          echo "Generated files:"
+          python -u -c "import runpy; m = runpy.run_path('scripts/burndown.py', run_name='burndown_debug'); assert callable(m.get('main')), 'ERROR: main() not found'; m['main']()"
+
+          echo "Checking generated files..."
           ls -lah docs/burndown/
 
           test -s docs/burndown/sprint-1-burndown.png
