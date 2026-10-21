@@ -40,7 +40,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
       GITHUB_REPOSITORY: ${{ github.repository }}
+      PROJECT_TITLE: AGRITWIN
       OUTPUT_CSV: reports/costes.csv
 
     steps:
