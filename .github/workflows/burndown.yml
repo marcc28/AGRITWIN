@@ -1,12 +1,21 @@
 name: Sprint 1 Burndown
 
 on:
+  push:
+    branches:
+      - dev
+    paths:
+      - '.github/workflows/burndown.yml'
+      - 'scripts/burndown.py'
+
   workflow_dispatch:
+
   schedule:
-    - cron: '20 23 * * *'
+    - cron: '07 19 * * *'
       timezone: 'Europe/Madrid'
+
   issues:
-    types: [opened, closed, reopened, milestoned, demilestoned, labeled, unlabeled]
+    types: [created, in progress, awaiting, done]
 
 permissions:
   contents: write
