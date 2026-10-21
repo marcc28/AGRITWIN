@@ -1,33 +1,34 @@
 {
+  "currency": "EUR",
   "default_hourly_rate_eur": 15,
   "bac_eur": 10168,
   "materials": [
     {
       "name": "ESP32",
       "quantity": 2,
-      "cost_eur": 15,
+      "line_cost_eur": 15,
       "platform": "Amazon"
     },
     {
       "name": "AHT25",
       "quantity": 3,
-      "cost_eur": 5,
+      "line_cost_eur": 5,
       "platform": "Amazon"
     },
     {
       "name": "Capacitive Sensor",
       "quantity": 3,
-      "cost_eur": 12,
+      "line_cost_eur": 12,
       "platform": "Amazon"
     },
     {
       "name": "BH1750",
       "quantity": 3,
-      "cost_eur": 11,
+      "line_cost_eur": 11,
       "platform": "Amazon"
     }
   ],
-  "labor": {
+  "labor_budget": {
     "members": [
       "Marc",
       "Ainhoa",
