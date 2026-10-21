@@ -11,6 +11,7 @@ import { router } from 'expo-router';
 
 import { login } from '../../../src/services/api';
 import { setAuth } from '../../../src/services/auth';
+import { routeAfterAuth } from '../../../src/services/routeAfterAuth';
 
 import LoginScreen from '../../../src/app/auth/login';
 
@@ -25,6 +26,10 @@ jest.mock('expo-router', () => ({
     push: jest.fn(),
     replace: jest.fn(),
   },
+}));
+
+jest.mock('../../../src/services/routeAfterAuth', () => ({
+  routeAfterAuth: jest.fn(),
 }));
 
 jest.mock('../../../src/services/api', () => ({
@@ -192,13 +197,14 @@ describe('LoginScreen', () => {
       );
     });
 
-    it('navigates to home after successful login', async () => {
+    it('navigates after successful login', async () => {
       mockedLogin.mockResolvedValue({
         access_token: 'access-token',
         refresh_token: 'refresh-token',
       } as never);
 
       mockedSetAuth.mockResolvedValue(undefined);
+      (routeAfterAuth as jest.Mock).mockResolvedValue(undefined);
 
       render(<LoginScreen />);
 
@@ -209,7 +215,7 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       await waitFor(() => {
-        expect(mockedRouterReplace).toHaveBeenCalledWith('/app/home');
+        expect(routeAfterAuth).toHaveBeenCalled();
       });
     });
   });

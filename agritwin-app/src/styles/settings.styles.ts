@@ -59,11 +59,7 @@ export const styles = StyleSheet.create({
   },
 
   preferencesTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.light.textSecondary,
-    marginTop: 18,
-    marginBottom: 4,
+    marginTop: 16,
   },
 
   editRow: {
@@ -113,16 +109,20 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  chipRow: {
+  languageGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    justifyContent: 'space-between',
+    rowGap: 8,
   },
 
   chip: {
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    width: '48.5%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: Colors.light.border,
@@ -137,6 +137,7 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: Colors.light.text,
+    textAlign: 'center',
   },
 
   chipTextSelected: {
@@ -208,7 +209,7 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
     borderRadius: 18,
     overflow: 'hidden',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: 'transparent',
     shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 8 },
@@ -218,23 +219,7 @@ export const styles = StyleSheet.create({
   },
 
   gardenCardCurrent: {
-    borderColor: Colors.light.primary,
-  },
-
-  gardenBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    backgroundColor: Colors.light.primary,
-  },
-
-  gardenBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.light.surface,
+    borderColor: Colors.light.primaryDark,
   },
 
   gardenPhoto: {
@@ -259,10 +244,7 @@ export const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
 
-  gardenActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  gardenSetCurrent: {
     paddingHorizontal: 10,
     paddingBottom: 10,
   },
@@ -303,5 +285,22 @@ export const styles = StyleSheet.create({
     width: 24,
     height: 24,
     marginRight: 10,
+  },
+
+  addGardenButton: {
+    marginTop: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.surface,
+  },
+
+  addGardenText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.light.primary,
   },
 });

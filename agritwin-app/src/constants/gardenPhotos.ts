@@ -1,5 +1,13 @@
 import type { ImageSourcePropType } from 'react-native';
 
+export const GARDEN_PHOTO_IDS = [
+  'home',
+  'field',
+  'greenhouse',
+  'orchard',
+  'herbs',
+] as const;
+
 export const GARDEN_PHOTOS: ImageSourcePropType[] = [
   require('@assets/images/garden-home.jpg'),
   require('@assets/images/garden-field.jpg'),

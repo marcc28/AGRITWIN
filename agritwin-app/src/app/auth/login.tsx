@@ -8,6 +8,7 @@ import Alert from '../../components/Alert';
 import { styles } from '../../styles/login.styles';
 import { login } from '../../services/api';
 import { setAuth } from '../../services/auth';
+import { routeAfterAuth } from '../../services/routeAfterAuth';
 import { Gradients } from '../../constants/theme';
 
 export default function LoginScreen() {
@@ -46,7 +47,7 @@ export default function LoginScreen() {
 
       await setAuth(trimmedUsername, data.access_token, data.refresh_token);
 
-      router.replace('/app/home');
+      await routeAfterAuth();
     } catch (error) {
       const message =
         error instanceof Error

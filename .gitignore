@@ -50,7 +50,7 @@ google-services.json
 backend/.coverage
 
 ./agritwin-app/.env**
-./agritwin-app/coverage/*
+agritwin-app/coverage/
 
 **/__pycache__/**
 ./backend/coverage.xm

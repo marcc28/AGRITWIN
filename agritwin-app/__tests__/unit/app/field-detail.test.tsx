@@ -9,6 +9,7 @@ import {
 
 import FieldDetailScreen from '../../../src/app/field-detail';
 import { getDashboard, getField } from '../../../src/services/api';
+import { clearAuth } from '../../../src/services/auth';
 import { router } from 'expo-router';
 
 jest.mock('react-i18next', () => ({
@@ -17,18 +18,21 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
+const mockUseLocalSearchParams = jest.fn(() => ({ id: '3' }));
+const mockIsAuthError = jest.fn((_error?: unknown) => false);
+
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
     replace: jest.fn(),
   },
-  useLocalSearchParams: () => ({ id: '3' }),
+  useLocalSearchParams: () => mockUseLocalSearchParams(),
 }));
 
 jest.mock('../../../src/services/api', () => ({
   getField: jest.fn(),
   getDashboard: jest.fn(),
-  isAuthError: () => false,
+  isAuthError: (error?: unknown) => mockIsAuthError(error),
 }));
 
 jest.mock('../../../src/services/auth', () => ({
@@ -59,6 +63,8 @@ const mockedGetDashboard = getDashboard as jest.MockedFunction<
 describe('FieldDetailScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseLocalSearchParams.mockReturnValue({ id: '3' });
+    mockIsAuthError.mockReturnValue(false);
     mockedGetField.mockResolvedValue({
       id: 3,
       name: 'Hort',
@@ -67,7 +73,14 @@ describe('FieldDetailScreen', () => {
       soil_type: 'loam',
       size_m2: 40,
       device_count: 1,
-      devices: [{ id: 'dev-1', battery_status: true }],
+      devices: [
+        {
+          id: 'dev-1',
+          battery_status: true,
+          brand: 'ESP32',
+          serial_number: 'SN-1',
+        },
+      ],
     });
     mockedGetDashboard.mockResolvedValue({
       field_name: 'Hort',
@@ -86,6 +99,59 @@ describe('FieldDetailScreen', () => {
     expect(screen.getByText('Andorra')).toBeTruthy();
     expect(screen.getByText('dev-1')).toBeTruthy();
     expect(screen.getByText('settings.fieldDetail.connected')).toBeTruthy();
+    expect(screen.queryByText('settings.createField.saveDevices')).toBeNull();
+  });
+
+  it('opens device details in a popup', async () => {
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('dev-1')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText('dev-1'));
+    expect(
+      screen.getByText('settings.fieldDetail.devicePopupTitle'),
+    ).toBeTruthy();
+    expect(screen.getByText('ESP32')).toBeTruthy();
+    expect(screen.getByText('SN-1')).toBeTruthy();
+    fireEvent.press(screen.getByText('settings.fieldDetail.devicePopupClose'));
+    expect(
+      screen.queryByText('settings.fieldDetail.devicePopupTitle'),
+    ).toBeNull();
+  });
+
+  it('shows an invalid id', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: 'nope' });
+    render(<FieldDetailScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('settings.errors.invalidId')).toBeTruthy();
+    });
+  });
+
+  it('redirects when the garden cannot be loaded', async () => {
+    mockIsAuthError.mockReturnValue(true);
+    mockedGetField.mockRejectedValue(new Error('Not authenticated'));
+    render(<FieldDetailScreen />);
+    await waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/auth/login');
+    });
+  });
+
+  it('shows a dashboard error', async () => {
+    mockedGetDashboard.mockRejectedValue(new Error('no data'));
+    render(<FieldDetailScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('Hort')).toBeTruthy();
+    });
+  });
+
+  it('shows when the garden cannot be loaded', async () => {
+    mockedGetField.mockRejectedValue(new Error('missing garden'));
+    render(<FieldDetailScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('missing garden')).toBeTruthy();
+    });
   });
 
   it('goes back to profile and opens the data page', async () => {

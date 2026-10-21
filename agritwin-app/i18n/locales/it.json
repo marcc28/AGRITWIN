@@ -84,6 +84,7 @@
     "cancel": "Annulla",
     "accept": "Accetta",
     "myGardens": "I miei giardini",
+    "addGarden": "Aggiungi campo",
     "emptyGardens": "Non hai ancora nessun giardino.",
     "data": "Dati",
     "edit": "Modifica",
@@ -95,7 +96,8 @@
     "fieldTypes": {
       "home_garden": "Orto casalingo",
       "open_field": "Campo aperto",
-      "greenhouse": "Serra"
+      "greenhouse": "Serra",
+      "orchard": "Frutteto"
     },
     "soilTypes": {
       "loam": "Franco",
@@ -117,6 +119,9 @@
       "edit": "Modifica",
       "devices": "Dispositivi",
       "noDevices": "Questo campo non ha ancora nessun dispositivo.",
+      "devicePopupTitle": "Dettagli del dispositivo",
+      "devicePopupClose": "Chiudi",
+      "deviceStatus": "Stato",
       "connected": "Connesso",
       "disconnected": "Disconnesso",
       "sensorTitle": "Dati raccolti",
@@ -173,6 +178,43 @@
       "nameRequired": "Il nome è obbligatorio",
       "sizeNumber": "La dimensione deve essere un numero",
       "saveGarden": "Impossibile salvare il giardino"
+    },
+    "createField": {
+      "eyebrow": "IL TUO SPAZIO DI COLTIVAZIONE",
+      "titleFirst": "Crea il tuo primo giardino.",
+      "titleNext": "Crea un nuovo giardino.",
+      "subtitle": "Un piccolo spazio per crescere. Rendiamolo tuo.",
+      "firstGarden": "Primo giardino",
+      "details": "Dati del giardino",
+      "required": "Campi del modulo",
+      "namePlaceholder": "Dai un nome al giardino",
+      "locationPlaceholder": "Città, paese o indirizzo",
+      "sizePlaceholder": "es. 20",
+      "coordsHint": "Cerca la posizione per salvare latitudine e longitudine.",
+      "coords": "Coordinate: {{lat}}, {{lon}}",
+      "arduinos": "Arduino",
+      "arduinosHint": "Puoi collegarli ora o lasciarlo a dopo. Chiediamo solo ciò che vedi sul dispositivo.",
+      "configureLater": "Configura dopo",
+      "addNow": "Aggiungi ora",
+      "addAnother": "Aggiungi un altro Arduino",
+      "removeDevice": "Rimuovi",
+      "saveDevices": "Salva dispositivi",
+      "deviceId": "ID del dispositivo",
+      "deviceIdPlaceholder": "es. esp32_sim_01",
+      "deviceBrand": "Marca",
+      "deviceBrandPlaceholder": "es. ESP32",
+      "deviceSerial": "Numero di serie",
+      "deviceSerialPlaceholder": "Quello sull’etichetta",
+      "linkLater": "Collega Arduino →",
+      "submitFirst": "Crea il mio primo giardino",
+      "submitNext": "Crea giardino",
+      "errors": {
+        "locationRequired": "Inserisci una posizione per geolocalizzarla",
+        "locationNotFound": "Posizione non trovata",
+        "deviceIdRequired": "Ogni Arduino ha bisogno di ID, marca e numero di serie",
+        "deviceSaveFailed": "Impossibile salvare i dispositivi",
+        "createFailed": "Impossibile creare il campo"
+      }
     }
   },
   "languages": {

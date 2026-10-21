@@ -1,57 +1,34 @@
 import { useEffect, useState } from 'react';
-import {
-  Text,
-  View,
-  Pressable,
-  TextInput,
-  ScrollView,
-  Image,
-} from 'react-native';
+import { Text, View, Pressable, TextInput, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { defaultPhotoIndex } from '../constants/gardenPhotos';
 import {
-  GARDEN_PHOTOS,
-  defaultPhotoIndex,
-  gardenPhotoAt,
-} from '../constants/gardenPhotos';
-import { getField, isAuthError, updateField } from '../services/api';
+  createDevice,
+  deleteDevice,
+  getField,
+  isAuthError,
+  updateDevice,
+  updateField,
+  type FieldDevice,
+} from '../services/api';
+import {
+  DeviceDraftFields,
+  filledDevices,
+  hasIncompleteDevices,
+  type DeviceDraft,
+} from '../components/DeviceDraftFields';
 import { clearAuth } from '../services/auth';
 import { getCurrentField, setCurrentField } from '../services/currentField';
 import { getFieldPhotoIndex, setFieldPhotoIndex } from '../services/fieldPhoto';
 import { styles } from '../styles/edit-field.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
-
-const FIELD_TYPES = ['home_garden', 'open_field', 'greenhouse'] as const;
-const SOIL_TYPES = ['loam', 'clay', 'sandy'] as const;
-
-function Chip({
-  label,
-  selected,
-  onPress,
-  disabled,
-}: Readonly<{
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  disabled: boolean;
-}>) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={[styles.chip, selected ? styles.chipSelected : null]}
-    >
-      <Text
-        style={[styles.chipText, selected ? styles.chipTextSelected : null]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
+import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
+import { FieldOptionChips } from '../components/FieldOptionChips';
+import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
 
 export default function EditFieldScreen() {
   const { t } = useTranslation();
@@ -67,6 +44,8 @@ export default function EditFieldScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [existingDevices, setExistingDevices] = useState<FieldDevice[]>([]);
+  const [deviceDrafts, setDeviceDrafts] = useState<DeviceDraft[]>([]);
 
   function goBack() {
     router.replace({
@@ -85,6 +64,7 @@ export default function EditFieldScreen() {
         setFieldType(field.field_type ?? FIELD_TYPES[0]);
         setSoilType(field.soil_type ?? SOIL_TYPES[0]);
         setSizeM2(field.size_m2 != null ? String(field.size_m2) : '');
+        setExistingDevices(field.devices);
         setPhotoIndex(await getFieldPhotoIndex(fieldId));
       } catch (error) {
         if (isAuthError(error)) {
@@ -111,6 +91,21 @@ export default function EditFieldScreen() {
     void loadField();
   }, [fieldId, t]);
 
+  async function handleRemoveDevice(deviceId: string) {
+    try {
+      await deleteDevice(fieldId, deviceId);
+      setExistingDevices((current) =>
+        current.filter((device) => device.id !== deviceId),
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : t('settings.createField.errors.deviceSaveFailed'),
+      );
+    }
+  }
+
   async function handleAccept() {
     const trimmedName = name.trim();
 
@@ -125,6 +120,12 @@ export default function EditFieldScreen() {
       return;
     }
 
+    const devices = filledDevices(deviceDrafts);
+    if (hasIncompleteDevices(deviceDrafts, existingDevices)) {
+      setErrorMessage(t('settings.createField.errors.deviceIdRequired'));
+      return;
+    }
+
     try {
       setSaving(true);
       setErrorMessage('');
@@ -136,6 +137,15 @@ export default function EditFieldScreen() {
         size_m2: parsedSize,
       });
       await setFieldPhotoIndex(fieldId, photoIndex);
+      await Promise.all(
+        existingDevices.map((device) =>
+          updateDevice(fieldId, device.id, {
+            brand: (device.brand ?? '').trim(),
+            serial_number: (device.serial_number ?? '').trim(),
+          }),
+        ),
+      );
+      await Promise.all(devices.map((device) => createDevice(fieldId, device)));
       const current = await getCurrentField();
       if (current?.id === fieldId) {
         await setCurrentField({ id: fieldId, name: trimmedName });
@@ -186,30 +196,12 @@ export default function EditFieldScreen() {
             ) : (
               <>
                 <Text style={styles.label}>{t('settings.photo')}</Text>
-                <Image
-                  source={gardenPhotoAt(photoIndex)}
-                  style={styles.photo}
-                  resizeMode="cover"
+                <GardenPhotoPicker
+                  photoIndex={photoIndex}
+                  onChange={setPhotoIndex}
+                  disabled={saving}
+                  photoStyle={styles.photo}
                 />
-                <View style={styles.photoRow}>
-                  {GARDEN_PHOTOS.map((_, index) => (
-                    <Pressable
-                      key={index}
-                      onPress={() => setPhotoIndex(index)}
-                      disabled={saving}
-                      style={[
-                        styles.photoThumbWrap,
-                        photoIndex === index ? styles.photoThumbSelected : null,
-                      ]}
-                    >
-                      <Image
-                        source={gardenPhotoAt(index)}
-                        style={styles.photoThumb}
-                        resizeMode="cover"
-                      />
-                    </Pressable>
-                  ))}
-                </View>
 
                 <Text style={styles.label}>{t('settings.name')}</Text>
                 <TextInput
@@ -227,31 +219,13 @@ export default function EditFieldScreen() {
                   editable={!saving}
                 />
 
-                <Text style={styles.label}>{t('settings.type')}</Text>
-                <View style={styles.chipRow}>
-                  {FIELD_TYPES.map((type) => (
-                    <Chip
-                      key={type}
-                      label={t(`settings.fieldTypes.${type}`)}
-                      selected={fieldType === type}
-                      onPress={() => setFieldType(type)}
-                      disabled={saving}
-                    />
-                  ))}
-                </View>
-
-                <Text style={styles.label}>{t('settings.soil')}</Text>
-                <View style={styles.chipRow}>
-                  {SOIL_TYPES.map((type) => (
-                    <Chip
-                      key={type}
-                      label={t(`settings.soilTypes.${type}`)}
-                      selected={soilType === type}
-                      onPress={() => setSoilType(type)}
-                      disabled={saving}
-                    />
-                  ))}
-                </View>
+                <FieldOptionChips
+                  fieldType={fieldType}
+                  soilType={soilType}
+                  onFieldType={setFieldType}
+                  onSoilType={setSoilType}
+                  disabled={saving}
+                />
 
                 <Text style={styles.label}>{t('settings.size')}</Text>
                 <TextInput
@@ -260,6 +234,23 @@ export default function EditFieldScreen() {
                   onChangeText={setSizeM2}
                   keyboardType="numeric"
                   editable={!saving}
+                />
+
+                <Text style={styles.label}>
+                  {t('settings.createField.arduinos')}
+                </Text>
+                <DeviceDraftFields
+                  mode="manage"
+                  later={false}
+                  onLaterChange={() => undefined}
+                  drafts={deviceDrafts}
+                  onChange={setDeviceDrafts}
+                  existing={existingDevices}
+                  onExistingChange={setExistingDevices}
+                  onRemoveExisting={(deviceId) => {
+                    void handleRemoveDevice(deviceId);
+                  }}
+                  disabled={saving}
                 />
               </>
             )}

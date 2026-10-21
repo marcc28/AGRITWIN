@@ -2,10 +2,15 @@ process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
 
 import { getAuth } from '../../../src/services/auth';
 import {
+  createDevice,
+  createField,
+  deleteDevice,
+  geocodeLocation,
   getField,
   getFields,
   getMe,
   isAuthError,
+  updateDevice,
   updateField,
   updateMe,
   updateMyEmail,
@@ -100,6 +105,94 @@ describe('fields api', () => {
     await expect(getFields()).rejects.toThrow('Could not validate credentials');
   });
 
+  it('creates a field', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 8,
+        name: 'Hort nou',
+        location: 'Andorra',
+        lat: 42.5,
+        lon: 1.5,
+        field_type: 'home_garden',
+        soil_type: 'loam',
+        size_m2: 20,
+        device_count: 0,
+      }),
+    }) as jest.Mock;
+
+    await expect(
+      createField({
+        name: 'Hort nou',
+        location: 'Andorra',
+        lat: 42.5,
+        lon: 1.5,
+        field_type: 'home_garden',
+        soil_type: 'loam',
+        size_m2: 20,
+      }),
+    ).resolves.toMatchObject({ id: 8, lat: 42.5 });
+  });
+
+  it('geocodes a location', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ lat: 42.5, lon: 1.5, label: 'Andorra' }),
+    }) as jest.Mock;
+
+    await expect(geocodeLocation('Andorra')).resolves.toEqual({
+      lat: 42.5,
+      lon: 1.5,
+      label: 'Andorra',
+    });
+  });
+
+  it('links a device to a field', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'esp32_sim_01',
+        battery_status: false,
+        brand: 'ESP32',
+        serial_number: 'SN-1',
+      }),
+    }) as jest.Mock;
+
+    await expect(
+      createDevice(3, {
+        id: 'esp32_sim_01',
+        brand: 'ESP32',
+        serial_number: 'SN-1',
+      }),
+    ).resolves.toMatchObject({ id: 'esp32_sim_01' });
+  });
+
+  it('updates and deletes a device', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'esp32_sim_01',
+        battery_status: true,
+        brand: 'ESP32',
+        serial_number: 'SN-9',
+      }),
+    }) as jest.Mock;
+
+    await expect(
+      updateDevice(3, 'esp32_sim_01', {
+        brand: 'ESP32',
+        serial_number: 'SN-9',
+      }),
+    ).resolves.toMatchObject({ serial_number: 'SN-9' });
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    }) as jest.Mock;
+
+    await expect(deleteDevice(3, 'esp32_sim_01')).resolves.toBeUndefined();
+  });
+
   it('rejects a fields payload that is not a list', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -179,6 +272,62 @@ describe('fields api', () => {
     mockedGetAuth.mockResolvedValueOnce(null);
     await expect(updateMyPassword('a', 'b', 'b')).rejects.toThrow(
       'Not authenticated',
+    );
+  });
+
+  it('throws without a token on field writes', async () => {
+    mockedGetAuth.mockResolvedValue(null);
+    await expect(
+      createField({
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+      }),
+    ).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(geocodeLocation('Andorra')).rejects.toThrow(
+      'Not authenticated',
+    );
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(
+      createDevice(3, { id: 'd1', brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(
+      updateDevice(3, 'd1', { brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(deleteDevice(3, 'd1')).rejects.toThrow('Not authenticated');
+  });
+
+  it('throws the api detail when field writes fail', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'This device is already registered' }),
+    }) as jest.Mock;
+
+    await expect(
+      createField({
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+      }),
+    ).rejects.toThrow('This device is already registered');
+    await expect(geocodeLocation('xxxx')).rejects.toThrow(
+      'This device is already registered',
+    );
+    await expect(
+      createDevice(3, { id: 'd1', brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('This device is already registered');
+    await expect(
+      updateDevice(3, 'd1', { brand: 'ESP32', serial_number: 'SN' }),
+    ).rejects.toThrow('This device is already registered');
+    await expect(deleteDevice(3, 'd1')).rejects.toThrow(
+      'This device is already registered',
     );
   });
 });

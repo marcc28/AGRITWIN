@@ -12,6 +12,7 @@ import {
   isAuthError,
   type Dashboard,
   type FieldDetail,
+  type FieldDevice,
 } from '../services/api';
 import { clearAuth } from '../services/auth';
 import { styles } from '../styles/field-detail.styles';
@@ -50,6 +51,9 @@ export default function FieldDetailScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [dashboardError, setDashboardError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedDevice, setSelectedDevice] = useState<FieldDevice | null>(
+    null,
+  );
 
   useEffect(() => {
     async function load() {
@@ -190,7 +194,11 @@ export default function FieldDetailScreen() {
                   </Text>
                 ) : (
                   field.devices.map((device) => (
-                    <View key={device.id} style={styles.deviceRow}>
+                    <Pressable
+                      key={device.id}
+                      style={styles.deviceRow}
+                      onPress={() => setSelectedDevice(device)}
+                    >
                       <Text style={styles.deviceId} numberOfLines={1}>
                         {device.id}
                       </Text>
@@ -206,7 +214,7 @@ export default function FieldDetailScreen() {
                           ? t('settings.fieldDetail.connected')
                           : t('settings.fieldDetail.disconnected')}
                       </Text>
-                    </View>
+                    </Pressable>
                   ))
                 )}
               </View>
@@ -223,6 +231,65 @@ export default function FieldDetailScreen() {
           ) : null}
         </View>
       </ScrollView>
+
+      {selectedDevice ? (
+        <View style={styles.popupWrap} pointerEvents="box-none">
+          <Pressable
+            style={styles.popupBackdrop}
+            onPress={() => setSelectedDevice(null)}
+          />
+          <View style={styles.popupCard}>
+            <Text style={styles.popupTitle}>
+              {t('settings.fieldDetail.devicePopupTitle')}
+            </Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {t('settings.createField.deviceId')}
+              </Text>
+              <Text style={styles.infoValue}>{selectedDevice.id}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {t('settings.createField.deviceBrand')}
+              </Text>
+              <Text style={styles.infoValue}>{dash(selectedDevice.brand)}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {t('settings.createField.deviceSerial')}
+              </Text>
+              <Text style={styles.infoValue}>
+                {dash(selectedDevice.serial_number)}
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {t('settings.fieldDetail.deviceStatus')}
+              </Text>
+              <Text
+                style={[
+                  styles.status,
+                  selectedDevice.battery_status
+                    ? styles.statusOn
+                    : styles.statusOff,
+                ]}
+              >
+                {selectedDevice.battery_status
+                  ? t('settings.fieldDetail.connected')
+                  : t('settings.fieldDetail.disconnected')}
+              </Text>
+            </View>
+            <Pressable
+              style={styles.popupClose}
+              onPress={() => setSelectedDevice(null)}
+            >
+              <Text style={styles.popupCloseText}>
+                {t('settings.fieldDetail.devicePopupClose')}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }

@@ -268,6 +268,19 @@ describe('SettingsScreen', () => {
     });
   });
 
+  it('opens create garden from profile', async () => {
+    render(<SettingsScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('settings.addGarden')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText('settings.addGarden'));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/create-field',
+      params: { from: 'profile' },
+    });
+  });
+
   it('shows an empty gardens message', async () => {
     mockedGetFields.mockResolvedValue([]);
     mockedGetCurrentField.mockResolvedValue(null);

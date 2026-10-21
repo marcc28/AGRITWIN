@@ -28,6 +28,7 @@ import {
   subscribeCurrentField,
 } from '../../services/currentField';
 import { FieldPhoto } from '../../components/FieldPhoto';
+import { OptionChip } from '../../components/OptionChip';
 import { styles } from '../../styles/settings.styles';
 import { Colors } from '../../constants/theme';
 
@@ -43,29 +44,6 @@ function openField(fieldId: number) {
     pathname: '/field-detail',
     params: { id: String(fieldId) },
   });
-}
-
-function Chip({
-  label,
-  selected,
-  onPress,
-}: Readonly<{
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}>) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.chip, selected ? styles.chipSelected : null]}
-    >
-      <Text
-        style={[styles.chipText, selected ? styles.chipTextSelected : null]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
 }
 
 export default function SettingsScreen() {
@@ -381,21 +359,25 @@ export default function SettingsScreen() {
 
             <View style={styles.languageBlock}>
               <Text style={styles.languageLabel}>{t('settings.language')}</Text>
-              <View style={styles.chipRow}>
+              <View style={styles.languageGrid}>
                 {LANGUAGES.map((language) => (
-                  <Chip
+                  <OptionChip
                     key={language.value}
                     label={t(language.labelKey)}
                     selected={(me?.language ?? i18n.language).startsWith(
                       language.value,
                     )}
                     onPress={() => void handleLanguageChange(language.value)}
+                    style={styles.chip}
+                    selectedStyle={styles.chipSelected}
+                    textStyle={styles.chipText}
+                    selectedTextStyle={styles.chipTextSelected}
                   />
                 ))}
               </View>
             </View>
 
-            <Text style={styles.preferencesTitle}>
+            <Text style={[styles.sectionTitle, styles.preferencesTitle]}>
               {t('settings.preferences')}
             </Text>
 
@@ -460,19 +442,7 @@ export default function SettingsScreen() {
                   ]}
                 >
                   <Pressable onPress={() => openField(field.id)}>
-                    <View>
-                      <FieldPhoto
-                        fieldId={field.id}
-                        style={styles.gardenPhoto}
-                      />
-                      {currentFieldId === field.id ? (
-                        <View style={styles.gardenBadge}>
-                          <Text style={styles.gardenBadgeText}>
-                            {t('settings.currentBadge')}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
+                    <FieldPhoto fieldId={field.id} style={styles.gardenPhoto} />
                     <View style={styles.gardenBody}>
                       <Text style={styles.gardenName} numberOfLines={1}>
                         {field.name}
@@ -488,18 +458,35 @@ export default function SettingsScreen() {
                     </View>
                   </Pressable>
                   {currentFieldId === field.id ? null : (
-                    <View style={styles.gardenActions}>
-                      <Pressable onPress={() => void handleSetCurrent(field)}>
-                        <Text style={styles.gardenEdit}>
-                          {t('settings.setCurrent')}
-                        </Text>
-                      </Pressable>
-                    </View>
+                    <Pressable
+                      style={styles.gardenSetCurrent}
+                      onPress={() => void handleSetCurrent(field)}
+                    >
+                      <Text style={styles.gardenEdit}>
+                        {t('settings.setCurrent')}
+                      </Text>
+                    </Pressable>
                   )}
                 </View>
               ))}
             </View>
           )}
+
+          {fields.length > 0 ? (
+            <Pressable
+              style={styles.addGardenButton}
+              onPress={() =>
+                router.push({
+                  pathname: '/create-field',
+                  params: { from: 'profile' },
+                })
+              }
+            >
+              <Text style={styles.addGardenText}>
+                {t('settings.addGarden')}
+              </Text>
+            </Pressable>
+          ) : null}
 
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Image
