@@ -84,6 +84,7 @@
     "cancel": "Cancel·lar",
     "accept": "Acceptar",
     "myGardens": "Els meus jardins",
+    "addGarden": "Afegir camp",
     "emptyGardens": "Encara no tens cap jardí.",
     "data": "Dades",
     "edit": "Editar",
@@ -95,7 +96,8 @@
     "fieldTypes": {
       "home_garden": "Hort casolà",
       "open_field": "Camp obert",
-      "greenhouse": "Hivernacle"
+      "greenhouse": "Hivernacle",
+      "orchard": "Hort de fruiters"
     },
     "soilTypes": {
       "loam": "Franc",
@@ -117,6 +119,9 @@
       "edit": "Editar",
       "devices": "Dispositius",
       "noDevices": "Aquest camp encara no té cap dispositiu.",
+      "devicePopupTitle": "Detalls del dispositiu",
+      "devicePopupClose": "Tancar",
+      "deviceStatus": "Estat",
       "connected": "Connectat",
       "disconnected": "Desconnectat",
       "sensorTitle": "Dades recollides",
@@ -173,6 +178,43 @@
       "nameRequired": "El nom és obligatori",
       "sizeNumber": "La mida ha de ser un número",
       "saveGarden": "No s’ha pogut guardar el jardí"
+    },
+    "createField": {
+      "eyebrow": "EL TEU ESPAI DE CULTIU",
+      "titleFirst": "Crea el teu primer jardí.",
+      "titleNext": "Crea un jardí nou.",
+      "subtitle": "Un petit espai per créixer. Fem-lo teu.",
+      "firstGarden": "Primer jardí",
+      "details": "Dades del jardí",
+      "required": "Camps del formulari",
+      "namePlaceholder": "Posa un nom al jardí",
+      "locationPlaceholder": "Ciutat, poble o adreça",
+      "sizePlaceholder": "p. ex. 20",
+      "coordsHint": "Cerca la ubicació per guardar latitud i longitud.",
+      "coords": "Coordenades: {{lat}}, {{lon}}",
+      "arduinos": "Arduinos",
+      "arduinosHint": "Pots enllaçar-los ara o deixar-ho per després. Només et demanem el que veus al dispositiu.",
+      "configureLater": "Configurar després",
+      "addNow": "Afegir ara",
+      "addAnother": "Afegir un altre Arduino",
+      "removeDevice": "Treure",
+      "saveDevices": "Desar dispositius",
+      "deviceId": "ID del dispositiu",
+      "deviceIdPlaceholder": "p. ex. esp32_sim_01",
+      "deviceBrand": "Marca",
+      "deviceBrandPlaceholder": "p. ex. ESP32",
+      "deviceSerial": "Número de sèrie",
+      "deviceSerialPlaceholder": "El que posa a l’etiqueta",
+      "linkLater": "Enllaçar Arduinos →",
+      "submitFirst": "Crear el meu primer jardí",
+      "submitNext": "Crear jardí",
+      "errors": {
+        "locationRequired": "Introdueix una ubicació per geolocalitzar-la",
+        "locationNotFound": "No s’ha trobat aquesta ubicació",
+        "deviceIdRequired": "Cada Arduino necessita ID, marca i número de sèrie",
+        "deviceSaveFailed": "No s’han pogut guardar els dispositius",
+        "createFailed": "No s’ha pogut crear el camp"
+      }
     }
   },
   "languages": {

@@ -86,6 +86,19 @@ describe('FieldDetailScreen', () => {
     expect(screen.getByText('Andorra')).toBeTruthy();
     expect(screen.getByText('dev-1')).toBeTruthy();
     expect(screen.getByText('settings.fieldDetail.connected')).toBeTruthy();
+    expect(screen.queryByText('settings.createField.saveDevices')).toBeNull();
+  });
+
+  it('opens device details in a popup', async () => {
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('dev-1')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText('dev-1'));
+    expect(
+      screen.getByText('settings.fieldDetail.devicePopupTitle'),
+    ).toBeTruthy();
   });
 
   it('opens the edit page', async () => {

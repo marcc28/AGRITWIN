@@ -84,6 +84,7 @@
     "cancel": "Cancel",
     "accept": "Accept",
     "myGardens": "My gardens",
+    "addGarden": "Add field",
     "emptyGardens": "You don't have any gardens yet.",
     "data": "Data",
     "edit": "Edit",
@@ -95,7 +96,8 @@
     "fieldTypes": {
       "home_garden": "Home garden",
       "open_field": "Open field",
-      "greenhouse": "Greenhouse"
+      "greenhouse": "Greenhouse",
+      "orchard": "Orchard"
     },
     "soilTypes": {
       "loam": "Loam",
@@ -117,6 +119,9 @@
       "edit": "Edit",
       "devices": "Devices",
       "noDevices": "This field has no device yet.",
+      "devicePopupTitle": "Device details",
+      "devicePopupClose": "Close",
+      "deviceStatus": "Status",
       "connected": "Connected",
       "disconnected": "Disconnected",
       "sensorTitle": "Collected data",
@@ -173,6 +178,43 @@
       "nameRequired": "Name is required",
       "sizeNumber": "Size must be a number",
       "saveGarden": "Could not save the garden"
+    },
+    "createField": {
+      "eyebrow": "YOUR GROWING SPACE",
+      "titleFirst": "Create your first garden.",
+      "titleNext": "Create a new garden.",
+      "subtitle": "A little space to grow. Let's make it yours.",
+      "firstGarden": "First garden",
+      "details": "Garden details",
+      "required": "Form fields",
+      "namePlaceholder": "Give your garden a name",
+      "locationPlaceholder": "City, town or address",
+      "sizePlaceholder": "e.g. 20",
+      "coordsHint": "Look up the location to save latitude and longitude.",
+      "coords": "Coordinates: {{lat}}, {{lon}}",
+      "arduinos": "Arduinos",
+      "arduinosHint": "You can link them now or leave it for later. We only ask what you can see on the device.",
+      "configureLater": "Configure later",
+      "addNow": "Add now",
+      "addAnother": "Add another Arduino",
+      "removeDevice": "Remove",
+      "saveDevices": "Save devices",
+      "deviceId": "Device ID",
+      "deviceIdPlaceholder": "e.g. esp32_sim_01",
+      "deviceBrand": "Brand",
+      "deviceBrandPlaceholder": "e.g. ESP32",
+      "deviceSerial": "Serial number",
+      "deviceSerialPlaceholder": "The one on the label",
+      "linkLater": "Link Arduinos →",
+      "submitFirst": "Create my first garden",
+      "submitNext": "Create garden",
+      "errors": {
+        "locationRequired": "Enter a location to geocode it",
+        "locationNotFound": "This location was not found",
+        "deviceIdRequired": "Each Arduino needs ID, brand and serial number",
+        "deviceSaveFailed": "Could not save the devices",
+        "createFailed": "Could not create the field"
+      }
     }
   },
   "languages": {

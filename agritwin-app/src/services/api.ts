@@ -363,15 +363,41 @@ export type Field = {
   id: number;
   name: string;
   location: string | null;
+  lat?: number | null;
+  lon?: number | null;
   field_type: string | null;
   soil_type: string | null;
   size_m2: number | null;
   device_count: number;
 };
 
+export type FieldPayload = {
+  name: string;
+  location: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  field_type: string | null;
+  soil_type: string | null;
+  size_m2: number | null;
+};
+
+export type GeoLocation = {
+  lat: number;
+  lon: number;
+  label?: string | null;
+};
+
 export type FieldDevice = {
   id: string;
   battery_status: boolean;
+  brand?: string | null;
+  serial_number?: string | null;
+};
+
+export type DevicePayload = {
+  id: string;
+  brand: string;
+  serial_number: string;
 };
 
 export type FieldDetail = Field & {
@@ -445,15 +471,147 @@ export async function getFields(): Promise<Field[]> {
   }));
 }
 
+export async function updateDevice(
+  fieldId: number,
+  deviceId: string,
+  payload: Omit<DevicePayload, 'id'>,
+): Promise<FieldDevice> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.token}`,
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      errorDetail(data, 'No s’ha pogut actualitzar el dispositiu'),
+    );
+  }
+
+  return data as FieldDevice;
+}
+
+export async function deleteDevice(
+  fieldId: number,
+  deviceId: string,
+): Promise<void> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(errorDetail(data, 'No s’ha pogut treure el dispositiu'));
+  }
+}
+
+export async function createDevice(
+  fieldId: number,
+  payload: DevicePayload,
+): Promise<FieldDevice> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields/${fieldId}/devices`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut enllaçar el dispositiu'));
+  }
+
+  return data as FieldDevice;
+}
+
+export async function createField(payload: FieldPayload): Promise<Field> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut crear el camp'));
+  }
+
+  return data as Field;
+}
+
+export async function geocodeLocation(query: string): Promise<GeoLocation> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/v1/geocode?q=${encodeURIComponent(query)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha trobat aquesta ubicació'));
+  }
+
+  return data as GeoLocation;
+}
+
 export async function updateField(
   id: number,
-  payload: {
-    name: string;
-    location: string | null;
-    field_type: string | null;
-    soil_type: string | null;
-    size_m2: number | null;
-  },
+  payload: FieldPayload,
 ): Promise<Field> {
   const auth = await getAuth();
 

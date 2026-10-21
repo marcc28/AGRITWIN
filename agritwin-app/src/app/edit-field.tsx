@@ -16,16 +16,28 @@ import {
   defaultPhotoIndex,
   gardenPhotoAt,
 } from '../constants/gardenPhotos';
-import { getField, isAuthError, updateField } from '../services/api';
+import {
+  createDevice,
+  deleteDevice,
+  getField,
+  isAuthError,
+  updateDevice,
+  updateField,
+  type FieldDevice,
+} from '../services/api';
+import {
+  DeviceDraftFields,
+  filledDevices,
+  hasIncompleteDevices,
+  type DeviceDraft,
+} from '../components/DeviceDraftFields';
 import { clearAuth } from '../services/auth';
 import { getCurrentField, setCurrentField } from '../services/currentField';
 import { getFieldPhotoIndex, setFieldPhotoIndex } from '../services/fieldPhoto';
 import { styles } from '../styles/edit-field.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
-
-const FIELD_TYPES = ['home_garden', 'open_field', 'greenhouse'] as const;
-const SOIL_TYPES = ['loam', 'clay', 'sandy'] as const;
+import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
 
 function Chip({
   label,
@@ -67,6 +79,8 @@ export default function EditFieldScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [existingDevices, setExistingDevices] = useState<FieldDevice[]>([]);
+  const [deviceDrafts, setDeviceDrafts] = useState<DeviceDraft[]>([]);
 
   function goBack() {
     router.replace({
@@ -85,6 +99,7 @@ export default function EditFieldScreen() {
         setFieldType(field.field_type ?? FIELD_TYPES[0]);
         setSoilType(field.soil_type ?? SOIL_TYPES[0]);
         setSizeM2(field.size_m2 != null ? String(field.size_m2) : '');
+        setExistingDevices(field.devices);
         setPhotoIndex(await getFieldPhotoIndex(fieldId));
       } catch (error) {
         if (isAuthError(error)) {
@@ -111,6 +126,21 @@ export default function EditFieldScreen() {
     void loadField();
   }, [fieldId, t]);
 
+  async function handleRemoveDevice(deviceId: string) {
+    try {
+      await deleteDevice(fieldId, deviceId);
+      setExistingDevices((current) =>
+        current.filter((device) => device.id !== deviceId),
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : t('settings.createField.errors.deviceSaveFailed'),
+      );
+    }
+  }
+
   async function handleAccept() {
     const trimmedName = name.trim();
 
@@ -125,6 +155,12 @@ export default function EditFieldScreen() {
       return;
     }
 
+    const devices = filledDevices(deviceDrafts);
+    if (hasIncompleteDevices(deviceDrafts, existingDevices)) {
+      setErrorMessage(t('settings.createField.errors.deviceIdRequired'));
+      return;
+    }
+
     try {
       setSaving(true);
       setErrorMessage('');
@@ -136,6 +172,15 @@ export default function EditFieldScreen() {
         size_m2: parsedSize,
       });
       await setFieldPhotoIndex(fieldId, photoIndex);
+      for (const device of existingDevices) {
+        await updateDevice(fieldId, device.id, {
+          brand: (device.brand ?? '').trim(),
+          serial_number: (device.serial_number ?? '').trim(),
+        });
+      }
+      for (const device of devices) {
+        await createDevice(fieldId, device);
+      }
       const current = await getCurrentField();
       if (current?.id === fieldId) {
         await setCurrentField({ id: fieldId, name: trimmedName });
@@ -260,6 +305,23 @@ export default function EditFieldScreen() {
                   onChangeText={setSizeM2}
                   keyboardType="numeric"
                   editable={!saving}
+                />
+
+                <Text style={styles.label}>
+                  {t('settings.createField.arduinos')}
+                </Text>
+                <DeviceDraftFields
+                  mode="manage"
+                  later={false}
+                  onLaterChange={() => undefined}
+                  drafts={deviceDrafts}
+                  onChange={setDeviceDrafts}
+                  existing={existingDevices}
+                  onExistingChange={setExistingDevices}
+                  onRemoveExisting={(deviceId) => {
+                    void handleRemoveDevice(deviceId);
+                  }}
+                  disabled={saving}
                 />
               </>
             )}

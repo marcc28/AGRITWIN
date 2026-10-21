@@ -21,6 +21,9 @@ jest.mock('expo-router', () => ({
 jest.mock('../../../src/services/api', () => ({
   getField: jest.fn(),
   updateField: jest.fn(),
+  createDevice: jest.fn(),
+  updateDevice: jest.fn(),
+  deleteDevice: jest.fn(),
   isAuthError: () => false,
 }));
 

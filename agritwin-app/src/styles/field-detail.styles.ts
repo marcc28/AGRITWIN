@@ -190,4 +190,54 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
   },
+
+  popupWrap: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+
+  popupBackdrop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+
+  popupCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: Colors.light.surface,
+    borderRadius: 24,
+    padding: 20,
+  },
+
+  popupTitle: {
+    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.light.primaryDark,
+  },
+
+  popupClose: {
+    marginTop: 16,
+    height: 44,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.light.primary,
+  },
+
+  popupCloseText: {
+    fontWeight: '700',
+    color: Colors.light.surface,
+  },
 });

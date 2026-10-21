@@ -499,6 +499,22 @@ export default function SettingsScreen() {
             </View>
           )}
 
+          {fields.length > 0 ? (
+            <Pressable
+              style={styles.addGardenButton}
+              onPress={() =>
+                router.push({
+                  pathname: '/create-field',
+                  params: { from: 'profile' },
+                })
+              }
+            >
+              <Text style={styles.addGardenText}>
+                {t('settings.addGarden')}
+              </Text>
+            </Pressable>
+          ) : null}
+
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Image
               source={require('@assets/images/logout.png')}
