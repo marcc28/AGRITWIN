@@ -28,9 +28,23 @@ DEVICES = {
     },
     
     # Devices located in Field 2 (e.g., the balcony)
-    "esp32_sim_03": {
+       "esp32_sim_03": {
         "topic": "agritwin/sensors/field_2",
         "state": {"temp": 25.8, "hum": 50.0, "soil": 30.0, "light": 85000.0}
+    },
+    "esp32_sim_04": {
+        "topic": "agritwin/sensors/field_2",
+        "state": {"temp": 25.1, "hum": 52.0, "soil": 32.0, "light": 82000.0}
+    },
+
+    # Devices located in Field 3 (e.g., the apple orchard)
+    "esp32_sim_05": {
+        "topic": "agritwin/sensors/field_3",
+        "state": {"temp": 21.0, "hum": 55.0, "soil": 35.0, "light": 70000.0}
+    },
+    "esp32_sim_06": {
+        "topic": "agritwin/sensors/field_3",
+        "state": {"temp": 21.6, "hum": 53.0, "soil": 37.0, "light": 68000.0}
     }
 }
 
