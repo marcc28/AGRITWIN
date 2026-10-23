@@ -246,9 +246,6 @@ class Device(Base):
     brand: Mapped[str | None] = mapped_column(String(100))
     serial_number: Mapped[str | None] = mapped_column(String(100), unique=True)
     warranty_until: Mapped[datetime | None] = mapped_column(Date)
-    device_active: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True, server_default=text("TRUE")
-    )
     # Binary battery status:
     #   True  (1) = board on and connected
     #   False (0) = battery empty OR board not connected to the Internet
