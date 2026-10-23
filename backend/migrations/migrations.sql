@@ -93,7 +93,6 @@ CREATE TABLE conte_mercat (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-
 -- ============================================================
 -- FIELDS
 -- A user can own multiple fields.
@@ -367,22 +366,6 @@ VALUES
 -- SEED DATA: CONTE_MERCAT
 -- ============================================================
 
-<<<<<<< HEAD
-CREATE INDEX idx_telemetria_device_timestamp
-    ON telemetria(device_id, timestamp);
-
-
-CREATE TABLE Garden (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(100) NOT NULL,
-    localization VARCHAR(255) NOT NULL,
-    type_of_garden VARCHAR(50),
-    type_of_soil VARCHAR(50),
-    size DECIMAL(10,2),
-    user_id INT,
-    FOREIGN KEY (user_id) REFERENCES User(id)
-);
-=======
 INSERT INTO public.conte_mercat
     (product, tecnical_name, price, price_per_kg, left_units, created_at)
 VALUES
@@ -406,4 +389,3 @@ VALUES
     ('Albergínia', 'Solanum melongena', 2.65, 2.65, 65, '2026-10-06 15:42:31.815294'),
     ('Coliflor', 'Brassica oleracea var. botrytis', 2.40, 2.40, 90, '2026-10-06 16:11:26.394728'),
     ('Bròquil', 'Brassica oleracea var. italica', 2.75, 2.75, 80, '2026-10-06 16:38:54.721635');
->>>>>>> bug/82-sprint-1-adding-bbdd-features

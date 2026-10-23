@@ -1,0 +1,44 @@
+
+# Etapa 1: generar les dependències
+FROM public.ecr.aws/lambda/python:3.13 AS builder
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+RUN pip install --no-cache-dir uv==0.9.27
+
+COPY pyproject.toml uv.lock ./
+
+RUN uv export \
+    --frozen \
+    --no-dev \
+    --no-emit-project \
+    --format requirements-txt \
+    -o /tmp/requirements.txt
+
+
+# Etapa 2: imatge final de Lambda
+FROM public.ecr.aws/lambda/python:3.13
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+ENV PYTHONDONTWRITEBYTECODE=1
+
+COPY --from=builder /tmp/requirements.txt ./requirements.txt
+
+RUN pip install \
+    --no-cache-dir \
+    --no-compile \
+    -r requirements.txt \
+    && rm requirements.txt
+
+# Copiar només els fitxers necessaris
+COPY api/ ./api/
+COPY db/ ./db/
+COPY models/ ./models/
+COPY services/ ./services/
+COPY templates/ ./templates/
+COPY main.py ./
+COPY PRIVACY.md ./
+COPY SECURITY.md ./
+
+CMD ["main.handler"]

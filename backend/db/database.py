@@ -16,7 +16,7 @@ PRODUCTION = os.getenv("PROD") == "True"
 if PRODUCTION:
     # Producció: Aurora DSQL amb autenticació IAM
     DSQL_HOST = os.getenv("DSQL_HOST", "").strip()
-    AWS_REGION = os.getenv("AWS_REGION", "us-east-1").strip()
+    AWS_REGION = os.getenv("REGION", "us-east-1").strip()
 
     if not DSQL_HOST:
         raise RuntimeError(

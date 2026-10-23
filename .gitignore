@@ -56,3 +56,4 @@ backend/.coverage
 ./backend/coverage.xm
 **/**/__pycache__/**
 **/**/**/__pycache__/**
+backend/services/__pycache__/
