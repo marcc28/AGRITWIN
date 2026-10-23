@@ -3,6 +3,7 @@ import json
 import paho.mqtt.client as mqtt
 
 from db.database import save_telemetry
+from services.device_status_monitor import DeviceStatusMonitor
 
 # MQTT CONFIGURATION
 
@@ -40,6 +41,11 @@ def on_message(client, userdata, msg):
         # Pass the 'payload' dictionary directly to the database function
         save_telemetry(payload)
 
+        # --- DEVICE STATUS (battery_status) ---
+        # 'userdata' is the DeviceStatusMonitor passed to the MQTT client
+        if userdata is not None and isinstance(payload, dict):
+            userdata.register_message(payload.get("device_id"))
+
     except json.JSONDecodeError:
         print("[BACKEND-ERROR] Received message is not a valid JSON.")
 
@@ -50,8 +56,17 @@ def on_message(client, userdata, msg):
 def start_mqtt_listener():
     print("[BACKEND-INFO] Initializing MQTT Subscriber Service...")
 
-    # Initialize client with API Version 1
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, "AgriTwin_FastAPI_Backend")
+    # Background thread that sets devices.battery_status to True/False
+    device_monitor = DeviceStatusMonitor()
+    device_monitor.start()
+
+    # Initialize client with API Version 1; the monitor is passed as 'userdata'
+    # so on_message() can register every message received
+    client = mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION1,
+        "AgriTwin_FastAPI_Backend",
+        userdata=device_monitor,
+    )
     client.on_connect = on_connect
     client.on_message = on_message
 

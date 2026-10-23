@@ -148,8 +148,7 @@ CREATE TABLE devices (
     brand VARCHAR(100),
     serial_number VARCHAR(100) UNIQUE,
     warranty_until DATE,
-    device_active BOOLEAN NOT NULL DEFAULT TRUE,
-
+   
     -- Binary battery status:
     --   TRUE  (1) = board on and connected
     --   FALSE (0) = battery empty OR board not connected to the Internet

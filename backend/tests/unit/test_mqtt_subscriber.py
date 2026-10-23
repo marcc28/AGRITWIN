@@ -114,12 +114,36 @@ def test_subscriber_on_message(monkeypatch):
     assert mock_save.call_count == 1
 
 
+def test_subscriber_on_message_registers_device(monkeypatch):
+    """Verify on_message tells the device status monitor which board sent data."""
+    monkeypatch.setattr(mqtt_subscriber, "save_telemetry", MagicMock())
+    mock_monitor = MagicMock()
+
+    msg = MagicMock()
+    msg.topic = "agritwin/sensors/field_1"
+    msg.payload = json.dumps({"device_id": "esp32_sim_01", "sensors": {}}).encode("utf-8")
+
+    mqtt_subscriber.on_message(None, mock_monitor, msg)
+    mock_monitor.register_message.assert_called_once_with("esp32_sim_01")
+
+    # A JSON payload that is not an object is ignored by the monitor
+    mock_monitor.reset_mock()
+    msg.payload = b"[1, 2, 3]"
+    mqtt_subscriber.on_message(None, mock_monitor, msg)
+    mock_monitor.register_message.assert_not_called()
+
+
 def test_start_mqtt_listener(monkeypatch):
-    """Verify MQTT subscriber client initialization and loop_forever execution."""
+    """Verify MQTT subscriber client initialization, device monitor start and loop_forever."""
     mock_mqtt_client_cls = MagicMock()
     monkeypatch.setattr(mqtt_subscriber.mqtt, "Client", mock_mqtt_client_cls)
+    mock_monitor_cls = MagicMock()
+    monkeypatch.setattr(mqtt_subscriber, "DeviceStatusMonitor", mock_monitor_cls)
 
     mqtt_subscriber.start_mqtt_listener()
+
+    mock_monitor_cls.return_value.start.assert_called_once()
+    assert mock_mqtt_client_cls.call_args.kwargs["userdata"] is mock_monitor_cls.return_value
 
     client_instance = mock_mqtt_client_cls.return_value
     client_instance.connect.assert_called_once_with(
