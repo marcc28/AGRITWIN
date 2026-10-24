@@ -4,7 +4,7 @@ FROM public.ecr.aws/lambda/python:3.13 AS builder
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-RUN pip install --no-cache-dir uv==0.9.27
+RUN pip install --no-cache-dir --only-binary=:all: uv==0.9.27
 
 COPY pyproject.toml uv.lock ./
 
@@ -28,9 +28,10 @@ COPY --from=builder /tmp/requirements.txt ./requirements.txt
 RUN pip install \
     --no-cache-dir \
     --no-compile \
+    --only-binary=:all: \
     -r requirements.txt \
     && rm requirements.txt
-
+    
 # Copiar només els fitxers necessaris
 COPY api/ ./api/
 COPY db/ ./db/
