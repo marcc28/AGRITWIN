@@ -26,6 +26,11 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
+  cardHeaderText: {
+    flex: 1,
+    marginRight: 8,
+  },
+
   cardTitle: {
     fontFamily: Fonts.serif,
     fontSize: 20,
@@ -34,6 +39,13 @@ export const styles = StyleSheet.create({
 
   cardSubtitle: {
     marginTop: 2,
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.light.textSecondary,
+  },
+
+  cardHint: {
+    marginTop: 4,
     fontSize: 12,
     color: Colors.light.textMuted,
   },
@@ -259,5 +271,25 @@ export const styles = StyleSheet.create({
     fontSize: 10,
     fontStyle: 'italic',
     color: Colors.light.textMuted,
+  },
+
+  pageScroll: {
+    flex: 1,
+    width: '100%',
+  },
+
+  pageContent: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+
+  pageCard: {
+    width: '100%',
+    maxWidth: 380,
+    padding: 16,
+    borderRadius: CARD_RADIUS,
+    backgroundColor: Colors.light.surface,
+    overflow: 'visible',
   },
 });

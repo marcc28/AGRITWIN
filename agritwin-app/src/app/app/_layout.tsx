@@ -3,6 +3,7 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { Colors } from '@/constants/theme';
 import AppHeader from '@/components/AppHeader';
+import GardenPickerOverlay from '@/components/GardenPickerOverlay';
 
 export default function Layout() {
   const scheme = useColorScheme();
@@ -47,7 +48,7 @@ export default function Layout() {
           </NativeTabs.Trigger>
 
           <NativeTabs.Trigger name="settings">
-            <NativeTabs.Trigger.Label>Configuració</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
               src={require('@assets/images/tabIcons/settings.png')}
               renderingMode="template"
@@ -55,6 +56,8 @@ export default function Layout() {
           </NativeTabs.Trigger>
         </NativeTabs>
       </View>
+
+      <GardenPickerOverlay />
     </View>
   );
 }

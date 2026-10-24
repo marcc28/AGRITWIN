@@ -377,7 +377,7 @@ describe('MarketScreen', () => {
       render(<MarketScreen />);
 
       await waitFor(() => {
-        expect(screen.findByTestId('product-item-1')).toBeTruthy();
+        expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
       const buyButtons = screen.getAllByText('market.buy');

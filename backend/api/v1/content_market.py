@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from db import AsyncSessionLocal
@@ -35,7 +37,7 @@ async def list_conte_mercat(
     response_model=ConteMercatRead,
 )
 async def get_conte_mercat(
-    id: int,
+    id: UUID,
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
     conte_mercat = await service.get_conte_mercat_by_id(id)
@@ -72,7 +74,7 @@ async def create_conte_mercat(
     status_code=204,
 )
 async def delete_conte_mercat(
-    id: int,
+    id: UUID,
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
     await service.delete_conte_mercat(id)

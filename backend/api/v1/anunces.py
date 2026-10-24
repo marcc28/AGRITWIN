@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from db import AsyncSessionLocal
@@ -35,7 +37,7 @@ async def list_anunces(
     response_model=AnunceRead,
 )
 async def get_anunce(
-    id: int,
+    id: UUID,
     service: AnunceService = Depends(get_anunce_service),
 ):
     anunce = await service.get_anunce_by_id(id)
@@ -71,7 +73,7 @@ async def create_anunce(
     status_code=204,
 )
 async def delete_anunce(
-    id: int,
+    id: UUID,
     service: AnunceService = Depends(get_anunce_service),
 ):
     await service.delete_anunce(id)

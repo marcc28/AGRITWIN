@@ -192,14 +192,19 @@ export type Dashboard = {
   history: Reading[];
 };
 
-export async function getDashboard(): Promise<Dashboard> {
+export async function getDashboard(fieldId?: number): Promise<Dashboard> {
   const auth = await getAuth();
 
   if (!auth?.token) {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/dashboard`, {
+  const url =
+    fieldId == null
+      ? `${API_URL}/api/v1/dashboard`
+      : `${API_URL}/api/v1/dashboard?field_id=${fieldId}`;
+
+  const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -223,4 +228,411 @@ export async function getDashboard(): Promise<Dashboard> {
     latest: data.latest ?? null,
     history: data.history ?? [],
   };
+}
+
+export type Me = {
+  username: string;
+  email: string;
+  name: string;
+  language: string;
+  notifications_enabled: boolean;
+  weather_alerts_enabled: boolean;
+};
+
+export type MeUpdate = {
+  name: string;
+  language: string;
+  notifications_enabled: boolean;
+  weather_alerts_enabled: boolean;
+};
+
+function errorDetail(data: unknown, fallback: string): string {
+  if (data && typeof data === 'object' && 'detail' in data) {
+    const detail = (data as { detail: unknown }).detail;
+    if (typeof detail === 'string') {
+      return detail;
+    }
+  }
+  return fallback;
+}
+
+export async function getMe(): Promise<Me> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me`, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut carregar el perfil'));
+  }
+
+  return data as Me;
+}
+
+export async function updateMe(payload: MeUpdate): Promise<Me> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut guardar el perfil'));
+  }
+
+  return data as Me;
+}
+
+export async function updateMyEmail(email: string): Promise<Me> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me/email`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut canviar el correu'));
+  }
+
+  return data as Me;
+}
+
+export async function updateMyPassword(
+  currentPassword: string,
+  newPassword: string,
+  newPasswordConf: string,
+): Promise<void> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/me/password`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+      new_password_conf: newPasswordConf,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut canviar la contrasenya'));
+  }
+}
+
+export type Field = {
+  id: number;
+  name: string;
+  location: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  field_type: string | null;
+  soil_type: string | null;
+  size_m2: number | null;
+  device_count: number;
+};
+
+export type FieldPayload = {
+  name: string;
+  location: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  field_type: string | null;
+  soil_type: string | null;
+  size_m2: number | null;
+};
+
+export type GeoLocation = {
+  lat: number;
+  lon: number;
+  label?: string | null;
+};
+
+export type FieldDevice = {
+  id: string;
+  battery_status: boolean;
+  brand?: string | null;
+  serial_number?: string | null;
+};
+
+export type DevicePayload = {
+  id: string;
+  brand: string;
+  serial_number: string;
+};
+
+export type FieldDetail = Field & {
+  devices: FieldDevice[];
+};
+
+export async function getField(id: number): Promise<FieldDetail> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut carregar el camp'));
+  }
+
+  return data as FieldDetail;
+}
+
+export function isAuthError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return (
+    error.message === 'Not authenticated' ||
+    error.message === 'Could not validate credentials'
+  );
+}
+
+export async function getFields(): Promise<Field[]> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields`, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  let data: unknown = null;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('No s’ha pogut carregar els camps');
+  }
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut carregar els camps'));
+  }
+
+  if (!Array.isArray(data)) {
+    throw new TypeError('No s’ha pogut carregar els camps');
+  }
+
+  return data.map((field) => ({
+    ...field,
+    id: Number(field.id),
+    device_count: Number(field.device_count),
+  }));
+}
+
+export async function updateDevice(
+  fieldId: number,
+  deviceId: string,
+  payload: Omit<DevicePayload, 'id'>,
+): Promise<FieldDevice> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.token}`,
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      errorDetail(data, 'No s’ha pogut actualitzar el dispositiu'),
+    );
+  }
+
+  return data as FieldDevice;
+}
+
+export async function deleteDevice(
+  fieldId: number,
+  deviceId: string,
+): Promise<void> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(errorDetail(data, 'No s’ha pogut treure el dispositiu'));
+  }
+}
+
+export async function createDevice(
+  fieldId: number,
+  payload: DevicePayload,
+): Promise<FieldDevice> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields/${fieldId}/devices`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut enllaçar el dispositiu'));
+  }
+
+  return data as FieldDevice;
+}
+
+export async function createField(payload: FieldPayload): Promise<Field> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha pogut crear el camp'));
+  }
+
+  return data as Field;
+}
+
+export async function geocodeLocation(query: string): Promise<GeoLocation> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/v1/geocode?q=${encodeURIComponent(query)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'No s’ha trobat aquesta ubicació'));
+  }
+
+  return data as GeoLocation;
+}
+
+export async function updateField(
+  id: number,
+  payload: FieldPayload,
+): Promise<Field> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || 'No s’ha pogut guardar el camp');
+  }
+
+  return data as Field;
 }
