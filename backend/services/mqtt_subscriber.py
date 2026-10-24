@@ -2,8 +2,8 @@ import json
 
 import paho.mqtt.client as mqtt
 
-from db.database import save_telemetry
 from services.device_status_monitor import DeviceStatusMonitor
+from telemetry.database import save_telemetry
 
 # MQTT CONFIGURATION
 

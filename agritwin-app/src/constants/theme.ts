@@ -1,7 +1,6 @@
 /**
  * AgriTwin theme
- * Palette inspired by:
- * https://colorhunt.co/palette/bc9f8bb5cfb7cadabfe7e8d8
+ * Palette based on the AgriTwin brand colors.
  */
 
 import '@/global.css';
@@ -9,72 +8,83 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    primary: '#5F8068',
-    primaryDark: '#46614F',
-    secondary: '#BC9F8B',
+    // Brand
+    primary: '#24573A',
+    primaryDark: '#173824',
+    secondary: '#3D7650',
 
-    background: '#E7E8D8',
+    // Backgrounds
+    background: '#F5F7F1',
     surface: '#FFFFFF',
-    surfaceSecondary: '#CADABF',
+    surfaceSecondary: '#E7EEE0',
 
-    text: '#29332C',
-    textSecondary: '#69736C',
+    // Text
+    text: '#173824',
+    textSecondary: '#6B786E',
     textMuted: '#8A928C',
 
-    border: '#D5D9D0',
+    // Borders and shadows
+    border: '#E2E8DD',
+    shadow: '#173824',
+    inputShadow: '#E7EEE0',
 
-    shadow: '#BC9F8B',
-    inputShadow: '#CADABF',
+    social: '#173824',
 
-    social: '#29332C',
+    // Error states
+    dangerBackground: '#F3EADF',
+    dangerBorder: '#C17A40',
+    dangerText: '#8F4E26',
 
-    dangerBackground: '#F4DEDE',
-    dangerBorder: '#D9A4A4',
-    dangerText: '#8F4141',
+    // Success states
+    successBackground: '#E7EEE0',
+    successBorder: '#84A06C',
+    successText: '#24573A',
 
-    successBackground: '#E2EEE4',
-    successBorder: '#B5CFB7',
-    successText: '#46614F',
-
-    overlay: 'rgba(0, 0, 0, 0.5)',
+    overlay: 'rgba(23, 56, 36, 0.5)',
   },
 
   dark: {
-    primary: '#8FB59A',
-    primaryDark: '#B5CFB7',
-    secondary: '#BC9F8B',
+    // Brand
+    primary: '#84A06C',
+    primaryDark: '#3D7650',
+    secondary: '#C17A40',
 
-    background: '#1E2822',
-    surface: '#29332C',
-    surfaceSecondary: '#354238',
+    // Backgrounds
+    background: '#173824',
+    surface: '#24573A',
+    surfaceSecondary: '#294832',
 
-    text: '#F5F5F0',
-    textSecondary: '#C5CDC7',
-    textMuted: '#929C95',
+    // Text
+    text: '#F5F7F1',
+    textSecondary: '#D0DCCB',
+    textMuted: '#A7B5A5',
 
-    border: '#46534A',
+    // Borders and shadows
+    border: '#3D7650',
+    shadow: '#0D2115',
+    inputShadow: '#294832',
 
-    shadow: '#121812',
-    inputShadow: '#354238',
+    social: '#F5F7F1',
 
-    social: '#F5F5F0',
+    // Error states
+    dangerBackground: '#4A3025',
+    dangerBorder: '#C17A40',
+    dangerText: '#F3C7A6',
 
-    dangerBackground: '#472B2B',
-    dangerBorder: '#704343',
-    dangerText: '#F0B5B5',
-
-    successBackground: '#294132',
-    successBorder: '#46614F',
-    successText: '#B5CFB7',
+    // Success states
+    successBackground: '#294832',
+    successBorder: '#84A06C',
+    successText: '#D0E2C4',
 
     overlay: 'rgba(0, 0, 0, 0.7)',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type ThemeColor = keyof typeof Colors.light &
+  keyof typeof Colors.dark;
 
 export const Gradients = {
-  primary: [Colors.light.primary, Colors.light.primaryDark],
+  primary: [Colors.light.primary, Colors.light.secondary],
 } as const;
 
 export const Fonts = Platform.select({
