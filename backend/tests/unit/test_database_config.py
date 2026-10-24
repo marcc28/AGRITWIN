@@ -24,8 +24,7 @@ def reload_database_module(
         ("DATABASE_URL", local_url),
         ("DSQL_HOST", external_url),
         ("SUPABASE_URL", supabase_url),
-        ("SUPABASE_SECRET_KEY", supabase_key),
-        ("AWS_REGION", "us-east-1")
+        ("SUPABASE_SECRET_KEY", supabase_key)
     ):
         if value is None:
             monkeypatch.delenv(name, raising=False)
