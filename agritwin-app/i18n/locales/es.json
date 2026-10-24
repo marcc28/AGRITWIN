@@ -230,5 +230,56 @@
     "buy": "Comprar",
     "units": "unidades",
     "errors": { "loadFailed": "No se han podido cargar los datos del mercado" }
+  },
+  "weather": {
+    "subtitle": "Previsión del tiempo",
+    "myField": "Mi campo",
+    "today": "Hoy",
+    "now": "Ahora",
+    "feelsLike": "Sensación {{value}}",
+    "highLow": "Máx {{high}} · Mín {{low}}",
+    "temperaturesIn": "Temperaturas en {{unit}}",
+    "todaysOutlook": "Previsión de hoy",
+    "nextHours": "Próximas horas",
+    "rainChance": "Probabilidad de lluvia",
+    "wind": "Viento",
+    "humidity": "Humedad",
+    "uvIndex": "Índice UV",
+    "sunrise": "Salida del sol",
+    "sunset": "Puesta del sol",
+    "threeDayForecast": "Previsión de 3 días",
+    "loading": "Cargando el tiempo...",
+    "error": "No se ha podido cargar el tiempo",
+    "retry": "Reintentar",
+    "noLocation": "Este campo no tiene ubicación. Añade una para ver el tiempo.",
+    "noField": "Todavía no tienes ningún campo. Crea uno para ver el tiempo.",
+    "noData": "No hay datos del tiempo para esta ubicación",
+    "back": "Inicio",
+    "uvLevels": {
+      "low": "Bajo",
+      "moderate": "Moderado",
+      "high": "Alto",
+      "veryHigh": "Muy alto",
+      "extreme": "Extremo"
+    },
+    "weekdays": [
+      "dom",
+      "lun",
+      "mar",
+      "mié",
+      "jue",
+      "vie",
+      "sáb"
+    ],
+    "compass": [
+      "N",
+      "NE",
+      "E",
+      "SE",
+      "S",
+      "SO",
+      "O",
+      "NO"
+    ]
   }
 }
