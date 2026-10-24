@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from api.v1 import anunces, auth, content_market, dashboard, legal, user, weather
+from api.v1 import anunces, auth, content_market, dashboard, fields, legal, user, weather
 
 load_dotenv()
 
@@ -33,24 +33,21 @@ app.add_middleware(
 
 # necessari for OWASP ZAP
 
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     # HSTS: activa'l només quan la petició original és HTTPS.
     # Si Render/proxy acaba TLS, configura correctament aquesta detecció.
 
-    response.headers["Strict-Transport-Security"] = (
-        "max-age=31536000"
-    )
+    response.headers["Strict-Transport-Security"] = "max-age=31536000"
 
-    response.headers["Cache-Control"] = (
-        "no-store, no-cache, must-revalidate, private"
-    )
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
 
-    
     return response
+
 
 # Register routes
 app.include_router(user.router, prefix="/api/v1")
@@ -59,6 +56,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(anunces.router, prefix="/api/v1")
 app.include_router(content_market.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(fields.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
 
 # app.mount("/profile_images", StaticFiles(directory=UPLOAD_DIR), name="profile_images")

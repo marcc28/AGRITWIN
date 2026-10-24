@@ -1,6 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
+import { clearCurrentField } from './currentField';
+
 const TOKEN_KEY = 'agritwin_access_token';
 const REFRESH_TOKEN_KEY = 'agritwin_refresh_token';
 const USERNAME_KEY = 'agritwin_username';
@@ -62,4 +64,5 @@ export async function clearAuth() {
   await removeItem(TOKEN_KEY);
   await removeItem(REFRESH_TOKEN_KEY);
   await removeItem(USERNAME_KEY);
+  await clearCurrentField();
 }

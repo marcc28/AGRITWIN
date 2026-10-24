@@ -80,3 +80,33 @@ def save_telemetry(payload: dict):
 
     except Exception as e:
         print(f"[DATABASE-ERROR] Error saving telemetry: {e}")
+
+
+def get_devices_status() -> dict[str, bool]:
+    """Returns {device_id: battery_status} for every device registered in Supabase."""
+    if not supabase:
+        print("[DATABASE-ERROR] Cannot read devices. Supabase client is not configured.")
+        return {}
+
+    try:
+        response = supabase.table("devices").select("id, battery_status").execute()
+        return {row["id"]: bool(row["battery_status"]) for row in response.data}
+
+    except Exception as e:
+        print(f"[DATABASE-ERROR] Error reading devices: {e}")
+        return {}
+
+
+def set_device_battery_status(device_id: str, status: bool) -> bool:
+    """Updates devices.battery_status for one device. Returns True when the update worked."""
+    if not supabase:
+        print("[DATABASE-ERROR] Cannot update device. Supabase client is not configured.")
+        return False
+
+    try:
+        supabase.table("devices").update({"battery_status": status}).eq("id", device_id).execute()
+        return True
+
+    except Exception as e:
+        print(f"[DATABASE-ERROR] Error updating battery status of {device_id}: {e}")
+        return False

@@ -62,9 +62,11 @@ def test_get_users_with_pagination(client, mock_service):
 
 
 def test_get_user_profiles(client, mock_service):
+    profile_id = uuid.uuid4()
     mock_service.list_users_profile.return_value = [
         {
-            "username": "john",
+            "id": profile_id,
+            "name": "john",
             "language": "ca",
             "units": "metric",
             "notifications_enabled": True,
@@ -78,7 +80,8 @@ def test_get_user_profiles(client, mock_service):
 
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert response.json()[0]["username"] == "john"
+    assert response.json()[0]["id"] == str(profile_id)
+    assert response.json()[0]["name"] == "john"
     assert response.json()[0]["language"] == "ca"
     assert response.json()[0]["units"] == "metric"
     assert response.json()[0]["notifications_enabled"] is True
@@ -97,7 +100,8 @@ def test_get_user_profile_success(client, mock_service):
     user_id = uuid.uuid4()
 
     mock_service.get_user_profile.return_value = {
-        "username": "john",
+        "id": user_id,
+        "name": "john",
         "language": "ca",
         "units": "metric",
         "notifications_enabled": True,
@@ -109,7 +113,8 @@ def test_get_user_profile_success(client, mock_service):
     response = client.get(f"/user_profile/{user_id}")
 
     assert response.status_code == 200
-    assert response.json()["username"] == "john"
+    assert response.json()["id"] == str(user_id)
+    assert response.json()["name"] == "john"
     assert response.json()["language"] == "ca"
     assert response.json()["units"] == "metric"
     assert response.json()["notifications_enabled"] is True

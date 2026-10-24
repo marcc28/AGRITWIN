@@ -1,33 +1,19 @@
-import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
-import { SensorCard } from '@/components/SensorCard';
-import { SensorModal } from '@/components/SensorModal';
-import { getDashboard, type Dashboard } from '@/services/api';
+import { WeatherCard } from '@/components/WeatherCard';
+import { useCurrentField } from '@/hooks/use-current-field';
+import { useFieldWeather } from '@/hooks/use-field-weather';
 import { styles } from '@/styles/home.styles';
 
 export default function HomeScreen() {
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
+  const { i18n } = useTranslation();
+  const field = useCurrentField();
+  const { state, retry } = useFieldWeather(field?.id ?? null, i18n.language);
 
-  useEffect(() => {
-    async function loadDashboard() {
-      try {
-        const data = await getDashboard();
-        setDashboard(data);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'No s’ha pogut carregar el dashboard';
-
-        setErrorMessage(message);
-      }
-    }
-
-    void loadDashboard();
-  }, []);
+  const weather =
+    field === undefined ? ({ status: 'loading' } as const) : state;
 
   const today = new Date()
     .toLocaleDateString('ca', {
@@ -36,6 +22,12 @@ export default function HomeScreen() {
       month: 'long',
     })
     .toUpperCase();
+
+  function openWeather() {
+    if (field) {
+      router.push({ pathname: '/weather', params: { id: String(field.id) } });
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -47,22 +39,9 @@ export default function HomeScreen() {
             Tasques, temps i cultius adaptats al teu hort.
           </Text>
 
-          <SensorCard
-            dashboard={dashboard}
-            errorMessage={errorMessage}
-            onPress={() => setModalVisible(true)}
-          />
+          <WeatherCard state={weather} onPress={openWeather} onRetry={retry} />
         </View>
       </ScrollView>
-
-      {dashboard && dashboard.latest ? (
-        <SensorModal
-          visible={modalVisible}
-          dashboard={dashboard}
-          latest={dashboard.latest}
-          onClose={() => setModalVisible(false)}
-        />
-      ) : null}
     </View>
   );
 }
