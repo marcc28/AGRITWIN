@@ -6,6 +6,7 @@ dependencies = [
     "aiofiles>=25.1.0",
     "aiosqlite>=0.22.1",
     "asyncpg>=0.31.0",
+    "aurora-dsql-python-connector>=0.2.7",
     "authlib>=1.8.0",
     "coverage>=7.16.2",
     "email-validator>=2.3.0",

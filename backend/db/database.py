@@ -1,5 +1,6 @@
 import os
 
+import aurora_dsql_asyncpg as dsql
 from dotenv import load_dotenv
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -10,24 +11,50 @@ from db.schema import Base
 
 load_dotenv()
 
-PRODUCTION = os.getenv("PRODUCTION") == "True"
+PRODUCTION = os.getenv("PROD") == "True"
 
 if PRODUCTION:
-    DATABASE_URL = os.getenv("EXTERN_DATABASE_URL")
+    # Producció: Aurora DSQL amb autenticació IAM
+    DSQL_HOST = os.getenv("DSQL_HOST", "").strip()
+    AWS_REGION = os.getenv("REGION", "us-east-1").strip()
+
+    if not DSQL_HOST:
+        raise RuntimeError(
+            "Falta DSQL_HOST al fitxer .env"
+        )
+
+    async def connect_dsql():
+        return await dsql.connect(
+            host=DSQL_HOST,
+            region=AWS_REGION,
+            user="admin",
+            database="postgres",
+        )
+    
+    engine = create_async_engine(
+        "postgresql+asyncpg://",
+        async_creator=connect_dsql,
+        pool_pre_ping=True,
+        connect_args={"statement_cache_size": 0},
+    )
+
 else:
+    # Desenvolupament: base de dades local actual
     DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL no està configurat. Revisa el teu .env")
-url = make_url(DATABASE_URL)
-url = url.difference_update_query(["pgbouncer"])
-engine = create_async_engine(
-    url,
-    pool_pre_ping=True,
-    connect_args={
-        "statement_cache_size": 0,
-    },
-)
+    if not DATABASE_URL:
+        raise RuntimeError(
+            "Falta DATABASE_URL al fitxer .env"
+        )
+
+    url = make_url(DATABASE_URL)
+    url = url.difference_update_query(["pgbouncer"])
+
+    engine = create_async_engine(
+        url,
+        pool_pre_ping=True,
+        connect_args={"statement_cache_size": 0},
+    )
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
@@ -81,22 +108,6 @@ def save_telemetry(payload: dict):
     except Exception as e:
         print(f"[DATABASE-ERROR] Error saving telemetry: {e}")
 
-
-def get_devices_status() -> dict[str, bool]:
-    """Returns {device_id: battery_status} for every device registered in Supabase."""
-    if not supabase:
-        print("[DATABASE-ERROR] Cannot read devices. Supabase client is not configured.")
-        return {}
-
-    try:
-        response = supabase.table("devices").select("id, battery_status").execute()
-        return {row["id"]: bool(row["battery_status"]) for row in response.data}
-
-    except Exception as e:
-        print(f"[DATABASE-ERROR] Error reading devices: {e}")
-        return {}
-
-
 def set_device_battery_status(device_id: str, status: bool) -> bool:
     """Updates devices.battery_status for one device. Returns True when the update worked."""
     if not supabase:
@@ -110,3 +121,17 @@ def set_device_battery_status(device_id: str, status: bool) -> bool:
     except Exception as e:
         print(f"[DATABASE-ERROR] Error updating battery status of {device_id}: {e}")
         return False
+    
+def get_devices_status() -> dict[str, bool]:
+    """Returns {device_id: battery_status} for every device registered in Supabase."""
+    if not supabase:
+        print("[DATABASE-ERROR] Cannot read devices. Supabase client is not configured.")
+        return {}
+
+    try:
+        response = supabase.table("devices").select("id, battery_status").execute()
+        return {row["id"]: bool(row["battery_status"]) for row in response.data}
+
+    except Exception as e:
+        print(f"[DATABASE-ERROR] Error reading devices: {e}")
+        return {}
