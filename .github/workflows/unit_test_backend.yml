@@ -36,6 +36,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DSQL_HOST: ${{ secrets.DSQL_HOST }}
           REGION : ${{secrets.REGION}}
+          OPENWEATHER_API_KEY: ${{secrets.OPENWEATHER_API_KEY}}
         run: uv run pytest -v --cov --cov-report=term-missing --cov-report=xml:coverage.xml
 
       - name: Upload coverage report
