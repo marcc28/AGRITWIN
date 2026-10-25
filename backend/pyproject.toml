@@ -8,6 +8,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "aurora-dsql-python-connector>=0.2.7",
     "authlib>=1.8.0",
+    "botocore[crt]>=1.43.114",
     "coverage>=7.16.2",
     "email-validator>=2.3.0",
     "fastapi>=0.141.1",
@@ -15,7 +16,7 @@ dependencies = [
     "itsdangerous>=2.2.0",
     "jinja2>=3.1.6",
     "paho-mqtt>=2.1.0",
-    "psycopg>=3.3.6",
+    "psycopg[pool]>=3.3.6",
     "psycopg-binary>=3.3.6",
     "pwdlib[argon2]>=0.3.1",
     "pyjwt>=2.15.0",
@@ -26,6 +27,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.54",
     "supabase>=2.32.0",
     "uvicorn[standard]>=0.54.0",
+    "mangum>=0.22.0",
 ]
 
 [dependency-groups]

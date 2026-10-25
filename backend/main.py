@@ -4,19 +4,16 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from mangum import Mangum
 from starlette.middleware.sessions import SessionMiddleware
 
 from api.v1 import anunces, auth, content_market, dashboard, fields, legal, user, weather
 
 load_dotenv()
 
-
 app = FastAPI(title="AgriTwin")
-# Base.metadata.create_all(bind=engine)
 
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # carpeta de main.py
-# UPLOAD_DIR = os.path.join(BASE_DIR, "profile_images")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
@@ -31,25 +28,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# necessari for OWASP ZAP
-
-
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
-    # HSTS: activa'l només quan la petició original és HTTPS.
-    # Si Render/proxy acaba TLS, configura correctament aquesta detecció.
 
     response.headers["Strict-Transport-Security"] = "max-age=31536000"
-
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+    response.headers["Cache-Control"] = (
+        "no-store, no-cache, must-revalidate, private"
+    )
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
 
     return response
 
-
-# Register routes
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(legal.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
@@ -59,12 +50,9 @@ app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(fields.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
 
-# app.mount("/profile_images", StaticFiles(directory=UPLOAD_DIR), name="profile_images")
-
-
-# PING ENDPOINT
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):
-    if request.method == "HEAD":
-        return JSONResponse(content=None, status_code=200)
     return JSONResponse(content=None, status_code=200)
+
+# AWS Lambda handler
+handler = Mangum(app)

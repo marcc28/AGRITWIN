@@ -24,7 +24,7 @@ def reload_database_module(
         ("DATABASE_URL", local_url),
         ("DSQL_HOST", external_url),
         ("SUPABASE_URL", supabase_url),
-        ("SUPABASE_SECRET_KEY", supabase_key),
+        ("SUPABASE_SECRET_KEY", supabase_key)
     ):
         if value is None:
             monkeypatch.delenv(name, raising=False)
@@ -73,6 +73,21 @@ async def test_database_uses_dsql_in_production(monkeypatch):
         database="postgres",
     )
 
+    # Simulem la connexió real amb Aurora DSQL.
+    fake_connection = MagicMock()
+    mock_connect = AsyncMock(return_value=fake_connection)
+    monkeypatch.setattr(module.dsql, "connect", mock_connect)
+
+    # Executem la funció sense contactar amb AWS.
+    result = await module.connect_dsql()
+
+    assert result is fake_connection
+    mock_connect.assert_awaited_once_with(
+        host=dsql_host,
+        region=aws_region,
+        user="admin",
+        database="postgres",
+    )
 
 def test_database_raises_when_url_is_missing(monkeypatch):
     monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)
