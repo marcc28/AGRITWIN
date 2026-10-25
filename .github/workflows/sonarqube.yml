@@ -46,8 +46,9 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           PRODUCTION: ${{ secrets.PRODUCTION }}
-          LOCAL_DATABASE_URL: ${{ secrets.LOCAL_DATABASE_URL }}
-          EXTERN_DATABASE_URL: ${{ secrets.EXTERN_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DSQL_HOST: ${{ secrets.DSQL_HOST }}
+          REGION : ${{secrets.REGION}}
         run: >
             uv run pytest 
             -v --cov 
