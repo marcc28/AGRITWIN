@@ -33,7 +33,7 @@ export function WeatherCard({ state, onPress, onRetry }: Props) {
     const messages = {
       error: 'weather.error',
       'no-location': 'weather.noLocation',
-    'no-field': 'weather.noField',
+      'no-field': 'weather.noField',
       'no-data': 'weather.noData',
     } as const;
 
