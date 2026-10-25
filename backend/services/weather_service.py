@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 from typing import Any
 
@@ -8,12 +9,14 @@ from models.weather import WeatherForecastResponse
 from services import city_search, open_meteo
 
 DEFAULT_LANG = "ca"
-DEFAULT_TIMEOUT_SECONDS = 40.0
+DEFAULT_TIMEOUT_SECONDS = 10.0
 SUPPORTED_UNITS = ("metric", "imperial")
 MAX_FORECAST_DAYS = 5
 MAX_ATTEMPTS = 2
 RETRY_DELAY_SECONDS = 0.5
 MAX_CACHED_CITIES = 500
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_lang(lang: str | None) -> str:
@@ -124,25 +127,62 @@ class WeatherService:
         async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS) as client:
             return await self._get_with_retry(client, url, params)
 
+
     async def _get_with_retry(
         self, client: httpx.AsyncClient, url: str, params: dict[str, Any]
     ) -> dict:
         error = WeatherUnavailableError()
+
         for attempt in range(MAX_ATTEMPTS):
             if attempt:
                 await asyncio.sleep(self._retry_delay)
+
             try:
                 response = await client.get(url, params=params)
-            except httpx.TimeoutException:
+
+            except httpx.TimeoutException as exc:
+                logger.warning(
+                    "Timeout del proveïdor %s: %s (intent %s/%s)",
+                    url,
+                    str(exc),
+                    attempt + 1,
+                    MAX_ATTEMPTS,
+                )
                 error = WeatherUnavailableError("Weather provider timed out")
                 continue
-            except httpx.HTTPError:
+
+            except httpx.HTTPError as exc:
+                logger.warning(
+                    "Error de connexió amb %s: %r (intent %s/%s)",
+                    url,
+                    exc,
+                    attempt + 1,
+                    MAX_ATTEMPTS,
+                )
                 error = WeatherUnavailableError()
                 continue
+
+            if response.status_code == 429:
+                logger.warning(
+                    "Rate limit de %s: HTTP 429. Retry-After=%s",
+                    url,
+                    response.headers.get("Retry-After"),
+                )
+                raise WeatherUnavailableError("Weather provider rate limit exceeded")
+
             if response.status_code >= 500:
+                logger.warning(
+                    "Error del proveïdor %s: HTTP %s (intent %s/%s)",
+                    url,
+                    response.status_code,
+                    attempt + 1,
+                    MAX_ATTEMPTS,
+                )
                 error = WeatherUnavailableError()
                 continue
+
             return self._read(response)
+
         raise error
 
     @staticmethod
