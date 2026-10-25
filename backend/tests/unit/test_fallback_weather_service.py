@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock
 
-import pytest
 import httpx
+import pytest
 
 from services.fallback_weather_service import FallbackWeatherService
 from services.open_meteo_service import OpenMeteoWeatherService
@@ -33,9 +33,7 @@ async def test_provider_error_uses_fallback():
     result = await service.get_forecast(41.6, 0.6, units="imperial", lang="es", days=3)
 
     assert result == "fallback forecast"
-    fallback.get_forecast.assert_awaited_once_with(
-        41.6, 0.6, units="imperial", lang="es", days=3
-    )
+    fallback.get_forecast.assert_awaited_once_with(41.6, 0.6, units="imperial", lang="es", days=3)
 
 
 @pytest.mark.asyncio

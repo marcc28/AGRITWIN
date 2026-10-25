@@ -1,7 +1,7 @@
 """Open-Meteo provider used when the primary weather provider is unavailable."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -9,9 +9,9 @@ import httpx
 from models.weather import WeatherForecastResponse
 from services import city_search, open_meteo
 from services.weather_service import (
+    DEFAULT_LANG,
     DEFAULT_TIMEOUT_SECONDS,
     MAX_FORECAST_DAYS,
-    DEFAULT_LANG,
     WeatherDataError,
     WeatherServiceError,
     WeatherUnavailableError,
@@ -41,9 +41,7 @@ class OpenMeteoWeatherService:
             if response.status_code == 429 or response.status_code >= 500:
                 raise WeatherUnavailableError("Open-Meteo is unavailable")
             if response.status_code >= 400:
-                raise WeatherServiceError(
-                    f"Open-Meteo error (HTTP {response.status_code})"
-                )
+                raise WeatherServiceError(f"Open-Meteo error (HTTP {response.status_code})")
             try:
                 return response.json()
             except ValueError as exc:
@@ -73,7 +71,7 @@ class OpenMeteoWeatherService:
         except (KeyError, TypeError, ValueError, IndexError, AttributeError) as exc:
             logger.exception("Unexpected Open-Meteo response")
             raise WeatherServiceError("Unexpected Open-Meteo response") from exc
-        result.fetched_at = datetime.now(timezone.utc)
+        result.fetched_at = datetime.now(UTC)
         return result
 
     async def find_city(
