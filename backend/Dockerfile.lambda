@@ -13,7 +13,10 @@ RUN uv export \
     --no-dev \
     --no-emit-project \
     --format requirements-txt \
-    -o /tmp/requirements.txt
+    --no-annotate \
+    --no-header \
+    --no-sources \
+    --output-file /tmp/requirements.txt
 
 
 # Etapa 2: imatge final de Lambda
@@ -31,7 +34,7 @@ RUN pip install \
     --only-binary=:all: \
     -r requirements.txt \
     && rm requirements.txt
-    
+
 # Copiar només els fitxers necessaris
 COPY api/ ./api/
 COPY db/ ./db/
