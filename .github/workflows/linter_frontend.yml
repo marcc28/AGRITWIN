@@ -2,9 +2,9 @@ name: Frontend lint and typecheck
 
 on:
   push:
-    branches: ["dev",staging, "prod"] 
+    branches: ["dev", "staging", "prod"] 
   pull_request:
-    branches: ["dev",staging,  "prod"] 
+    branches: ["dev", "staging",  "prod"] 
   workflow_dispatch:
 
 permissions:
