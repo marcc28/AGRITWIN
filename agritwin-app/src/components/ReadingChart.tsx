@@ -19,12 +19,15 @@ type Props = Readonly<{
 }>;
 
 const HEIGHT = 132;
-const PAD_LEFT = 36;
+const PAD_LEFT = 32;
 const PAD_RIGHT = 8;
 const PAD_TOP = 10;
 const PAD_BOTTOM = 18;
 
 function tickLabel(value: number): string {
+  if (Math.abs(value) >= 1000) {
+    return `${(value / 1000).toFixed(0)}k`;
+  }
   if (Number.isInteger(value)) {
     return String(value);
   }

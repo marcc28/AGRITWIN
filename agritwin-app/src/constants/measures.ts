@@ -55,6 +55,12 @@ export function getMeasureValue(reading: Reading, measure: Measure): number {
 }
 
 export function formatValue(value: number, measure: Measure): string {
+  if (measure.key === 'light' && Math.abs(value) >= 1000) {
+    return `${(value / 1000).toLocaleString('ca', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    })}k`;
+  }
   return value.toLocaleString('ca', {
     minimumFractionDigits: measure.decimals,
     maximumFractionDigits: measure.decimals,

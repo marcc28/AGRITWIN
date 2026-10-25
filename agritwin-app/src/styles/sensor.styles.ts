@@ -128,15 +128,18 @@ export const styles = StyleSheet.create({
     padding: 14,
     borderRadius: BOX_RADIUS,
     backgroundColor: CREAM,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 10,
   },
 
   heroLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+
+  heroValueBox: {
+    flex: 1,
+    minWidth: 0,
   },
 
   heroValue: {
@@ -151,8 +154,11 @@ export const styles = StyleSheet.create({
   },
 
   heroRight: {
-    alignItems: 'flex-end',
-    gap: 2,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 4,
   },
 
   heroSmall: {
@@ -226,12 +232,15 @@ export const styles = StyleSheet.create({
   rangeRow: {
     marginTop: 16,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: 8,
   },
 
   rangeItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
     gap: 4,
   },
 

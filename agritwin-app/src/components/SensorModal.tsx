@@ -71,9 +71,14 @@ export function SensorModal({
             size={36}
             color={Colors.light.primaryDark}
           />
-          <View>
-            <Text style={styles.heroValue}>
-              {formatValue(getMeasureValue(latest, measure), measure)}
+          <View style={styles.heroValueBox}>
+            <Text
+              style={styles.heroValue}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
+              {formatValue(getMeasureValue(latest, measure), measure)}{' '}
               {measure.unit}
             </Text>
             <Text style={styles.heroLabel}>{measure.label}</Text>
@@ -128,7 +133,12 @@ export function SensorModal({
                 />
                 <Text style={styles.gridLabel}>{item.label}</Text>
               </View>
-              <Text style={styles.gridValue}>
+              <Text
+                style={styles.gridValue}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
                 {formatValue(getMeasureValue(latest, item), item)} {item.unit}
               </Text>
             </Pressable>
