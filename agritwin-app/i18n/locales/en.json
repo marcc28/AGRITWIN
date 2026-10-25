@@ -229,5 +229,39 @@
     "buy": "Buy",
     "units": "units",
     "errors": { "loadFailed": "Could not load market data" }
+  },
+  "weather": {
+    "subtitle": "Weather forecast",
+    "myField": "My field",
+    "today": "Today",
+    "now": "Now",
+    "feelsLike": "Feels like {{value}}",
+    "highLow": "H {{high}} · L {{low}}",
+    "temperaturesIn": "Temperatures in {{unit}}",
+    "todaysOutlook": "Today's outlook",
+    "nextHours": "Next hours",
+    "rainChance": "Chance of rain",
+    "wind": "Wind",
+    "humidity": "Humidity",
+    "uvIndex": "UV index",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "threeDayForecast": "Three-day forecast",
+    "loading": "Loading weather...",
+    "error": "Couldn't load the weather",
+    "retry": "Try again",
+    "noLocation": "This field has no location. Add one to see the weather.",
+    "noField": "You don't have any field yet. Create one to see the weather.",
+    "noData": "No weather data for this location",
+    "back": "Home",
+    "uvLevels": {
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "High",
+      "veryHigh": "Very high",
+      "extreme": "Extreme"
+    },
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "compass": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
   }
 }

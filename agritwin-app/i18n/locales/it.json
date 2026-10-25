@@ -231,5 +231,39 @@
     "errors": {
       "loadFailed": "Non è stato possibile caricare i dati del mercato"
     }
+  },
+  "weather": {
+    "subtitle": "Previsioni meteo",
+    "myField": "Il mio campo",
+    "today": "Oggi",
+    "now": "Ora",
+    "feelsLike": "Percepita {{value}}",
+    "highLow": "Max {{high}} · Min {{low}}",
+    "temperaturesIn": "Temperature in {{unit}}",
+    "todaysOutlook": "Previsioni di oggi",
+    "nextHours": "Prossime ore",
+    "rainChance": "Probabilità di pioggia",
+    "wind": "Vento",
+    "humidity": "Umidità",
+    "uvIndex": "Indice UV",
+    "sunrise": "Alba",
+    "sunset": "Tramonto",
+    "threeDayForecast": "Previsioni a 3 giorni",
+    "loading": "Caricamento meteo...",
+    "error": "Impossibile caricare il meteo",
+    "retry": "Riprova",
+    "noLocation": "Questo campo non ha una posizione. Aggiungine una per vedere il meteo.",
+    "noField": "Non hai ancora nessun campo. Creane uno per vedere il meteo.",
+    "noData": "Nessun dato meteo per questa posizione",
+    "back": "Home",
+    "uvLevels": {
+      "low": "Basso",
+      "moderate": "Moderato",
+      "high": "Alto",
+      "veryHigh": "Molto alto",
+      "extreme": "Estremo"
+    },
+    "weekdays": ["dom", "lun", "mar", "mer", "gio", "ven", "sab"],
+    "compass": ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
   }
 }

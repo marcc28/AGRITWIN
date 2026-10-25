@@ -636,3 +636,112 @@ export async function updateField(
 
   return data as Field;
 }
+
+// --------------------------------------------------
+// WEATHER FORECAST
+// --------------------------------------------------
+export type WeatherCondition = {
+  code: number | null;
+  main: string;
+  description: string;
+  icon: string;
+};
+
+export type WeatherWind = {
+  speed: number;
+  direction_deg: number | null;
+  gust: number | null;
+};
+
+export type HourlyWeather = {
+  time: string;
+  temperature: number;
+  rain_probability: number | null;
+  condition: WeatherCondition;
+};
+
+export type DailyWeather = {
+  date: string;
+  temp_min: number;
+  temp_max: number;
+  rain_probability: number;
+  rain_mm: number;
+  condition: WeatherCondition;
+  wind: WeatherWind;
+  uv_index_max: number | null;
+  sunrise: string | null;
+  sunset: string | null;
+};
+
+export type FieldWeather = {
+  units: string;
+  lang: string;
+  temperature_unit: string;
+  wind_speed_unit: string;
+  fetched_at: string | null;
+  location: {
+    field_id: number | null;
+    name: string | null;
+    country: string | null;
+    latitude: number;
+    longitude: number;
+    timezone_offset: number;
+  };
+  current: {
+    observed_at: string;
+    temperature: number;
+    feels_like: number;
+    humidity: number;
+    pressure: number;
+    clouds: number;
+    rain_last_hour_mm: number;
+    condition: WeatherCondition;
+    wind: WeatherWind;
+    rain_probability: number | null;
+    uv_index: number | null;
+    is_day: boolean;
+  };
+  hourly: HourlyWeather[];
+  daily: DailyWeather[];
+};
+
+export class WeatherRequestError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
+export async function getFieldWeather(
+  fieldId: number,
+  lang: string,
+  days = 3,
+): Promise<FieldWeather> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new WeatherRequestError('Not authenticated', 401);
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/v1/weather/fields/${fieldId}?days=${days}&lang=${encodeURIComponent(lang)}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.token}`,
+      },
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const detail = typeof data.detail === 'string' ? data.detail : '';
+    throw new WeatherRequestError(detail, response.status);
+  }
+
+  return data as FieldWeather;
+}

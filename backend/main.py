@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from api.v1 import anunces, auth, content_market, dashboard, fields, legal, user
+from api.v1 import anunces, auth, content_market, dashboard, fields, legal, user, weather
 
 load_dotenv()
 
@@ -57,6 +57,7 @@ app.include_router(anunces.router, prefix="/api/v1")
 app.include_router(content_market.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(fields.router, prefix="/api/v1")
+app.include_router(weather.router, prefix="/api/v1")
 
 # app.mount("/profile_images", StaticFiles(directory=UPLOAD_DIR), name="profile_images")
 
