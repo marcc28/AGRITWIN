@@ -8,7 +8,7 @@ from models.weather import WeatherForecastResponse
 from services import city_search, open_meteo
 
 DEFAULT_LANG = "ca"
-DEFAULT_TIMEOUT_SECONDS = 10.0
+DEFAULT_TIMEOUT_SECONDS = 40.0
 SUPPORTED_UNITS = ("metric", "imperial")
 MAX_FORECAST_DAYS = 5
 MAX_ATTEMPTS = 2
