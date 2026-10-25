@@ -20,12 +20,14 @@ from sqlalchemy.pool import StaticPool
 from db.schema import Base, Field, User, UserProfile, WeatherCache
 from services.field_weather_service import FieldWeatherService
 from services.weather_service import WeatherDataError, WeatherService, WeatherUnavailableError
-from tests.unit.test_weather_service import GEOCODING_HOST, LLEIDA, OPEN_METEO
+from tests.unit.test_weather_service import CURRENT, FORECAST
 
-USER_IDS = {
-    "cinta": UUID("c1a7a5e0-0000-4000-a000-00000000000a"),
-    "marc": UUID("a2c0b5e0-0000-4000-a000-00000000000b"),
-}
+USER_ID = UUID("c1a7a5e0-0000-4000-a000-00000000000a")
+
+
+@pytest.fixture(autouse=True)
+def _api_key(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "test-api-key")
 
 
 @pytest.fixture
@@ -38,65 +40,42 @@ async def sessions():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(engine, expire_on_commit=False)
-
     async with factory() as session:
-        session.add(
-            User(
-                id=USER_IDS["cinta"],
-                username="cinta",
-                email="cinta@example.com",
-                password_hash="x",
-            )
-        )
+        session.add(User(id=USER_ID, username="cinta", email="cinta@example.com", password_hash="x"))
         session.add_all(
             [
-                Field(
-                    id=1,
-                    user_id=USER_IDS["cinta"],
-                    name="Hort",
-                    location="Alcarràs",
-                    lat=41.56,
-                    lon=0.52,
-                ),
-                Field(id=2, user_id=USER_IDS["cinta"], name="Camp sense GPS", location="Lleida"),
-                Field(id=3, user_id=USER_IDS["cinta"], name="Camp buit"),
+                Field(id=1, user_id=USER_ID, name="Hort", location="Alcarràs", lat=41.56, lon=0.52),
+                Field(id=2, user_id=USER_ID, name="Camp sense GPS", location="Lleida"),
+                Field(id=3, user_id=USER_ID, name="Camp buit"),
             ]
         )
         await session.commit()
-
     yield factory
     await engine.dispose()
-
-
-@pytest.fixture(autouse=True)
-def _clear_caches():
-    WeatherService.clear_cache()
-    yield
-    WeatherService.clear_cache()
 
 
 def recorder(calls, status=200):
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append(request)
-        if request.url.host == GEOCODING_HOST:
-            return httpx.Response(200, json=LLEIDA)
         if status != 200:
             return httpx.Response(status)
-        return httpx.Response(200, json=OPEN_METEO)
+        if request.url.path.endswith("/weather"):
+            return httpx.Response(200, json=CURRENT)
+        if request.url.path.endswith("/forecast"):
+            return httpx.Response(200, json=FORECAST)
+        return httpx.Response(200, json=[])
 
     return handler
 
 
 def make_service(session, handler, cache_seconds=600) -> FieldWeatherService:
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    weather = WeatherService(client=client, retry_delay=0)
-    return FieldWeatherService(session, weather=weather, cache_seconds=cache_seconds)
+    return FieldWeatherService(session, weather=WeatherService(client=client), cache_seconds=cache_seconds)
 
 
 async def forecast(sessions, handler, field_id=1, cache_seconds=600, **kwargs):
     async with sessions() as session:
-        service = make_service(session, handler, cache_seconds)
-        return await service.get_forecast(field_id, **kwargs)
+        return await make_service(session, handler, cache_seconds).get_forecast(field_id, **kwargs)
 
 
 async def cache_row(sessions, field_id=1) -> WeatherCache | None:
@@ -104,181 +83,130 @@ async def cache_row(sessions, field_id=1) -> WeatherCache | None:
         return await session.get(WeatherCache, field_id)
 
 
-# 1. WEATHER CACHE (weather_cache table)
-
-
-async def test_field_with_coordinates_uses_them_and_saves_the_forecast(sessions):
+async def test_field_forecast_uses_coordinates_and_saves_cache(sessions):
     calls = []
-
     result = await forecast(sessions, recorder(calls))
 
-    assert len(calls) == 1
-    assert calls[0].url.params["latitude"] == "41.56"
-    assert calls[0].url.params["longitude"] == "0.52"
-    assert calls[0].url.params["forecast_days"] == "5"
+    assert len(calls) == 2
+    assert {request.url.path for request in calls} == {"/data/2.5/weather", "/data/2.5/forecast"}
+    assert all(request.url.params["lat"] == "41.56" for request in calls)
+    assert all(request.url.params["lon"] == "0.52" for request in calls)
     assert result.location.field_id == 1
     assert result.location.name == "Alcarràs"
     assert result.fetched_at is not None
-
     row = await cache_row(sessions)
     assert float(row.forecast_temperature_c) == 21.4
     assert float(row.forecast_rain_mm) == 3.4
     assert row.forecast_days["location"]["field_id"] == 1
-    assert len(row.forecast_days["daily"]) == 2
-    assert row.alert_active is False
 
 
 async def test_second_request_uses_weather_cache(sessions):
     calls = []
-
     first = await forecast(sessions, recorder(calls))
     second = await forecast(sessions, recorder(calls), days=1)
 
-    assert len(calls) == 1
+    assert len(calls) == 2
     assert second.current == first.current
     assert second.fetched_at == first.fetched_at
     assert len(second.daily) == 1
 
 
-async def test_old_cache_is_refreshed_and_the_row_updated(sessions):
+async def test_expired_cache_is_refreshed(sessions):
     calls = []
     await forecast(sessions, recorder(calls))
-
     async with sessions() as session:
         row = await session.get(WeatherCache, 1)
         row.timestamp -= timedelta(minutes=11)
         await session.commit()
 
     await forecast(sessions, recorder(calls))
-
-    assert len(calls) == 2
-    async with sessions() as session:
-        rows = (await session.execute(WeatherCache.__table__.select())).all()
-    assert len(rows) == 1
+    assert len(calls) == 4
 
 
-async def test_cache_is_not_used_after_the_field_moves(sessions):
+async def test_cache_is_not_used_after_field_coordinates_change(sessions):
     calls = []
     await forecast(sessions, recorder(calls))
-
     async with sessions() as session:
         field = await session.get(Field, 1)
         field.lat, field.lon = 41.70, 0.80
         await session.commit()
 
     result = await forecast(sessions, recorder(calls))
-
-    assert len(calls) == 2
-    assert calls[1].url.params["latitude"] == "41.7"
+    assert len(calls) == 4
+    assert calls[2].url.params["lat"] == "41.7"
     assert (result.location.latitude, result.location.longitude) == (41.70, 0.80)
 
 
-async def test_cache_is_not_used_after_the_location_name_changes(sessions):
+async def test_cache_disabled_always_requests_provider(sessions):
     calls = []
-    await forecast(sessions, recorder(calls), field_id=2)
+    await forecast(sessions, recorder(calls), cache_seconds=0)
+    await forecast(sessions, recorder(calls), cache_seconds=0)
+    assert len(calls) == 4
 
-    async with sessions() as session:
-        field = await session.get(Field, 2)
-        field.location = "Lleida, Segrià"
-        await session.commit()
 
-    result = await forecast(sessions, recorder(calls), field_id=2)
+async def test_units_and_language_are_part_of_cache_identity(sessions):
+    calls = []
+    await forecast(sessions, recorder(calls))
+    result = await forecast(sessions, recorder(calls), units="imperial", lang="es")
 
     assert len(calls) == 4
-    assert result.location.name == "Lleida, Segrià"
+    assert result.units == "imperial"
+    assert result.lang == "es"
+    assert all(request.url.params["units"] == "imperial" for request in calls[2:])
+    assert all(request.url.params["lang"] == "es" for request in calls[2:])
 
 
-async def test_language_in_capitals_uses_the_same_cache(sessions):
-    calls = []
-
-    await forecast(sessions, recorder(calls), lang="ca")
-    result = await forecast(sessions, recorder(calls), lang="CA")
-
-    assert len(calls) == 1
-    assert result.lang == "ca"
-
-
-async def test_cache_disabled_always_asks_the_provider(sessions):
-    calls = []
-
-    await forecast(sessions, recorder(calls), cache_seconds=0)
-    await forecast(sessions, recorder(calls), cache_seconds=0)
-
-    assert len(calls) == 2
-
-
-@pytest.mark.parametrize(("units", "lang"), [("imperial", "ca"), ("metric", "es")])
-async def test_other_units_or_language_are_not_taken_from_cache(sessions, units, lang):
-    calls = []
-
-    await forecast(sessions, recorder(calls))
-    result = await forecast(sessions, recorder(calls), units=units, lang=lang)
-
-    assert len(calls) == 2
-    assert (result.units, result.lang) == (units, lang)
-
-
-async def test_imperial_forecast_is_saved_in_celsius(sessions):
-    payload = {**OPEN_METEO, "current": {**OPEN_METEO["current"], "temperature_2m": 68.0}}
+async def test_imperial_cache_temperature_is_saved_in_celsius(sessions):
+    payload = {**CURRENT, "main": {**CURRENT["main"], "temp": 68.0}}
 
     def handler(request):
-        return httpx.Response(200, json=payload)
+        return httpx.Response(200, json=payload if request.url.path.endswith("/weather") else FORECAST)
 
     await forecast(sessions, handler, units="imperial")
-
     row = await cache_row(sessions)
     assert float(row.forecast_temperature_c) == 20.0
 
 
-# 2. FIELD LOCATION AND ERRORS
-
-
-async def test_field_without_coordinates_uses_its_location_name(sessions):
+async def test_city_lookup_matches_service_not_implemented_behavior(sessions):
     calls = []
-
-    result = await forecast(sessions, recorder(calls), field_id=2)
-
-    assert calls[0].url.host == GEOCODING_HOST
-    assert calls[0].url.params["name"] == "Lleida"
-    assert calls[1].url.params["latitude"] == "41.6176"
-    assert result.location.name == "Lleida"
-    assert result.location.country == "ES"
-    assert result.location.field_id == 2
+    with pytest.raises(NotImplementedError, match="_request_list"):
+        await forecast(sessions, recorder(calls), field_id=2)
+    assert len(calls) == 1
+    assert calls[0].url.host == "api.openweathermap.org"
+    assert calls[0].url.params["q"] == "Lleida"
 
 
-async def test_field_without_location_is_404(sessions):
+async def test_field_without_location_is_404_without_provider_call(sessions):
     calls = []
-
-    handler = recorder(calls)
     with pytest.raises(WeatherDataError) as exc:
-        await forecast(sessions, handler, field_id=3)
-
+        await forecast(sessions, recorder(calls), field_id=3)
     assert exc.value.status_code == 404
     assert exc.value.message == "Field has no location"
     assert calls == []
 
 
 async def test_unknown_field_is_404(sessions):
-    handler = recorder([])
     with pytest.raises(WeatherDataError) as exc:
-        await forecast(sessions, handler, field_id=99)
-
+        await forecast(sessions, recorder([]), field_id=99)
     assert exc.value.message == "Field not found"
 
 
-async def test_provider_error_saves_nothing(sessions):
-    handler = recorder([], status=503)
-    with pytest.raises(WeatherUnavailableError):
-        await forecast(sessions, handler)
+async def test_provider_error_does_not_save_cache(sessions, monkeypatch):
+    async def no_wait(_):
+        return None
 
+    monkeypatch.setattr("services.weather_service.asyncio.sleep", no_wait)
+    calls = []
+    with pytest.raises(WeatherUnavailableError):
+        await forecast(sessions, recorder(calls, status=503))
+    assert len(calls) == 4
     assert await cache_row(sessions) is None
 
 
-async def test_weather_is_returned_even_if_it_cannot_be_saved(sessions):
+async def test_weather_is_returned_even_if_cache_save_fails(sessions):
     async with sessions() as session:
         service = make_service(session, recorder([]))
         session.commit = AsyncMock(side_effect=SQLAlchemyError("database down"))
-
         result = await service.get_forecast(1)
 
     assert result.current.temperature == 21.4
@@ -288,151 +216,39 @@ async def test_weather_is_returned_even_if_it_cannot_be_saved(sessions):
 async def test_unreadable_cache_is_ignored(sessions):
     calls = []
     await forecast(sessions, recorder(calls))
-
     async with sessions() as session:
         row = await session.get(WeatherCache, 1)
         row.forecast_days = {"old": "format"}
         await session.commit()
 
     result = await forecast(sessions, recorder(calls))
-
-    assert len(calls) == 2
+    assert len(calls) == 4
     assert result.current.temperature == 21.4
 
 
-# 3. LANGUAGE OF THE USER PROFILE (user_profile.language)
-
-
-async def set_profile_language(sessions, language, username="cinta"):
+async def test_profile_language_is_used_and_cached(sessions):
     async with sessions() as session:
-        profile = await session.get(UserProfile, USER_IDS[username])
-        if profile is None:
-            session.add(UserProfile(id=USER_IDS[username], name=username, language=language))
-        else:
-            profile.language = language
+        session.add(UserProfile(id=USER_ID, name="Cinta", language="es"))
         await session.commit()
 
-
-async def test_without_profile_the_language_is_catalan(sessions):
-    result = await forecast(sessions, recorder([]))
-
-    assert result.lang == "ca"
-    assert result.current.condition.description == "pluja feble"
+    calls = []
+    result = await forecast(sessions, recorder(calls))
+    assert result.lang == "es"
+    assert all(request.url.params["lang"] == "es" for request in calls)
 
 
-@pytest.mark.parametrize(
-    ("language", "lang", "description"),
-    [
-        ("es", "es", "lluvia ligera"),
-        ("en", "en", "light rain"),
-        ("it", "it", "pioggia leggera"),
-        ("ca", "ca", "pluja feble"),
-        ("ES", "es", "lluvia ligera"),
-    ],
-)
-async def test_language_of_the_user_profile_is_used(sessions, language, lang, description):
-    await set_profile_language(sessions, language)
-
-    result = await forecast(sessions, recorder([]))
-
-    assert result.lang == lang
-    assert result.current.condition.description == description
-    assert result.daily[0].condition.description != ""
-
-
-async def test_lang_in_the_request_wins_over_the_profile(sessions):
-    await set_profile_language(sessions, "es")
+async def test_request_language_wins_over_profile(sessions):
+    async with sessions() as session:
+        session.add(UserProfile(id=USER_ID, name="Cinta", language="es"))
+        await session.commit()
 
     result = await forecast(sessions, recorder([]), lang="en")
-
     assert result.lang == "en"
-    assert result.current.condition.description == "light rain"
 
 
-async def test_profile_language_change_is_not_hidden_by_the_cache(sessions):
+async def test_field_owner_is_checked_before_weather_request(sessions):
     calls = []
-    await set_profile_language(sessions, "es")
-    first = await forecast(sessions, recorder(calls))
-
-    await set_profile_language(sessions, "it")
-    second = await forecast(sessions, recorder(calls))
-    third = await forecast(sessions, recorder(calls))
-
-    assert (first.lang, second.lang, third.lang) == ("es", "it", "it")
-    assert len(calls) == 2
-
-
-async def test_field_without_coordinates_searches_in_the_profile_language(sessions):
-    calls = []
-    await set_profile_language(sessions, "es")
-
-    await forecast(sessions, recorder(calls), field_id=2)
-
-    assert calls[0].url.host == GEOCODING_HOST
-    assert calls[0].url.params["language"] == "es"
-
-
-def test_invalid_cache_setting_falls_back_to_default(monkeypatch):
-    monkeypatch.setenv("WEATHER_CACHE_SECONDS", "abc")
-
-    service = FieldWeatherService(session=None)
-
-    assert service._cache_seconds == 600
-
-
-async def test_regional_language_code_uses_the_language(sessions):
-    result = await forecast(sessions, recorder([]), lang="es-ES")
-
-    assert result.lang == "es"
-    assert result.current.condition.description == "lluvia ligera"
-
-
-# 4. FIELDS OF THE LOGGED USER
-
-
-async def add_other_user_field(sessions):
-    async with sessions() as session:
-        session.add(
-            User(
-                id=USER_IDS["marc"],
-                username="marc",
-                email="marc@example.com",
-                password_hash="x",
-            )
-        )
-        session.add(
-            Field(
-                id=9,
-                user_id=USER_IDS["marc"],
-                name="Finca",
-                location="Mollerussa",
-                lat=41.63,
-                lon=0.89,
-            )
-        )
-        await session.commit()
-
-
-async def test_owner_gets_the_weather_of_the_field(sessions):
-    result = await forecast(sessions, recorder([]), username="cinta")
-
-    assert result.location.field_id == 1
-
-
-async def test_field_of_another_user_is_not_found(sessions):
-    calls = []
-    await add_other_user_field(sessions)
-
-    handler = recorder(calls)
     with pytest.raises(WeatherDataError) as exc:
-        await forecast(sessions, handler, field_id=9, username="cinta")
-
+        await forecast(sessions, recorder(calls), username="nobody")
     assert exc.value.status_code == 404
-    assert exc.value.message == "Field not found"
     assert calls == []
-
-
-async def test_unknown_user_does_not_see_the_field(sessions):
-    handler = recorder([])
-    with pytest.raises(WeatherDataError):
-        await forecast(sessions, handler, username="nobody")

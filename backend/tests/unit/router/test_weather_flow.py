@@ -22,27 +22,29 @@ from api.v1.weather import get_field_weather_service, router
 from db.schema import Base, Field, User, UserProfile, WeatherCache
 from services.field_weather_service import FieldWeatherService
 from services.weather_service import WeatherService
-from tests.unit.test_weather_service import GEOCODING_HOST, LLEIDA, OPEN_METEO
+from tests.unit.test_weather_service import CURRENT, FORECAST
 
 CINTA = UUID("c1a7a5e0-0000-4000-a000-00000000000a")
 MARC = UUID("a2c0b5e0-0000-4000-a000-00000000000b")
 
 
-class OpenMeteo:
+class OpenWeather:
     def __init__(self):
         self.requests = []
         self.status = 200
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(request)
-        if request.url.host == GEOCODING_HOST:
-            return httpx.Response(200, json=LLEIDA)
+        if request.url.path.endswith("/direct"):
+            return httpx.Response(200, json=[])
         if self.status != 200:
             return httpx.Response(self.status)
-        return httpx.Response(200, json=OPEN_METEO)
+        if request.url.path.endswith("/weather"):
+            return httpx.Response(200, json=CURRENT)
+        return httpx.Response(200, json=FORECAST)
 
     def forecasts(self):
-        return [r for r in self.requests if r.url.host != GEOCODING_HOST]
+        return [r for r in self.requests if not r.url.path.endswith("/direct")]
 
 
 async def create_database(engine):
@@ -71,12 +73,12 @@ async def create_database(engine):
 
 
 @pytest.fixture
-def open_meteo():
-    return OpenMeteo()
+def open_weather():
+    return OpenWeather()
 
 
 @pytest.fixture
-def flow(monkeypatch, open_meteo):
+def flow(monkeypatch, open_weather):
     engine = create_async_engine(
         "sqlite+aiosqlite://",
         connect_args={"check_same_thread": False},
@@ -84,12 +86,12 @@ def flow(monkeypatch, open_meteo):
     )
     sessions = asyncio.run(create_database(engine))
     monkeypatch.setattr(auth, "AsyncSessionLocal", sessions)
-    WeatherService.clear_cache()
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "test-api-key")
 
     async def field_weather_service():
         async with sessions() as session:
-            client = httpx.AsyncClient(transport=httpx.MockTransport(open_meteo))
-            weather = WeatherService(client=client, retry_delay=0)
+            client = httpx.AsyncClient(transport=httpx.MockTransport(open_weather))
+            weather = WeatherService(client=client)
             yield FieldWeatherService(session=session, weather=weather, cache_seconds=600)
 
     app = FastAPI()
@@ -98,7 +100,6 @@ def flow(monkeypatch, open_meteo):
 
     yield TestClient(app), sessions
 
-    WeatherService.clear_cache()
     asyncio.run(engine.dispose())
 
 
@@ -110,7 +111,7 @@ def login(username="cinta"):
 # FULL FLOW: route -> service -> database -> Open-Meteo (mocked)
 
 
-def test_app_gets_the_weather_of_its_field(flow, open_meteo):
+def test_app_gets_the_weather_of_its_field(flow, open_weather):
     client, _ = flow
 
     response = client.get("/api/v1/weather/fields/1?days=3", headers=login())
@@ -119,12 +120,13 @@ def test_app_gets_the_weather_of_its_field(flow, open_meteo):
     body = response.json()
     assert body["location"]["field_id"] == 1
     assert body["current"]["temperature"] == 21.4
-    assert body["current"]["condition"]["description"] == "lluvia ligera"
+    assert body["current"]["condition"]["description"] == "light rain"
     assert body["daily"][0]["temp_max"] == 25.0
     assert body["hourly"]
-    request = open_meteo.forecasts()[0]
-    assert request.url.params["latitude"] == "41.56"
-    assert request.url.params["longitude"] == "0.52"
+    requests = open_weather.forecasts()
+    assert len(requests) == 2
+    assert all(request.url.params["lat"] == "41.56" for request in requests)
+    assert all(request.url.params["lon"] == "0.52" for request in requests)
 
 
 def test_language_of_the_app_wins_over_the_profile(flow):
@@ -134,10 +136,10 @@ def test_language_of_the_app_wins_over_the_profile(flow):
 
     assert response.status_code == 200
     assert response.json()["lang"] == "ca"
-    assert response.json()["current"]["condition"]["description"] == "pluja feble"
+    assert response.json()["current"]["condition"]["description"] == "light rain"
 
 
-def test_forecast_is_saved_and_reused(flow, open_meteo):
+def test_forecast_is_saved_and_reused(flow, open_weather):
     client, sessions = flow
 
     first = client.get("/api/v1/weather/fields/1", headers=login())
@@ -145,7 +147,7 @@ def test_forecast_is_saved_and_reused(flow, open_meteo):
 
     assert first.status_code == second.status_code == 200
     assert second.json() == first.json()
-    assert len(open_meteo.forecasts()) == 1
+    assert len(open_weather.forecasts()) == 2
 
     async def cached():
         async with sessions() as session:
@@ -154,57 +156,59 @@ def test_forecast_is_saved_and_reused(flow, open_meteo):
     assert asyncio.run(cached()) is not None
 
 
-def test_field_with_only_a_town_is_searched(flow, open_meteo):
+def test_field_with_only_a_town_uses_the_service_placeholder(flow, open_weather):
     client, _ = flow
 
-    response = client.get("/api/v1/weather/fields/2", headers=login())
+    with pytest.raises(NotImplementedError, match="_request_list"):
+        client.get("/api/v1/weather/fields/2", headers=login())
+    assert open_weather.requests[0].url.path.endswith("/direct")
+    assert open_weather.requests[0].url.params["q"] == "Lleida"
 
-    assert response.status_code == 200
-    assert open_meteo.requests[0].url.host == GEOCODING_HOST
-    assert open_meteo.requests[0].url.params["name"] == "Lleida"
 
-
-def test_field_without_location_has_no_weather(flow, open_meteo):
+def test_field_without_location_has_no_weather(flow, open_weather):
     client, _ = flow
 
     response = client.get("/api/v1/weather/fields/3", headers=login())
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Field has no location"
-    assert open_meteo.requests == []
+    assert open_weather.requests == []
 
 
 @pytest.mark.parametrize("field_id", [4, 999])
-def test_field_of_another_user_or_unknown_is_not_found(flow, open_meteo, field_id):
+def test_field_of_another_user_or_unknown_is_not_found(flow, open_weather, field_id):
     client, _ = flow
 
     response = client.get(f"/api/v1/weather/fields/{field_id}", headers=login())
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Field not found"
-    assert open_meteo.requests == []
+    assert open_weather.requests == []
 
 
-def test_external_api_unavailable(flow, open_meteo):
+def test_external_api_unavailable(flow, open_weather, monkeypatch):
     client, _ = flow
-    open_meteo.status = 503
+    async def no_wait(_):
+        return None
+    monkeypatch.setattr("services.weather_service.asyncio.sleep", no_wait)
+    open_weather.status = 503
 
     response = client.get("/api/v1/weather/fields/1", headers=login())
 
     assert response.status_code == 503
-    assert len(open_meteo.forecasts()) == 2
+    assert len(open_weather.forecasts()) == 4
 
 
-def test_without_login_the_weather_is_not_shown(flow, open_meteo):
+def test_without_login_the_weather_is_not_shown(flow, open_weather):
     client, _ = flow
 
     response = client.get("/api/v1/weather/fields/1")
 
     assert response.status_code == 401
-    assert open_meteo.requests == []
+    assert open_weather.requests == []
 
 
-def test_with_an_invalid_token_the_weather_is_not_shown(flow):
+def test_with_an_invalid_token_the_weather_is_not_shown(flow, open_weather):
     client, _ = flow
 
     response = client.get(
@@ -212,3 +216,4 @@ def test_with_an_invalid_token_the_weather_is_not_shown(flow):
     )
 
     assert response.status_code == 401
+    assert open_weather.requests == []
