@@ -12,7 +12,6 @@ on:
       - dev
       - staging
       - prod
-      - feature/47-sprint-1-devops-automation-workflows
 
   workflow_dispatch:
 

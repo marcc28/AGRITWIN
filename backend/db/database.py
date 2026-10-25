@@ -15,7 +15,7 @@ PRODUCTION = os.getenv("PRODUCTION") == "True"
 if PRODUCTION:
     DATABASE_URL = os.getenv("EXTERN_DATABASE_URL")
 else:
-    DATABASE_URL = os.getenv("LOCAL_DATABASE_URL")
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL no està configurat. Revisa el teu .env")
