@@ -344,7 +344,7 @@ def _next_hours(hourly: dict, now: str, tz: timezone, lang: str) -> list[HourlyF
 def _rain_probability_at(hourly: dict, time: str) -> float | None:
     hour = time[:13]
     for slot_time, probability in _pairs(hourly, "precipitation_probability"):
-        if slot_time[:13] == hour:
+        if slot_time.startswith(hour):
             return _number(probability)
     return None
 

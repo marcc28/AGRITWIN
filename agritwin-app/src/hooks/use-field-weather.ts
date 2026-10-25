@@ -14,15 +14,15 @@ export type FieldWeatherState =
   | { status: 'no-data' }
   | { status: 'error' };
 
-const NO_LOCATION_ERRORS = [
+const NO_LOCATION_ERRORS = new Set([
   'Field has no location',
   'Field not found',
   'City not found',
-];
+]);
 
 function stateForError(error: unknown): FieldWeatherState {
   if (error instanceof WeatherRequestError && error.status === 404) {
-    return NO_LOCATION_ERRORS.includes(error.message)
+    return NO_LOCATION_ERRORS.has(error.message)
       ? { status: 'no-location' }
       : { status: 'no-data' };
   }
@@ -73,7 +73,7 @@ export function useFieldWeather(fieldId: number | null, lang: string) {
   let state: FieldWeatherState;
   if (fieldId === null) {
     state = { status: 'no-field' };
-  } else if (result === null || result.key !== requestKey) {
+  } else if (result?.key !== requestKey) {
     state = { status: 'loading' };
   } else {
     state = result.state;

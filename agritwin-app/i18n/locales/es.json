@@ -262,24 +262,7 @@
       "veryHigh": "Muy alto",
       "extreme": "Extremo"
     },
-    "weekdays": [
-      "dom",
-      "lun",
-      "mar",
-      "mié",
-      "jue",
-      "vie",
-      "sáb"
-    ],
-    "compass": [
-      "N",
-      "NE",
-      "E",
-      "SE",
-      "S",
-      "SO",
-      "O",
-      "NO"
-    ]
+    "weekdays": ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+    "compass": ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
   }
 }

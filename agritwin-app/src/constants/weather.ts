@@ -8,7 +8,7 @@ export type WeatherIcon = ComponentProps<typeof Ionicons>['name'];
 
 export type UvLevel = 'low' | 'moderate' | 'high' | 'veryHigh' | 'extreme';
 
-const PARTLY_CLOUDY_CODES = [1, 2];
+const PARTLY_CLOUDY_CODES = new Set([1, 2]);
 
 export function weatherIcon(
   condition: WeatherCondition,
@@ -18,7 +18,7 @@ export function weatherIcon(
     case 'Clear':
       return isDay ? 'sunny-outline' : 'moon-outline';
     case 'Clouds':
-      if (PARTLY_CLOUDY_CODES.includes(condition.code ?? -1)) {
+      if (PARTLY_CLOUDY_CODES.has(condition.code ?? -1)) {
         return isDay ? 'partly-sunny-outline' : 'cloudy-night-outline';
       }
       return 'cloudy-outline';

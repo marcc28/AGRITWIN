@@ -13,7 +13,7 @@ export function useCurrentField() {
     let active = true;
 
     const load = () => {
-      getCurrentField()
+      void getCurrentField()
         .catch(() => null)
         .then((value) => {
           if (active) {

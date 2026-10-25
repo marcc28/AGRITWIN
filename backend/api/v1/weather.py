@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -25,7 +26,7 @@ def get_weather_service() -> WeatherService:
     return WeatherService()
 
 
-async def get_field_weather_service() -> FieldWeatherService:
+async def get_field_weather_service() -> AsyncGenerator[FieldWeatherService]:
     async with AsyncSessionLocal() as session:
         yield FieldWeatherService(session=session)
 

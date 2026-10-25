@@ -14,7 +14,7 @@ type Props = {
   onRetry: () => void;
 };
 
-export function WeatherCard({ state, onPress, onRetry }: Props) {
+export function WeatherCard({ state, onPress, onRetry }: Readonly<Props>) {
   const { t } = useTranslation();
 
   if (state.status === 'loading') {

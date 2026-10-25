@@ -249,8 +249,9 @@ async def test_field_without_coordinates_uses_its_location_name(sessions):
 async def test_field_without_location_is_404(sessions):
     calls = []
 
+    handler = recorder(calls)
     with pytest.raises(WeatherDataError) as exc:
-        await forecast(sessions, recorder(calls), field_id=3)
+        await forecast(sessions, handler, field_id=3)
 
     assert exc.value.status_code == 404
     assert exc.value.message == "Field has no location"
@@ -258,15 +259,17 @@ async def test_field_without_location_is_404(sessions):
 
 
 async def test_unknown_field_is_404(sessions):
+    handler = recorder([])
     with pytest.raises(WeatherDataError) as exc:
-        await forecast(sessions, recorder([]), field_id=99)
+        await forecast(sessions, handler, field_id=99)
 
     assert exc.value.message == "Field not found"
 
 
 async def test_provider_error_saves_nothing(sessions):
+    handler = recorder([], status=503)
     with pytest.raises(WeatherUnavailableError):
-        await forecast(sessions, recorder([], status=503))
+        await forecast(sessions, handler)
 
     assert await cache_row(sessions) is None
 
@@ -420,8 +423,9 @@ async def test_field_of_another_user_is_not_found(sessions):
     calls = []
     await add_other_user_field(sessions)
 
+    handler = recorder(calls)
     with pytest.raises(WeatherDataError) as exc:
-        await forecast(sessions, recorder(calls), field_id=9, username="cinta")
+        await forecast(sessions, handler, field_id=9, username="cinta")
 
     assert exc.value.status_code == 404
     assert exc.value.message == "Field not found"
@@ -429,5 +433,6 @@ async def test_field_of_another_user_is_not_found(sessions):
 
 
 async def test_unknown_user_does_not_see_the_field(sessions):
+    handler = recorder([])
     with pytest.raises(WeatherDataError):
-        await forecast(sessions, recorder([]), username="nobody")
+        await forecast(sessions, handler, username="nobody")

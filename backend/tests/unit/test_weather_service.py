@@ -269,8 +269,9 @@ async def test_days_out_of_range_are_limited():
 
 
 async def test_invalid_units_raises_bad_request():
+    service = make_service(ok_handler)
     with pytest.raises(WeatherServiceError) as exc:
-        await make_service(ok_handler).get_forecast(41.61, 0.62, units="kelvin")
+        await service.get_forecast(41.61, 0.62, units="kelvin")
     assert exc.value.status_code == 400
 
 
@@ -296,8 +297,9 @@ async def test_timeout_raises_unavailable():
     def handler(request):
         raise httpx.ReadTimeout("timeout", request=request)
 
+    service = make_service(handler)
     with pytest.raises(WeatherUnavailableError) as exc:
-        await make_service(handler).get_forecast(41.61, 0.62)
+        await service.get_forecast(41.61, 0.62)
     assert exc.value.message == "Weather provider timed out"
 
 
@@ -305,8 +307,9 @@ async def test_connection_error_raises_unavailable():
     def handler(request):
         raise httpx.ConnectError("no network", request=request)
 
+    service = make_service(handler)
     with pytest.raises(WeatherUnavailableError):
-        await make_service(handler).get_forecast(41.61, 0.62)
+        await service.get_forecast(41.61, 0.62)
 
 
 @pytest.mark.parametrize("payload", [{"unexpected": True}, {"daily": {}}, [], "text"])
@@ -363,8 +366,9 @@ async def test_gives_up_after_two_attempts():
         calls.append(1)
         return httpx.Response(502)
 
+    service = make_service(handler)
     with pytest.raises(WeatherUnavailableError):
-        await make_service(handler).get_forecast(41.61, 0.62)
+        await service.get_forecast(41.61, 0.62)
     assert len(calls) == 2
 
 
@@ -375,8 +379,9 @@ async def test_client_errors_are_not_retried():
         calls.append(1)
         return httpx.Response(404)
 
+    service = make_service(handler)
     with pytest.raises(WeatherDataError):
-        await make_service(handler).get_forecast(41.61, 0.62)
+        await service.get_forecast(41.61, 0.62)
     assert len(calls) == 1
 
 
@@ -444,7 +449,8 @@ async def test_city_country_chooses_between_same_names():
     spain = await service.get_forecast_for_city("Córdoba", country="ES")
     first = await service.get_forecast_for_city("Córdoba")
 
-    assert spain.location.country == "ES" and spain.location.latitude == 37.8916
+    assert spain.location.country == "ES"
+    assert spain.location.latitude == 37.8916
     assert first.location.country == "AR"
 
 
@@ -457,15 +463,17 @@ async def test_city_country_is_case_insensitive():
 
 
 async def test_unknown_city_is_404():
+    service = make_service(city_handler({}))
     with pytest.raises(WeatherDataError) as exc:
-        await make_service(city_handler({})).get_forecast_for_city("Ciutatquenoexisteix")
+        await service.get_forecast_for_city("Ciutatquenoexisteix")
     assert exc.value.status_code == 404
     assert exc.value.message == "City not found"
 
 
 async def test_city_in_other_country_is_404():
+    service = make_service(city_handler(LLEIDA))
     with pytest.raises(WeatherDataError):
-        await make_service(city_handler(LLEIDA)).get_forecast_for_city("Lleida", country="FR")
+        await service.get_forecast_for_city("Lleida", country="FR")
 
 
 async def test_city_search_is_remembered():
@@ -484,8 +492,9 @@ async def test_city_search_down_is_503():
             return httpx.Response(503)
         return httpx.Response(200, json=OPEN_METEO)
 
+    service = make_service(handler)
     with pytest.raises(WeatherUnavailableError):
-        await make_service(handler).get_forecast_for_city("Lleida")
+        await service.get_forecast_for_city("Lleida")
 
 
 def test_city_search_pick():

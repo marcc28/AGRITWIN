@@ -30,11 +30,11 @@ function Metric({
   icon,
   label,
   value,
-}: {
+}: Readonly<{
   icon: IconName;
   label: string;
   value: string;
-}) {
+}>) {
   return (
     <View style={styles.gridItem}>
       <View style={styles.gridItemHeader}>
@@ -46,7 +46,7 @@ function Metric({
   );
 }
 
-export function WeatherDetails({ weather }: Props) {
+export function WeatherDetails({ weather }: Readonly<Props>) {
   const { t } = useTranslation();
   const { current, daily, hourly } = weather;
   const today = daily[0];
@@ -64,10 +64,14 @@ export function WeatherDetails({ weather }: Props) {
     current.wind.direction_deg === null
       ? `${Math.round(current.wind.speed)} ${weather.wind_speed_unit}`
       : `${Math.round(current.wind.speed)} ${weather.wind_speed_unit} · ${compass[compassIndex(current.wind.direction_deg)]}`;
+  const uvText =
+    current.uv_index === null
+      ? ''
+      : t(`weather.uvLevels.${uvLevel(current.uv_index)}`);
   const uv =
     current.uv_index === null
       ? '--'
-      : `${Math.round(current.uv_index)} · ${t(`weather.uvLevels.${uvLevel(current.uv_index)}`)}`;
+      : `${Math.round(current.uv_index)} · ${uvText}`;
 
   return (
     <ScrollView
