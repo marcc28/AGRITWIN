@@ -86,4 +86,3 @@ describe('SensorModal', () => {
     expect(screen.getAllByText(/k lux/).length).toBeGreaterThan(0);
   });
 });
-

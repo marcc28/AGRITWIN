@@ -79,4 +79,3 @@ describe('ReadingChart', () => {
     expect(toJSON()).toBeTruthy();
   });
 });
-
