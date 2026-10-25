@@ -164,12 +164,14 @@ class WeatherService:
 
             if response.status_code == 429:
                 logger.warning(
-                    "Rate limit de %s: HTTP 429. Retry-After=%s",
-                    url,
-                    response.headers.get("Retry-After"),
+                    "Open-Meteo HTTP 429 | URL=%s | body=%s | headers=%s",
+                    str(response.request.url),
+                    response.text[:2000],
+                    dict(response.headers),
                 )
-                raise WeatherUnavailableError("Weather provider rate limit exceeded")
-
+                raise WeatherUnavailableError(
+                    "Weather provider rate limit exceeded"
+                )
             if response.status_code >= 500:
                 logger.warning(
                     "Error del proveïdor %s: HTTP %s (intent %s/%s)",
