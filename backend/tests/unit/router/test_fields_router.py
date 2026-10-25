@@ -521,22 +521,9 @@ def test_create_field_rejects_partial_coords():
 
 def test_create_field_rejects_invalid_coords_and_size():
     client = make_client()
-    assert (
-        client.post(
-            "/fields", json={"name": "Hort", "lat": 99, "lon": 1}
-        ).status_code
-        == 400
-    )
-    assert (
-        client.post(
-            "/fields", json={"name": "Hort", "lat": 42, "lon": 200}
-        ).status_code
-        == 400
-    )
-    assert (
-        client.post("/fields", json={"name": "Hort", "size_m2": 0}).status_code
-        == 400
-    )
+    assert client.post("/fields", json={"name": "Hort", "lat": 99, "lon": 1}).status_code == 400
+    assert client.post("/fields", json={"name": "Hort", "lat": 42, "lon": 200}).status_code == 400
+    assert client.post("/fields", json={"name": "Hort", "size_m2": 0}).status_code == 400
 
 
 def test_create_device_requires_brand():
@@ -613,4 +600,3 @@ def test_update_device_conflict():
         )
 
     assert response.status_code == 409
-

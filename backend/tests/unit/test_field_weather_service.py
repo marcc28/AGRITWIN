@@ -41,7 +41,9 @@ async def sessions():
         await conn.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(engine, expire_on_commit=False)
     async with factory() as session:
-        session.add(User(id=USER_ID, username="cinta", email="cinta@example.com", password_hash="x"))
+        session.add(
+            User(id=USER_ID, username="cinta", email="cinta@example.com", password_hash="x")
+        )
         session.add_all(
             [
                 Field(id=1, user_id=USER_ID, name="Hort", location="Alcarràs", lat=41.56, lon=0.52),
@@ -63,14 +65,19 @@ def recorder(calls, status=200):
             return httpx.Response(200, json=CURRENT)
         if request.url.path.endswith("/forecast"):
             return httpx.Response(200, json=FORECAST)
-        return httpx.Response(200, json=[])
+        return httpx.Response(
+            200,
+            json=[{"lat": 41.6176, "lon": 0.62, "name": "Lleida", "country": "ES"}],
+        )
 
     return handler
 
 
 def make_service(session, handler, cache_seconds=600) -> FieldWeatherService:
     client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    return FieldWeatherService(session, weather=WeatherService(client=client), cache_seconds=cache_seconds)
+    return FieldWeatherService(
+        session, weather=WeatherService(client=client), cache_seconds=cache_seconds
+    )
 
 
 async def forecast(sessions, handler, field_id=1, cache_seconds=600, **kwargs):
@@ -160,20 +167,25 @@ async def test_imperial_cache_temperature_is_saved_in_celsius(sessions):
     payload = {**CURRENT, "main": {**CURRENT["main"], "temp": 68.0}}
 
     def handler(request):
-        return httpx.Response(200, json=payload if request.url.path.endswith("/weather") else FORECAST)
+        return httpx.Response(
+            200, json=payload if request.url.path.endswith("/weather") else FORECAST
+        )
 
     await forecast(sessions, handler, units="imperial")
     row = await cache_row(sessions)
     assert float(row.forecast_temperature_c) == 20.0
 
 
-async def test_city_lookup_matches_service_not_implemented_behavior(sessions):
+async def test_field_without_coordinates_uses_city_geocoding(sessions):
     calls = []
-    with pytest.raises(NotImplementedError, match="_request_list"):
-        await forecast(sessions, recorder(calls), field_id=2)
-    assert len(calls) == 1
+    result = await forecast(sessions, recorder(calls), field_id=2)
+    assert len(calls) == 3
     assert calls[0].url.host == "api.openweathermap.org"
+    assert calls[0].url.path == "/geo/1.0/direct"
     assert calls[0].url.params["q"] == "Lleida"
+    assert result.location.name == "Lleida"
+    assert result.location.country == "ES"
+    assert result.location.field_id == 2
 
 
 async def test_field_without_location_is_404_without_provider_call(sessions):

@@ -19,9 +19,7 @@ if PRODUCTION:
     AWS_REGION = os.getenv("REGION", "us-east-1").strip()
 
     if not DSQL_HOST:
-        raise RuntimeError(
-            "Falta DSQL_HOST al fitxer .env"
-        )
+        raise RuntimeError("Falta DSQL_HOST al fitxer .env")
 
     async def connect_dsql():
         return await dsql.connect(
@@ -30,7 +28,7 @@ if PRODUCTION:
             user="admin",
             database="postgres",
         )
-    
+
     engine = create_async_engine(
         "postgresql+asyncpg://",
         async_creator=connect_dsql,
@@ -43,9 +41,7 @@ else:
     DATABASE_URL = os.getenv("DATABASE_URL")
 
     if not DATABASE_URL:
-        raise RuntimeError(
-            "Falta DATABASE_URL al fitxer .env"
-        )
+        raise RuntimeError("Falta DATABASE_URL al fitxer .env")
 
     url = make_url(DATABASE_URL)
     url = url.difference_update_query(["pgbouncer"])
@@ -108,6 +104,7 @@ def save_telemetry(payload: dict):
     except Exception as e:
         print(f"[DATABASE-ERROR] Error saving telemetry: {e}")
 
+
 def set_device_battery_status(device_id: str, status: bool) -> bool:
     """Updates devices.battery_status for one device. Returns True when the update worked."""
     if not supabase:
@@ -121,7 +118,8 @@ def set_device_battery_status(device_id: str, status: bool) -> bool:
     except Exception as e:
         print(f"[DATABASE-ERROR] Error updating battery status of {device_id}: {e}")
         return False
-    
+
+
 def get_devices_status() -> dict[str, bool]:
     """Returns {device_id: battery_status} for every device registered in Supabase."""
     if not supabase:

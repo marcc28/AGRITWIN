@@ -36,7 +36,7 @@ The values can be changed at the top of `device_status_monitor.py`:
 
 ```python
 OFFLINE_TIMEOUT_SECONDS = 15  # seconds without data before a board is marked FALSE
-CHECK_INTERVAL_SECONDS = 5    # how often the devices are checked
+CHECK_INTERVAL_SECONDS = 5  # how often the devices are checked
 ```
 
 ## Dependencies

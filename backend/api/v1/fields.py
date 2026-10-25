@@ -292,9 +292,7 @@ async def create_device(
         try:
             await _require_owned_field(session, field_id, current_user.id)
         except FieldAccessError:
-            raise HTTPException(
-                status_code=404, detail=FIELD_NOT_FOUND
-            ) from None
+            raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND) from None
         try:
             await session.execute(
                 text(
@@ -351,9 +349,7 @@ async def update_device(
         try:
             await _require_owned_field(session, field_id, current_user.id)
         except FieldAccessError:
-            raise HTTPException(
-                status_code=404, detail=FIELD_NOT_FOUND
-            ) from None
+            raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND) from None
         try:
             result = await session.execute(
                 text(
@@ -371,9 +367,7 @@ async def update_device(
             )
             row = result.one_or_none()
             if not row:
-                raise HTTPException(
-                    status_code=404, detail=DEVICE_NOT_FOUND
-                )
+                raise HTTPException(status_code=404, detail=DEVICE_NOT_FOUND)
             await session.commit()
         except IntegrityError:
             await session.rollback()
@@ -403,9 +397,7 @@ async def delete_device(
         try:
             await _require_owned_field(session, field_id, current_user.id)
         except FieldAccessError:
-            raise HTTPException(
-                status_code=404, detail=FIELD_NOT_FOUND
-            ) from None
+            raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND) from None
         result = await session.execute(
             text("DELETE FROM devices WHERE id = :id AND field_id = :field_id RETURNING id"),
             {"id": device_id, "field_id": field_id},

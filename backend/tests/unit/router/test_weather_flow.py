@@ -36,7 +36,10 @@ class OpenWeather:
     def __call__(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(request)
         if request.url.path.endswith("/direct"):
-            return httpx.Response(200, json=[])
+            return httpx.Response(
+                200,
+                json=[{"lat": 41.6176, "lon": 0.62, "name": "Lleida", "country": "ES"}],
+            )
         if self.status != 200:
             return httpx.Response(self.status)
         if request.url.path.endswith("/weather"):
@@ -156,13 +159,15 @@ def test_forecast_is_saved_and_reused(flow, open_weather):
     assert asyncio.run(cached()) is not None
 
 
-def test_field_with_only_a_town_uses_the_service_placeholder(flow, open_weather):
+def test_field_with_only_a_town_uses_geocoding(flow, open_weather):
     client, _ = flow
 
-    with pytest.raises(NotImplementedError, match="_request_list"):
-        client.get("/api/v1/weather/fields/2", headers=login())
+    response = client.get("/api/v1/weather/fields/2", headers=login())
+    assert response.status_code == 200
     assert open_weather.requests[0].url.path.endswith("/direct")
     assert open_weather.requests[0].url.params["q"] == "Lleida"
+    assert response.json()["location"]["name"] == "Lleida"
+    assert response.json()["location"]["country"] == "ES"
 
 
 def test_field_without_location_has_no_weather(flow, open_weather):
@@ -188,8 +193,10 @@ def test_field_of_another_user_or_unknown_is_not_found(flow, open_weather, field
 
 def test_external_api_unavailable(flow, open_weather, monkeypatch):
     client, _ = flow
+
     async def no_wait(_):
         return None
+
     monkeypatch.setattr("services.weather_service.asyncio.sleep", no_wait)
     open_weather.status = 503
 

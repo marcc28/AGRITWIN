@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.schema import Field, User, UserProfile, WeatherCache
 from models.weather import WeatherForecastResponse
+from services.fallback_weather_service import FallbackWeatherService
 from services.weather_service import (
     MAX_FORECAST_DAYS,
     WeatherDataError,
@@ -49,11 +50,11 @@ class FieldWeatherService:
     def __init__(
         self,
         session: AsyncSession,
-        weather: WeatherService | None = None,
+        weather: WeatherService | FallbackWeatherService | None = None,
         cache_seconds: float | None = None,
     ):
         self._db = session
-        self._weather = weather or WeatherService()
+        self._weather = weather or FallbackWeatherService()
         self._cache_seconds = _cache_seconds_from_env() if cache_seconds is None else cache_seconds
 
     async def get_forecast(

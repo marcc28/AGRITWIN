@@ -7,11 +7,11 @@ from fastapi.exceptions import RequestValidationError
 from api.v1.auth import get_current_user
 from db import AsyncSessionLocal, User
 from models.weather import WeatherForecastResponse
+from services.fallback_weather_service import FallbackWeatherService
 from services.field_weather_service import FieldWeatherService
 from services.weather_service import (
     DEFAULT_LANG,
     MAX_FORECAST_DAYS,
-    WeatherService,
     WeatherServiceError,
 )
 
@@ -22,8 +22,8 @@ MAX_DB_INTEGER = 2_147_483_647
 LANG_PATTERN = r"^[a-zA-Z_-]+$"
 
 
-def get_weather_service() -> WeatherService:
-    return WeatherService()
+def get_weather_service() -> FallbackWeatherService:
+    return FallbackWeatherService()
 
 
 async def get_field_weather_service() -> AsyncGenerator[FieldWeatherService]:
@@ -75,7 +75,7 @@ async def get_weather_forecast(
     units: Units = Query("metric"),
     lang: str = Query(DEFAULT_LANG, min_length=2, max_length=5, pattern=LANG_PATTERN),
     days: int = _days_query(),
-    service: WeatherService = Depends(get_weather_service),
+    service: FallbackWeatherService = Depends(get_weather_service),
 ):
     if (lat is None) != (lon is None):
         raise _missing("lon" if lon is None else "lat", "Field required")

@@ -1,11 +1,9 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 import pytest
 
 from services.weather_service import (
-    BASE_URL,
-    GEOCODING_URL,
     WeatherDataError,
     WeatherService,
     WeatherServiceError,
@@ -15,7 +13,7 @@ from services.weather_service import (
 
 CURRENT = {
     "name": "Lleida",
-    "dt": int(datetime(2026, 10, 12, 9, tzinfo=timezone.utc).timestamp()),
+    "dt": int(datetime(2026, 10, 12, 9, tzinfo=UTC).timestamp()),
     "main": {"temp": 21.4, "feels_like": 20.9, "humidity": 55, "pressure": 1015},
     "weather": [{"id": 500, "main": "Rain", "description": "light rain", "icon": "10d"}],
     "wind": {"speed": 1.0, "deg": 250, "gust": 2.0},
@@ -27,7 +25,7 @@ FORECAST = {
     "city": {"name": "Lleida", "country": "ES", "timezone": 7200},
     "list": [
         {
-            "dt": int(datetime(2026, 10, 12, 10, tzinfo=timezone.utc).timestamp()),
+            "dt": int(datetime(2026, 10, 12, 10, tzinfo=UTC).timestamp()),
             "main": {"temp": 21.4},
             "weather": [{"id": 500, "main": "Rain", "description": "light rain", "icon": "10d"}],
             "wind": {"speed": 1.0, "deg": 250},
@@ -35,7 +33,7 @@ FORECAST = {
             "rain": {"3h": 1.2},
         },
         {
-            "dt": int(datetime(2026, 10, 12, 13, tzinfo=timezone.utc).timestamp()),
+            "dt": int(datetime(2026, 10, 12, 13, tzinfo=UTC).timestamp()),
             "main": {"temp": 25.0},
             "weather": [{"id": 800, "main": "Clear", "description": "clear sky", "icon": "01d"}],
             "wind": {"speed": 1.72, "deg": 240},
@@ -43,7 +41,7 @@ FORECAST = {
             "rain": {"3h": 2.2},
         },
         {
-            "dt": int(datetime(2026, 10, 13, 10, tzinfo=timezone.utc).timestamp()),
+            "dt": int(datetime(2026, 10, 13, 10, tzinfo=UTC).timestamp()),
             "main": {"temp": 12.5},
             "weather": [{"id": 800, "main": "Clear", "description": "clear sky", "icon": "01d"}],
             "wind": {"speed": 1.0, "deg": 300},
@@ -105,8 +103,8 @@ async def test_forecast_requests_weather_and_forecast_endpoints():
     await make_service(handler).get_forecast(41.61, 0.62, days=3, lang="ca-ES")
 
     assert {request.url.path for request in requests} == {
-        f"/data/2.5/weather",
-        f"/data/2.5/forecast",
+        "/data/2.5/weather",
+        "/data/2.5/forecast",
     }
     assert all(request.url.params["lang"] == "ca" for request in requests)
 
@@ -186,16 +184,19 @@ def test_normalize_lang():
     assert normalize_lang("12") == "ca"
 
 
-async def test_city_lookup_uses_openweather_geocoding_then_reports_unimplemented():
+async def test_city_lookup_uses_openweather_geocoding():
     requests = []
 
     def handler(request):
         requests.append(request)
-        return httpx.Response(200, json=[])
+        return httpx.Response(
+            200,
+            json=[{"lat": 41.6176, "lon": 0.62, "name": "Lleida", "country": "ES"}],
+        )
 
-    with pytest.raises(NotImplementedError, match="_request_list"):
-        await make_service(handler).find_city("Lleida", "es", lang="ca")
+    city = await make_service(handler).find_city("Lleida", "es", lang="ca")
 
-    assert requests[0].url == httpx.URL(GEOCODING_URL).copy_merge_params(
-        {"q": "Lleida,ES", "limit": "1", "appid": "test-api-key"}
-    )
+    assert requests[0].url.host == "api.openweathermap.org"
+    assert requests[0].url.path == "/geo/1.0/direct"
+    assert requests[0].url.params["q"] == "Lleida,ES"
+    assert city == (41.6176, 0.62, "Lleida", "ES")

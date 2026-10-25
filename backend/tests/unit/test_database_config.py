@@ -13,7 +13,7 @@ def reload_database_module(
     external_url="postgresql+asyncpg://test:test@localhost/test",
     supabase_url=None,
     supabase_key=None,
-    region="us-east-1"
+    region="us-east-1",
 ):
     # Evita que load_dotenv recuperi valors del fitxer .env.
     monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)
@@ -24,7 +24,7 @@ def reload_database_module(
         ("DATABASE_URL", local_url),
         ("DSQL_HOST", external_url),
         ("SUPABASE_URL", supabase_url),
-        ("SUPABASE_SECRET_KEY", supabase_key)
+        ("SUPABASE_SECRET_KEY", supabase_key),
     ):
         if value is None:
             monkeypatch.delenv(name, raising=False)
@@ -39,8 +39,6 @@ def test_database_uses_local_url(monkeypatch):
     module = reload_database_module(monkeypatch)
 
     assert module.engine.url.drivername == "sqlite+aiosqlite"
-
-
 
 
 @pytest.mark.asyncio
@@ -74,6 +72,7 @@ async def test_database_uses_dsql_in_production(monkeypatch):
         user="admin",
         database="postgres",
     )
+
 
 def test_database_raises_when_url_is_missing(monkeypatch):
     monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)
