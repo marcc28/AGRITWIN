@@ -53,4 +53,30 @@ describe('ReadingChart', () => {
     );
     expect(toJSON()).toBeTruthy();
   });
+
+  it('renders compact labels when light values are large', () => {
+    const { toJSON } = render(
+      <ReadingChart
+        history={[
+          {
+            timestamp: '2026-01-01T00:00:00Z',
+            temperature: 20,
+            air_humidity: 40,
+            soil_humidity: 30,
+            light: 79353.2,
+          },
+          {
+            timestamp: '2026-01-01T00:01:00Z',
+            temperature: 21,
+            air_humidity: 41,
+            soil_humidity: 31,
+            light: 86382.6,
+          },
+        ]}
+        getValue={(reading) => reading.light}
+      />,
+    );
+    expect(toJSON()).toBeTruthy();
+  });
 });
+
