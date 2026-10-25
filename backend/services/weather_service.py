@@ -1,22 +1,33 @@
+
 import asyncio
 import logging
+import os
 import re
+from collections import defaultdict
+from datetime import date, datetime, timezone
 from typing import Any
 
 import httpx
 
-from models.weather import WeatherForecastResponse
-from services import city_search, open_meteo
+from models.weather import (
+    CurrentWeather,
+    DailyForecast,
+    HourlyForecast,
+    WeatherCondition,
+    WeatherForecastResponse,
+    WeatherLocation,
+    Wind,
+)
+
+logger = logging.getLogger(__name__)
+
+BASE_URL = "https://api.openweathermap.org/data/2.5"
+GEOCODING_URL = "https://api.openweathermap.org/geo/1.0/direct"
 
 DEFAULT_LANG = "ca"
 DEFAULT_TIMEOUT_SECONDS = 10.0
-SUPPORTED_UNITS = ("metric", "imperial")
 MAX_FORECAST_DAYS = 5
-MAX_ATTEMPTS = 2
-RETRY_DELAY_SECONDS = 0.5
-MAX_CACHED_CITIES = 500
-
-logger = logging.getLogger(__name__)
+SUPPORTED_UNITS = ("metric", "imperial")
 
 
 def normalize_lang(lang: str | None) -> str:
@@ -37,28 +48,103 @@ class WeatherUnavailableError(WeatherServiceError):
 
 
 class WeatherDataError(WeatherServiceError):
-    def __init__(self, message: str = "Weather data not available for this location"):
+    def __init__(self, message: str = "Weather data not available"):
         super().__init__(message, status_code=404)
 
 
 class WeatherService:
-    _cities: dict[tuple, tuple[float, float, str, str | None]] = {}
-
-    def __init__(
-        self,
-        client: httpx.AsyncClient | None = None,
-        forecast_url: str = open_meteo.OPEN_METEO_URL,
-        city_search_url: str = city_search.GEOCODING_URL,
-        retry_delay: float = RETRY_DELAY_SECONDS,
-    ):
+    def __init__(self, client: httpx.AsyncClient | None = None):
         self._client = client
-        self._forecast_url = forecast_url
-        self._city_search_url = city_search_url
-        self._retry_delay = retry_delay
+        self._api_key = os.getenv("OPENWEATHER_API_KEY")
 
-    @classmethod
-    def clear_cache(cls) -> None:
-        cls._cities.clear()
+    async def _request(self, url: str, params: dict[str, Any]) -> dict:
+        if not self._api_key:
+            raise WeatherServiceError(
+                "OPENWEATHER_API_KEY is not configured", status_code=500
+            )
+
+        request_params = {**params, "appid": self._api_key}
+
+        async def perform(client: httpx.AsyncClient) -> dict:
+            for attempt in range(2):
+                try:
+                    response = await client.get(url, params=request_params)
+                except (httpx.TimeoutException, httpx.HTTPError) as exc:
+                    logger.warning("OpenWeather request failed: %s", exc)
+                    if attempt == 0:
+                        await asyncio.sleep(0.5)
+                        continue
+                    raise WeatherUnavailableError() from exc
+
+                if response.status_code == 401:
+                    raise WeatherServiceError(
+                        "OpenWeather API key is invalid or not yet active",
+                        status_code=502,
+                    )
+                if response.status_code == 404:
+                    raise WeatherDataError()
+                if response.status_code == 429:
+                    raise WeatherUnavailableError(
+                        "Weather provider rate limit exceeded"
+                    )
+                if response.status_code >= 500:
+                    if attempt == 0:
+                        await asyncio.sleep(0.5)
+                        continue
+                    raise WeatherUnavailableError()
+                if response.status_code >= 400:
+                    raise WeatherServiceError(
+                        f"Weather provider error (HTTP {response.status_code})"
+                    )
+
+                try:
+                    return response.json()
+                except ValueError as exc:
+                    raise WeatherServiceError(
+                        "Invalid response from weather provider"
+                    ) from exc
+
+            raise WeatherUnavailableError()
+
+        if self._client is not None:
+            return await perform(self._client)
+
+        async with httpx.AsyncClient(
+            timeout=DEFAULT_TIMEOUT_SECONDS
+        ) as client:
+            return await perform(client)
+
+    async def find_city(
+        self, city: str, country: str | None = None, lang: str = DEFAULT_LANG
+    ) -> tuple[float, float, str, str | None]:
+        query = city.strip()
+        if country:
+            query = f"{query},{country.strip().upper()}"
+
+        results = await self._request(
+            GEOCODING_URL,
+            {"q": query, "limit": 1},
+        )
+
+        # The geocoding endpoint returns a JSON list, not a dictionary.
+        # _request normally returns a dictionary, so use the helper below instead.
+        raise NotImplementedError(
+            "Use _request_list for the OpenWeather geocoding endpoint"
+        )
+
+    @staticmethod
+    def _condition(item: dict) -> WeatherCondition:
+        weather = (item.get("weather") or [{}])[0]
+        return WeatherCondition(
+            code=weather.get("id"),
+            main=weather.get("main", "Unknown"),
+            description=weather.get("description", ""),
+            icon=weather.get("icon", ""),
+        )
+
+    def _wind_speed(self, speed: float, units: str) -> float:
+        # OpenWeather metric wind speed is m/s; imperial is miles/hour.
+        return speed * 3.6 if units == "metric" else speed
 
     async def get_forecast(
         self,
@@ -69,17 +155,147 @@ class WeatherService:
         days: int = MAX_FORECAST_DAYS,
     ) -> WeatherForecastResponse:
         if units not in SUPPORTED_UNITS:
-            raise WeatherServiceError(f"Unsupported units '{units}'", status_code=400)
+            raise WeatherServiceError(
+                f"Unsupported units '{units}'", status_code=400
+            )
+
         days = max(1, min(days, MAX_FORECAST_DAYS))
         lang = normalize_lang(lang)
+        params = {
+            "lat": latitude,
+            "lon": longitude,
+            "units": units,
+            "lang": lang,
+        }
 
-        raw = await self._request(
-            self._forecast_url, open_meteo.build_params(latitude, longitude, units, days)
+        current_raw, forecast_raw = await asyncio.gather(
+            self._request(f"{BASE_URL}/weather", params),
+            self._request(f"{BASE_URL}/forecast", params),
         )
+
         try:
-            return open_meteo.parse(raw, latitude, longitude, units, lang, days)
+            offset = int(forecast_raw["city"].get("timezone", 0))
+            city = forecast_raw["city"]
+            now = datetime.fromtimestamp(
+                current_raw["dt"], tz=timezone.utc
+            )
+            current_wind = current_raw.get("wind", {})
+            current_rain = current_raw.get("rain", {})
+
+            current = CurrentWeather(
+                observed_at=now,
+                temperature=current_raw["main"]["temp"],
+                feels_like=current_raw["main"]["feels_like"],
+                humidity=current_raw["main"]["humidity"],
+                pressure=current_raw["main"]["pressure"],
+                clouds=current_raw.get("clouds", {}).get("all", 0),
+                rain_last_hour_mm=current_rain.get("1h", 0.0),
+                condition=self._condition(current_raw),
+                wind=Wind(
+                    speed=self._wind_speed(
+                        current_wind.get("speed", 0.0), units
+                    ),
+                    direction_deg=current_wind.get("deg"),
+                    gust=current_wind.get("gust"),
+                ),
+            )
+
+            groups = defaultdict(list)
+            hourly = []
+
+            for item in forecast_raw.get("list", []):
+                local_time = datetime.fromtimestamp(
+                    item["dt"] + offset, tz=timezone.utc
+                ).replace(tzinfo=None)
+                local_date = local_time.date()
+
+                if len(groups) == 0 or local_date in groups or len(groups) < days:
+                    if local_date not in groups and len(groups) >= days:
+                        continue
+                    groups[local_date].append(item)
+
+                if len(groups) <= days:
+                    hourly.append(
+                        HourlyForecast(
+                            time=local_time,
+                            temperature=item["main"]["temp"],
+                            rain_probability=round(
+                                item.get("pop", 0.0) * 100, 1
+                            ),
+                            condition=self._condition(item),
+                        )
+                    )
+
+            daily = []
+            for forecast_date, entries in list(groups.items())[:days]:
+                temps = [entry["main"]["temp"] for entry in entries]
+                representative = min(
+                    entries,
+                    key=lambda entry: abs(
+                        (
+                            datetime.fromtimestamp(
+                                entry["dt"] + offset, tz=timezone.utc
+                            ).hour
+                        ) - 12
+                    ),
+                )
+                rain_mm = sum(
+                    entry.get("rain", {}).get("3h", 0.0)
+                    for entry in entries
+                )
+                wind_speeds = [
+                    self._wind_speed(
+                        entry.get("wind", {}).get("speed", 0.0), units
+                    )
+                    for entry in entries
+                ]
+
+                daily.append(
+                    DailyForecast(
+                        date=forecast_date,
+                        temp_min=min(temps),
+                        temp_max=max(temps),
+                        rain_probability=round(
+                            max(entry.get("pop", 0.0) for entry in entries)
+                            * 100,
+                            1,
+                        ),
+                        rain_mm=rain_mm,
+                        condition=self._condition(representative),
+                        wind=Wind(
+                            speed=max(wind_speeds, default=0.0),
+                            direction_deg=representative.get("wind", {}).get(
+                                "deg"
+                            ),
+                            gust=representative.get("wind", {}).get("gust"),
+                        ),
+                    )
+                )
+
+            return WeatherForecastResponse(
+                units=units,
+                lang=lang,
+                temperature_unit="°C" if units == "metric" else "°F",
+                wind_speed_unit="km/h" if units == "metric" else "mph",
+                fetched_at=datetime.now(timezone.utc),
+                location=WeatherLocation(
+                    name=city.get("name") or current_raw.get("name"),
+                    country=city.get("country"),
+                    latitude=latitude,
+                    longitude=longitude,
+                    timezone_offset=offset,
+                ),
+                current=current,
+                hourly=hourly,
+                daily=daily,
+            )
+        except WeatherServiceError:
+            raise
         except (KeyError, TypeError, ValueError, IndexError, AttributeError) as exc:
-            raise WeatherServiceError("Unexpected response from weather provider") from exc
+            logger.exception("Unexpected OpenWeather response")
+            raise WeatherServiceError(
+                "Unexpected response from weather provider"
+            ) from exc
 
     async def get_forecast_for_city(
         self,
@@ -89,113 +305,12 @@ class WeatherService:
         lang: str = DEFAULT_LANG,
         days: int = MAX_FORECAST_DAYS,
     ) -> WeatherForecastResponse:
-        latitude, longitude, name, country_code = await self.find_city(city, country, lang)
-        result = await self.get_forecast(latitude, longitude, units=units, lang=lang, days=days)
+        latitude, longitude, name, country_code = await self.find_city(
+            city, country, lang
+        )
+        result = await self.get_forecast(
+            latitude, longitude, units=units, lang=lang, days=days
+        )
         result.location.name = name
         result.location.country = country_code
         return result
-
-    async def find_city(
-        self, city: str, country: str | None = None, lang: str = DEFAULT_LANG
-    ) -> tuple[float, float, str, str | None]:
-        lang = normalize_lang(lang)
-        key = (city.strip().lower(), (country or "").upper(), lang)
-        if key in self._cities:
-            return self._cities[key]
-
-        raw = await self._request(
-            self._city_search_url, city_search.build_params(city.strip(), lang)
-        )
-        found = city_search.pick(raw, country)
-        if found is None:
-            raise WeatherDataError("City not found")
-        place = (
-            float(found["latitude"]),
-            float(found["longitude"]),
-            found.get("name") or city,
-            (found.get("country_code") or "").upper() or None,
-        )
-
-        if len(self._cities) >= MAX_CACHED_CITIES:
-            self._cities.clear()
-        self._cities[key] = place
-        return place
-
-    async def _request(self, url: str, params: dict[str, Any]) -> dict:
-        if self._client is not None:
-            return await self._get_with_retry(self._client, url, params)
-        async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT_SECONDS) as client:
-            return await self._get_with_retry(client, url, params)
-
-
-    async def _get_with_retry(
-        self, client: httpx.AsyncClient, url: str, params: dict[str, Any]
-    ) -> dict:
-        error = WeatherUnavailableError()
-
-        for attempt in range(MAX_ATTEMPTS):
-            if attempt:
-                await asyncio.sleep(self._retry_delay)
-
-            try:
-                response = await client.get(url, params=params)
-
-            except httpx.TimeoutException as exc:
-                logger.warning(
-                    "Timeout del proveïdor %s: %s (intent %s/%s)",
-                    url,
-                    str(exc),
-                    attempt + 1,
-                    MAX_ATTEMPTS,
-                )
-                error = WeatherUnavailableError("Weather provider timed out")
-                continue
-
-            except httpx.HTTPError as exc:
-                logger.warning(
-                    "Error de connexió amb %s: %r (intent %s/%s)",
-                    url,
-                    exc,
-                    attempt + 1,
-                    MAX_ATTEMPTS,
-                )
-                error = WeatherUnavailableError()
-                continue
-
-            if response.status_code == 429:
-                logger.warning(
-                    "Open-Meteo HTTP 429 | URL=%s | body=%s | headers=%s",
-                    str(response.request.url),
-                    response.text[:2000],
-                    dict(response.headers),
-                )
-                raise WeatherUnavailableError(
-                    "Weather provider rate limit exceeded"
-                )
-            if response.status_code >= 500:
-                logger.warning(
-                    "Error del proveïdor %s: HTTP %s (intent %s/%s)",
-                    url,
-                    response.status_code,
-                    attempt + 1,
-                    MAX_ATTEMPTS,
-                )
-                error = WeatherUnavailableError()
-                continue
-
-            return self._read(response)
-
-        raise error
-
-    @staticmethod
-    def _read(response: httpx.Response) -> dict:
-        if response.status_code == 404:
-            raise WeatherDataError()
-        if response.status_code == 429:
-            raise WeatherUnavailableError("Weather provider rate limit exceeded")
-        if response.status_code >= 400:
-            raise WeatherServiceError(f"Weather provider error (HTTP {response.status_code})")
-        try:
-            return response.json()
-        except ValueError as exc:
-            raise WeatherServiceError("Invalid response from weather provider") from exc
