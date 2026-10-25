@@ -58,4 +58,31 @@ describe('SensorModal', () => {
     expect(onClose).toHaveBeenCalled();
     expect(screen.getByText('Humitat del sòl correcta')).toBeTruthy();
   });
+
+  it('shows compact lux when the reading is large', () => {
+    const latest = {
+      timestamp: '2026-10-22T14:45:00Z',
+      temperature: 25.9,
+      air_humidity: 51,
+      soil_humidity: 30,
+      light: 84799.4,
+    };
+    render(
+      <SensorModal
+        visible
+        asScreen
+        dashboard={{
+          field_name: 'Hort',
+          device_ids: ['esp32_sim_03'],
+          latest,
+          history: [latest],
+        }}
+        latest={latest}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('Llum'));
+    expect(screen.getAllByText(/k lux/).length).toBeGreaterThan(0);
+  });
 });
