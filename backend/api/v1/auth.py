@@ -231,7 +231,12 @@ def _me_from_row(current_user: User, row) -> MeRead:
     )
 
 
-@router.get("/me")
+@router.get(
+    "/me",
+    responses={
+        404: {"description": "User profile not found"},
+    },
+)
 async def read_me(
     current_user: User = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
@@ -247,7 +252,13 @@ async def read_me(
     return _me_from_row(current_user, userprofile)
 
 
-@router.put("/me")
+@router.put(
+    "/me",
+    responses={
+        400: {"description": "Name is required"},
+        404: {"description": "User profile not found"},
+    },
+)
 async def update_me(
     body: MeUpdate,
     current_user: User = Depends(get_current_user),
@@ -289,7 +300,13 @@ async def update_me(
     return _me_from_row(current_user, row)
 
 
-@router.put("/me/email")
+@router.put(
+    "/me/email",
+    responses={
+        404: {"description": "User profile not found"},
+        409: {"description": "Email already registered"},
+    },
+)
 async def update_my_email(
     body: EmailUpdate,
     current_user: User = Depends(get_current_user),
