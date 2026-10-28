@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.schema import Field, User, UserProfile, WeatherCache
 from models.weather import WeatherForecastResponse
 from services.fallback_weather_service import FallbackWeatherService
+from services.weather_alert import detect_alerts, detect_current_alerts
 from services.weather_service import (
     MAX_FORECAST_DAYS,
     WeatherDataError,
@@ -77,6 +78,8 @@ class FieldWeatherService:
         if result is None:
             result = await self._fetch(field, units, lang)
             result.fetched_at = now
+            result.current_alerts = detect_current_alerts(result)
+            result.alerts = detect_alerts(result)
             await self._save(field.id, row, result, now)
 
         return result.model_copy(update={"daily": result.daily[:days]})
@@ -155,6 +158,10 @@ class FieldWeatherService:
         row.forecast_temperature_c = _decimal(temperature_c)
         row.forecast_rain_mm = _decimal(result.daily[0].rain_mm) if result.daily else None
         row.forecast_days = result.model_dump(mode="json")
+        alerts = result.current_alerts + result.alerts
+        row.alert_active = bool(alerts)
+        row.alert_type = ",".join(dict.fromkeys(alert.type for alert in alerts)) or None
+        row.alert_message = "\n".join(alert.message for alert in alerts) or None
 
         try:
             await self._db.commit()
