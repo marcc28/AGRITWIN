@@ -6,6 +6,9 @@ import { router } from 'expo-router';
 import HomeScreen from '../../../src/app/app/home';
 import { useCurrentField } from '../../../src/hooks/use-current-field';
 import { useFieldWeather } from '../../../src/hooks/use-field-weather';
+import { useWeatherAlertsEnabled } from '../../../src/hooks/use-weather-alerts-enabled';
+import type { FieldWeather } from '../../../src/services/api';
+import { markAlertSeen } from '../../../src/services/seenWeatherAlerts';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -26,6 +29,15 @@ jest.mock('../../../src/hooks/use-current-field', () => ({
 
 jest.mock('../../../src/hooks/use-field-weather', () => ({
   useFieldWeather: jest.fn(),
+}));
+
+jest.mock('../../../src/hooks/use-weather-alerts-enabled', () => ({
+  useWeatherAlertsEnabled: jest.fn(),
+}));
+
+jest.mock('../../../src/services/seenWeatherAlerts', () => ({
+  getSeenAlerts: jest.fn(async () => []),
+  markAlertSeen: jest.fn(async () => undefined),
 }));
 
 jest.mock('../../../src/components/WeatherCard', () => ({
@@ -57,11 +69,34 @@ const mockedUseCurrentField = useCurrentField as jest.MockedFunction<
 const mockedUseFieldWeather = useFieldWeather as jest.MockedFunction<
   typeof useFieldWeather
 >;
+const mockedUseWeatherAlertsEnabled =
+  useWeatherAlertsEnabled as jest.MockedFunction<
+    typeof useWeatherAlertsEnabled
+  >;
 const retry = jest.fn();
+
+function alert(type: string, message: string) {
+  return {
+    type,
+    message,
+    starts_at: null,
+    day: '2099-10-29',
+    rain_probability: null,
+    rain_mm: null,
+    temperature: null,
+    wind_speed: null,
+  };
+}
+
+const withAlerts = {
+  current_alerts: [alert('wind', 'Ara hi ha vent fort (55 km/h)')],
+  alerts: [alert('rain', 'Es preveu pluja el 30/10 (80%)')],
+} as unknown as FieldWeather;
 
 describe('HomeScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedUseWeatherAlertsEnabled.mockReturnValue(true);
     mockedUseCurrentField.mockReturnValue({ id: 2, name: 'Tremp' });
     mockedUseFieldWeather.mockReturnValue({
       state: { status: 'ready', weather: {} as never },
@@ -73,7 +108,7 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(screen.getByTestId('home-screen')).toBeTruthy();
-    expect(screen.getByText(/El teu hort/)).toBeTruthy();
+    expect(screen.getByText('home.title')).toBeTruthy();
   });
 
   it('shows the weather of the chosen field', () => {
@@ -128,5 +163,42 @@ describe('HomeScreen', () => {
     fireEvent.press(screen.getByTestId('card-retry'));
 
     expect(retry).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the weather alerts one by one', async () => {
+    mockedUseFieldWeather.mockReturnValue({
+      state: { status: 'ready', weather: withAlerts },
+      retry,
+    });
+
+    render(<HomeScreen />);
+
+    expect(
+      await screen.findByText('Ara hi ha vent fort (55 km/h)'),
+    ).toBeTruthy();
+    fireEvent.press(screen.getByTestId('weather-alert-close'));
+    expect(screen.getByText('Es preveu pluja el 30/10 (80%)')).toBeTruthy();
+    expect(markAlertSeen).toHaveBeenCalledWith('2:now:wind:2099-10-29');
+
+    fireEvent.press(screen.getByTestId('weather-alert-banner'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/weather',
+      params: { id: '2' },
+    });
+    expect(screen.queryByTestId('weather-alert-banner')).toBeNull();
+  });
+
+  it('does not show the weather alerts when they are turned off', async () => {
+    mockedUseWeatherAlertsEnabled.mockReturnValue(false);
+    mockedUseFieldWeather.mockReturnValue({
+      state: { status: 'ready', weather: withAlerts },
+      retry,
+    });
+
+    render(<HomeScreen />);
+
+    expect(await screen.findByText('card-ready')).toBeTruthy();
+    expect(screen.queryByTestId('weather-alert-banner')).toBeNull();
   });
 });
