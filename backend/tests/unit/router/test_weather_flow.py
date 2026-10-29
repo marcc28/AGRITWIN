@@ -32,6 +32,8 @@ class OpenWeather:
     def __init__(self):
         self.requests = []
         self.status = 200
+        self.current = CURRENT
+        self.forecast = FORECAST
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(request)
@@ -43,8 +45,8 @@ class OpenWeather:
         if self.status != 200:
             return httpx.Response(self.status)
         if request.url.path.endswith("/weather"):
-            return httpx.Response(200, json=CURRENT)
-        return httpx.Response(200, json=FORECAST)
+            return httpx.Response(200, json=self.current)
+        return httpx.Response(200, json=self.forecast)
 
     def forecasts(self):
         return [r for r in self.requests if not r.url.path.endswith("/direct")]
@@ -130,6 +132,80 @@ def test_app_gets_the_weather_of_its_field(flow, open_weather):
     assert len(requests) == 2
     assert all(request.url.params["lat"] == "41.56" for request in requests)
     assert all(request.url.params["lon"] == "0.52" for request in requests)
+
+
+def cache_row(sessions, field_id=1):
+    async def read():
+        async with sessions() as session:
+            return await session.get(WeatherCache, field_id)
+
+    return asyncio.run(read())
+
+
+def weather_of(condition_id, main, pop):
+    current = {
+        **CURRENT,
+        "weather": [{"id": condition_id, "main": main, "description": main, "icon": "10d"}],
+    }
+    entries = [
+        {**entry, "weather": current["weather"], "pop": pop, "rain": {"3h": 0.0}}
+        for entry in FORECAST["list"]
+    ]
+    return current, {**FORECAST, "list": entries}
+
+
+@pytest.mark.parametrize(
+    ("condition_id", "main", "pop", "alert_type", "messages"),
+    [
+        (
+            500,
+            "Rain",
+            0.8,
+            "rain",
+            ["Actualmente hay lluvia", "Se prevé lluvia el 12/10 a las 15:00 (80%)"],
+        ),
+        (
+            906,
+            "Extreme",
+            0.9,
+            "hail",
+            ["Actualmente hay granizo", "Se prevé granizo el 12/10 a las 15:00 (90%)"],
+        ),
+        (800, "Clear", 0.0, None, []),
+    ],
+)
+def test_app_gets_the_alerts_of_its_field(
+    flow, open_weather, condition_id, main, pop, alert_type, messages
+):
+    client, sessions = flow
+    open_weather.current, open_weather.forecast = weather_of(condition_id, main, pop)
+
+    response = client.get("/api/v1/weather/fields/1", headers=login())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert [alert["message"] for alert in body["current_alerts"] + body["alerts"]] == messages
+    row = cache_row(sessions)
+    assert row.alert_active is bool(messages)
+    assert row.alert_type == alert_type
+
+
+@pytest.mark.parametrize(("field_id", "status"), [(3, 404), (1, 503)])
+def test_no_alert_when_the_weather_cannot_be_read(
+    flow, open_weather, monkeypatch, field_id, status
+):
+    client, sessions = flow
+
+    async def no_wait(_):
+        return None
+
+    monkeypatch.setattr("services.weather_service.asyncio.sleep", no_wait)
+    open_weather.status = 503
+
+    response = client.get(f"/api/v1/weather/fields/{field_id}", headers=login())
+
+    assert response.status_code == status
+    assert cache_row(sessions, field_id) is None
 
 
 def test_language_of_the_app_wins_over_the_profile(flow):
