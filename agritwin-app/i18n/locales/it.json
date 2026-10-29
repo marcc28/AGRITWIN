@@ -232,6 +232,10 @@
       "loadFailed": "Non è stato possibile caricare i dati del mercato"
     }
   },
+  "home": {
+    "title": "Il tuo orto,\nogni giorno migliore.",
+    "subtitle": "Attività, meteo e colture adattati al tuo orto."
+  },
   "weather": {
     "subtitle": "Previsioni meteo",
     "myField": "Il mio campo",
@@ -256,6 +260,9 @@
     "noField": "Non hai ancora nessun campo. Creane uno per vedere il meteo.",
     "noData": "Nessun dato meteo per questa posizione",
     "back": "Home",
+    "alertsTitle": "Avvisi meteorologici",
+    "noAlerts": "Nessun avviso per il tuo orto",
+    "close": "Chiudi",
     "uvLevels": {
       "low": "Basso",
       "moderate": "Moderato",

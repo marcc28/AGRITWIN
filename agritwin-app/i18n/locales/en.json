@@ -230,6 +230,10 @@
     "units": "units",
     "errors": { "loadFailed": "Could not load market data" }
   },
+  "home": {
+    "title": "Your garden,\nbetter every day.",
+    "subtitle": "Tasks, weather and crops adapted to your garden."
+  },
   "weather": {
     "subtitle": "Weather forecast",
     "myField": "My field",
@@ -254,6 +258,9 @@
     "noField": "You don't have any field yet. Create one to see the weather.",
     "noData": "No weather data for this location",
     "back": "Home",
+    "alertsTitle": "Weather alerts",
+    "noAlerts": "No alerts for your garden",
+    "close": "Close",
     "uvLevels": {
       "low": "Low",
       "moderate": "Moderate",

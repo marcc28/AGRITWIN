@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
+import { WeatherAlertList } from '@/components/WeatherAlerts';
 import { Colors } from '@/constants/theme';
 import {
   capitalize,
@@ -239,6 +240,11 @@ export function WeatherDetails({ weather }: Readonly<Props>) {
             </View>
           ))}
         </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{t('weather.alertsTitle')}</Text>
+        </View>
+        <WeatherAlertList weather={weather} />
       </View>
     </ScrollView>
   );
