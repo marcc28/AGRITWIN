@@ -11,6 +11,8 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getMarketProduct, type MarketProduct } from '@/services/api';
 
+import CheckoutForm from '@/components/checkout-form';
+
 import { styles } from '../../styles/product.styles';
 
 export default function ProductScreen() {
@@ -107,10 +109,7 @@ export default function ProductScreen() {
     );
   }
 
-  const available = Math.max(
-    0,
-    Math.floor(Number(product.left_units) || 0),
-  );
+  const available = Math.max(0, Math.floor(Number(product.left_units) || 0));
 
   const unitPrice = Number(product.price_per_kg) || 0;
   const total = unitPrice * quantity;
@@ -118,13 +117,6 @@ export default function ProductScreen() {
 
   const formatPrice = (value: number) =>
     `${value.toFixed(2).replace('.', ',')} €`;
-
-  const handleBuy = () => {
-    Alert.alert(
-      'Compra',
-      'Cal connectar aquesta acció amb l’API de compra.',
-    );
-  };
 
   return (
     <View style={styles.screen}>
@@ -150,9 +142,7 @@ export default function ProductScreen() {
 
             <Text style={styles.title}>{product.product}</Text>
 
-            <Text style={styles.description}>
-              {product.tecnical_name}
-            </Text>
+            <Text style={styles.description}>{product.tecnical_name}</Text>
           </View>
 
           {/* Preu i disponibilitat */}
@@ -160,30 +150,20 @@ export default function ProductScreen() {
             <View style={styles.priceInfo}>
               <Text style={styles.priceLabel}>PREU DEL PRODUCTE</Text>
 
-              <Text style={styles.price}>
-                {formatPrice(unitPrice)}
-              </Text>
+              <Text style={styles.price}>{formatPrice(unitPrice)}</Text>
 
               <Text style={styles.priceUnit}>per kg</Text>
             </View>
 
             <View
-              style={[
-                styles.stockBadge,
-                outOfStock && styles.stockBadgeEmpty,
-              ]}
+              style={[styles.stockBadge, outOfStock && styles.stockBadgeEmpty]}
             >
               <View
-                style={[
-                  styles.stockDot,
-                  outOfStock && styles.stockDotEmpty,
-                ]}
+                style={[styles.stockDot, outOfStock && styles.stockDotEmpty]}
               />
 
               <Text style={styles.stockText}>
-                {outOfStock
-                  ? 'Sense estoc'
-                  : `${available} disponibles`}
+                {outOfStock ? 'Sense estoc' : `${available} disponibles`}
               </Text>
             </View>
           </View>
@@ -261,9 +241,7 @@ export default function ProductScreen() {
                 ]}
                 disabled={quantity >= available || outOfStock}
                 onPress={() =>
-                  setQuantity((current) =>
-                    Math.min(available, current + 1),
-                  )
+                  setQuantity((current) => Math.min(available, current + 1))
                 }
               >
                 <Text style={styles.quantityButtonText}>+</Text>
@@ -274,53 +252,22 @@ export default function ProductScreen() {
           {/* Resum del preu */}
           <View style={styles.totalPanel}>
             <View>
-              <Text style={styles.totalLabel}>
-                TOTAL DE LA COMANDA
-              </Text>
+              <Text style={styles.totalLabel}>TOTAL DE LA COMANDA</Text>
 
               <Text style={styles.totalHint}>
                 {quantity} kg × {unitPrice.toFixed(2).replace('.', ',')} €/kg
               </Text>
             </View>
 
-            <Text style={styles.totalPrice}>
-              {formatPrice(total)}
-            </Text>
+            <Text style={styles.totalPrice}>{formatPrice(total)}</Text>
           </View>
 
-          {/* Botó de compra */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.buyButton,
-              outOfStock && styles.buyButtonDisabled,
-              pressed && !outOfStock && styles.buyButtonPressed,
-            ]}
+          {/* Botó de compra amb Stripe */}
+          <CheckoutForm
+            productId={String(productId)}
+            quantity={quantity}
             disabled={outOfStock}
-            onPress={handleBuy}
-            accessibilityRole="button"
-            accessibilityLabel={
-              outOfStock ? 'Producte esgotat' : 'Comprar ara'
-            }
-          >
-            <Text style={styles.buyButtonText}>
-              {outOfStock ? 'Producte esgotat' : 'Comprar ara  →'}
-            </Text>
-          </Pressable>
-
-          {/* Tornar al mercat */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.backButton,
-              pressed && styles.backButtonPressed,
-            ]}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Tornar al mercat"
-          >
-            <Text style={styles.backArrow}>‹</Text>
-            <Text style={styles.backButtonText}>Tornar al mercat</Text>
-          </Pressable>
-
+          />
           <Text style={styles.footerText}>
             AgriTwin · Agricultura intel·ligent
           </Text>

@@ -18,6 +18,7 @@ import { getcontentfeed, getnews } from '@/services/api';
 type Tab = 'prices' | 'news';
 
 import * as Haptics from 'expo-haptics';
+import CheckoutForm from '@/components/checkout-form.web';
 
 type Product = {
   id: string | number;
