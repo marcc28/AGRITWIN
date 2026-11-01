@@ -111,14 +111,6 @@ export function getMarketStyles(colors: ThemeColors) {
       marginRight: 12,
     },
 
-    buyBtn: {
-      marginLeft: 'auto',
-      backgroundColor: colors.primary,
-      paddingHorizontal: 14,
-      paddingVertical: 7,
-      borderRadius: 8,
-    },
-
     buyText: {
       color: colors.surface,
       fontSize: 12,
@@ -207,6 +199,47 @@ export function getMarketStyles(colors: ThemeColors) {
       textAlign: 'center',
       fontSize: 14,
       color: colors.textSecondary,
+    },
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      marginBottom: 12,
+      borderRadius: 14,
+      backgroundColor: Colors.light.surface,
+      borderWidth: 1,
+      borderColor: Colors.light.border,
+    },
+    backArrow: {
+      fontSize: 28,
+      lineHeight: 30,
+      color: Colors.light.primaryDark,
+      fontWeight: '600',
+    },
+    backButtonText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: Colors.light.primaryDark,
+    },
+    backButtonPressed: {
+      opacity: 0.65,
+      transform: [{ scale: 0.97 }],
+    },
+    buyBtn: {
+      marginLeft: 0,
+      backgroundColor: colors.primary,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buyBtnHover: {
+      backgroundColor: colors.primaryDark,
+      borderColor: colors.primaryDark,
     },
   });
 }

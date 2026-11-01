@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import {
+  Animated,
   Image,
   Pressable,
   ScrollView,
@@ -8,12 +8,17 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useEffect, useRef, useState } from 'react';
 
+import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/theme';
 import { getMarketStyles } from '../../styles/market.styles';
 import { getcontentfeed, getnews } from '@/services/api';
 
 type Tab = 'prices' | 'news';
+
+import * as Haptics from 'expo-haptics';
+import CheckoutForm from '@/components/checkout-form.web';
 
 type Product = {
   id: string | number;
@@ -34,11 +39,90 @@ type News = {
 
 const PAGE_SIZE = 5;
 
+function HeartbeatBuyButton({
+  product,
+  onPress,
+  label,
+  styles,
+}: {
+  product: Product;
+  onPress: () => void;
+  label: string;
+  styles: ReturnType<typeof getMarketStyles>;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: 1.08,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1.04,
+          duration: 140,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 160,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1200),
+      ]),
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+      scale.stopAnimation();
+    };
+  }, [scale]);
+
+  const outOfStock = Number(product.left_units) <= 0;
+
+  return (
+    <Animated.View
+      style={{
+        marginLeft: 'auto',
+        transform: [{ scale }],
+      }}
+    >
+      <Pressable
+        testID={`buy-button-${product.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={`${label} ${product.product}`}
+        accessibilityState={{ disabled: outOfStock }}
+        disabled={outOfStock}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.buyBtn,
+          outOfStock && { opacity: 0.45 },
+          pressed && !outOfStock && { opacity: 0.75 },
+        ]}
+      >
+        <Text testID={`buy-text-${product.id}`} style={styles.buyText}>
+          {outOfStock ? 'Esgotat' : label}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export default function MarketScreen() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const styles = getMarketStyles(colors);
+  const router = useRouter();
 
   const [tab, setTab] = useState<Tab>('prices');
   const [products, setProducts] = useState<Product[]>([]);
@@ -60,6 +144,8 @@ export default function MarketScreen() {
   const canGoForward = page + 1 < totalPages;
 
   useEffect(() => {
+    let active = true;
+
     async function loadData() {
       try {
         const [productsData, newsData] = await Promise.all([
@@ -67,16 +153,74 @@ export default function MarketScreen() {
           getnews(0, 10),
         ]);
 
-        setProducts(productsData);
-        setNews(newsData);
+        if (active) {
+          setProducts(productsData);
+          setNews(newsData);
+        }
       } catch (error) {
         console.error(t('market.errors.loadFailed'), error);
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
+    function BuyButton({
+      product,
+      onPress,
+      label,
+      styles,
+    }: {
+      product: Product;
+      onPress: () => void;
+      label: string;
+      styles: ReturnType<typeof getMarketStyles>;
+    }) {
+      const [hovered, setHovered] = useState(false);
+      const outOfStock = Number(product.left_units) <= 0;
+
+      const handlePress = async () => {
+        if (outOfStock) return;
+
+        try {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        } catch {
+          // Si la vibració falla, la compra continua funcionant.
+        }
+
+        onPress();
+      };
+
+      return (
+        <Pressable
+          testID={`buy-button-${product.id}`}
+          accessibilityRole="button"
+          accessibilityLabel={`${label} ${product.product}`}
+          accessibilityState={{ disabled: outOfStock }}
+          disabled={outOfStock}
+          onPress={handlePress}
+          onHoverIn={() => setHovered(true)}
+          onHoverOut={() => setHovered(false)}
+          style={({ pressed }) => [
+            styles.buyBtn,
+            hovered && !outOfStock && styles.buyBtnHover,
+            pressed && !outOfStock && { opacity: 0.8 },
+            outOfStock && { opacity: 0.45 },
+          ]}
+        >
+          <Text testID={`buy-text-${product.id}`} style={styles.buyText}>
+            {outOfStock ? 'Esgotat' : label}
+          </Text>
+        </Pressable>
+      );
+    }
+
     loadData();
+
+    return () => {
+      active = false;
+    };
   }, [t]);
 
   const changeTab = (nextTab: Tab) => {
@@ -92,6 +236,13 @@ export default function MarketScreen() {
     setPage((current) => Math.min(Math.max(0, totalPages - 1), current + 1));
   };
 
+  const openProduct = (productId: string | number) => {
+    router.push({
+      pathname: '/product/[id]',
+      params: { id: String(productId) },
+    });
+  };
+
   return (
     <View
       testID="market-screen"
@@ -99,14 +250,14 @@ export default function MarketScreen() {
     >
       <View style={styles.trackWrap}>
         <View style={styles.track}>
-          {(['prices', 'news'] as Tab[]).map((k) => {
-            const active = tab === k;
+          {(['prices', 'news'] as Tab[]).map((key) => {
+            const active = tab === key;
 
             return (
               <Pressable
-                key={k}
-                testID={`market-tab-${k}`}
-                onPress={() => changeTab(k)}
+                key={key}
+                testID={`market-tab-${key}`}
+                onPress={() => changeTab(key)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
                 style={[
@@ -120,7 +271,7 @@ export default function MarketScreen() {
                     { color: active ? '#fff' : colors.text },
                   ]}
                 >
-                  {t(`market.${k}`)}
+                  {t(`market.${key}`)}
                 </Text>
               </Pressable>
             );
@@ -139,95 +290,108 @@ export default function MarketScreen() {
           </Text>
         ) : tab === 'prices' ? (
           visibleProducts.length > 0 ? (
-            visibleProducts.map((p) => (
-              <View
-                key={p.id}
-                testID={`product-item-${p.id}`}
-                style={styles.priceCard}
+            visibleProducts.map((product) => (
+              <Pressable
+                key={product.id}
+                testID={`product-item-${product.id}`}
+                style={({ pressed }) => [
+                  styles.priceCard,
+                  pressed && { opacity: 0.7 },
+                ]}
+                onPress={() => openProduct(product.id)}
               >
                 <View style={styles.priceTop}>
                   <View style={{ flex: 1 }}>
                     <Text
-                      testID={`product-name-${p.id}`}
+                      testID={`product-name-${product.id}`}
                       style={styles.productName}
                     >
-                      {p.product}
+                      {product.product}
                     </Text>
 
                     <Text
-                      testID={`product-technical-name-${p.id}`}
+                      testID={`product-technical-name-${product.id}`}
                       style={styles.detail}
                     >
-                      {p.tecnical_name}
+                      {product.tecnical_name}
                     </Text>
                   </View>
 
                   <View style={styles.priceMain}>
                     <Text
-                      testID={`product-price-${p.id}`}
+                      testID={`product-price-${product.id}`}
                       style={styles.priceValue}
                     >
-                      {Number(p.price).toFixed(2)} €
+                      {Number(product.price).toFixed(2)} €
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.priceBottom}>
                   <Text
-                    testID={`product-price-kg-${p.id}`}
+                    testID={`product-price-kg-${product.id}`}
                     style={styles.smallInfo}
                   >
-                    {Number(p.price_per_kg).toFixed(2)} €/kg
+                    {Number(product.price_per_kg).toFixed(2)} €/kg
                   </Text>
 
                   <Text
-                    testID={`product-units-${p.id}`}
+                    testID={`product-units-${product.id}`}
                     style={styles.smallInfo}
                   >
-                    {Number(p.left_units).toFixed(2)} {t('market.units')}
+                    {Number(product.left_units).toFixed(2)} {t('market.units')}
                   </Text>
 
-                  <Pressable
-                    testID={`buy-button-${p.id}`}
-                    onPress={() => {}}
-                    style={({ pressed }) => [
-                      styles.buyBtn,
-                      pressed && { opacity: 0.7 },
-                    ]}
-                  >
-                    <Text testID={`buy-text-${p.id}`} style={styles.buyText}>
-                      {t('market.buy')}
-                    </Text>
-                  </Pressable>
+                  <HeartbeatBuyButton
+                    product={product}
+                    label={t('market.buy')}
+                    styles={styles}
+                    onPress={() => openProduct(product.id)}
+                  />
                 </View>
-              </View>
+              </Pressable>
             ))
           ) : (
             <Text style={styles.statusText}>No hi ha productes.</Text>
           )
         ) : visibleNews.length > 0 ? (
-          visibleNews.map((n) => (
-            <View
-              key={n.id}
-              testID={`news-item-${n.id}`}
-              style={styles.priceCard}
+          visibleNews.map((item) => (
+            <Pressable
+              key={item.id}
+              testID={`news-item-${item.id}`}
+              accessibilityRole="button"
+              accessibilityLabel={`Llegir notícia: ${item.title}`}
+              style={({ pressed }) => [
+                styles.priceCard,
+                pressed && { opacity: 0.75 },
+              ]}
+              onPress={() =>
+                router.push({
+                  pathname: '/news/[id]',
+                  params: { id: String(item.id) },
+                })
+              }
             >
               <View style={styles.chip}>
-                <Text testID={`news-subtitle-${n.id}`} style={styles.chipText}>
-                  {n.subtile}
+                <Text
+                  testID={`news-subtitle-${item.id}`}
+                  style={styles.chipText}
+                >
+                  {item.subtile}
                 </Text>
               </View>
 
-              <Text testID={`news-title-${n.id}`} style={styles.newsTitle}>
-                {n.title}
+              <Text testID={`news-title-${item.id}`} style={styles.newsTitle}>
+                {item.title}
               </Text>
 
-              <Text testID={`news-content-${n.id}`} style={styles.newsBody}>
-                {n.content}
+              <Text testID={`news-content-${item.id}`} style={styles.newsBody}>
+                {item.content}
               </Text>
 
-              <Text style={styles.source}>{n.agent}</Text>
-            </View>
+              <Text style={styles.source}>{item.agent}</Text>
+            </Pressable>
+            
           ))
         ) : (
           <Text style={styles.statusText}>No hi ha notícies.</Text>

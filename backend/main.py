@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from mangum import Mangum
 from starlette.middleware.sessions import SessionMiddleware
 
-from api.v1 import anunces, auth, content_market, dashboard, fields, legal, user, weather
+from api.v1 import anunces, auth, content_market, dashboard, fields, legal, payments, user, weather
 
 load_dotenv()
 
@@ -49,7 +49,11 @@ app.include_router(content_market.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(fields.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
-
+app.include_router(
+    payments.router,
+    prefix="/api/v1/payments",
+    tags=["payments"],
+)
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):
     return JSONResponse(content=None, status_code=200)
