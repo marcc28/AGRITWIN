@@ -68,6 +68,38 @@ export function getMarketStyles(colors: ThemeColors) {
       elevation: 3,
     },
 
+    imagePreview: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: 190,
+      padding: 8,
+      borderRadius: 14,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 12,
+      zIndex: 100,
+    },
+
+    imagePreviewTitle: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+
+    imagePreviewImage: {
+      width: '100%',
+      height: 112,
+      borderRadius: 9,
+      backgroundColor: colors.surfaceSecondary,
+    },
+
     priceTop: {
       flexDirection: 'row',
       alignItems: 'center',

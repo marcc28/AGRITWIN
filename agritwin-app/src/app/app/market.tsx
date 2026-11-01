@@ -9,7 +9,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/theme';
@@ -31,6 +31,8 @@ type Product = {
   price: number;
   price_per_kg: number;
   left_units: number;
+  image_url?: string | null;
+  url_image?: string | null;
 };
 
 type News = {
@@ -39,10 +41,57 @@ type News = {
   subtile: string;
   agent: string;
   content: string;
+  image_url?: string | null;
+  url_image?: string | null;
 };
 
 const PAGE_SIZE = 5;
 const INITIAL_PAGE_SIZE = 12;
+
+function MarketImagePreview({
+  title,
+  imageUrl,
+  styles,
+  children,
+  onPress,
+  testID,
+  accessibilityLabel,
+  pressedOpacity = 0.7,
+  onHover,
+  onHoverOut,
+}: {
+  title: string;
+  imageUrl?: string | null;
+  styles: ReturnType<typeof getMarketStyles>;
+  children: ReactNode;
+  onPress: () => void;
+  testID: string;
+  accessibilityLabel: string;
+  pressedOpacity?: number;
+  onHover: (pageX: number, pageY: number) => void;
+  onHoverOut: () => void;
+}) {
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onHoverIn={(event) => {
+        if (imageUrl) {
+          onHover(event.nativeEvent.pageX, event.nativeEvent.pageY);
+        }
+      }}
+      onHoverOut={onHoverOut}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.priceCard,
+        pressed && { opacity: pressedOpacity },
+      ]}
+    >
+      {children}
+    </Pressable>
+  );
+}
 
 function HeartbeatBuyButton({
   product,
@@ -127,6 +176,7 @@ export default function MarketScreen() {
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const styles = getMarketStyles(colors);
   const router = useRouter();
+  const marketRef = useRef<View>(null);
 
   const [tab, setTab] = useState<Tab>('prices');
   const [products, setProducts] = useState<Product[]>([]);
@@ -152,6 +202,33 @@ export default function MarketScreen() {
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allNews, setAllNews] = useState<News[]>([]);
+  const [hoverPreview, setHoverPreview] = useState<{
+    title: string;
+    imageUrl: string;
+    left: number;
+    top: number;
+  } | null>(null);
+
+  const showImagePreview = (
+    title: string,
+    imageUrl: string | null | undefined,
+    pageX: number,
+    pageY: number,
+  ) => {
+    if (!imageUrl) return;
+
+    marketRef.current?.measureInWindow((x, y, width) => {
+      const previewWidth = 190;
+      const previewHeight = 155;
+      const left = Math.min(
+        Math.max(8, pageX - x - previewWidth / 2),
+        Math.max(8, width - previewWidth - 8),
+      );
+      const top = Math.max(8, pageY - y - previewHeight - 12);
+
+      setHoverPreview({ title, imageUrl, left, top });
+    });
+  };
 
   useEffect(() => {
     let active = true;
@@ -247,8 +324,14 @@ export default function MarketScreen() {
 
   return (
     <View
+      ref={marketRef}
+      collapsable={false}
       testID="market-screen"
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={{
+        flex: 1,
+        position: 'relative',
+        backgroundColor: colors.background,
+      }}
     >
       <View style={styles.searchWrap}>
         <Image
@@ -325,13 +408,22 @@ export default function MarketScreen() {
         ) : tab === 'prices' ? (
           visibleProducts.length > 0 ? (
             visibleProducts.map((product) => (
-              <Pressable
+              <MarketImagePreview
                 key={product.id}
+                title={product.product}
+                imageUrl={product.image_url ?? product.url_image}
+                styles={styles}
                 testID={`product-item-${product.id}`}
-                style={({ pressed }) => [
-                  styles.priceCard,
-                  pressed && { opacity: 0.7 },
-                ]}
+                accessibilityLabel={`Veure producte ${product.product}`}
+                onHover={(pageX, pageY) =>
+                  showImagePreview(
+                    product.product,
+                    product.image_url ?? product.url_image,
+                    pageX,
+                    pageY,
+                  )
+                }
+                onHoverOut={() => setHoverPreview(null)}
                 onPress={() => openProduct(product.id)}
               >
                 <View style={styles.priceTop}>
@@ -383,22 +475,30 @@ export default function MarketScreen() {
                     onPress={() => openProduct(product.id)}
                   />
                 </View>
-              </Pressable>
+              </MarketImagePreview>
             ))
           ) : (
             <Text style={styles.statusText}>No hi ha productes.</Text>
           )
         ) : visibleNews.length > 0 ? (
           visibleNews.map((item) => (
-            <Pressable
+            <MarketImagePreview
               key={item.id}
+              title={item.title}
+              imageUrl={item.image_url ?? item.url_image}
+              styles={styles}
               testID={`news-item-${item.id}`}
-              accessibilityRole="button"
-              accessibilityLabel={`Llegir notícia: ${item.title}`}
-              style={({ pressed }) => [
-                styles.priceCard,
-                pressed && { opacity: 0.75 },
-              ]}
+              accessibilityLabel={`Llegir noticia: ${item.title}`}
+              pressedOpacity={0.75}
+              onHover={(pageX, pageY) =>
+                showImagePreview(
+                  item.title,
+                  item.image_url ?? item.url_image,
+                  pageX,
+                  pageY,
+                )
+              }
+              onHoverOut={() => setHoverPreview(null)}
               onPress={() =>
                 router.push({
                   pathname: '/news/[id]',
@@ -424,7 +524,7 @@ export default function MarketScreen() {
               </Text>
 
               <Text style={styles.source}>{item.agent}</Text>
-            </Pressable>
+            </MarketImagePreview>
           ))
         ) : (
           <Text style={styles.statusText}>No hi ha notícies.</Text>
@@ -474,6 +574,25 @@ export default function MarketScreen() {
               resizeMode="contain"
             />
           </Pressable>
+        </View>
+      )}
+
+      {hoverPreview && (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.imagePreview,
+            { left: hoverPreview.left, top: hoverPreview.top },
+          ]}
+        >
+          <Text style={styles.imagePreviewTitle} numberOfLines={1}>
+            {hoverPreview.title}
+          </Text>
+          <Image
+            source={{ uri: hoverPreview.imageUrl }}
+            style={styles.imagePreviewImage}
+            resizeMode="cover"
+          />
         </View>
       )}
     </View>
