@@ -74,22 +74,20 @@ CREATE TABLE user_consents (
 -- ANUNCES
 -- News / announcements feed
 -- ============================================================
-
-CREATE TABLE anunces (
+CREATE TABLE public.anunces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
     subtile VARCHAR(255),
     agent VARCHAR(255),
     content TEXT,
+    image_url VARCHAR(10000),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 
 -- ============================================================
 -- CONTE_MERCAT
 -- Market prices
 -- ============================================================
-
 CREATE TABLE conte_mercat (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     product VARCHAR(255) NOT NULL,
@@ -97,6 +95,7 @@ CREATE TABLE conte_mercat (
     price NUMERIC(10, 2) NOT NULL,
     price_per_kg NUMERIC(10, 2),
     left_units INTEGER NOT NULL DEFAULT 0,
+    image_url VARCHAR(10000),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -233,13 +232,14 @@ CREATE INDEX idx_telemetry_device_timestamp
 -- ============================================================
 
 INSERT INTO public.anunces
-    (title, subtile, agent, content, created_at)
+    (title, subtile, agent, content, image_url, created_at)
 VALUES
 (
     'Oferta de tomàquets',
     'Tomàquets ecològics',
     'AgriTwin',
     'Tomàquets ecològics disponibles a bon preu aquesta setmana, amb diferents formats per a venda directa.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/oferta_tomaquets.jpg',
     '2026-10-06 08:15:32.112543'
 ),
 (
@@ -247,6 +247,7 @@ VALUES
     'Política agrària',
     'Departament d''Agricultura',
     'El Departament d''Agricultura anuncia una nova línia d''ajudes directes per a joves agricultors, amb un màxim de 15.000€ per explotació.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/ajudes-joves-agricultors.png',
     '2026-10-06 09:42:18.524697'
 ),
 (
@@ -254,6 +255,7 @@ VALUES
     'Mercat de la patata',
     'AgriTwin',
     'El preu mitjà de la patata registra un increment durant aquesta setmana a causa de la menor oferta disponible al mercat.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/preu_patata.jpg',
     '2026-10-06 10:27:44.221834'
 ),
 (
@@ -261,6 +263,7 @@ VALUES
     'Fruita de tardor',
     'Cooperativa del Segrià',
     'Comença la campanya de recol·lecció de poma de tardor. Les primeres varietats presenten una bona qualitat i un calibre homogeni.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/collita_poma.jpg',
     '2026-10-06 11:05:19.782341'
 ),
 (
@@ -268,6 +271,7 @@ VALUES
     'Tendències del mercat',
     'AgriTwin',
     'La demanda de productes agrícoles certificats com a ecològics continua creixent, especialment en fruites i hortalisses de temporada.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/demanda-productes-ecologics.jpg',
     '2026-10-06 11:48:27.345912'
 ),
 (
@@ -275,6 +279,7 @@ VALUES
     'Meteorologia agrícola',
     'Servei Meteorològic',
     'Les previsions indiquen precipitacions generalitzades durant el cap de setmana. Es recomana revisar les tasques de recol·lecció previstes.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/previsions-pluja.png',
     '2026-10-06 12:16:53.118472'
 ),
 (
@@ -282,6 +287,7 @@ VALUES
     'Cereals',
     'Cooperativa Agrària',
     'Disponible una nova partida de blat amb un preu competitiu per a explotacions ramaderes i transformadors locals.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/oferta_blat.png',
     '2026-10-06 12:54:41.672315'
 ),
 (
@@ -289,6 +295,7 @@ VALUES
     'Oli d''oliva',
     'Observatori Agroalimentari',
     'Els preus de l''oli d''oliva mantenen una tendència alcista aquesta temporada a causa de la reducció de la producció en diverses zones productores.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/preu-oli-oliva.jpg',
     '2026-10-06 13:21:09.456781'
 ),
 (
@@ -296,6 +303,7 @@ VALUES
     'Hortalisses',
     'AgriTwin',
     'Nova partida de pebrots vermells i verds disponible per a venda. Producte fresc procedent de productors locals.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/caixes_pebrots.png',
     '2026-10-06 13:47:35.891234'
 ),
 (
@@ -303,6 +311,7 @@ VALUES
     'Ajuts agrícoles',
     'Departament d''Agricultura',
     'S''obre una nova convocatòria d''ajuts destinada a la modernització de sistemes de reg i a la reducció del consum d''aigua.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/ajudes-joves-agricultors.png',
     '2026-10-06 14:12:26.337845'
 ),
 (
@@ -310,6 +319,7 @@ VALUES
     'Mercat de l''hortalissa',
     'AgriTwin',
     'Els preus de la ceba es mantenen estables aquesta setmana després de diverses setmanes amb fluctuacions importants.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/mercat-ceba.jpg',
     '2026-10-06 14:39:52.774321'
 ),
 (
@@ -317,6 +327,7 @@ VALUES
     'Fruits secs',
     'Cooperativa del Segrià',
     'Les primeres ametlles de la nova collita ja estan disponibles. Els productors destaquen la bona qualitat del gra i els baixos nivells d''humitat.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/collita-ametlles.jpg',
     '2026-10-06 15:04:18.225634'
 ),
 (
@@ -324,6 +335,7 @@ VALUES
     'Costos de producció',
     'AgriTwin',
     'El preu dels fertilitzants nitrogenats registra una lleugera baixada respecte al mes anterior, fet que pot reduir els costos de producció.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/cost-fertilitzant-nitrogenat.webp',
     '2026-10-06 15:28:47.663219'
 ),
 (
@@ -331,6 +343,7 @@ VALUES
     'Consells agraris',
     'Servei d''Assessorament Agrari',
     'Els tècnics recomanen preparar els terrenys amb antelació i revisar la humitat del sòl abans d''iniciar les sembres de tardor.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/sembra-tardor.jpg',
     '2026-10-06 15:52:31.448762'
 ),
 (
@@ -338,6 +351,7 @@ VALUES
     'Productes de temporada',
     'AgriTwin',
     'Disponible una nova partida de carbassa de temporada, ideal per a venda directa i distribució a comerços locals.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/oferta-carbassa.jpg',
     '2026-10-06 16:18:05.912347'
 ),
 (
@@ -345,6 +359,7 @@ VALUES
     'Mercat de cereals',
     'Observatori Agroalimentari',
     'La demanda de blat i ordi es manté estable durant les darreres setmanes, amb una activitat comercial similar a la de l''any anterior.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/demanda-cereals.jpg',
     '2026-10-06 16:43:29.381526'
 ),
 (
@@ -352,6 +367,7 @@ VALUES
     'Tecnologia agrícola',
     'AgriTwin',
     'Es presenta un nou programa destinat a facilitar la incorporació d''eines digitals per controlar cultius, costos i rendiment de les explotacions.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/digitalitzacio-agricola.jpg',
     '2026-10-06 17:07:14.672893'
 ),
 (
@@ -359,6 +375,7 @@ VALUES
     'Olivicultura',
     'Cooperativa Agrària',
     'Les primeres estimacions apunten a una campanya d''olives amb bons rendiments en diverses zones productores.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/campanya-olives.png',
     '2026-10-06 17:31:46.225781'
 ),
 (
@@ -366,6 +383,7 @@ VALUES
     'Mercat de fruita',
     'AgriTwin',
     'Els preus de la fruita de pinyol es mantenen estables després del final de la temporada d''estiu i l''entrada de nous productes de tardor.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/logo_agritwin.jpg',
     '2026-10-06 18:02:37.519624'
 ),
 (
@@ -373,6 +391,7 @@ VALUES
     'Prevenció agrícola',
     'Servei Meteorològic',
     'Es recomana als agricultors revisar els sistemes de protecció dels cultius sensibles davant la possibilitat de temperatures baixes durant les pròximes setmanes.',
+    'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/anunces/prevencio-gelades.jpg',
     '2026-10-06 18:34:21.847362'
 );
 
@@ -381,27 +400,66 @@ VALUES
 -- SEED DATA: CONTE_MERCAT
 -- ============================================================
 
+
 INSERT INTO public.conte_mercat
-    (product, tecnical_name, price, price_per_kg, left_units, created_at)
+    (product, tecnical_name, price, price_per_kg, left_units, created_at, image_url)
 VALUES
-    ('Tomàquet', 'Solanum lycopersicum', 2.50, 2.50, 100, '2026-10-06 08:15:22.191494'),
-    ('Patata', 'Solanum tuberosum', 1.35, 1.35, 250, '2026-10-06 08:42:17.381245'),
-    ('Ceba', 'Allium cepa', 1.20, 1.20, 180, '2026-10-06 09:05:43.572816'),
-    ('Poma Golden', 'Malus domestica', 2.10, 2.10, 150, '2026-10-06 09:31:28.814532'),
-    ('Pera Conference', 'Pyrus communis', 2.35, 2.35, 120, '2026-10-06 09:57:41.263719'),
-    ('Pebrot vermell', 'Capsicum annuum', 3.20, 3.20, 85, '2026-10-06 10:24:16.492831'),
-    ('Pebrot verd', 'Capsicum annuum', 2.80, 2.80, 95, '2026-10-06 10:48:53.721654'),
-    ('Carbassa', 'Cucurbita maxima', 1.75, 1.75, 140, '2026-10-06 11:16:34.158927'),
-    ('Carbassó', 'Cucurbita pepo', 2.15, 2.15, 75, '2026-10-06 11:43:27.641385'),
-    ('Enciam', 'Lactuca sativa', 1.10, 4.40, 200, '2026-10-06 12:08:19.375421'),
-    ('Pastanaga', 'Daucus carota', 1.45, 1.45, 175, '2026-10-06 12:34:52.817263'),
-    ('All', 'Allium sativum', 5.90, 5.90, 60, '2026-10-06 13:02:41.529814'),
-    ('Mongeta verda', 'Phaseolus vulgaris', 4.25, 4.25, 70, '2026-10-06 13:27:18.462935'),
-    ('Blat', 'Triticum aestivum', 0.32, 0.32, 1200, '2026-10-06 13:51:36.781245'),
-    ('Ordi', 'Hordeum vulgare', 0.29, 0.29, 950, '2026-10-06 14:18:24.351762'),
-    ('Ametlla', 'Prunus dulcis', 7.80, 7.80, 45, '2026-10-06 14:46:17.628391'),
-    ('Oliva', 'Olea europaea', 1.85, 1.85, 320, '2026-10-06 15:13:49.472816'),
-    ('Albergínia', 'Solanum melongena', 2.65, 2.65, 65, '2026-10-06 15:42:31.815294'),
-    ('Coliflor', 'Brassica oleracea var. botrytis', 2.40, 2.40, 90, '2026-10-06 16:11:26.394728'),
-    ('Bròquil', 'Brassica oleracea var. italica', 2.75, 2.75, 80, '2026-10-06 16:38:54.721635');
-    
+    ('Tomàquet', 'Solanum lycopersicum', 2.50, 2.50, 100, '2026-10-06 08:15:22.191494',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/tomaquet.jpg'),
+
+    ('Patata', 'Solanum tuberosum', 1.35, 1.35, 250, '2026-10-06 08:42:17.381245',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/patata.webp'),
+
+    ('Ceba', 'Allium cepa', 1.20, 1.20, 180, '2026-10-06 09:05:43.572816',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/ceba.jpg'),
+
+    ('Poma Golden', 'Malus domestica', 2.10, 2.10, 150, '2026-10-06 09:31:28.814532',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/poma_golden.jpg'),
+
+    ('Pera Conference', 'Pyrus communis', 2.35, 2.35, 120, '2026-10-06 09:57:41.263719',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/pera_conference.jpg'),
+
+    ('Pebrot vermell', 'Capsicum annuum', 3.20, 3.20, 85, '2026-10-06 10:24:16.492831',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/pebrot_vermell.jpg'),
+
+    ('Pebrot verd', 'Capsicum annuum', 2.80, 2.80, 95, '2026-10-06 10:48:53.721654',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/pebrot_verd.jpg'),
+
+    ('Carbassa', 'Cucurbita maxima', 1.75, 1.75, 140, '2026-10-06 11:16:34.158927',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/carbassa.jpg'),
+
+    ('Carbassó', 'Cucurbita pepo', 2.15, 2.15, 75, '2026-10-06 11:43:27.641385',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/carbasso.jpg'),
+
+    ('Enciam', 'Lactuca sativa', 1.10, 4.40, 200, '2026-10-06 12:08:19.375421',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/enciam.jpg'),
+
+    ('Pastanaga', 'Daucus carota', 1.45, 1.45, 175, '2026-10-06 12:34:52.817263',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/pastanaga.jpg'),
+
+    ('All', 'Allium sativum', 5.90, 5.90, 60, '2026-10-06 13:02:41.529814',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/all.jpeg'),
+
+    ('Mongeta verda', 'Phaseolus vulgaris', 4.25, 4.25, 70, '2026-10-06 13:27:18.462935',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/mongeta_verda.jpg'),
+
+    ('Blat', 'Triticum aestivum', 0.32, 0.32, 1200, '2026-10-06 13:51:36.781245',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/blat.jpg'),
+
+    ('Ordi', 'Hordeum vulgare', 0.29, 0.29, 950, '2026-10-06 14:18:24.351762',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/ordi.jpg'),
+
+    ('Ametlla', 'Prunus dulcis', 7.80, 7.80, 45, '2026-10-06 14:46:17.628391',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/ametlla.jpg'),
+
+    ('Oliva', 'Olea europaea', 1.85, 1.85, 320, '2026-10-06 15:13:49.472816',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/oliva.jpg'),
+
+    ('Albergínia', 'Solanum melongena', 2.65, 2.65, 65, '2026-10-06 15:42:31.815294',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/alberginia.jpg'),
+
+    ('Coliflor', 'Brassica oleracea var. botrytis', 2.40, 2.40, 90, '2026-10-06 16:11:26.394728',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/coliflor.jpg'),
+
+    ('Bròquil', 'Brassica oleracea var. italica', 2.75, 2.75, 80, '2026-10-06 16:38:54.721635',
+     'https://bggnkpfayktjhghlrwlz.supabase.co/storage/v1/object/public/conte-mercat/broquil.jpg');

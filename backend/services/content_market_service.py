@@ -35,7 +35,6 @@ class ConteMercatService:
         result = await self._db.execute(
             select(ConteMercat).where(ConteMercat.product.ilike(f"%{product}%"))
         )
-
         return list(result.scalars().all())
 
     async def create_conte_mercat(
@@ -55,6 +54,28 @@ class ConteMercatService:
         )
 
         self._db.add(conte_mercat)
+
+        await self._db.commit()
+        await self._db.refresh(conte_mercat)
+
+        return conte_mercat
+    
+    async def update_image_url(
+        self,
+        conte_mercat_id: UUID,
+        image_url: str,
+    ):
+        conte_mercat = await self.get_conte_mercat_by_id(
+            conte_mercat_id
+        )
+
+        if conte_mercat is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Conte mercat not found",
+            )
+
+        conte_mercat.image_url = image_url
 
         await self._db.commit()
         await self._db.refresh(conte_mercat)

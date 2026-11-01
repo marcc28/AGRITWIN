@@ -23,3 +23,4 @@ class ConteMercatRead(BaseModel):
     price_per_kg: Decimal | None
     left_units: int
     created_at: datetime
+    image_url: str | None = None
