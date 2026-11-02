@@ -36,7 +36,10 @@ describe('hosted checkout session API', () => {
         line_items: [
           expect.objectContaining({
             quantity: 1,
-            price_data: expect.objectContaining({ currency: 'usd', unit_amount: 1234 }),
+            price_data: expect.objectContaining({
+              currency: 'usd',
+              unit_amount: 1234,
+            }),
           }),
         ],
       }),

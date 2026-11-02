@@ -34,7 +34,9 @@ describe('PaymentResultScreen', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("No hem rebut l'identificador de la sessió de Stripe."),
+        screen.getByText(
+          "No hem rebut l'identificador de la sessió de Stripe.",
+        ),
       ).toBeTruthy();
     });
   });

@@ -50,9 +50,7 @@ export default function CheckoutForm({
             : typeof data.message === 'string'
               ? data.message
               : null;
-        throw new Error(
-          detail ?? `Error HTTP ${response.status}`,
-        );
+        throw new Error(detail ?? `Error HTTP ${response.status}`);
       }
 
       if (!data.url) {

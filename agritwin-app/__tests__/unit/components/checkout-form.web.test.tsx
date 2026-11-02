@@ -63,13 +63,18 @@ describe('CheckoutForm web (Stripe Hosted Checkout)', () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 422,
-      json: async () => ({ detail: { error: 'bad' }, message: 'Comanda invàlida' }),
+      json: async () => ({
+        detail: { error: 'bad' },
+        message: 'Comanda invàlida',
+      }),
     });
     const screen = render(<CheckoutForm productId="42" quantity={1} />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
 
-    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith('Comanda invàlida'));
+    await waitFor(() =>
+      expect(mockAlert).toHaveBeenCalledWith('Comanda invàlida'),
+    );
   });
 
   it('uses an HTTP status when the API provides no error message', async () => {
@@ -82,7 +87,9 @@ describe('CheckoutForm web (Stripe Hosted Checkout)', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
 
-    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith('Error HTTP 503'));
+    await waitFor(() =>
+      expect(mockAlert).toHaveBeenCalledWith('Error HTTP 503'),
+    );
   });
 
   it('does not redirect when the server omits the checkout URL', async () => {
@@ -151,9 +158,7 @@ describe('CheckoutForm web (Stripe Hosted Checkout)', () => {
       ),
     );
 
-    screen.rerender(
-      <CheckoutForm productId="42" quantity={1} disabled />,
-    );
+    screen.rerender(<CheckoutForm productId="42" quantity={1} disabled />);
     fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });

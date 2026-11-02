@@ -6,9 +6,8 @@ import ExpoStripeProvider from '@/components/stripe-provider';
 
 jest.mock('@stripe/stripe-react-native', () => {
   const React = jest.requireActual<typeof import('react')>('react');
-  const { View } = jest.requireActual<typeof import('react-native')>(
-    'react-native',
-  );
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
   return {
     StripeProvider: ({ children }: { children: React.ReactNode }) => (
       <View testID="stripe-provider">{children}</View>
@@ -21,7 +20,10 @@ jest.mock('expo-constants', () => ({
   default: {
     expoConfig: {
       plugins: [
-        ['@stripe/stripe-react-native', { merchantIdentifier: 'merchant.test' }],
+        [
+          '@stripe/stripe-react-native',
+          { merchantIdentifier: 'merchant.test' },
+        ],
       ],
     },
   },

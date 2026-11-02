@@ -46,7 +46,7 @@ export default function ProductScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
 
-  const productId = Array.isArray(id) ? id[0] : id;
+  const productId = Array.isArray(id) ? id.at(0) : id;
 
   const [product, setProduct] = useState<MarketProduct | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -87,7 +87,7 @@ export default function ProductScreen() {
       }
     }
 
-    loadProduct();
+    void loadProduct();
 
     return () => {
       active = false;

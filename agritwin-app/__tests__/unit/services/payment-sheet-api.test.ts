@@ -13,8 +13,12 @@ describe('native payment sheet API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (stripe.customers.create as jest.Mock).mockResolvedValue({ id: 'cus_123' });
-    (stripe.ephemeralKeys.create as jest.Mock).mockResolvedValue({ secret: 'ek_secret' });
-    (stripe.paymentIntents.create as jest.Mock).mockResolvedValue({ client_secret: 'pi_secret' });
+    (stripe.ephemeralKeys.create as jest.Mock).mockResolvedValue({
+      secret: 'ek_secret',
+    });
+    (stripe.paymentIntents.create as jest.Mock).mockResolvedValue({
+      client_secret: 'pi_secret',
+    });
     process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_key';
   });
 

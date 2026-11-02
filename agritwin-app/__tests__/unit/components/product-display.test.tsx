@@ -24,7 +24,9 @@ describe('product display components', () => {
     expect(screen.getByText('Solanum lycopersicum')).toBeTruthy();
     expect(screen.getByLabelText('Imatge de Tomata')).toBeTruthy();
 
-    screen.rerender(<ProductHeader product={{ ...product, image_url: null }} />);
+    screen.rerender(
+      <ProductHeader product={{ ...product, image_url: null }} />,
+    );
     expect(screen.queryByLabelText('Imatge de Tomata')).toBeNull();
   });
 
@@ -36,9 +38,7 @@ describe('product display components', () => {
     expect(screen.getByText('2,50 €')).toBeTruthy();
     expect(screen.getByText('4 disponibles')).toBeTruthy();
 
-    screen.rerender(
-      <ProductPrice unitPrice={2.5} available={0} outOfStock />,
-    );
+    screen.rerender(<ProductPrice unitPrice={2.5} available={0} outOfStock />);
     expect(screen.getByText('Sense estoc')).toBeTruthy();
   });
 

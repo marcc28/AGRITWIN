@@ -125,7 +125,10 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 422,
-      json: async () => ({ detail: { error: 'invalid' }, message: 'Invalid order' }),
+      json: async () => ({
+        detail: { error: 'invalid' },
+        message: 'Invalid order',
+      }),
     });
     const screen = render(
       <CheckoutForm productId="42" quantity={1} disabled={false} />,
@@ -133,10 +136,12 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
 
-    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith(
-      'Error de pagament',
-      'Invalid order',
-    ));
+    await waitFor(() =>
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Error de pagament',
+        'Invalid order',
+      ),
+    );
   });
 
   it('uses the HTTP status when the server error has no text', async () => {
@@ -151,10 +156,12 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
 
-    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith(
-      'Error de pagament',
-      'Error del servidor: HTTP 502',
-    ));
+    await waitFor(() =>
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Error de pagament',
+        'Error del servidor: HTTP 502',
+      ),
+    );
   });
 
   it('rejects incomplete Stripe credentials', async () => {
@@ -263,9 +270,11 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
 
-    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith(
-      'Error de pagament',
-      'No s’ha pogut iniciar el pagament.',
-    ));
+    await waitFor(() =>
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Error de pagament',
+        'No s’ha pogut iniciar el pagament.',
+      ),
+    );
   });
 });

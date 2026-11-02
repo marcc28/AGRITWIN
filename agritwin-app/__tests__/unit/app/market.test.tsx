@@ -142,7 +142,9 @@ describe('MarketScreen', () => {
     );
     const screen = renderScreen();
 
-    await waitFor(() => expect(screen.getByTestId('product-item-1')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByTestId('product-item-1')).toBeTruthy(),
+    );
     fireEvent(screen.getByTestId('product-item-1'), 'hoverIn', {
       nativeEvent: { pageX: 120, pageY: 240 },
     });
@@ -161,7 +163,9 @@ describe('MarketScreen', () => {
 
   it('treats whitespace-only input as an empty search', async () => {
     const screen = renderScreen();
-    await waitFor(() => expect(screen.getByTestId('product-item-1')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByTestId('product-item-1')).toBeTruthy(),
+    );
 
     fireEvent.changeText(
       screen.getByPlaceholderText('Cerca productes o notícies...'),
@@ -177,10 +181,15 @@ describe('MarketScreen', () => {
   it('shows the searching state while a query is pending', async () => {
     let resolveSearch: ((value: typeof mockProducts) => void) | undefined;
     (searchMarketProducts as jest.Mock).mockImplementationOnce(
-      () => new Promise((resolve) => { resolveSearch = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveSearch = resolve;
+        }),
     );
     const screen = renderScreen();
-    await waitFor(() => expect(screen.getByTestId('product-item-1')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByTestId('product-item-1')).toBeTruthy(),
+    );
 
     fireEvent.changeText(
       screen.getByPlaceholderText('Cerca productes o notícies...'),
@@ -195,7 +204,10 @@ describe('MarketScreen', () => {
   it('ignores market results that arrive after unmount', async () => {
     let resolveProducts: ((value: typeof mockProducts) => void) | undefined;
     (getcontentfeed as jest.Mock).mockImplementationOnce(
-      () => new Promise((resolve) => { resolveProducts = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveProducts = resolve;
+        }),
     );
     const screen = renderScreen();
 

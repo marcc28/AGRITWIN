@@ -245,7 +245,10 @@ describe('ProductScreen', () => {
   it('ignores a product response after the detail screen unmounts', async () => {
     let resolveProduct: ((value: typeof mockProduct) => void) | undefined;
     (getMarketProduct as jest.Mock).mockImplementationOnce(
-      () => new Promise((resolve) => { resolveProduct = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveProduct = resolve;
+        }),
     );
     const screen = render(<ProductScreen />);
     screen.unmount();

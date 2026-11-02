@@ -145,7 +145,10 @@ describe('NewsDetailScreen', () => {
   it('ignores a news response after the detail screen unmounts', async () => {
     let resolveNews: ((value: typeof mockNews) => void) | undefined;
     (getNewsById as jest.Mock).mockImplementationOnce(
-      () => new Promise((resolve) => { resolveNews = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveNews = resolve;
+        }),
     );
     const screen = render(<NewsDetailScreen />);
     screen.unmount();

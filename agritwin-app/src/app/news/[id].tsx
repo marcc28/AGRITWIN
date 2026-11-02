@@ -19,7 +19,7 @@ export default function NewsDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
 
-  const newsId = Array.isArray(id) ? id[0] : id;
+  const newsId = Array.isArray(id) ? id.at(0) : id;
 
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
@@ -62,7 +62,7 @@ export default function NewsDetailScreen() {
       }
     }
 
-    loadNews();
+    void loadNews();
 
     return () => {
       active = false;
