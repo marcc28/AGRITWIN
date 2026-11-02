@@ -26,10 +26,10 @@ jobs:
           cache-dependency-path: agritwin-app/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run Jest unit tests with coverage
-        run: npx jest __tests__ --coverage
+        run: npx jest __tests__ --coverage --runInBand
 
       - name: Upload coverage report
         if: always()
