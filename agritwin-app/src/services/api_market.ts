@@ -6,7 +6,6 @@ if (!API_URL) {
   throw new Error('EXPO_PUBLIC_API_URL is not defined');
 }
 
-
 export type News = {
   id: string | number;
   title: string;
@@ -14,6 +13,10 @@ export type News = {
   agent: string;
   content: string;
   image_url?: string | null;
+};
+
+export type CountResponse = {
+  total: number;
 };
 
 // --------------------------------------------------
@@ -44,7 +47,6 @@ export async function searchNews(title: string): Promise<News[]> {
 // SEARCH MARKET PRODUCTS
 // --------------------------------------------------
 
-
 export type MarketProduct = {
   id: string | number;
   product: string;
@@ -55,9 +57,7 @@ export type MarketProduct = {
   image_url?: string | null;
 };
 
-export async function getMarketProduct(
-  id: string,
-): Promise<MarketProduct> {
+export async function getMarketProduct(id: string): Promise<MarketProduct> {
   const response = await fetch(
     `${API_URL}/api/v1/conte_mercat/${encodeURIComponent(id)}`,
     {
@@ -81,7 +81,6 @@ export async function getMarketProduct(
   return data as MarketProduct;
 }
 
-
 export async function getnews(offset: number, limit: number): Promise<News[]> {
   const response = await fetch(
     `${API_URL}/api/v1/anunces?offset=${offset}&limit=${limit}`,
@@ -101,7 +100,6 @@ export async function getnews(offset: number, limit: number): Promise<News[]> {
 
   return data;
 }
-
 
 export async function getcontentfeed(offset: number, limit: number) {
   const response = await fetch(
@@ -167,4 +165,42 @@ export async function searchMarketProducts(product: string) {
   return data;
 }
 
+// --------------------------------------------------
+// COUNT NEWS / ANUNCIS
+// --------------------------------------------------
+export async function getAnuncesCount(): Promise<number> {
+  const response = await fetch(`${API_URL}/api/v1/anunces/count`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
 
+  const data: CountResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error('Error obtenint el nombre total d’anuncis');
+  }
+
+  return data.total;
+}
+
+// --------------------------------------------------
+// COUNT MARKET PRODUCTS
+// --------------------------------------------------
+export async function getMarketProductsCount(): Promise<number> {
+  const response = await fetch(`${API_URL}/api/v1/conte_mercat/count`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  const data: CountResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error('Error obtenint el nombre total de productes');
+  }
+
+  return data.total;
+}
