@@ -28,18 +28,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
 
     response.headers["Strict-Transport-Security"] = "max-age=31536000"
-    response.headers["Cache-Control"] = (
-        "no-store, no-cache, must-revalidate, private"
-    )
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
 
     return response
+
 
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(legal.router, prefix="/api/v1")
@@ -54,9 +54,12 @@ app.include_router(
     prefix="/api/v1/payments",
     tags=["payments"],
 )
+
+
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):
     return JSONResponse(content=None, status_code=200)
+
 
 # AWS Lambda handler
 handler = Mangum(app)

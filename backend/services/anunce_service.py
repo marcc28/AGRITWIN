@@ -60,13 +60,11 @@ class AnunceService:
         await self._db.refresh(anunce)
 
         return anunce
-    
+
     async def count_anunces(self) -> int:
-        result = await self._db.execute(
-            select(func.count()).select_from(Anunce)
-        )
+        result = await self._db.execute(select(func.count()).select_from(Anunce))
         return result.scalar_one()
-    
+
     async def update_image_url(
         self,
         anunce_id: UUID,

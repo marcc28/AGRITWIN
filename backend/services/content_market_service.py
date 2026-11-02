@@ -61,11 +61,9 @@ class ConteMercatService:
         return conte_mercat
 
     async def count_content_market(self) -> int:
-        result = await self._db.execute(
-            select(func.count()).select_from(ConteMercat)
-        )
+        result = await self._db.execute(select(func.count()).select_from(ConteMercat))
         return result.scalar_one()
-    
+
     async def update_image_url(
         self,
         conte_mercat_id: UUID,

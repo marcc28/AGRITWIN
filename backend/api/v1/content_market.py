@@ -32,15 +32,14 @@ async def get_conte_mercat(
         limit=limit,
     )
 
+
 @router.get("/count")
 async def count_content_market(
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
     total = await service.count_content_market()
 
-    return {
-        "total": total
-    }
+    return {"total": total}
 
 
 @router.get(
@@ -120,4 +119,3 @@ async def create_conte_mercat(
             ) from exc
 
     return conte_mercat
-

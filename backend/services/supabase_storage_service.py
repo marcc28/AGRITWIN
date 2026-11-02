@@ -35,9 +35,7 @@ class SupabaseService:
         return filename
 
     async def delete_image(self, filename: str):
-        self.supabase.storage.from_("profile_images").remove(
-            [filename]
-        )
+        self.supabase.storage.from_("profile_images").remove([filename])
 
     async def upload_product_image(
         self,
@@ -65,7 +63,7 @@ class SupabaseService:
                 status_code=400,
                 detail="El fitxer és buit",
             )
-        
+
         # Ruta única per a cada imatge
         path = f"{product_id}/{uuid.uuid4()}{extension}"
 
@@ -81,16 +79,11 @@ class SupabaseService:
         return path
 
     async def delete_product_image(self, path: str):
-        self.supabase.storage.from_("conte-mercat").remove(
-            [path]
-        )
+        self.supabase.storage.from_("conte-mercat").remove([path])
 
     def get_product_image_url(self, path: str) -> str:
-        return (
-            self.supabase.storage
-            .from_("conte-mercat")
-            .get_public_url(path)
-        )
+        return self.supabase.storage.from_("conte-mercat").get_public_url(path)
+
     async def upload_anunce_image(
         self,
         file: UploadFile,
@@ -132,14 +125,7 @@ class SupabaseService:
         return path
 
     async def delete_anunce_image(self, path: str):
-        self.supabase.storage.from_("anunces").remove(
-            [path]
-        )
+        self.supabase.storage.from_("anunces").remove([path])
 
     def get_anunce_image_url(self, path: str) -> str:
-        return (
-            self.supabase.storage
-            .from_("anunces")
-            .get_public_url(path)
-        )
-    
+        return self.supabase.storage.from_("anunces").get_public_url(path)
