@@ -75,7 +75,9 @@ describe('fields api', () => {
       ok: false,
       json: async () => ({}),
     }) as jest.Mock;
-    await expect(login('ainhoa', 'bad')).rejects.toThrow('Error iniciant sessió');
+    await expect(login('ainhoa', 'bad')).rejects.toThrow(
+      'Error iniciant sessió',
+    );
   });
 
   it('submits login credentials as form data', async () => {
@@ -98,8 +100,13 @@ describe('fields api', () => {
 
   it('loads legal policies and reports failures', async () => {
     const privacy = { document_type: 'privacy', version: '1', content: 'Text' };
-    const security = { document_type: 'security', version: '1', content: 'Text' };
-    global.fetch = jest.fn()
+    const security = {
+      document_type: 'security',
+      version: '1',
+      content: 'Text',
+    };
+    global.fetch = jest
+      .fn()
       .mockResolvedValueOnce({ ok: true, json: async () => privacy })
       .mockResolvedValueOnce({ ok: true, json: async () => security });
 

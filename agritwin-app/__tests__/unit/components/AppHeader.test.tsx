@@ -64,7 +64,9 @@ const mockedGetFields = getFields as jest.MockedFunction<typeof getFields>;
 const mockedGetCurrentField = getCurrentField as jest.MockedFunction<
   typeof getCurrentField
 >;
-const mockedIsAuthError = isAuthError as jest.MockedFunction<typeof isAuthError>;
+const mockedIsAuthError = isAuthError as jest.MockedFunction<
+  typeof isAuthError
+>;
 
 describe('AppHeader', () => {
   beforeEach(() => {
@@ -168,9 +170,11 @@ describe('AppHeader', () => {
     await waitFor(() => expect(screen.getByLabelText('Hort')).toBeTruthy());
 
     fireEvent.press(screen.getByLabelText('Hort'));
-    await waitFor(() => expect(setGardenPicker).toHaveBeenCalledWith(
-      expect.objectContaining({ open: true }),
-    ));
+    await waitFor(() =>
+      expect(setGardenPicker).toHaveBeenCalledWith(
+        expect.objectContaining({ open: true }),
+      ),
+    );
 
     fireEvent.press(screen.getByLabelText('Hort'));
     expect(setGardenPicker).toHaveBeenLastCalledWith({ open: false });
@@ -193,9 +197,11 @@ describe('AppHeader', () => {
 
     fireEvent.press(screen.getByLabelText('Hort'));
 
-    await waitFor(() => expect(setGardenPicker).toHaveBeenLastCalledWith(
-      expect.objectContaining({ open: false, currentId: 3 }),
-    ));
+    await waitFor(() =>
+      expect(setGardenPicker).toHaveBeenLastCalledWith(
+        expect.objectContaining({ open: false, currentId: 3 }),
+      ),
+    );
   });
 
   it('clears an expired session and routes to login on an auth error', async () => {
@@ -263,15 +269,23 @@ describe('AppHeader', () => {
   });
 
   it('ignores a pending auth response after unmount', async () => {
-    let resolveAuth: ((value: Awaited<ReturnType<typeof getAuth>>) => void) | undefined;
+    let resolveAuth:
+      ((value: Awaited<ReturnType<typeof getAuth>>) => void) | undefined;
     mockedGetAuth.mockImplementationOnce(
-      () => new Promise((resolve) => { resolveAuth = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveAuth = resolve;
+        }),
     );
     const screenResult = render(<AppHeader />);
     screenResult.unmount();
 
     await act(async () => {
-      resolveAuth?.({ token: 'late-token', refreshToken: null, username: 'late' });
+      resolveAuth?.({
+        token: 'late-token',
+        refreshToken: null,
+        username: 'late',
+      });
     });
 
     expect(getFields).not.toHaveBeenCalled();
@@ -282,7 +296,10 @@ describe('AppHeader', () => {
       | ((value: Awaited<ReturnType<typeof getCurrentField>>) => void)
       | undefined;
     mockedGetCurrentField.mockImplementationOnce(
-      () => new Promise((resolve) => { resolveStored = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveStored = resolve;
+        }),
     );
     const screenResult = render(<AppHeader />);
 
@@ -298,10 +315,12 @@ describe('AppHeader', () => {
 
   it('ignores a pending garden response after unmount', async () => {
     let resolveFields:
-      | ((value: Awaited<ReturnType<typeof getFields>>) => void)
-      | undefined;
+      ((value: Awaited<ReturnType<typeof getFields>>) => void) | undefined;
     mockedGetFields.mockImplementationOnce(
-      () => new Promise((resolve) => { resolveFields = resolve; }),
+      () =>
+        new Promise((resolve) => {
+          resolveFields = resolve;
+        }),
     );
     const screenResult = render(<AppHeader />);
 
@@ -317,7 +336,10 @@ describe('AppHeader', () => {
   it('ignores a garden loading error after unmount', async () => {
     let rejectFields: ((error: Error) => void) | undefined;
     mockedGetFields.mockImplementationOnce(
-      () => new Promise((_resolve, reject) => { rejectFields = reject; }),
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectFields = reject;
+        }),
     );
     const screenResult = render(<AppHeader />);
 

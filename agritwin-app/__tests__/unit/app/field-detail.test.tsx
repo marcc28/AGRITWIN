@@ -46,9 +46,8 @@ jest.mock('../../../src/components/FieldPhoto', () => ({
 jest.mock('../../../src/components/SensorCard', () => ({
   SensorCard: ({ title, onPress }: { title: string; onPress: () => void }) => {
     const React = jest.requireActual<typeof import('react')>('react');
-    const { Pressable, Text } = jest.requireActual<
-      typeof import('react-native')
-    >('react-native');
+    const { Pressable, Text } =
+      jest.requireActual<typeof import('react-native')>('react-native');
     return (
       <Pressable onPress={onPress}>
         <Text>{title}</Text>

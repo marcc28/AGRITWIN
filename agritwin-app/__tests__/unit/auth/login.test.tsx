@@ -46,9 +46,8 @@ jest.mock('expo-linear-gradient', () => ({
 
 jest.mock('../../../src/components/Alert', () => {
   const React = jest.requireActual<typeof import('react')>('react');
-  const { View, Text } = jest.requireActual<typeof import('react-native')>(
-    'react-native',
-  );
+  const { View, Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
 
   return function Alert({
     title,
