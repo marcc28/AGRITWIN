@@ -59,6 +59,32 @@ describe('CheckoutForm web (Stripe Hosted Checkout)', () => {
     expect(mockAssign).not.toHaveBeenCalled();
   });
 
+  it('uses the API message when detail is not text', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 422,
+      json: async () => ({ detail: { error: 'bad' }, message: 'Comanda invàlida' }),
+    });
+    const screen = render(<CheckoutForm productId="42" quantity={1} />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
+
+    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith('Comanda invàlida'));
+  });
+
+  it('uses an HTTP status when the API provides no error message', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => ({}),
+    });
+    const screen = render(<CheckoutForm productId="42" quantity={1} />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
+
+    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith('Error HTTP 503'));
+  });
+
   it('does not redirect when the server omits the checkout URL', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     const screen = render(<CheckoutForm productId="42" quantity={1} />);
@@ -110,5 +136,25 @@ describe('CheckoutForm web (Stripe Hosted Checkout)', () => {
       expect(mockAlert).toHaveBeenCalledWith('Connexió rebutjada'),
     );
     expect(screen.getByRole('button', { name: 'Comprar' })).toBeEnabled();
+  });
+
+  it('uses a fallback for unexpected failures and honors disabled state', async () => {
+    mockFetch.mockRejectedValueOnce('network failure');
+    const screen = render(
+      <CheckoutForm productId="42" quantity={1} disabled={false} />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
+    await waitFor(() =>
+      expect(mockAlert).toHaveBeenCalledWith(
+        "No s'ha pogut iniciar el pagament.",
+      ),
+    );
+
+    screen.rerender(
+      <CheckoutForm productId="42" quantity={1} disabled />,
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 
 import NewsDetailScreen from '../../../src/app/news/[id]';
 import { getNewsById } from '@/services/api_market';
@@ -140,5 +140,18 @@ describe('NewsDetailScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('No s’ha trobat la notícia.')).toBeTruthy();
     });
+  });
+
+  it('ignores a news response after the detail screen unmounts', async () => {
+    let resolveNews: ((value: typeof mockNews) => void) | undefined;
+    (getNewsById as jest.Mock).mockImplementationOnce(
+      () => new Promise((resolve) => { resolveNews = resolve; }),
+    );
+    const screen = render(<NewsDetailScreen />);
+    screen.unmount();
+
+    await act(async () => resolveNews?.(mockNews));
+
+    expect(getNewsById).toHaveBeenCalledWith('1');
   });
 });

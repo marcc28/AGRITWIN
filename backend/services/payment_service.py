@@ -1,5 +1,6 @@
 import os
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, DecimalException
+from uuid import UUID
 
 import stripe
 from fastapi import HTTPException
@@ -15,45 +16,60 @@ class PaymentService:
         # Comprova la clau quan s'inicialitza el servei.
         stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-    async def create_payment_sheet(self, body: PaymentRequest) -> dict:
+    def _require_stripe_key(self) -> None:
         if not stripe.api_key:
             raise HTTPException(
                 status_code=500,
                 detail="Falta STRIPE_SECRET_KEY",
             )
 
-        product = await self._conte_mercat_service.get_conte_mercat_by_id(body.productId)
-
+    async def _get_product(self, product_id: UUID):
+        product = await self._conte_mercat_service.get_conte_mercat_by_id(product_id)
         if product is None:
             raise HTTPException(
                 status_code=404,
                 detail="No s'ha trobat el producte del mercat",
             )
+        return product
 
+    @staticmethod
+    def _get_unit_amount(price: object, low_price_detail: str) -> int:
         try:
-            # El preu de la base de dades està expressat en euros.
-            unit_price = Decimal(str(product.price))
+            unit_price = Decimal(str(price))
+        except (DecimalException, TypeError, ValueError) as exc:
+            raise HTTPException(
+                status_code=400,
+                detail="El preu del producte no és vàlid",
+            ) from exc
 
-            if not unit_price.is_finite() or unit_price <= 0:
-                raise HTTPException(
-                    status_code=400,
-                    detail="El preu del producte no és vàlid",
-                )
-
-            # Stripe rep l'import en cèntims.
-            unit_amount = int(
-                (unit_price * 100).quantize(
-                    Decimal("1"),
-                    rounding=ROUND_HALF_UP,
-                )
+        if not unit_price.is_finite() or unit_price <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="El preu del producte no és vàlid",
             )
 
-            if unit_amount < 1:
-                raise HTTPException(
-                    status_code=400,
-                    detail="El preu és massa baix per processar el pagament",
-                )
+        unit_amount = int(
+            (unit_price * 100).quantize(
+                Decimal("1"),
+                rounding=ROUND_HALF_UP,
+            )
+        )
 
+        if unit_amount < 1:
+            raise HTTPException(status_code=400, detail=low_price_detail)
+
+        return unit_amount
+
+    async def create_payment_sheet(self, body: PaymentRequest) -> dict:
+        self._require_stripe_key()
+        product = await self._get_product(body.productId)
+        unit_amount = self._get_unit_amount(
+            product.price,
+            "El preu és massa baix per processar el pagament",
+        )
+
+        try:
+            # Stripe rep l'import en cèntims.
             total_amount = unit_amount * body.quantity
 
             customer = stripe.Customer.create()
@@ -89,42 +105,14 @@ class PaymentService:
             ) from exc
 
     async def create_checkout_session(self, body: PaymentRequest) -> dict:
-        if not stripe.api_key:
-            raise HTTPException(
-                status_code=500,
-                detail="Falta STRIPE_SECRET_KEY",
-            )
-
-        product = await self._conte_mercat_service.get_conte_mercat_by_id(body.productId)
-
-        if product is None:
-            raise HTTPException(
-                status_code=404,
-                detail="No s'ha trobat el producte del mercat",
-            )
+        self._require_stripe_key()
+        product = await self._get_product(body.productId)
+        unit_amount = self._get_unit_amount(
+            product.price,
+            "El preu del producte no és vàlid",
+        )
 
         try:
-            unit_price = Decimal(str(product.price))
-
-            if not unit_price.is_finite() or unit_price <= 0:
-                raise HTTPException(
-                    status_code=400,
-                    detail="El preu del producte no és vàlid",
-                )
-
-            unit_amount = int(
-                (unit_price * 100).quantize(
-                    Decimal("1"),
-                    rounding=ROUND_HALF_UP,
-                )
-            )
-
-            if unit_amount < 1:
-                raise HTTPException(
-                    status_code=400,
-                    detail="El preu del producte no és vàlid",
-                )
-
             success_url = os.getenv("STRIPE_SUCCESS_URL")
             cancel_url = os.getenv("STRIPE_CANCEL_URL")
 

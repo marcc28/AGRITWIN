@@ -15,6 +15,33 @@ import CheckoutForm from '@/components/checkout-form';
 
 import { styles } from '../../styles/product.styles';
 
+function ProductUnavailable({
+  message,
+  onBack,
+}: {
+  message: string;
+  onBack: () => void;
+}) {
+  return (
+    <View style={styles.screen}>
+      <StatusBar barStyle="light-content" />
+      <View style={styles.card}>
+        <Text style={styles.title}>Producte no disponible</Text>
+        <Text style={styles.description}>{message}</Text>
+        <Pressable
+          style={styles.backButton}
+          onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel="Tornar a la pantalla anterior"
+        >
+          <Text style={styles.backArrow}>‹</Text>
+          <Text style={styles.backButtonText}>Tornar al mercat</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 export default function ProductScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string | string[] }>();
@@ -83,29 +110,16 @@ export default function ProductScreen() {
     );
   }
 
-  if (error || !product) {
+  if (error !== null) {
+    return <ProductUnavailable message={error} onBack={() => router.back()} />;
+  }
+
+  if (product === null) {
     return (
-      <View style={styles.screen}>
-        <StatusBar barStyle="light-content" />
-
-        <View style={styles.card}>
-          <Text style={styles.title}>Producte no disponible</Text>
-
-          <Text style={styles.description}>
-            {error ?? 'No s’han pogut carregar les dades del producte.'}
-          </Text>
-
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Tornar a la pantalla anterior"
-          >
-            <Text style={styles.backArrow}>‹</Text>
-            <Text style={styles.backButtonText}>Tornar al mercat</Text>
-          </Pressable>
-        </View>
-      </View>
+      <ProductUnavailable
+        message="No s’han pogut carregar les dades del producte."
+        onBack={() => router.back()}
+      />
     );
   }
 

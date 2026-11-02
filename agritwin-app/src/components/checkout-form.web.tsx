@@ -44,8 +44,14 @@ export default function CheckoutForm({
       const data = await response.json();
 
       if (!response.ok) {
+        const detail =
+          typeof data.detail === 'string'
+            ? data.detail
+            : typeof data.message === 'string'
+              ? data.message
+              : null;
         throw new Error(
-          data.detail ?? data.message ?? `Error HTTP ${response.status}`,
+          detail ?? `Error HTTP ${response.status}`,
         );
       }
 

@@ -121,6 +121,42 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
     expect(mockInitPaymentSheet).not.toHaveBeenCalled();
   });
 
+  it('uses the server message when its detail is not text', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 422,
+      json: async () => ({ detail: { error: 'invalid' }, message: 'Invalid order' }),
+    });
+    const screen = render(
+      <CheckoutForm productId="42" quantity={1} disabled={false} />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
+
+    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith(
+      'Error de pagament',
+      'Invalid order',
+    ));
+  });
+
+  it('uses the HTTP status when the server error has no text', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      json: async () => ({ detail: { error: 'invalid' } }),
+    });
+    const screen = render(
+      <CheckoutForm productId="42" quantity={1} disabled={false} />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
+
+    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith(
+      'Error de pagament',
+      'Error del servidor: HTTP 502',
+    ));
+  });
+
   it('rejects incomplete Stripe credentials', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -217,5 +253,19 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
       json: async () => paymentResponse,
     } as Response);
     await waitFor(() => expect(mockPresentPaymentSheet).toHaveBeenCalled());
+  });
+
+  it('handles unexpected non-Error failures with a fallback message', async () => {
+    mockFetch.mockRejectedValueOnce('network failure');
+    const screen = render(
+      <CheckoutForm productId="42" quantity={1} disabled={false} />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
+
+    await waitFor(() => expect(mockAlert).toHaveBeenCalledWith(
+      'Error de pagament',
+      'No s’ha pogut iniciar el pagament.',
+    ));
   });
 });

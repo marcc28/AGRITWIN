@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 
 import MarketScreen from '../../../src/app/app/market';
 
@@ -125,6 +125,85 @@ describe('MarketScreen', () => {
     });
 
     expect(screen.getByTestId('buy-text-2')).toHaveTextContent('market.buy');
+  });
+
+  it('handles image hover for products and news with and without images', async () => {
+    (getnews as jest.Mock).mockResolvedValueOnce([
+      { ...mockNews[0], image_url: null, url_image: mockNews[0].image_url },
+    ]);
+    (getcontentfeed as jest.Mock).mockResolvedValueOnce(
+      mockProducts.map((product, index) =>
+        index === 0
+          ? { ...product, image_url: null, url_image: null }
+          : index === 1
+            ? { ...product, image_url: null, url_image: product.image_url }
+            : product,
+      ),
+    );
+    const screen = renderScreen();
+
+    await waitFor(() => expect(screen.getByTestId('product-item-1')).toBeTruthy());
+    fireEvent(screen.getByTestId('product-item-1'), 'hoverIn', {
+      nativeEvent: { pageX: 120, pageY: 240 },
+    });
+    fireEvent(screen.getByTestId('product-item-2'), 'hoverIn', {
+      nativeEvent: { pageX: 120, pageY: 240 },
+    });
+    fireEvent(screen.getByTestId('product-item-2'), 'hoverOut');
+
+    fireEvent.press(screen.getByTestId('market-tab-news'));
+    await waitFor(() => expect(screen.getByTestId('news-item-1')).toBeTruthy());
+    fireEvent(screen.getByTestId('news-item-1'), 'hoverIn', {
+      nativeEvent: { pageX: 140, pageY: 250 },
+    });
+    fireEvent(screen.getByTestId('news-item-1'), 'hoverOut');
+  });
+
+  it('treats whitespace-only input as an empty search', async () => {
+    const screen = renderScreen();
+    await waitFor(() => expect(screen.getByTestId('product-item-1')).toBeTruthy());
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      '   ',
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+    expect(searchMarketProducts).not.toHaveBeenCalled();
+  });
+
+  it('shows the searching state while a query is pending', async () => {
+    let resolveSearch: ((value: typeof mockProducts) => void) | undefined;
+    (searchMarketProducts as jest.Mock).mockImplementationOnce(
+      () => new Promise((resolve) => { resolveSearch = resolve; }),
+    );
+    const screen = renderScreen();
+    await waitFor(() => expect(screen.getByTestId('product-item-1')).toBeTruthy());
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      'tomata',
+    );
+
+    await waitFor(() => expect(screen.getByText('Cercant...')).toBeTruthy());
+    await act(async () => resolveSearch?.([mockProducts[0]]));
+    await waitFor(() => expect(screen.queryByText('Cercant...')).toBeNull());
+  });
+
+  it('ignores market results that arrive after unmount', async () => {
+    let resolveProducts: ((value: typeof mockProducts) => void) | undefined;
+    (getcontentfeed as jest.Mock).mockImplementationOnce(
+      () => new Promise((resolve) => { resolveProducts = resolve; }),
+    );
+    const screen = renderScreen();
+
+    await waitFor(() => expect(getcontentfeed).toHaveBeenCalled());
+    screen.unmount();
+    await act(async () => resolveProducts?.(mockProducts));
+
+    expect(getnews).toHaveBeenCalledWith(0, 1);
   });
 
   // --------------------------------------------------

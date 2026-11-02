@@ -42,11 +42,14 @@ export default function CheckoutForm({
       const data = await response.json();
 
       if (!response.ok) {
-        const detail = data.detail ?? data.message;
+        const detail =
+          typeof data.detail === 'string'
+            ? data.detail
+            : typeof data.message === 'string'
+              ? data.message
+              : null;
         throw new Error(
-          typeof detail === 'string'
-            ? detail
-            : `Error del servidor: HTTP ${response.status}`,
+          detail ?? `Error del servidor: HTTP ${response.status}`,
         );
       }
       const { paymentIntent, ephemeralKey, customer } = data;

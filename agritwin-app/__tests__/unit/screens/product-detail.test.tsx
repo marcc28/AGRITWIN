@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 
 import ProductScreen from '../../../src/app/product/[id]';
 import { getMarketProduct } from '@/services/api_market';
@@ -237,5 +237,21 @@ describe('ProductScreen', () => {
         screen.getByText('No s’han pogut carregar les dades del producte.'),
       ).toBeTruthy();
     });
+
+    fireEvent.press(screen.getByLabelText('Tornar a la pantalla anterior'));
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it('ignores a product response after the detail screen unmounts', async () => {
+    let resolveProduct: ((value: typeof mockProduct) => void) | undefined;
+    (getMarketProduct as jest.Mock).mockImplementationOnce(
+      () => new Promise((resolve) => { resolveProduct = resolve; }),
+    );
+    const screen = render(<ProductScreen />);
+    screen.unmount();
+
+    await act(async () => resolveProduct?.(mockProduct));
+
+    expect(getMarketProduct).toHaveBeenCalledWith('1');
   });
 });

@@ -69,6 +69,40 @@ export default function NewsDetailScreen() {
     };
   }, [newsId]);
 
+  let articleContent: React.ReactNode;
+  if (loading) {
+    articleContent = (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator color={colors.primary} />
+        <Text style={styles.loadingText}>Carregant notícia...</Text>
+      </View>
+    );
+  } else if (error !== null) {
+    articleContent = <Text style={styles.errorText}>{error}</Text>;
+  } else if (news === null) {
+    articleContent = (
+      <Text style={styles.errorText}>No s’ha trobat la notícia.</Text>
+    );
+  } else {
+    articleContent = (
+      <>
+        {news.image_url ? (
+          <Image
+            source={{ uri: news.image_url }}
+            accessibilityLabel={`Imatge de ${news.title}`}
+            resizeMode="cover"
+            style={styles.image}
+          />
+        ) : null}
+        <Text style={styles.subtitle}>{news.subtile}</Text>
+        <Text style={styles.title}>{news.title}</Text>
+        <View style={styles.separator} />
+        <Text style={styles.content}>{news.content}</Text>
+        <Text style={styles.source}>Font: {news.agent}</Text>
+      </>
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <StatusBar
@@ -87,39 +121,7 @@ export default function NewsDetailScreen() {
           <Text style={styles.backButtonText}>‹ Tornar al mercat</Text>
         </Pressable>
 
-        <View style={styles.card}>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator color={colors.primary} />
-              <Text style={styles.loadingText}>Carregant notícia...</Text>
-            </View>
-          ) : error || !news ? (
-            <Text style={styles.errorText}>
-              {error ?? 'No s’ha trobat la notícia.'}
-            </Text>
-          ) : (
-            <>
-              {news.image_url ? (
-                <Image
-                  source={{ uri: news.image_url }}
-                  accessibilityLabel={`Imatge de ${news.title}`}
-                  resizeMode="cover"
-                  style={styles.image}
-                />
-              ) : null}
-
-              <Text style={styles.subtitle}>{news.subtile}</Text>
-
-              <Text style={styles.title}>{news.title}</Text>
-
-              <View style={styles.separator} />
-
-              <Text style={styles.content}>{news.content}</Text>
-
-              <Text style={styles.source}>Font: {news.agent}</Text>
-            </>
-          )}
-        </View>
+        <View style={styles.card}>{articleContent}</View>
       </ScrollView>
     </View>
   );
