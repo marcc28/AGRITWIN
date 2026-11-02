@@ -38,8 +38,10 @@ jest.mock('../../../src/components/WeatherCard', () => ({
     onPress: () => void;
     onRetry: () => void;
   }) => {
-    const React = require('react');
-    const { Pressable, Text } = require('react-native');
+    const React = jest.requireActual<typeof import('react')>('react');
+    const { Pressable, Text } = jest.requireActual<
+      typeof import('react-native')
+    >('react-native');
     return (
       <>
         <Pressable testID="card" onPress={onPress}>

@@ -21,8 +21,10 @@ jest.mock('expo-router', () => ({
 }));
 
 jest.mock('@/components/checkout-form', () => {
-  const React = require('react');
-  const { Text } = require('react-native');
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>(
+    'react-native',
+  );
 
   return function MockCheckoutForm(props: any) {
     return (

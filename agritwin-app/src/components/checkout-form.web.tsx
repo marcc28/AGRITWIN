@@ -17,7 +17,7 @@ export default function CheckoutForm({
   async function openCheckout(): Promise<void> {
     if (disabled || loading) return;
 
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
 
     if (!apiUrl) {
       window.alert("Falta configurar l'URL de l'API.");

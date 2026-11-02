@@ -1,5 +1,3 @@
-process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
-
 import { getAuth } from '../../../src/services/auth';
 import {
   createDevice,
@@ -15,6 +13,11 @@ import {
   updateMe,
   updateMyEmail,
   updateMyPassword,
+  getDashboard,
+  signup,
+  login,
+  getPrivacyPolicy,
+  getSecurityPolicy,
 } from '../../../src/services/api';
 
 jest.mock('../../../src/services/auth', () => ({
@@ -33,11 +36,142 @@ describe('fields api', () => {
     });
   });
 
+  it('signs up with policy acceptance and returns the created account', async () => {
+    const account = { id: 1, username: 'ainhoa' };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => account,
+    }) as jest.Mock;
+
+    await expect(
+      signup('ainhoa', 'a@test.com', 'password', 'password', true, true),
+    ).resolves.toEqual(account);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/users',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          username: 'ainhoa',
+          email: 'a@test.com',
+          password: 'password',
+          password_conf: 'password',
+          privacy_terms_accepted: true,
+          security_terms_accepted: true,
+        }),
+      }),
+    );
+  });
+
+  it('reports signup and login API errors with sensible fallbacks', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'Username already exists' }),
+    }) as jest.Mock;
+    await expect(
+      signup('ainhoa', 'a@test.com', 'password', 'password', true, true),
+    ).rejects.toThrow('Username already exists');
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    }) as jest.Mock;
+    await expect(login('ainhoa', 'bad')).rejects.toThrow('Error iniciant sessió');
+  });
+
+  it('submits login credentials as form data', async () => {
+    const token = { access_token: 'jwt', token_type: 'bearer' };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => token,
+    }) as jest.Mock;
+
+    await expect(login('ainhoa', 'secret')).resolves.toEqual(token);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'username=ainhoa&password=secret',
+      },
+    );
+  });
+
+  it('loads legal policies and reports failures', async () => {
+    const privacy = { document_type: 'privacy', version: '1', content: 'Text' };
+    const security = { document_type: 'security', version: '1', content: 'Text' };
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => privacy })
+      .mockResolvedValueOnce({ ok: true, json: async () => security });
+
+    await expect(getPrivacyPolicy()).resolves.toEqual(privacy);
+    await expect(getSecurityPolicy()).resolves.toEqual(security);
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    }) as jest.Mock;
+    await expect(getPrivacyPolicy()).rejects.toThrow(
+      'No s’ha pogut carregar la Privacy Notice',
+    );
+    await expect(getSecurityPolicy()).rejects.toThrow(
+      'No s’ha pogut carregar la Security Policy',
+    );
+  });
+
   it('detects auth errors', () => {
     expect(isAuthError(new Error('Not authenticated'))).toBe(true);
     expect(isAuthError(new Error('Could not validate credentials'))).toBe(true);
     expect(isAuthError(new Error('oops'))).toBe(false);
     expect(isAuthError('nope')).toBe(false);
+  });
+
+  it('loads dashboard data and supports legacy device_id responses', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        field_name: 'Hort',
+        device_id: 'device-1',
+      }),
+    }) as jest.Mock;
+
+    await expect(getDashboard(3)).resolves.toEqual({
+      field_name: 'Hort',
+      device_ids: ['device-1'],
+      latest: null,
+      history: [],
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/dashboard?field_id=3',
+      { headers: { Authorization: 'Bearer token' } },
+    );
+  });
+
+  it('loads a dashboard without an optional field id', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ device_ids: ['d1', 'd2'], latest: {}, history: [] }),
+    }) as jest.Mock;
+
+    await expect(getDashboard()).resolves.toMatchObject({
+      field_name: null,
+      device_ids: ['d1', 'd2'],
+      latest: {},
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/dashboard',
+      expect.any(Object),
+    );
+  });
+
+  it('rejects dashboard requests without a token and reports API errors', async () => {
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(getDashboard()).rejects.toThrow('Not authenticated');
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'Dashboard unavailable' }),
+    }) as jest.Mock;
+    await expect(getDashboard()).rejects.toThrow('Dashboard unavailable');
   });
 
   it('throws when there is no token', async () => {

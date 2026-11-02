@@ -1,5 +1,3 @@
-process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
-
 import { getAuth } from '../../../src/services/auth';
 import {
   getFieldWeather,

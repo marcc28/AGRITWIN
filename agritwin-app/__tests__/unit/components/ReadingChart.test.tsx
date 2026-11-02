@@ -5,8 +5,10 @@ import { render } from '@testing-library/react-native';
 import { ReadingChart } from '../../../src/components/ReadingChart';
 
 jest.mock('react-native-svg', () => {
-  const React = require('react');
-  const { View } = require('react-native');
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } = jest.requireActual<typeof import('react-native')>(
+    'react-native',
+  );
   const Mock = ({ children }: { children?: React.ReactNode }) => (
     <View>{children}</View>
   );

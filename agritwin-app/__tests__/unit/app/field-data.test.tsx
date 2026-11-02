@@ -29,8 +29,10 @@ jest.mock('../../../src/services/auth', () => ({
 
 jest.mock('../../../src/components/SensorModal', () => ({
   SensorModal: () => {
-    const React = require('react');
-    const { Text } = require('react-native');
+    const React = jest.requireActual<typeof import('react')>('react');
+    const { Text } = jest.requireActual<typeof import('react-native')>(
+      'react-native',
+    );
     return <Text>sensor-modal</Text>;
   },
 }));

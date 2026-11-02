@@ -1,10 +1,12 @@
-process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
-
 import {
   getMarketProduct,
   getcontentfeed,
   searchMarketProducts,
   getMarketProductsCount,
+  searchNews,
+  getnews,
+  getNewsById,
+  getAnuncesCount,
 } from '../../../src/services/api_market';
 
 describe('market api', () => {
@@ -38,6 +40,95 @@ describe('market api', () => {
           Accept: 'application/json',
         },
       },
+    );
+  });
+
+  it('searches news and encodes a title with spaces', async () => {
+    const news = [{ id: 2, title: 'Nou reg' }];
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => news,
+    }) as jest.Mock;
+
+    await expect(searchNews('nou reg')).resolves.toEqual(news);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/anunces/search?title=nou%20reg',
+      { method: 'GET', headers: { Accept: 'application/json' } },
+    );
+  });
+
+  it('uses fallback errors when the news search response has no detail', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    }) as jest.Mock;
+
+    await expect(searchNews('reg')).rejects.toThrow('Error cercant notícies');
+  });
+
+  it('gets paginated news and reports failures', async () => {
+    const news = [{ id: 2, title: 'Nou reg' }];
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => news,
+    }) as jest.Mock;
+
+    await expect(getnews(10, 5)).resolves.toEqual(news);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/anunces?offset=10&limit=5',
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'Feed unavailable' }),
+    }) as jest.Mock;
+    await expect(getnews(0, 10)).rejects.toThrow('Feed unavailable');
+  });
+
+  it('loads a news item by id and uses a fallback for invalid error detail', async () => {
+    const news = { id: 2, title: 'Nou reg' };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => news,
+    }) as jest.Mock;
+
+    await expect(getNewsById('news 2')).resolves.toEqual(news);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/anunces/news%202',
+      { method: 'GET', headers: { Accept: 'application/json' } },
+    );
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: ['invalid'] }),
+    }) as jest.Mock;
+    await expect(getNewsById('missing')).rejects.toThrow(
+      'No s’ha pogut carregar la notícia.',
+    );
+  });
+
+  it('gets the number of news items and handles count errors', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ total: 14 }),
+    }) as jest.Mock;
+
+    await expect(getAnuncesCount()).resolves.toBe(14);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/anunces/count',
+      { method: 'GET', headers: { Accept: 'application/json' } },
+    );
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ total: 0 }),
+    }) as jest.Mock;
+    await expect(getAnuncesCount()).rejects.toThrow(
+      'Error obtenint el nombre total d’anuncis',
     );
   });
 
