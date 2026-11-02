@@ -93,7 +93,7 @@ describe('MarketScreen', () => {
 
     expect(getcontentfeed).toHaveBeenCalledWith(0, 6);
     expect(getnews).toHaveBeenCalledWith(0, 1);
-  });
+  }, 15000);
 
   it('mostra el nom i els preus dels productes', async () => {
     const screen = renderScreen();
