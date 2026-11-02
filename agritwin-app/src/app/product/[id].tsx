@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getMarketProduct, type MarketProduct } from '@/services/api';
+import { getMarketProduct, type MarketProduct } from '@/services/api_market';
 
 import CheckoutForm from '@/components/checkout-form';
 

@@ -12,7 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Colors } from '@/constants/theme';
-import { getNewsById, type News } from '@/services/api';
+import { getNewsById, type News } from '@/services/api_market';
 
 export default function NewsDetailScreen() {
   const router = useRouter();

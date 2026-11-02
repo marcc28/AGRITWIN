@@ -241,5 +241,76 @@ export function getMarketStyles(colors: ThemeColors) {
       backgroundColor: colors.primaryDark,
       borderColor: colors.primaryDark,
     },
+
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    searchWrap: {
+      marginHorizontal: 20,
+      marginTop: 16,
+      marginBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 14,
+      height: 48,
+    },
+
+    searchIcon: {
+      fontSize: 18,
+      marginRight: 10,
+    },
+
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    clearButton: {
+      paddingHorizontal: 6,
+    },
+
+    clearText: {
+      fontSize: 20,
+      color: colors.text,
+    },
+
+    activeSegmentText: {
+      color: '#fff',
+    },
+
+    inactiveSegmentText: {
+      color: colors.text,
+    },
+
+    productInfo: {
+      flex: 1,
+    },
+
+    heartbeatWrap: {
+      marginLeft: 'auto',
+    },
+
+    buyBtnDisabled: {
+      opacity: 0.45,
+    },
+
+    buyBtnPressed: {
+      opacity: 0.75,
+    },
+
+    priceCardPressed: {
+      opacity: 0.7,
+    },
+
+    newsCardPressed: {
+      opacity: 0.75,
+    },
   });
 }
