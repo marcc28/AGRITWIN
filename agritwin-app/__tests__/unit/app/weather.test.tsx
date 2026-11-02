@@ -26,8 +26,9 @@ jest.mock('../../../src/hooks/use-field-weather', () => ({
 
 jest.mock('../../../src/components/WeatherDetails', () => ({
   WeatherDetails: ({ weather }: { weather: { lang: string } }) => {
-    const React = require('react');
-    const { Text } = require('react-native');
+    const React = jest.requireActual<typeof import('react')>('react');
+    const { Text } =
+      jest.requireActual<typeof import('react-native')>('react-native');
     return <Text>{`weather-details-${weather.lang}`}</Text>;
   },
 }));

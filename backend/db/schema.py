@@ -145,6 +145,10 @@ class Anunce(Base):
     subtile: Mapped[str | None] = mapped_column(String(255))
     agent: Mapped[str | None] = mapped_column(String(255))
     content: Mapped[str | None] = mapped_column(Text)
+    image_url: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -168,6 +172,10 @@ class ConteMercat(Base):
     price_per_kg: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
     left_units: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default=text("0")
+    )
+    image_url: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

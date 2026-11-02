@@ -71,7 +71,7 @@ jobs:
 
       - name: Run frontend unit tests with coverage
         working-directory: ./agritwin-app
-        run: npx jest __tests__ --coverage
+        run: npx jest __tests__ --coverage --runInBand
       
       - name: Verify frontend coverage report
         working-directory: ./agritwin-app

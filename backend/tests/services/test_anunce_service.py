@@ -1,4 +1,5 @@
 from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
@@ -253,3 +254,73 @@ async def test_delete_anunce_not_found():
 
     db.delete.assert_not_awaited()
     db.commit.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_count_anunces():
+    db = MagicMock()
+    service = AnunceService(db)
+
+    result = MagicMock()
+    result.scalar_one.return_value = 25
+    db.execute = AsyncMock(return_value=result)
+
+    response = await service.count_anunces()
+
+    assert response == 25
+    db.execute.assert_awaited_once()
+    result.scalar_one.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_update_image_url():
+    db = MagicMock()
+    db.commit = AsyncMock()
+    db.refresh = AsyncMock()
+
+    service = AnunceService(db)
+
+    anunce_id = uuid4()
+    anunce = MagicMock()
+    anunce.image_url = None
+
+    service.get_anunce_by_id = AsyncMock(return_value=anunce)
+
+    image_url = "https://example.com/anunce.png"
+
+    response = await service.update_image_url(
+        anunce_id=anunce_id,
+        image_url=image_url,
+    )
+
+    assert response is anunce
+    assert response.image_url == image_url
+
+    service.get_anunce_by_id.assert_awaited_once_with(anunce_id)
+    db.commit.assert_awaited_once()
+    db.refresh.assert_awaited_once_with(anunce)
+
+
+@pytest.mark.asyncio
+async def test_update_image_url_not_found():
+    db = MagicMock()
+    db.commit = AsyncMock()
+    db.refresh = AsyncMock()
+
+    service = AnunceService(db)
+
+    anunce_id = uuid4()
+    service.get_anunce_by_id = AsyncMock(return_value=None)
+
+    with pytest.raises(HTTPException) as exc:
+        await service.update_image_url(
+            anunce_id=anunce_id,
+            image_url="https://example.com/anunce.png",
+        )
+
+    assert exc.value.status_code == 404
+    assert exc.value.detail == "Anunce not found"
+
+    service.get_anunce_by_id.assert_awaited_once_with(anunce_id)
+    db.commit.assert_not_awaited()
+    db.refresh.assert_not_awaited()

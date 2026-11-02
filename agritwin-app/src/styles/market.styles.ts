@@ -68,6 +68,38 @@ export function getMarketStyles(colors: ThemeColors) {
       elevation: 3,
     },
 
+    imagePreview: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: 190,
+      padding: 8,
+      borderRadius: 14,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 12,
+      zIndex: 100,
+    },
+
+    imagePreviewTitle: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+
+    imagePreviewImage: {
+      width: '100%',
+      height: 112,
+      borderRadius: 9,
+      backgroundColor: colors.surfaceSecondary,
+    },
+
     priceTop: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -109,14 +141,6 @@ export function getMarketStyles(colors: ThemeColors) {
       fontSize: 12,
       color: colors.textSecondary,
       marginRight: 12,
-    },
-
-    buyBtn: {
-      marginLeft: 'auto',
-      backgroundColor: colors.primary,
-      paddingHorizontal: 14,
-      paddingVertical: 7,
-      borderRadius: 8,
     },
 
     buyText: {
@@ -207,6 +231,118 @@ export function getMarketStyles(colors: ThemeColors) {
       textAlign: 'center',
       fontSize: 14,
       color: colors.textSecondary,
+    },
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      marginBottom: 12,
+      borderRadius: 14,
+      backgroundColor: Colors.light.surface,
+      borderWidth: 1,
+      borderColor: Colors.light.border,
+    },
+    backArrow: {
+      fontSize: 28,
+      lineHeight: 30,
+      color: Colors.light.primaryDark,
+      fontWeight: '600',
+    },
+    backButtonText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: Colors.light.primaryDark,
+    },
+    backButtonPressed: {
+      opacity: 0.65,
+      transform: [{ scale: 0.97 }],
+    },
+    buyBtn: {
+      marginLeft: 0,
+      backgroundColor: colors.primary,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buyBtnHover: {
+      backgroundColor: colors.primaryDark,
+      borderColor: colors.primaryDark,
+    },
+
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    searchWrap: {
+      marginHorizontal: 20,
+      marginTop: 16,
+      marginBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 14,
+      height: 48,
+    },
+
+    searchIcon: {
+      fontSize: 18,
+      marginRight: 10,
+    },
+
+    searchInput: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 15,
+    },
+
+    clearButton: {
+      paddingHorizontal: 6,
+    },
+
+    clearText: {
+      fontSize: 20,
+      color: colors.text,
+    },
+
+    activeSegmentText: {
+      color: '#fff',
+    },
+
+    inactiveSegmentText: {
+      color: colors.text,
+    },
+
+    productInfo: {
+      flex: 1,
+    },
+
+    heartbeatWrap: {
+      marginLeft: 'auto',
+    },
+
+    buyBtnDisabled: {
+      opacity: 0.45,
+    },
+
+    buyBtnPressed: {
+      opacity: 0.75,
+    },
+
+    priceCardPressed: {
+      opacity: 0.7,
+    },
+
+    newsCardPressed: {
+      opacity: 0.75,
     },
   });
 }

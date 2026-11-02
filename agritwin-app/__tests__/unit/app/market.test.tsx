@@ -1,388 +1,551 @@
 import React from 'react';
-
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react-native';
-
-import { getcontentfeed, getnews } from '../../../src/services/api';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 
 import MarketScreen from '../../../src/app/app/market';
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+import {
+  getcontentfeed,
+  getnews,
+  searchMarketProducts,
+  searchNews,
+  getAnuncesCount,
+  getMarketProductsCount,
+} from '@/services/api_market';
 
-jest.mock('../../../src/services/api', () => ({
+const mockPush = jest.fn();
+
+jest.mock('@/services/api_market', () => ({
   getcontentfeed: jest.fn(),
   getnews: jest.fn(),
-}));
-async function waitForMarketToLoad() {
-  await waitFor(() => {
-    expect(mockedGetContentFeed).toHaveBeenCalled();
-    expect(mockedGetNews).toHaveBeenCalled();
-  });
-}
-
-jest.mock('@/constants/theme', () => ({
-  Colors: {
-    light: {
-      background: '#fff',
-    },
-    dark: {
-      background: '#000',
-    },
-  },
+  searchMarketProducts: jest.fn(),
+  searchNews: jest.fn(),
+  getAnuncesCount: jest.fn(),
+  getMarketProductsCount: jest.fn(),
 }));
 
-jest.mock('../../../src/styles/market.styles', () => ({
-  getMarketStyles: () => ({
-    trackWrap: {},
-    track: {},
-    segment: {},
-    segmentOn: {},
-    segmentOff: {},
-    segmentText: {},
-    list: {},
-    priceCard: {},
-    priceTop: {},
-    productName: {},
-    detail: {},
-    priceMain: {},
-    priceValue: {},
-    priceBottom: {},
-    smallInfo: {},
-    buyBtn: {},
-    buyText: {},
-    chip: {},
-    chipText: {},
-    newsTitle: {},
-    newsBody: {},
-    source: {},
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: mockPush,
   }),
 }));
 
-const mockedGetContentFeed = getcontentfeed as jest.MockedFunction<
-  typeof getcontentfeed
->;
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, fallback?: string) => fallback ?? key,
+  }),
+}));
 
-const mockedGetNews = getnews as jest.MockedFunction<typeof getnews>;
+const mockProducts = Array.from({ length: 6 }, (_, index) => ({
+  id: index + 1,
+  product: `Producte ${index + 1}`,
+  tecnical_name: `Nom tècnic ${index + 1}`,
+  price: 2.5 + index,
+  price_per_kg: 1.5 + index,
+  left_units: index === 0 ? 0 : 10,
+  image_url: `https://example.com/product-${index + 1}.png`,
+}));
+
+const mockNews = [
+  {
+    id: 1,
+    title: 'Notícia de prova',
+    subtile: 'Subtítol de prova',
+    agent: 'Agent de prova',
+    content: 'Contingut de la notícia',
+    image_url: 'https://example.com/news.png',
+  },
+];
+
+const setupApiMocks = () => {
+  (getMarketProductsCount as jest.Mock).mockResolvedValue(6);
+  (getAnuncesCount as jest.Mock).mockResolvedValue(1);
+
+  (getcontentfeed as jest.Mock).mockResolvedValue(mockProducts);
+  (getnews as jest.Mock).mockResolvedValue(mockNews);
+
+  (searchMarketProducts as jest.Mock).mockResolvedValue([mockProducts[0]]);
+  (searchNews as jest.Mock).mockResolvedValue(mockNews);
+};
+
+const renderScreen = () => render(<MarketScreen />);
 
 describe('MarketScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setupApiMocks();
   });
 
-  describe('rendering', () => {
-    it('renders the market tabs', async () => {
-      mockedGetContentFeed.mockResolvedValue([]);
-      mockedGetNews.mockResolvedValue([]);
+  // --------------------------------------------------
+  // CÀRREGA INICIAL
+  // --------------------------------------------------
 
-      render(<MarketScreen />);
-      await waitFor(() => {
-        expect(mockedGetContentFeed).toHaveBeenCalledWith(0, 10);
-        expect(mockedGetNews).toHaveBeenCalledWith(0, 10);
-      });
-      expect(screen.getByText('market.prices')).toBeTruthy();
-      expect(screen.getByText('market.news')).toBeTruthy();
+  it('mostra el component i carrega les dades inicials', async () => {
+    const screen = renderScreen();
+
+    expect(screen.getByTestId('market-screen')).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
     });
 
-    it('shows prices tab by default', async () => {
-      mockedGetContentFeed.mockResolvedValue([
-        {
-          id: 1,
-          product: 'Tomato',
-          tecnical_name: 'Solanum lycopersicum',
-          price: 2.5,
-          price_per_kg: 5,
-          left_units: 10,
-        },
-      ]);
+    expect(getMarketProductsCount).toHaveBeenCalled();
+    expect(getAnuncesCount).toHaveBeenCalled();
 
-      mockedGetNews.mockResolvedValue([]);
+    expect(getcontentfeed).toHaveBeenCalledWith(0, 6);
+    expect(getnews).toHaveBeenCalledWith(0, 1);
+  }, 15000);
 
-      render(<MarketScreen />);
+  it('mostra el nom i els preus dels productes', async () => {
+    const screen = renderScreen();
 
-      await waitFor(() => {
-        expect(screen.getByText('Tomato')).toBeTruthy();
-      });
-      expect(screen.getByText('Solanum lycopersicum')).toBeTruthy();
-      expect(screen.getByText('2.50 €')).toBeTruthy();
-      expect(screen.getByText('5.00 €/kg')).toBeTruthy();
-    });
-  });
-
-  describe('data loading', () => {
-    it('loads products and news on mount', async () => {
-      mockedGetContentFeed.mockResolvedValue([]);
-      mockedGetNews.mockResolvedValue([]);
-
-      render(<MarketScreen />);
-
-      await waitFor(() => {
-        expect(mockedGetContentFeed).toHaveBeenCalledTimes(1);
-        expect(mockedGetNews).toHaveBeenCalledTimes(1);
-      });
-
-      expect(mockedGetContentFeed).toHaveBeenCalledWith(0, 10);
-      expect(mockedGetNews).toHaveBeenCalledWith(0, 10);
-    });
-
-    it('renders multiple products', async () => {
-      mockedGetContentFeed.mockResolvedValue([
-        {
-          id: 1,
-          product: 'Tomato',
-          tecnical_name: 'Solanum lycopersicum',
-          price: 2.5,
-          price_per_kg: 5,
-          left_units: 10,
-        },
-        {
-          id: 2,
-          product: 'Potato',
-          tecnical_name: 'Solanum tuberosum',
-          price: 1.75,
-          price_per_kg: 3.5,
-          left_units: 20,
-        },
-      ]);
-
-      mockedGetNews.mockResolvedValue([]);
-
-      render(<MarketScreen />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Tomato')).toBeTruthy();
-      });
-      expect(screen.getByText('Potato')).toBeTruthy();
-
-      expect(screen.getByText('2.50 €')).toBeTruthy();
-      expect(screen.getByText('1.75 €')).toBeTruthy();
-    });
-
-    it('renders product information correctly', async () => {
-      mockedGetContentFeed.mockResolvedValue([
-        {
-          id: 1,
-          product: 'Tomato',
-          tecnical_name: 'Solanum lycopersicum',
-          price: 2.5,
-          price_per_kg: 5.25,
-          left_units: 12.5,
-        },
-      ]);
-
-      mockedGetNews.mockResolvedValue([]);
-
-      render(<MarketScreen />);
-      expect(await screen.findByTestId('product-item-1')).toBeTruthy();
-      expect(screen.getByText('Solanum lycopersicum')).toBeTruthy();
-      expect(screen.getByText('2.50 €')).toBeTruthy();
-      expect(screen.getByText('5.25 €/kg')).toBeTruthy();
-      expect(screen.getByText('12.50 market.units')).toBeTruthy();
-      expect(screen.getByText('market.buy')).toBeTruthy();
-    });
-  });
-
-  describe('tab navigation', () => {
-    it('shows news when news tab is pressed', async () => {
-      mockedGetContentFeed.mockResolvedValue([
-        {
-          id: 1,
-          product: 'Tomato',
-          tecnical_name: 'Solanum lycopersicum',
-          price: 2.5,
-          price_per_kg: 5,
-          left_units: 10,
-        },
-      ]);
-
-      mockedGetNews.mockResolvedValue([
-        {
-          id: 1,
-          title: 'Market update',
-          subtile: 'Agriculture',
-          agent: 'Market Agency',
-          content: 'Prices have increased this week.',
-        },
-      ]);
-
-      render(<MarketScreen />);
-
-      expect(await screen.findByTestId('product-item-1')).toBeTruthy();
-
-      fireEvent.press(screen.getByTestId('market-tab-news'));
-
-      expect(await screen.findByTestId('news-item-1')).toBeTruthy();
-
-      expect(screen.getByText('Market update')).toBeTruthy();
-      expect(screen.getByText('Prices have increased this week.')).toBeTruthy();
-      expect(screen.getByText('Agriculture')).toBeTruthy();
-      expect(screen.getByText('Market Agency')).toBeTruthy();
-
-      expect(screen.queryByTestId('product-item-1')).toBeNull();
-    });
-
-    it('returns to prices when prices tab is pressed', async () => {
-      mockedGetContentFeed.mockResolvedValue([
-        {
-          id: 1,
-          product: 'Tomato',
-          tecnical_name: 'Solanum lycopersicum',
-          price: 2.5,
-          price_per_kg: 5,
-          left_units: 10,
-        },
-      ]);
-
-      mockedGetNews.mockResolvedValue([
-        {
-          id: 1,
-          title: 'Market update',
-          subtile: 'Agriculture',
-          agent: 'Market Agency',
-          content: 'Prices have increased this week.',
-        },
-      ]);
-
-      render(<MarketScreen />);
-
-      expect(await screen.findByTestId('product-item-1')).toBeTruthy();
-
-      fireEvent.press(screen.getByText('market.news'));
-      expect(await screen.findByText('Market update')).toBeTruthy();
-
-      fireEvent.press(screen.getByText('market.prices'));
-      expect(await screen.findByTestId('product-item-1')).toBeTruthy();
-      expect(screen.queryByText('Market update')).toBeNull();
-    });
-  });
-
-  describe('news rendering', () => {
-    it('renders multiple news items', async () => {
-      mockedGetContentFeed.mockResolvedValue([]);
-
-      mockedGetNews.mockResolvedValue([
-        {
-          id: 1,
-          title: 'First news',
-          subtile: 'Category 1',
-          agent: 'Agent 1',
-          content: 'First content',
-        },
-        {
-          id: 2,
-          title: 'Second news',
-          subtile: 'Category 2',
-          agent: 'Agent 2',
-          content: 'Second content',
-        },
-      ]);
-
-      render(<MarketScreen />);
-
-      fireEvent.press(screen.getByTestId('market-tab-news'));
-
-      expect(await screen.findByTestId('news-item-1')).toBeTruthy();
-      expect(await screen.findByTestId('news-item-2')).toBeTruthy();
-
-      expect(screen.getByText('First news')).toBeTruthy();
-      expect(screen.getByText('Second news')).toBeTruthy();
-
-      expect(screen.getByText('First content')).toBeTruthy();
-      expect(screen.getByText('Second content')).toBeTruthy();
-
-      expect(screen.getByText('Agent 1')).toBeTruthy();
-      expect(screen.getByText('Agent 2')).toBeTruthy();
-    });
-  });
-
-  describe('API errors', () => {
-    it('handles API errors when loading data', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      mockedGetContentFeed.mockRejectedValue(
-        new Error('Failed to load market data'),
+    await waitFor(() => {
+      expect(screen.getByTestId('product-name-1')).toHaveTextContent(
+        'Producte 1',
       );
-
-      mockedGetNews.mockResolvedValue([]);
-
-      render(<MarketScreen />);
-
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalled();
-      });
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'market.errors.loadFailed',
-        expect.any(Error),
-      );
-
-      consoleErrorSpy.mockRestore();
     });
 
-    it('does not render products when product loading fails', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+    expect(screen.getByTestId('product-technical-name-1')).toHaveTextContent(
+      'Nom tècnic 1',
+    );
 
-      mockedGetContentFeed.mockRejectedValue(new Error('Products failed'));
-      mockedGetNews.mockResolvedValue([]);
+    expect(screen.getByTestId('product-price-1')).toHaveTextContent('2.50 €');
 
-      render(<MarketScreen />);
+    expect(screen.getByTestId('product-price-kg-1')).toHaveTextContent(
+      '1.50 €/kg',
+    );
 
-      await waitFor(() => {
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          'market.errors.loadFailed',
-          expect.any(Error),
-        );
-      });
+    expect(screen.getByTestId('product-units-1')).toBeTruthy();
+  });
 
-      expect(screen.queryByTestId('product-item-1')).toBeNull();
+  it('mostra Esgotat quan un producte no té unitats', async () => {
+    const screen = renderScreen();
 
-      consoleErrorSpy.mockRestore();
+    await waitFor(() => {
+      expect(screen.getByTestId('buy-text-1')).toHaveTextContent('Esgotat');
+    });
+
+    expect(screen.getByTestId('buy-text-2')).toHaveTextContent('market.buy');
+  });
+
+  it('handles image hover for products and news with and without images', async () => {
+    (getnews as jest.Mock).mockResolvedValueOnce([
+      { ...mockNews[0], image_url: null, url_image: mockNews[0].image_url },
+    ]);
+    (getcontentfeed as jest.Mock).mockResolvedValueOnce(
+      mockProducts.map((product, index) =>
+        index === 0
+          ? { ...product, image_url: null, url_image: null }
+          : index === 1
+            ? { ...product, image_url: null, url_image: product.image_url }
+            : product,
+      ),
+    );
+    const screen = renderScreen();
+
+    await waitFor(() =>
+      expect(screen.getByTestId('product-item-1')).toBeTruthy(),
+    );
+    fireEvent(screen.getByTestId('product-item-1'), 'hoverIn', {
+      nativeEvent: { pageX: 120, pageY: 240 },
+    });
+    fireEvent(screen.getByTestId('product-item-2'), 'hoverIn', {
+      nativeEvent: { pageX: 120, pageY: 240 },
+    });
+    fireEvent(screen.getByTestId('product-item-2'), 'hoverOut');
+
+    fireEvent.press(screen.getByTestId('market-tab-news'));
+    await waitFor(() => expect(screen.getByTestId('news-item-1')).toBeTruthy());
+    fireEvent(screen.getByTestId('news-item-1'), 'hoverIn', {
+      nativeEvent: { pageX: 140, pageY: 250 },
+    });
+    fireEvent(screen.getByTestId('news-item-1'), 'hoverOut');
+  });
+
+  it('treats whitespace-only input as an empty search', async () => {
+    const screen = renderScreen();
+    await waitFor(() =>
+      expect(screen.getByTestId('product-item-1')).toBeTruthy(),
+    );
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      '   ',
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+    expect(searchMarketProducts).not.toHaveBeenCalled();
+  });
+
+  it('shows the searching state while a query is pending', async () => {
+    let resolveSearch: ((value: typeof mockProducts) => void) | undefined;
+    (searchMarketProducts as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSearch = resolve;
+        }),
+    );
+    const screen = renderScreen();
+    await waitFor(() =>
+      expect(screen.getByTestId('product-item-1')).toBeTruthy(),
+    );
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      'tomata',
+    );
+
+    await waitFor(() => expect(screen.getByText('Cercant...')).toBeTruthy());
+    await act(async () => resolveSearch?.([mockProducts[0]]));
+    await waitFor(() => expect(screen.queryByText('Cercant...')).toBeNull());
+  });
+
+  it('ignores market results that arrive after unmount', async () => {
+    let resolveProducts: ((value: typeof mockProducts) => void) | undefined;
+    (getcontentfeed as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveProducts = resolve;
+        }),
+    );
+    const screen = renderScreen();
+
+    await waitFor(() => expect(getcontentfeed).toHaveBeenCalled());
+    screen.unmount();
+    await act(async () => resolveProducts?.(mockProducts));
+
+    expect(getnews).toHaveBeenCalledWith(0, 1);
+  });
+
+  // --------------------------------------------------
+  // NAVEGACIÓ A PRODUCTES
+  // --------------------------------------------------
+
+  it('navega al detall quan es prem un producte', async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('product-item-1'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/product/[id]',
+      params: { id: '1' },
     });
   });
 
-  describe('buy button', () => {
-    it('renders the buy button for each product', async () => {
-      mockedGetContentFeed.mockResolvedValue([
-        {
-          id: 1,
-          product: 'Tomato',
-          tecnical_name: 'Solanum lycopersicum',
-          price: 2.5,
-          price_per_kg: 5,
-          left_units: 10,
-        },
-        {
-          id: 2,
-          product: 'Potato',
-          tecnical_name: 'Solanum tuberosum',
-          price: 1.5,
-          price_per_kg: 3,
-          left_units: 20,
-        },
-      ]);
+  // --------------------------------------------------
+  // PESTANYA DE NOTÍCIES
+  // --------------------------------------------------
 
-      mockedGetNews.mockResolvedValue([]);
+  it('canvia a la pestanya de notícies', async () => {
+    const screen = renderScreen();
 
-      render(<MarketScreen />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('product-item-1')).toBeTruthy();
-      });
-
-      const buyButtons = screen.getAllByText('market.buy');
-
-      expect(buyButtons).toHaveLength(2);
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
     });
+
+    fireEvent.press(screen.getByTestId('market-tab-news'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('news-item-1')).toBeTruthy();
+    });
+
+    expect(screen.getByTestId('news-title-1')).toHaveTextContent(
+      'Notícia de prova',
+    );
+
+    expect(screen.getByTestId('news-subtitle-1')).toHaveTextContent(
+      'Subtítol de prova',
+    );
+
+    expect(screen.getByTestId('news-content-1')).toHaveTextContent(
+      'Contingut de la notícia',
+    );
+  });
+
+  it('navega al detall quan es prem una notícia', async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('market-tab-news'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('news-item-1')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('news-item-1'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/news/[id]',
+      params: { id: '1' },
+    });
+  });
+
+  // --------------------------------------------------
+  // PAGINACIÓ
+  // --------------------------------------------------
+
+  it('mostra la paginació quan hi ha més de cinc productes', async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
+        '1 / 2',
+      );
+    });
+
+    expect(screen.getByTestId('market-previous-page')).toBeDisabled();
+    expect(screen.getByTestId('market-next-page')).toBeEnabled();
+  });
+
+  it('avança a la pàgina següent', async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('market-next-page')).toBeEnabled();
+    });
+
+    fireEvent.press(screen.getByTestId('market-next-page'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
+        '2 / 2',
+      );
+    });
+
+    expect(screen.getByTestId('product-item-6')).toBeTruthy();
+  });
+
+  it('torna a la pàgina anterior', async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('market-next-page')).toBeEnabled();
+    });
+
+    fireEvent.press(screen.getByTestId('market-next-page'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
+        '2 / 2',
+      );
+    });
+
+    fireEvent.press(screen.getByTestId('market-previous-page'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
+        '1 / 2',
+      );
+    });
+  });
+
+  // --------------------------------------------------
+  // CERCA DE PRODUCTES
+  // --------------------------------------------------
+
+  it("cerca productes quan s'introdueix un text", async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      'tomata',
+    );
+
+    await waitFor(
+      () => {
+        expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+      },
+      { timeout: 2000 },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+  });
+
+  it('neteja la cerca i recupera tots els productes', async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    const searchInput = screen.getByPlaceholderText(
+      'Cerca productes o notícies...',
+    );
+
+    fireEvent.changeText(searchInput, 'tomata');
+
+    await waitFor(() => {
+      expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+    });
+
+    fireEvent.press(screen.getByText('×'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+  });
+
+  it('mostra un error si falla la cerca de productes', async () => {
+    (searchMarketProducts as jest.Mock).mockRejectedValueOnce(
+      new Error('Error de cerca'),
+    );
+
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      'tomata',
+    );
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('Error en realitzar la cerca.')).toBeTruthy();
+      },
+      { timeout: 2000 },
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  // --------------------------------------------------
+  // CERCA DE NOTÍCIES
+  // --------------------------------------------------
+
+  it('cerca notícies quan la pestanya de notícies està seleccionada', async () => {
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('market-tab-news'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('news-item-1')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      'mercat',
+    );
+
+    await waitFor(
+      () => {
+        expect(searchNews).toHaveBeenCalledWith('mercat');
+      },
+      { timeout: 2000 },
+    );
+  });
+
+  it('mostra un error si falla la cerca de notícies', async () => {
+    (searchNews as jest.Mock).mockRejectedValueOnce(
+      new Error('Error de cerca'),
+    );
+
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('market-tab-news'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('news-item-1')).toBeTruthy();
+    });
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Cerca productes o notícies...'),
+      'mercat',
+    );
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('Error en realitzar la cerca.')).toBeTruthy();
+      },
+      { timeout: 2000 },
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  // --------------------------------------------------
+  // RESULTATS BUITS
+  // --------------------------------------------------
+
+  it('mostra un missatge quan no hi ha productes', async () => {
+    (getcontentfeed as jest.Mock).mockResolvedValueOnce([]);
+
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByText('No hi ha productes.')).toBeTruthy();
+    });
+  });
+
+  it('mostra un missatge quan no hi ha notícies', async () => {
+    (getnews as jest.Mock).mockResolvedValueOnce([]);
+
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('market-tab-news'));
+
+    await waitFor(() => {
+      expect(screen.getByText('No hi ha notícies.')).toBeTruthy();
+    });
+  });
+
+  // --------------------------------------------------
+  // ERROR EN LA CÀRREGA INICIAL
+  // --------------------------------------------------
+
+  it('gestiona un error quan falla la càrrega inicial', async () => {
+    (getMarketProductsCount as jest.Mock).mockRejectedValueOnce(
+      new Error('Error de connexió'),
+    );
+
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const screen = renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByText('No hi ha productes.')).toBeTruthy();
+    });
+
+    expect(getcontentfeed).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
   });
 });
