@@ -1,14 +1,14 @@
 // https://docs.stripe.com/payments/accept-a-payment?platform=react-native&ui=payment-sheet
 
-import { stripe } from "../utils/stripe-server";
-import { CURRENCY } from "../utils/config";
+import { stripe } from '../utils/stripe-server';
+import { CURRENCY } from '../utils/config';
 
 export async function POST() {
   // Use an existing Customer ID if this is a returning customer.
   const customer = await stripe.customers.create();
   const ephemeralKey = await stripe.ephemeralKeys.create(
     { customer: customer.id },
-    { apiVersion: "2025-04-30.basil" }
+    { apiVersion: '2025-04-30.basil' },
   );
 
   const paymentIntent = await stripe.paymentIntents.create({

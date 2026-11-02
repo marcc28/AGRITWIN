@@ -4,7 +4,6 @@ import { Colors, Spacing } from '../constants/theme';
 const C = Colors.light;
 
 export const styles = StyleSheet.create({
-
   iconCircle: {
     width: 112,
     height: 112,
@@ -119,7 +118,7 @@ export const styles = StyleSheet.create({
     borderRadius: 24,
     padding: Spacing.four,
     alignItems: 'center',
-    justifyContent:"center",
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: C.border,
     shadowColor: C.shadow,

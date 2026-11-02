@@ -25,8 +25,8 @@ export const styles = StyleSheet.create({
   container: {
     width: '100%',
     maxWidth: 360,
-    alignItems:"center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   backRow: {
@@ -99,8 +99,8 @@ export const styles = StyleSheet.create({
 
   card: {
     width: '100%',
-    justifyContent:"center",
-    alignItems:"center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 14,
     backgroundColor: Colors.light.surface,
     borderRadius: 24,

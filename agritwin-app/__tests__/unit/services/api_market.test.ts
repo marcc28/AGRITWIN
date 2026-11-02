@@ -1,4 +1,3 @@
-
 process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
 
 import {
@@ -64,9 +63,7 @@ describe('market api', () => {
       }),
     }) as jest.Mock;
 
-    await expect(getMarketProduct('999')).rejects.toThrow(
-      'Product not found',
-    );
+    await expect(getMarketProduct('999')).rejects.toThrow('Product not found');
   });
 
   it('uses the default error when product detail is not a string', async () => {

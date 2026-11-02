@@ -1,20 +1,20 @@
-import { CURRENCY } from "../utils/config";
-import { stripe } from "../utils/stripe-server";
+import { CURRENCY } from '../utils/config';
+import { stripe } from '../utils/stripe-server';
 
 export async function POST(req: Request) {
-  const customDonation = Number(req.headers.get("custom_donation"));
-  const origin = req.headers.get("origin")!;
+  const customDonation = Number(req.headers.get('custom_donation'));
+  const origin = req.headers.get('origin')!;
 
   const checkoutSession = await stripe.checkout.sessions.create({
-    mode: "payment",
-    submit_type: "donate",
+    mode: 'payment',
+    submit_type: 'donate',
     line_items: [
       {
         quantity: 1,
         price_data: {
           currency: CURRENCY,
           product_data: {
-            name: "Custom amount donation",
+            name: 'Custom amount donation',
           },
           unit_amount: formatAmountForStripe(customDonation, CURRENCY),
         },
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     ],
     success_url: `${origin}/result?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/`,
-    ui_mode: "hosted",
+    ui_mode: 'hosted',
   });
 
   return Response.json({
@@ -32,15 +32,15 @@ export async function POST(req: Request) {
 }
 
 function formatAmountForStripe(amount: number, currency: string): number {
-  let numberFormat = new Intl.NumberFormat(["en-US"], {
-    style: "currency",
+  let numberFormat = new Intl.NumberFormat(['en-US'], {
+    style: 'currency',
     currency: currency,
-    currencyDisplay: "symbol",
+    currencyDisplay: 'symbol',
   });
   const parts = numberFormat.formatToParts(amount);
   let zeroDecimalCurrency: boolean = true;
   for (let part of parts) {
-    if (part.type === "decimal") {
+    if (part.type === 'decimal') {
       zeroDecimalCurrency = false;
     }
   }

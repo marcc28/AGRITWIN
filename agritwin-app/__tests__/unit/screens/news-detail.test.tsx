@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
-import NewsDetailScreen from '../../app/news/[id]';
+import NewsDetailScreen from '../../../src/app/news/[id]';
 import { getNewsById } from '@/services/api_market';
 
 const mockBack = jest.fn();
@@ -71,9 +71,7 @@ describe('NewsDetailScreen', () => {
       expect(screen.getByText('Notícia de prova')).toBeTruthy();
     });
 
-    expect(
-      screen.queryByLabelText('Imatge de Notícia de prova'),
-    ).toBeNull();
+    expect(screen.queryByLabelText('Imatge de Notícia de prova')).toBeNull();
   });
 
   it('torna al mercat quan es prem el botó', async () => {
@@ -118,9 +116,7 @@ describe('NewsDetailScreen', () => {
     const screen = render(<NewsDetailScreen />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('No s’ha indicat cap notícia.'),
-      ).toBeTruthy();
+      expect(screen.getByText('No s’ha indicat cap notícia.')).toBeTruthy();
     });
 
     expect(getNewsById).not.toHaveBeenCalled();
@@ -129,7 +125,7 @@ describe('NewsDetailScreen', () => {
   it('accepta un id en format array', async () => {
     mockId = ['25', '26'];
 
-    const screen = render(<NewsDetailScreen />);
+    render(<NewsDetailScreen />);
 
     await waitFor(() => {
       expect(getNewsById).toHaveBeenCalledWith('25');

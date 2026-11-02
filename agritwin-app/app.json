@@ -25,7 +25,7 @@
       "package": "com.AgriTwin.app"
     },
     "web": {
-      "bundle":"metro",
+      "bundle": "metro",
       "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
@@ -44,7 +44,7 @@
         "@stripe/stripe-react-native",
         {
           "merchantIdentifier": "merchant.com.agritwin.app",
-          "publishableKey":"pk_test_51T8JyBFnYQkzHZlYk9fRD5eK4xVzsCSNB47AiTT2O3V8UWisBRC3DFGhFOjZqUL3sYB9RVm7nLGXCRZITyAJpQgD00xwr84UKT",
+          "publishableKey": "pk_test_51T8JyBFnYQkzHZlYk9fRD5eK4xVzsCSNB47AiTT2O3V8UWisBRC3DFGhFOjZqUL3sYB9RVm7nLGXCRZITyAJpQgD00xwr84UKT",
           "enableGooglePay": false
         }
       ]
@@ -55,7 +55,7 @@
     },
     "extra": {
       "router": {
-        "origin":"https://agritwin.com"
+        "origin": "https://agritwin.com"
       },
       "eas": {
         "projectId": "a4a995ec-0af0-43ab-bc44-d326c9141074"

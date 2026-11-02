@@ -20,19 +20,19 @@ export default function PaymentResultScreen() {
           <Ionicons name="checkmark-circle" size={76} color="#2E8B57" />
         </View>
 
-        <Text style={styles.title}>
-          Gràcies per la teva compra!
-        </Text>
+        <Text style={styles.title}>Gràcies per la teva compra!</Text>
 
-        <Text style={styles.subtitle}>
-          Hem rebut el retorn de Stripe.
-        </Text>
+        <Text style={styles.subtitle}>Hem rebut el retorn de Stripe.</Text>
 
         {checking ? (
           <Text style={styles.message}>Comprovant el pagament...</Text>
         ) : session_id ? (
           <View style={styles.statusBox}>
-            <Ionicons name="checkmark-circle-outline" size={22} color="#2E8B57" />
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={22}
+              color="#2E8B57"
+            />
             <Text style={styles.statusText}>
               La sessió de pagament s'ha rebut correctament.
             </Text>
@@ -50,15 +50,14 @@ export default function PaymentResultScreen() {
           Gràcies per confiar en AgriTwin i donar suport als productors locals.
         </Text>
 
-        <Pressable
-          style={styles.button}
-          onPress={() => router.replace('/')}
-        >
+        <Pressable style={styles.button} onPress={() => router.replace('/')}>
           <Ionicons name="home-outline" size={20} color="#FFFFFF" />
           <Text style={styles.buttonText}>Tornar a l'inici</Text>
         </Pressable>
 
-        <Text style={styles.footer}>AgriTwin · Consum responsable, futur sostenible</Text>
+        <Text style={styles.footer}>
+          AgriTwin · Consum responsable, futur sostenible
+        </Text>
       </View>
     </View>
   );

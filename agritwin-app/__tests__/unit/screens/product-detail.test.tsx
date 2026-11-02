@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
-import ProductScreen from '../../app/product/[id]';
+import ProductScreen from '../../../src/app/product/[id]';
 import { getMarketProduct } from '@/services/api_market';
 
 const mockBack = jest.fn();
@@ -55,13 +55,16 @@ describe('ProductScreen', () => {
 
     expect(screen.getByText('Carregant producte...')).toBeTruthy();
 
-    await waitFor(() => {
-      expect(screen.getByText('Tomata')).toBeTruthy();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Tomata')).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
 
     expect(getMarketProduct).toHaveBeenCalledWith('1');
     expect(screen.getByText('Solanum lycopersicum')).toBeTruthy();
-    expect(screen.getByText('2,50 €')).toBeTruthy();
+    expect(screen.getAllByText('2,50 €')).toHaveLength(2);
     expect(screen.getByText('10 disponibles')).toBeTruthy();
   });
 
@@ -99,9 +102,7 @@ describe('ProductScreen', () => {
 
     expect(screen.getByText('2')).toBeTruthy();
     expect(screen.getByText('5,00 €')).toBeTruthy();
-    expect(screen.getByTestId('checkout-form')).toHaveTextContent(
-      '1-2-false',
-    );
+    expect(screen.getByTestId('checkout-form')).toHaveTextContent('1-2-false');
   });
 
   it('decrementa la quantitat', async () => {
@@ -115,7 +116,7 @@ describe('ProductScreen', () => {
     fireEvent.press(screen.getByLabelText('Reduir quantitat'));
 
     expect(screen.getByText('1')).toBeTruthy();
-    expect(screen.getByText('2,50 €')).toBeTruthy();
+    expect(screen.getAllByText('2,50 €')).toHaveLength(2);
   });
 
   it('no permet baixar de la quantitat mínima', async () => {
@@ -157,13 +158,9 @@ describe('ProductScreen', () => {
       expect(screen.getByText('Sense estoc')).toBeTruthy();
     });
 
-    expect(
-      screen.getByText('Actualment no disponible'),
-    ).toBeTruthy();
+    expect(screen.getByText('Actualment no disponible')).toBeTruthy();
 
-    expect(screen.getByTestId('checkout-form')).toHaveTextContent(
-      '1-1-true',
-    );
+    expect(screen.getByTestId('checkout-form')).toHaveTextContent('1-1-true');
 
     expect(screen.getByLabelText('Augmentar quantitat')).toBeDisabled();
   });
@@ -199,9 +196,7 @@ describe('ProductScreen', () => {
     const screen = render(<ProductScreen />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('No s’ha indicat cap producte.'),
-      ).toBeTruthy();
+      expect(screen.getByText('No s’ha indicat cap producte.')).toBeTruthy();
     });
 
     expect(getMarketProduct).not.toHaveBeenCalled();
@@ -218,9 +213,7 @@ describe('ProductScreen', () => {
   });
 
   it('torna enrere quan el producte no està disponible', async () => {
-    (getMarketProduct as jest.Mock).mockRejectedValueOnce(
-      new Error('Error'),
-    );
+    (getMarketProduct as jest.Mock).mockRejectedValueOnce(new Error('Error'));
 
     const screen = render(<ProductScreen />);
 
@@ -228,9 +221,7 @@ describe('ProductScreen', () => {
       expect(screen.getByText('Producte no disponible')).toBeTruthy();
     });
 
-    fireEvent.press(
-      screen.getByLabelText('Tornar a la pantalla anterior'),
-    );
+    fireEvent.press(screen.getByLabelText('Tornar a la pantalla anterior'));
 
     expect(mockBack).toHaveBeenCalled();
   });

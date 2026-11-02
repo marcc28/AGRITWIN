@@ -20,7 +20,7 @@ export default function CheckoutForm({
   async function openPaymentSheet(): Promise<void> {
     if (disabled || loading) return;
 
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
 
     if (!apiUrl) {
       Alert.alert('Error', 'Falta configurar l’URL de l’API.');

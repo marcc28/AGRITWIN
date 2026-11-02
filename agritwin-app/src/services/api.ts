@@ -678,4 +678,3 @@ export async function getFieldWeather(
 
   return data as FieldWeather;
 }
-

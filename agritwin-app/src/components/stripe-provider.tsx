@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 
 const merchantId = Constants.expoConfig?.plugins?.find(
-  (p) => Array.isArray(p) && p[0] === '@stripe/stripe-react-native'
+  (p) => Array.isArray(p) && p[0] === '@stripe/stripe-react-native',
 )?.[1]?.merchantIdentifier;
 
 type Props = Omit<
@@ -16,13 +16,10 @@ export default function ExpoStripeProvider({
   children,
   ...props
 }: Props): React.JSX.Element {
-  const publishableKey =
-    process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
   if (!publishableKey) {
-    throw new Error(
-      'Falta EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY al fitxer .env'
-    );
+    throw new Error('Falta EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY al fitxer .env');
   }
 
   return (
