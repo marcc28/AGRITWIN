@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StatusBar,
@@ -123,6 +124,21 @@ export default function NewsDetailScreen() {
             </Text>
           ) : (
             <>
+              {news.image_url ? (
+                <Image
+                  source={{ uri: news.image_url }}
+                  accessibilityLabel={`Imatge de ${news.title}`}
+                  resizeMode="cover"
+                  style={{
+                    width: '100%',
+                    aspectRatio: 1.65,
+                    borderRadius: 14,
+                    marginBottom: 22,
+                    backgroundColor: colors.surfaceSecondary,
+                  }}
+                />
+              ) : null}
+
               <Text
                 style={{
                   color: colors.primary,

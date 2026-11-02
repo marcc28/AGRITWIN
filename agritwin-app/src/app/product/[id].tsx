@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Image,
   View,
   Text,
   Pressable,
@@ -135,6 +136,21 @@ export default function ProductScreen() {
           </View>
 
           <View style={styles.topLine} />
+
+          {product.image_url ? (
+            <Image
+              source={{ uri: product.image_url }}
+              accessibilityLabel={`Imatge de ${product.product}`}
+              resizeMode="cover"
+              style={{
+                width: '100%',
+                aspectRatio: 1.6,
+                borderRadius: 18,
+                marginBottom: 22,
+                backgroundColor: 'rgba(255,255,255,0.12)',
+              }}
+            />
+          ) : null}
 
           {/* Capçalera del producte */}
           <View style={styles.header}>

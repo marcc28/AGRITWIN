@@ -13,6 +13,7 @@ export type News = {
   subtile: string;
   agent: string;
   content: string;
+  image_url?: string | null;
 };
 
 // --------------------------------------------------
@@ -51,6 +52,7 @@ export type MarketProduct = {
   price: number;
   price_per_kg: number;
   left_units: number;
+  image_url?: string | null;
 };
 
 export async function getMarketProduct(
@@ -80,9 +82,9 @@ export async function getMarketProduct(
 }
 
 
-export async function getnews(offset: number, limite: number): Promise<News[]> {
+export async function getnews(offset: number, limit: number): Promise<News[]> {
   const response = await fetch(
-    `${API_URL}/api/v1/anunces?offset=${offset}&limite=${limite}`,
+    `${API_URL}/api/v1/anunces?offset=${offset}&limit=${limit}`,
     {
       method: 'GET',
       headers: {
@@ -101,9 +103,9 @@ export async function getnews(offset: number, limite: number): Promise<News[]> {
 }
 
 
-export async function getcontentfeed(offset: number, limite: number) {
+export async function getcontentfeed(offset: number, limit: number) {
   const response = await fetch(
-    `${API_URL}/api/v1/conte_mercat?offset=${offset}&limite=${limite}`,
+    `${API_URL}/api/v1/conte_mercat?offset=${offset}&limit=${limit}`,
     {
       method: 'GET',
       headers: {

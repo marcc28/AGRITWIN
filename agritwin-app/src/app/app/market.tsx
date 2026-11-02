@@ -23,8 +23,6 @@ import {
 
 type Tab = 'prices' | 'news';
 
-import * as Haptics from 'expo-haptics';
-import { NativeTabs } from 'expo-router/build/native-tabs/NativeTabs';
 
 type Product = {
   id: string | number;
@@ -44,6 +42,7 @@ type News = {
 };
 
 const PAGE_SIZE = 5;
+const INITIAL_PAGE_SIZE = 12;
 
 function HeartbeatBuyButton({
   product,
@@ -160,8 +159,8 @@ export default function MarketScreen() {
     async function loadData() {
       try {
         const [productsData, newsData] = await Promise.all([
-          getcontentfeed(0, 10),
-          getnews(0, 10),
+          getcontentfeed(0, INITIAL_PAGE_SIZE),
+          getnews(0, INITIAL_PAGE_SIZE),
         ]);
 
         if (active) {
@@ -184,35 +183,39 @@ export default function MarketScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    if (loading) return;
+
+    const query = searchQuery.trim();
+    let active = true;
+    setPage(0);
+    setSearchError('');
+
+    if (!query) {
+      setSearching(false);
+      setProducts(allProducts);
+      setNews(allNews);
+      return () => {
+        active = false;
+      };
+    }
+
     const timeout = setTimeout(async () => {
       setSearching(true);
-      setSearchError('');
-      setPage(0);
 
       try {
         if (tab === 'prices') {
           const results = await searchMarketProducts(query);
-
-          if (active) {
-            setProducts(results);
-          }
+          if (active) setProducts(results);
         } else {
           const results = await searchNews(query);
-
-          if (active) {
-            setNews(results);
-          }
+          if (active) setNews(results);
         }
       } catch (error) {
         console.error('Error en la cerca:', error);
-
-        if (active) {
-          setSearchError('Error en realitzar la cerca.');
-        }
+        if (active) setSearchError('Error en realitzar la cerca.');
       } finally {
-        if (active) {
-          setSearching(false);
-        }
+        if (active) setSearching(false);
       }
     }, 350);
 
