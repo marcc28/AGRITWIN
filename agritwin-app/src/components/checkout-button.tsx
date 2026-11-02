@@ -1,4 +1,3 @@
-
 import { Pressable, Text, StyleSheet } from 'react-native';
 
 type CheckoutButtonProps = {

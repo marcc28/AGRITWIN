@@ -12,6 +12,7 @@ router = APIRouter(
     tags=["Conte Mercat"],
 )
 
+
 async def get_conte_mercat_service():
     async with AsyncSessionLocal() as session:
         yield ConteMercatService(session=session)
@@ -30,6 +31,16 @@ async def get_conte_mercat(
         offset=offset,
         limit=limit,
     )
+
+@router.get("/count")
+async def count_content_market(
+    service: ConteMercatService = Depends(get_conte_mercat_service),
+):
+    total = await service.count_content_market()
+
+    return {
+        "total": total
+    }
 
 
 @router.get(
@@ -60,6 +71,7 @@ async def get_conte_mercat_by_id(
         )
 
     return conte_mercat
+
 
 @router.post(
     "",
@@ -108,3 +120,4 @@ async def create_conte_mercat(
             ) from exc
 
     return conte_mercat
+

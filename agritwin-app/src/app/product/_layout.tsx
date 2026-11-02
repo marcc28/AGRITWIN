@@ -1,5 +1,5 @@
-import { Stack } from "expo-router";
-import StripeProvider from "../../components/stripe-provider";
+import { Stack } from 'expo-router';
+import StripeProvider from '../../components/stripe-provider';
 
 export default function RootLayout() {
   return (
@@ -8,7 +8,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="[id]"
           options={{
-            title: "Producte",
+            title: 'Producte',
           }}
         />
       </Stack>

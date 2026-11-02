@@ -427,4 +427,11 @@ export const styles = StyleSheet.create({
     opacity: 0.65,
     transform: [{ scale: 0.97 }],
   },
+  productImage: {
+    width: '100%',
+    aspectRatio: 1.6,
+    borderRadius: 18,
+    marginBottom: 22,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
 });

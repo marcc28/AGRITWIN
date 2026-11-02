@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,6 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Colors } from '@/constants/theme';
 import { getNewsById, type News } from '@/services/api_market';
+import { getNewsDetailStyles } from '@/styles/news-detail.styles';
 
 export default function NewsDetailScreen() {
   const router = useRouter();
@@ -23,6 +23,7 @@ export default function NewsDetailScreen() {
 
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const styles = getNewsDetailStyles(colors);
 
   const [news, setNews] = useState<News | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,58 +69,32 @@ export default function NewsDetailScreen() {
     };
   }, [newsId]);
 
-  const textColor = colors.text;
-  const mutedColor = colors.textMuted;
-
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-      }}
-    >
-      <StatusBar barStyle="dark-content" />
+    <View style={styles.screen}>
+      <StatusBar
+        barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <ScrollView
-        contentContainerStyle={{
-          padding: 20,
-          flexGrow: 1,
-        }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          style={{ marginBottom: 24, paddingVertical: 8 }}
+          style={styles.backButton}
         >
-          <Text
-            style={{
-              color: colors.primary,
-              fontSize: 16,
-              fontWeight: '700',
-            }}
-          >
-            ‹ Tornar al mercat
-          </Text>
+          <Text style={styles.backButtonText}>‹ Tornar al mercat</Text>
         </Pressable>
 
-        <View
-          style={{
-            backgroundColor: colors.surface,
-            borderRadius: 20,
-            padding: 22,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        >
+        <View style={styles.card}>
           {loading ? (
-            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+            <View style={styles.loadingContainer}>
               <ActivityIndicator color={colors.primary} />
-              <Text style={{ color: textColor, marginTop: 12 }}>
-                Carregant notícia...
-              </Text>
+              <Text style={styles.loadingText}>Carregant notícia...</Text>
             </View>
           ) : error || !news ? (
-            <Text style={{ color: textColor, lineHeight: 24 }}>
+            <Text style={styles.errorText}>
               {error ?? 'No s’ha trobat la notícia.'}
             </Text>
           ) : (
@@ -129,68 +104,19 @@ export default function NewsDetailScreen() {
                   source={{ uri: news.image_url }}
                   accessibilityLabel={`Imatge de ${news.title}`}
                   resizeMode="cover"
-                  style={{
-                    width: '100%',
-                    aspectRatio: 1.65,
-                    borderRadius: 14,
-                    marginBottom: 22,
-                    backgroundColor: colors.surfaceSecondary,
-                  }}
+                  style={styles.image}
                 />
               ) : null}
 
-              <Text
-                style={{
-                  color: colors.primary,
-                  fontSize: 12,
-                  fontWeight: '800',
-                  letterSpacing: 1,
-                  marginBottom: 12,
-                }}
-              >
-                {news.subtile}
-              </Text>
+              <Text style={styles.subtitle}>{news.subtile}</Text>
 
-              <Text
-                style={{
-                  color: textColor,
-                  fontSize: 28,
-                  lineHeight: 35,
-                  fontWeight: '900',
-                  marginBottom: 18,
-                }}
-              >
-                {news.title}
-              </Text>
+              <Text style={styles.title}>{news.title}</Text>
 
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: colors.border,
-                  marginBottom: 18,
-                }}
-              />
+              <View style={styles.separator} />
 
-              <Text
-                style={{
-                  color: textColor,
-                  fontSize: 16,
-                  lineHeight: 27,
-                }}
-              >
-                {news.content}
-              </Text>
+              <Text style={styles.content}>{news.content}</Text>
 
-              <Text
-                style={{
-                  color: mutedColor,
-                  fontSize: 13,
-                  marginTop: 24,
-                  fontWeight: '600',
-                }}
-              >
-                Font: {news.agent}
-              </Text>
+              <Text style={styles.source}>Font: {news.agent}</Text>
             </>
           )}
         </View>

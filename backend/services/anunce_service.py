@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.schema import Anunce
@@ -16,38 +16,28 @@ class AnunceService:
         offset: int = 0,
         limit: int = 10,
     ) -> list[Anunce]:
-        result = await self._db.execute(
-            select(Anunce).offset(offset).limit(limit)
-        )
+        result = await self._db.execute(select(Anunce).offset(offset).limit(limit))
         return list(result.scalars().all())
 
     async def get_anunce_by_id(
         self,
         id: UUID,
     ) -> Anunce | None:
-        result = await self._db.execute(
-            select(Anunce).where(Anunce.id == id)
-        )
+        result = await self._db.execute(select(Anunce).where(Anunce.id == id))
         return result.scalar_one_or_none()
 
     async def get_anunces_by_title(
         self,
         title: str,
     ) -> list[Anunce]:
-        result = await self._db.execute(
-            select(Anunce).where(
-                Anunce.title.ilike(f"%{title}%")
-            )
-        )
+        result = await self._db.execute(select(Anunce).where(Anunce.title.ilike(f"%{title}%")))
         return list(result.scalars().all())
 
     async def get_anunces_by_agent(
         self,
         agent: str,
     ) -> list[Anunce]:
-        result = await self._db.execute(
-            select(Anunce).where(Anunce.agent == agent)
-        )
+        result = await self._db.execute(select(Anunce).where(Anunce.agent == agent))
         return list(result.scalars().all())
 
     async def create_anunce(
@@ -70,7 +60,13 @@ class AnunceService:
         await self._db.refresh(anunce)
 
         return anunce
-
+    
+    async def count_anunces(self) -> int:
+        result = await self._db.execute(
+            select(func.count()).select_from(Anunce)
+        )
+        return result.scalar_one()
+    
     async def update_image_url(
         self,
         anunce_id: UUID,

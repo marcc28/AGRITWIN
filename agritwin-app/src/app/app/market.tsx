@@ -19,10 +19,11 @@ import {
   getnews,
   searchMarketProducts,
   searchNews,
+  getAnuncesCount,
+  getMarketProductsCount,
 } from '@/services/api_market';
 
 type Tab = 'prices' | 'news';
-
 
 type Product = {
   id: string | number;
@@ -46,7 +47,6 @@ type News = {
 };
 
 const PAGE_SIZE = 5;
-const INITIAL_PAGE_SIZE = 12;
 
 function MarketImagePreview({
   title,
@@ -95,12 +95,10 @@ function MarketImagePreview({
 
 function HeartbeatBuyButton({
   product,
-  onPress,
   label,
   styles,
 }: {
   product: Product;
-  onPress: () => void;
   label: string;
   styles: ReturnType<typeof getMarketStyles>;
 }) {
@@ -149,23 +147,14 @@ function HeartbeatBuyButton({
         transform: [{ scale }],
       }}
     >
-      <Pressable
+      <View
         testID={`buy-button-${product.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={`${label} ${product.product}`}
-        accessibilityState={{ disabled: outOfStock }}
-        disabled={outOfStock}
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.buyBtn,
-          outOfStock && { opacity: 0.45 },
-          pressed && !outOfStock && { opacity: 0.75 },
-        ]}
+        style={[styles.buyBtn, outOfStock && { opacity: 0.45 }]}
       >
         <Text testID={`buy-text-${product.id}`} style={styles.buyText}>
           {outOfStock ? 'Esgotat' : label}
         </Text>
-      </Pressable>
+      </View>
     </Animated.View>
   );
 }
@@ -235,21 +224,29 @@ export default function MarketScreen() {
 
     async function loadData() {
       try {
+        const [productsCount, newsCount] = await Promise.all([
+          getMarketProductsCount(),
+          getAnuncesCount(),
+        ]);
+
         const [productsData, newsData] = await Promise.all([
-          getcontentfeed(0, INITIAL_PAGE_SIZE),
-          getnews(0, INITIAL_PAGE_SIZE),
+          getcontentfeed(0, productsCount),
+          getnews(0, newsCount),
         ]);
 
         if (active) {
           setAllProducts(productsData);
           setAllNews(newsData);
+
           setProducts(productsData);
           setNews(newsData);
         }
       } catch (error) {
         console.error('Error carregant les dades del mercat:', error);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
@@ -472,7 +469,6 @@ export default function MarketScreen() {
                     product={product}
                     label={t('market.buy')}
                     styles={styles}
-                    onPress={() => openProduct(product.id)}
                   />
                 </View>
               </MarketImagePreview>

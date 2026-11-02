@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import CheckoutButton from './checkout-button';
 
@@ -46,16 +45,12 @@ export default function CheckoutForm({
 
       if (!response.ok) {
         throw new Error(
-          data.detail ??
-            data.message ??
-            `Error HTTP ${response.status}`,
+          data.detail ?? data.message ?? `Error HTTP ${response.status}`,
         );
       }
 
       if (!data.url) {
-        throw new Error(
-          "El servidor no ha retornat l'URL de Stripe.",
-        );
+        throw new Error("El servidor no ha retornat l'URL de Stripe.");
       }
 
       // Redirigeix el navegador a Stripe Hosted Checkout.

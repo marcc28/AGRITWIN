@@ -50,6 +50,15 @@ async def search_anunces(
 ):
     return await service.get_anunces_by_title(title)
 
+@router.get("/count")
+async def count_anunces(
+    service: AnunceService = Depends(get_anunce_service),
+):
+    total = await service.count_anunces()
+
+    return {
+        "total": total
+    }
 
 @router.get(
     "/{id}",
@@ -68,6 +77,7 @@ async def get_anunce(
         )
 
     return anunce
+
 
 @router.post(
     "",
