@@ -24,7 +24,7 @@ SPRINT 1,Implement Multilanguage on APP,4,flaviaserret04,4,100%,60,60,60,0,,,,,,
 SPRINT 1,Implement SignUp System,13,flaviaserret04,13,100%,195,195,195,0,,,,,,,,
 SPRINT 1,MockUp Figma,15,marcc28,16,100%,225,240,225,-15,,,,,,,,
 SPRINT 1,Risk Analysis,7,marcc28,7,100%,105,105,105,0,,,,,,,,
-SPRINT 2,AI crop recommendation,0,flaviaserret04,0,0%,0,0,0,0,,,,,,,,
+SPRINT 2,AI crop recommendation,5,flaviaserret04,5,25%,75,75,18.75,0,,,,,,,,
 SPRINT 2,Implement Arduino/ESP32 IoT Sensor Node,22,Tigre44 & marcc28,25,50%,330,375,165,-45,,,,,,,,
 SPRINT 2,Marked redirection,9.2,flaviaserret04,9.2,100%,138,138,138,0,,,,,,,,
 SPRINT 2,Planning commitment from Sprint 2,0,Tigre44 & atnic15,0,0%,0,0,0,0,,,,,,,,
@@ -33,4 +33,4 @@ SPRINT 2,"Security of the data, the broker and the API",42,marcc28,0,0%,630,0,0,
 SPRINT 2,Task list for the current garden,0,ainhoaaf,0,0%,0,0,0,0,,,,,,,,
 SPRINT 2,Weather alerts for the current garden,9,atnic15,8.5,100%,135,127.5,135,7.5,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,82.2,,42.7,,1233,640.5,438,592.5,10168,0.683841,0.355231,-202.5,-795,14868.958904,14228.458904,-4700.958904
+SPRINT 2,TOTAL SPRINT 2,87.2,,47.7,,1308,715.5,456.75,592.5,10168,0.638365,0.349197,-258.75,-851.25,15928.197044,15212.697044,-5760.197044
