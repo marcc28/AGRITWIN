@@ -35,12 +35,22 @@ export default function Layout() {
             />
           </NativeTabs.Trigger>
 
-          <NativeTabs.Trigger name="explore">
+          <NativeTabs.Trigger name="edit_calendar">
             <NativeTabs.Trigger.Label>
               {t('tabs.explore')}
             </NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
-              src={require('@assets/images/tabIcons/explore.png')}
+              src={require('@assets/images/tabIcons/edit_calendar.png')}
+              renderingMode="template"
+            />
+          </NativeTabs.Trigger>
+
+          <NativeTabs.Trigger name="clover">
+            <NativeTabs.Trigger.Label>
+              {t('tabs.clover')}
+            </NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon
+              src={require('@assets/images/tabIcons/clover.png')}
               renderingMode="template"
             />
           </NativeTabs.Trigger>

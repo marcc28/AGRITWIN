@@ -99,11 +99,18 @@ export default function WebLayout() {
                 icon={require('@assets/images/tabIcons/home.png')}
               />
             </TabTrigger>
-            <TabTrigger name="explore" href="/app/explore" asChild>
+            <TabTrigger name="calendar" href="/app/calendar" asChild>
               <WebTabButton
-                name="explore"
-                label={t('tabs.explore')}
-                icon={require('@assets/images/tabIcons/explore.png')}
+                name="calendar"
+                label={t('tabs.calendar')}
+                icon={require('@assets/images/tabIcons/edit_calendar.png')}
+              />
+            </TabTrigger>
+            <TabTrigger name="clover" href="/app/clover" asChild>
+              <WebTabButton
+                name="clover"
+                label={t('tabs.clover')}
+                icon={require('@assets/images/tabIcons/clover.png')}
               />
             </TabTrigger>
             <TabTrigger name="market" href="/app/market" asChild>

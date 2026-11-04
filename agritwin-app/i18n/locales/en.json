@@ -12,7 +12,9 @@
     "home": "Home",
     "explore": "Explore",
     "market": "Market",
-    "profile": "Profile"
+    "profile": "Profile",
+    "clover": "Clover",
+    "calendar": "Calendar"
   },
   "fieldCrops": {
     "title": "My crops",
@@ -312,25 +314,8 @@
       "veryHigh": "Very high",
       "extreme": "Extreme"
     },
-    "weekdays": [
-      "Sun",
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-      "Fri",
-      "Sat"
-    ],
-    "compass": [
-      "N",
-      "NE",
-      "E",
-      "SE",
-      "S",
-      "SW",
-      "W",
-      "NW"
-    ]
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "compass": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
   },
   "recommendations": {
     "screenTitle": "Recommendations",

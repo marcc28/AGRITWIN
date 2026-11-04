@@ -2,18 +2,20 @@
 
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
 
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { useFieldRecommendations } from '@/hooks/use-field-recommendations';
 
-import { styles } from '@/styles/recommendations.styles';
+import { useColorScheme } from 'react-native';
+import { createRecommendationsStyles } from '@/styles/recommendations.styles';
 
 import type { Recommendation } from '@/services/api_recommendations';
 
@@ -30,6 +32,9 @@ function RecommendationCard({
     medium: '#E5A63B',
     high: '#D9534F',
   };
+
+  const colorScheme = useColorScheme();
+  const styles = createRecommendationsStyles(colorScheme === 'dark');
 
   const severityColor = severityColors[recommendation.severity] ?? '#777777';
 
@@ -98,6 +103,10 @@ function RecommendationCard({
 
 export default function RecommendationsScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
+
+  const colorScheme = useColorScheme();
+  const styles = createRecommendationsStyles(colorScheme === 'dark');
 
   const { fieldId } = useLocalSearchParams<{
     fieldId: string;
@@ -120,6 +129,22 @@ export default function RecommendationsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back', {
+            defaultValue: t('recommendations.back'),
+          })}
+          hitSlop={8}
+          style={styles.backButton}
+        >
+          <Image
+            source={require('@assets/images/left_arrow.png')}
+            style={styles.backButtonIcon}
+            resizeMode="contain"
+          />
+        </Pressable>
+
         <View style={styles.header}>
           <Text style={styles.title}>{t('recommendations.title')}</Text>
 
