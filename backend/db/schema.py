@@ -401,6 +401,8 @@ class FieldCrop(Base):
         nullable=False,
     )
 
+    crop: Mapped["Crop"] = relationship(lazy="joined")
+
     planted_at: Mapped[date | None] = mapped_column(Date)
     expected_harvest_at: Mapped[date | None] = mapped_column(Date)
     

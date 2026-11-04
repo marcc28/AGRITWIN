@@ -398,7 +398,7 @@ class FieldRecommendationService:
             input=prompt,
             generation_config={
                 "temperature": 0.1,
-                "max_output_tokens": 1000
+                "max_output_tokens": 3000
             },
         )
 

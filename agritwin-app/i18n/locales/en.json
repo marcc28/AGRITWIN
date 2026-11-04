@@ -3,7 +3,33 @@
     "error": "Error",
     "success": "Success"
   },
-
+  "home": {
+    "titleFirst": "Your garden,",
+    "titleSecond": "growing better every day.",
+    "subtitle": "Tasks, weather and crops tailored to your garden."
+  },
+  "tabs": {
+    "home": "Home",
+    "explore": "Explore",
+    "market": "Market",
+    "profile": "Profile"
+  },
+  "fieldCrops": {
+    "title": "My crops",
+    "loadError": "Could not load crops.",
+    "retry": "Try again",
+    "empty": "You do not have any crops planted in this area yet.",
+    "crop": "Crop #{{id}}",
+    "planted": "Planted",
+    "noDate": "Date unavailable",
+    "expectedHarvest": "Expected harvest",
+    "status": "Status",
+    "statuses": {
+      "planned": "Planned",
+      "planted": "Planted",
+      "harvested": "Harvested"
+    }
+  },
   "login": {
     "title": "Log in",
     "username": "Username",
@@ -19,25 +45,19 @@
       "invalidCredentials": "Incorrect password. Sign up if you don't have an account."
     }
   },
-
   "signup": {
     "title": "Create account",
     "username": "Username",
     "email": "Email",
     "password": "Password",
     "passwordConfirmation": "Repeat password",
-
     "acceptPrivacy": "I accept the Privacy Notice",
     "acceptSecurity": "I accept the Security Policy",
-
     "socialLogin": "Or sign up with",
-
     "logIn": "Log in",
     "signUp": "Create account",
     "creatingAccount": "Creating account...",
-
     "success": "Account created successfully",
-
     "errors": {
       "requiredFields": "Fill in all fields",
       "invalidEmail": "Invalid email format",
@@ -46,7 +66,6 @@
       "securityRequired": "You must accept the Security Policy",
       "createFailed": "The account could not be created"
     },
-
     "legal": {
       "privacy": "Privacy Notice",
       "security": "Security Policy",
@@ -56,7 +75,6 @@
       "loadError": "The document could not be loaded"
     }
   },
-
   "settings": {
     "title": "Profile",
     "eyebrow": "USER PROFILE",
@@ -119,6 +137,13 @@
       "edit": "Edit",
       "devices": "Devices",
       "noDevices": "This field has no device yet.",
+      "crops": "Crops",
+      "noCrops": "This field has no crops yet.",
+      "cropStatuses": {
+        "planned": "Planned",
+        "planted": "Planted",
+        "harvested": "Harvested"
+      },
       "devicePopupTitle": "Device details",
       "devicePopupClose": "Close",
       "deviceStatus": "Status",
@@ -174,6 +199,7 @@
       "loadData": "Could not load the data",
       "gardenNotFound": "Garden not found",
       "loadGarden": "Could not load the garden",
+      "loadCrops": "Could not load the crops",
       "invalidId": "Invalid identifier",
       "nameRequired": "Name is required",
       "sizeNumber": "Size must be a number",
@@ -215,6 +241,29 @@
         "deviceSaveFailed": "Could not save the devices",
         "createFailed": "Could not create the field"
       }
+    },
+    "manageCrops": {
+      "title": "Crops",
+      "hint": "Manage the crops in this field.",
+      "cropType": "Crop type",
+      "selectCrop": "Select a crop",
+      "noAvailableCrops": "There are no more crops to add.",
+      "plantedAt": "Planting date",
+      "expectedHarvestAt": "Expected harvest",
+      "selectDate": "Select a date",
+      "notes": "Notes",
+      "notesPlaceholder": "Details about this crop",
+      "adding": "Adding…",
+      "saveCrop": "Save crop",
+      "addCrop": "Add a crop",
+      "removeCrop": "Remove {{crop}}",
+      "errors": {
+        "selectCrop": "Select a crop first",
+        "invalidDate": "Dates must use the YYYY-MM-DD format",
+        "harvestBeforePlanting": "Expected harvest cannot be before planting",
+        "addFailed": "Error adding the crop",
+        "removeFailed": "Error removing the crop"
+      }
     }
   },
   "languages": {
@@ -228,7 +277,9 @@
     "news": "News",
     "buy": "Buy",
     "units": "units",
-    "errors": { "loadFailed": "Could not load market data" }
+    "errors": {
+      "loadFailed": "Could not load market data"
+    }
   },
   "weather": {
     "subtitle": "Weather forecast",
@@ -261,7 +312,56 @@
       "veryHigh": "Very high",
       "extreme": "Extreme"
     },
-    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    "compass": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    "weekdays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
+    "compass": [
+      "N",
+      "NE",
+      "E",
+      "SE",
+      "S",
+      "SW",
+      "W",
+      "NW"
+    ]
+  },
+  "recommendations": {
+    "screenTitle": "Recommendations",
+    "title": "Field recommendations",
+    "subtitle": "Practical advice based on your field data.",
+    "field": "Field",
+    "loading": "Loading recommendations…",
+    "loadError": "Could not load recommendations. Check your connection and try again.",
+    "retry": "Try again",
+    "emptyTitle": "No recommendations yet",
+    "emptyDescription": "Useful recommendations will appear here when enough field data is available.",
+    "results": "{{count}} recommendations",
+    "basedOn": "Based on",
+    "generatedAt": "Generated",
+    "expiresAt": "Expires",
+    "open": "Open field recommendations",
+    "back": "Back",
+    "categories": {
+      "soil": "Soil",
+      "irrigation": "Irrigation",
+      "crops": "Crops",
+      "fertilization": "Fertilization",
+      "pests": "Pests",
+      "weather": "Weather",
+      "general": "General"
+    },
+    "severities": {
+      "info": "Info",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
   }
 }

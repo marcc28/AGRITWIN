@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AliasPath, BaseModel, ConfigDict, Field
 
 # -------------------------
 # FIELD CROPS
@@ -30,6 +30,7 @@ class FieldCropRead(BaseModel):
     id: int
     field_id: int
     crop_id: int
+    crop_name: str = Field(validation_alias=AliasPath("crop", "name"))
     planted_at: date | None
     expected_harvest_at: date | None
     status: str

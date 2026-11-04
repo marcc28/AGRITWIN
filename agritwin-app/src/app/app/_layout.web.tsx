@@ -8,6 +8,7 @@ import {
   type ImageSourcePropType,
 } from 'react-native';
 import { usePathname } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   Tabs,
   TabList,
@@ -71,6 +72,7 @@ function WebTabButton({
 }
 
 export default function WebLayout() {
+  const { t } = useTranslation();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
@@ -93,28 +95,28 @@ export default function WebLayout() {
             <TabTrigger name="home" href="/app/home" asChild>
               <WebTabButton
                 name="home"
-                label="Inici"
+                label={t('tabs.home')}
                 icon={require('@assets/images/tabIcons/home.png')}
               />
             </TabTrigger>
             <TabTrigger name="explore" href="/app/explore" asChild>
               <WebTabButton
                 name="explore"
-                label="Explorar"
+                label={t('tabs.explore')}
                 icon={require('@assets/images/tabIcons/explore.png')}
               />
             </TabTrigger>
             <TabTrigger name="market" href="/app/market" asChild>
               <WebTabButton
                 name="market"
-                label="Mercat"
+                label={t('tabs.market')}
                 icon={require('@assets/images/tabIcons/market.png')}
               />
             </TabTrigger>
             <TabTrigger name="settings" href="/app/settings" asChild>
               <WebTabButton
                 name="settings"
-                label="Perfil"
+                label={t('tabs.profile')}
                 icon={require('@assets/images/tabIcons/settings.png')}
               />
             </TabTrigger>

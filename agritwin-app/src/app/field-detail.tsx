@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 
 import { FieldPhoto } from '../components/FieldPhoto';
 import { SensorCard } from '../components/SensorCard';
+import { getFieldCrops, type FieldCrop } from '../services/api_fieldCrops';
+import { getCrops, type Crop } from '../services/api_crops';
 import {
   getDashboard,
   getField,
@@ -14,7 +16,7 @@ import {
   type FieldDetail,
   type FieldDevice,
 } from '../services/api';
-import { clearAuth } from '../services/auth';
+import { clearAuth, getAuth } from '../services/auth';
 import { styles } from '../styles/field-detail.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
@@ -54,6 +56,9 @@ export default function FieldDetailScreen() {
   const [selectedDevice, setSelectedDevice] = useState<FieldDevice | null>(
     null,
   );
+  const [fieldCrops, setFieldCrops] = useState<FieldCrop[]>([]);
+  const [cropCatalog, setCropCatalog] = useState<Crop[]>([]);
+  const [cropsError, setCropsError] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -79,6 +84,31 @@ export default function FieldDetailScreen() {
         setErrorMessage(message);
         setLoading(false);
         return;
+      }
+
+      try {
+        const auth = await getAuth();
+        if (!auth?.token) {
+          throw new Error('Not authenticated');
+        }
+
+        const [nextFieldCrops, nextCropCatalog] = await Promise.all([
+          getFieldCrops(0, 100, auth.token, { field_id: fieldId }),
+          getCrops(0, 100, auth.token),
+        ]);
+        setFieldCrops(nextFieldCrops);
+        setCropCatalog(nextCropCatalog);
+      } catch (error) {
+        if (isAuthError(error)) {
+          await clearAuth();
+          router.replace('/auth/login');
+          return;
+        }
+        setCropsError(
+          error instanceof Error
+            ? error.message
+            : t('settings.errors.loadCrops'),
+        );
       }
 
       try {
@@ -216,6 +246,58 @@ export default function FieldDetailScreen() {
                       </Text>
                     </Pressable>
                   ))
+                )}
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.sectionTitle}>
+                  {t('settings.fieldDetail.crops')}
+                </Text>
+                {cropsError ? (
+                  <Text style={styles.emptyText}>{cropsError}</Text>
+                ) : fieldCrops.length === 0 ? (
+                  <Text style={styles.emptyText}>
+                    {t('settings.fieldDetail.noCrops')}
+                  </Text>
+                ) : (
+                  fieldCrops.map((fieldCrop) => {
+                    const crop = cropCatalog.find(
+                      (item) => String(item.id) === String(fieldCrop.crop_id),
+                    );
+                    const statusKey = [
+                      'planned',
+                      'planted',
+                      'harvested',
+                    ].includes(fieldCrop.status)
+                      ? fieldCrop.status
+                      : null;
+
+                    return (
+                      <View key={String(fieldCrop.id)} style={styles.cropRow}>
+                        <Text style={styles.cropName} numberOfLines={1}>
+                          {fieldCrop.crop_name ??
+                            crop?.name ??
+                            `Cultiu #${fieldCrop.crop_id}`}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.status,
+                            fieldCrop.status === 'planted'
+                              ? styles.statusOn
+                              : fieldCrop.status === 'harvested'
+                                ? styles.statusHarvested
+                                : styles.statusPlanned,
+                          ]}
+                        >
+                          {statusKey
+                            ? t(
+                                `settings.fieldDetail.cropStatuses.${statusKey}`,
+                              )
+                            : fieldCrop.status}
+                        </Text>
+                      </View>
+                    );
+                  })
                 )}
               </View>
 

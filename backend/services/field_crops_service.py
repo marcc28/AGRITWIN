@@ -114,6 +114,7 @@ class FieldCropService:
         field_crop = FieldCrop(
             field_id=field_id,
             crop_id=crop_id,
+            crop=crop,
             planted_at=planted_at,
             expected_harvest_at=expected_harvest_at,
             status=status,
@@ -125,6 +126,7 @@ class FieldCropService:
         try:
             await self._db.commit()
             await self._db.refresh(field_crop)
+            field_crop.crop = crop
         except IntegrityError:
             await self._db.rollback()
             raise ValueError("Invalid field crop data")
@@ -154,8 +156,10 @@ class FieldCropService:
             result = await self._db.execute(
                 select(Crop).where(Crop.id == data["crop_id"])
             )
-            if result.scalar_one_or_none() is None:
+            crop = result.scalar_one_or_none()
+            if crop is None:
                 raise ValueError("Crop not found")
+            field_crop.crop = crop
 
         for key, value in data.items():
             setattr(field_crop, key, value)
