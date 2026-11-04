@@ -14,6 +14,8 @@ export type FieldWeatherState =
   | { status: 'no-data' }
   | { status: 'error' };
 
+const REFRESH_MS = 10 * 60 * 1000;
+
 const NO_LOCATION_ERRORS = new Set([
   'Field has no location',
   'Field not found',
@@ -31,12 +33,24 @@ function stateForError(error: unknown): FieldWeatherState {
 
 export function useFieldWeather(fieldId: number | null, lang: string) {
   const [attempt, setAttempt] = useState(0);
+  const [refresh, setRefresh] = useState(0);
   const [result, setResult] = useState<{
     key: string;
     state: FieldWeatherState;
   } | null>(null);
 
   const requestKey = fieldId === null ? null : `${fieldId}:${lang}:${attempt}`;
+
+  useEffect(() => {
+    if (fieldId === null) {
+      return;
+    }
+    const timer = setInterval(
+      () => setRefresh((current) => current + 1),
+      REFRESH_MS,
+    );
+    return () => clearInterval(timer);
+  }, [fieldId]);
 
   useEffect(() => {
     if (fieldId === null || requestKey === null) {
@@ -59,14 +73,18 @@ export function useFieldWeather(fieldId: number | null, lang: string) {
       })
       .catch((error: unknown) => {
         if (active) {
-          setResult({ key: requestKey, state: stateForError(error) });
+          setResult((previous) =>
+            previous?.key === requestKey && previous.state.status === 'ready'
+              ? previous
+              : { key: requestKey, state: stateForError(error) },
+          );
         }
       });
 
     return () => {
       active = false;
     };
-  }, [fieldId, lang, requestKey]);
+  }, [fieldId, lang, requestKey, refresh]);
 
   const retry = useCallback(() => setAttempt((current) => current + 1), []);
 

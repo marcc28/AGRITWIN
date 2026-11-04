@@ -1,6 +1,8 @@
 import { getAuth } from '../../../src/services/auth';
 import {
   getFieldWeather,
+  subscribeMe,
+  updateMe,
   WeatherRequestError,
 } from '../../../src/services/api';
 
@@ -92,5 +94,32 @@ describe('weather api', () => {
       message: '',
       status: 503,
     });
+  });
+
+  it('tells the listeners when the profile is saved', async () => {
+    const profile = { name: 'Cinta', weather_alerts_enabled: false };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => profile,
+    });
+    const listener = jest.fn();
+    const unsubscribe = subscribeMe(listener);
+
+    await updateMe({
+      name: 'Cinta',
+      language: 'ca',
+      notifications_enabled: true,
+      weather_alerts_enabled: false,
+    });
+    unsubscribe();
+    await updateMe({
+      name: 'Cinta',
+      language: 'ca',
+      notifications_enabled: true,
+      weather_alerts_enabled: false,
+    });
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith(profile);
   });
 });

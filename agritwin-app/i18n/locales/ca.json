@@ -230,6 +230,10 @@
     "units": "unitats",
     "errors": { "loadFailed": "No s'han pogut carregar les dades del mercat" }
   },
+  "home": {
+    "title": "El teu hort,\ncada dia millor.",
+    "subtitle": "Tasques, temps i cultius adaptats al teu hort."
+  },
   "weather": {
     "subtitle": "Previsió del temps",
     "myField": "El meu camp",
@@ -254,6 +258,9 @@
     "noField": "Encara no tens cap camp. Crea'n un per veure el temps.",
     "noData": "No hi ha dades del temps per a aquesta ubicació",
     "back": "Inici",
+    "alertsTitle": "Alertes meteorològiques",
+    "noAlerts": "No hi ha alertes per al teu hort",
+    "close": "Tanca",
     "uvLevels": {
       "low": "Baix",
       "moderate": "Moderat",
