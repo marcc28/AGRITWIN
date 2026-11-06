@@ -7,10 +7,14 @@ import { WeatherAlertBanner } from '@/components/WeatherAlerts';
 import { WeatherCard } from '@/components/WeatherCard';
 import { FieldCropsCard } from '@/components/FieldCropsCard';
 
+import { WeatherAlert } from '@/services/api';
+import { activeAlerts } from '@/constants/weather';
 import { useCurrentField } from '@/hooks/use-current-field';
 import { useFieldWeather } from '@/hooks/use-field-weather';
 import { useFieldCrops } from '@/hooks/use-field-crops';
+import { getSeenAlerts, markAlertSeen } from '@/services/seenWeatherAlerts';
 import { createAddCropHandler } from '@/services/fieldCropNavigation';
+import { useWeatherAlertsEnabled } from '@/hooks/use-weather-alerts-enabled';
 
 import { styles } from '@/styles/home.styles';
 
@@ -102,9 +106,9 @@ export default function HomeScreen() {
           <Text style={styles.date}>{today}</Text>
 
           <Text style={styles.title}>
-            {t('home.titleFirst')}
+            {t('home.title')}
             {'\n'}
-            {t('home.titleSecond')}
+            {t('home.subtitle')}
           </Text>
 
           <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
