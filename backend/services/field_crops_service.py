@@ -181,8 +181,7 @@ class FieldCropService:
 
         try:
             await self._db.commit()
-        except IntegrityError:
+        except IntegrityError as err:
             await self._db.rollback()
-            raise ValueError("Cannot delete field crop")
-
+            raise ValueError("Cannot delete field crop") from err
         return True

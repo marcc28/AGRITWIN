@@ -44,9 +44,11 @@ class CropService:
         try:
             await self._db.commit()
             await self._db.refresh(crop)
-        except IntegrityError:
+        except IntegrityError as err:
             await self._db.rollback()
-            raise ValueError("A crop with this name already exists")
+            raise ValueError(
+                "Cannot delete this crop because it is associated with fields"
+            ) from err
 
         return crop
 

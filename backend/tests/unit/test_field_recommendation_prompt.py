@@ -34,9 +34,7 @@ def test_prompt_considers_pac_without_asserting_compliance_or_eligibility():
 
 
 def test_prompt_allows_context_supported_cereal_rotations():
-    prompt = " ".join(
-        build_recommendation_prompt({"main_field_crops": []}).split()
-    )
+    prompt = " ".join(build_recommendation_prompt({"main_field_crops": []}).split())
 
     assert "barley, wheat, and triticale may be considered in sequence" in prompt
     assert "do not imply that changing between cereals changes the" in prompt
