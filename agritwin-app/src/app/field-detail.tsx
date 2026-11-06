@@ -317,6 +317,7 @@ export default function FieldDetailScreen() {
       {selectedDevice ? (
         <View style={styles.popupWrap} pointerEvents="box-none">
           <Pressable
+            testID="device-popup-backdrop"
             style={styles.popupBackdrop}
             onPress={() => setSelectedDevice(null)}
           />

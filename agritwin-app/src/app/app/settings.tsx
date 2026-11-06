@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 
 import { FieldCropsCard } from '@/components/FieldCropsCard';
+import { createAddCropHandler } from '@/services/fieldCropNavigation';
 
 import { useCurrentField } from '@/hooks/use-current-field';
 import { useFieldCrops } from '@/hooks/use-field-crops';
@@ -230,15 +231,8 @@ export default function SettingsScreen() {
     await setCurrentField({ id: field.id, name: field.name });
     setCurrentFieldId(field.id);
   }
-  function openAddCrop() {
-    if (field) {
-      router.push({
-        pathname: '/edit-field',
-        params: { id: String(field.id), addCrop: 'true' },
-      });
-    }
-  }
   const field = useCurrentField();
+  const openAddCrop = createAddCropHandler(field, router.push);
 
   const crops = useFieldCrops(field ? Number(field.id) : null);
 

@@ -9,16 +9,15 @@ import {
 
 import FieldDetailScreen from '../../../src/app/field-detail';
 import { getDashboard, getField } from '../../../src/services/api';
-import { clearAuth } from '../../../src/services/auth';
+import { clearAuth, getAuth } from '../../../src/services/auth';
 import { getFieldCrops } from '../../../src/services/api_fieldCrops';
 import { getCrops } from '../../../src/services/api_crops';
 import { router } from 'expo-router';
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+jest.mock('react-i18next', () => {
+  const t = (key: string) => key;
+  return { useTranslation: () => ({ t }) };
+});
 
 const mockUseLocalSearchParams = jest.fn(() => ({ id: '3' }));
 const mockIsAuthError = jest.fn((_error?: unknown) => false);
@@ -71,6 +70,7 @@ const mockedGetField = getField as jest.MockedFunction<typeof getField>;
 const mockedGetDashboard = getDashboard as jest.MockedFunction<
   typeof getDashboard
 >;
+const mockedGetAuth = getAuth as jest.MockedFunction<typeof getAuth>;
 const mockedGetFieldCrops = getFieldCrops as jest.MockedFunction<
   typeof getFieldCrops
 >;
@@ -133,6 +133,16 @@ describe('FieldDetailScreen', () => {
     expect(screen.getByText('ESP32')).toBeTruthy();
     expect(screen.getByText('SN-1')).toBeTruthy();
     fireEvent.press(screen.getByText('settings.fieldDetail.devicePopupClose'));
+    expect(
+      screen.queryByText('settings.fieldDetail.devicePopupTitle'),
+    ).toBeNull();
+  });
+
+  it('closes device details when tapping outside the popup', async () => {
+    render(<FieldDetailScreen />);
+    await waitFor(() => expect(screen.getByText('dev-1')).toBeTruthy());
+    fireEvent.press(screen.getByText('dev-1'));
+    fireEvent.press(screen.getByTestId('device-popup-backdrop'));
     expect(
       screen.queryByText('settings.fieldDetail.devicePopupTitle'),
     ).toBeNull();
@@ -288,6 +298,35 @@ describe('FieldDetailScreen', () => {
       expect(screen.getByText('Cultius no disponibles')).toBeTruthy();
     });
     expect(screen.getByText('Hort')).toBeTruthy();
+  });
+
+  it('shows an error when crop loading has no auth token', async () => {
+    mockedGetAuth.mockResolvedValueOnce(
+      null as Awaited<ReturnType<typeof getAuth>>,
+    );
+    render(<FieldDetailScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('Not authenticated')).toBeTruthy(),
+    );
+    expect(mockedGetFieldCrops).not.toHaveBeenCalled();
+  });
+
+  it('uses a fallback message for non-Error crop failures', async () => {
+    mockedGetFieldCrops.mockRejectedValue('offline');
+    render(<FieldDetailScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.errors.loadCrops')).toBeTruthy(),
+    );
+  });
+
+  it('clears an invalid session after crop requests', async () => {
+    mockIsAuthError.mockReturnValue(true);
+    mockedGetFieldCrops.mockRejectedValue(new Error('Not authenticated'));
+    render(<FieldDetailScreen />);
+    await waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/auth/login');
+    });
   });
 
   it('opens the edit page', async () => {

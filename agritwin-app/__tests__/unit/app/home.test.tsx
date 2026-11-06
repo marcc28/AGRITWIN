@@ -29,7 +29,11 @@ jest.mock('../../../src/hooks/use-field-weather', () => ({
 }));
 
 jest.mock('../../../src/hooks/use-field-crops', () => ({
-  useFieldCrops: jest.fn(() => ({ status: 'success', data: [] })),
+  useFieldCrops: jest.fn(() => ({
+    status: 'success',
+    data: [],
+    retry: jest.fn(),
+  })),
 }));
 
 jest.mock('../../../src/components/WeatherCard', () => ({
@@ -126,6 +130,15 @@ describe('HomeScreen', () => {
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/weather',
       params: { id: '2' },
+    });
+  });
+
+  it('opens crop entry from the field card', () => {
+    render(<HomeScreen />);
+    fireEvent.press(screen.getByLabelText('settings.manageCrops.addCrop'));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/edit-field',
+      params: { id: '2', addCrop: 'true' },
     });
   });
 

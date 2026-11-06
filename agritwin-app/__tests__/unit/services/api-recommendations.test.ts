@@ -59,6 +59,16 @@ describe('field recommendations api', () => {
     ]);
   });
 
+  it('matches field identifiers after converting numeric and string ids', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ ...item(7), field_id: '7' }, item(8)],
+    }) as jest.Mock;
+    await expect(getFieldRecommendations(7, 'token')).resolves.toEqual([
+      { ...item(7), field_id: '7' },
+    ]);
+  });
+
   it('throws the API detail for an unsuccessful response', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
@@ -90,5 +100,18 @@ describe('field recommendations api', () => {
     await expect(getFieldRecommendations(7, 'token')).rejects.toThrow(
       'La resposta de les recomanacions no és vàlida',
     );
+  });
+
+  it('requires the public API URL at module initialization', () => {
+    const configuredUrl = process.env.EXPO_PUBLIC_API_URL;
+    delete process.env.EXPO_PUBLIC_API_URL;
+    try {
+      expect(() =>
+        jest.isolateModules(() => require('@/services/api_recommendations')),
+      ).toThrow('EXPO_PUBLIC_API_URL is not defined');
+    } finally {
+      if (configuredUrl === undefined) delete process.env.EXPO_PUBLIC_API_URL;
+      else process.env.EXPO_PUBLIC_API_URL = configuredUrl;
+    }
   });
 });

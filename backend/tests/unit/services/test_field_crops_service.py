@@ -171,6 +171,29 @@ async def test_update_field_crop_returns_none_when_not_found(service, db):
 
 
 @pytest.mark.asyncio
+async def test_update_field_crop_rejects_unknown_crop(service, db):
+    current = SimpleNamespace(id=10, crop_id=2, crop=None)
+    db.execute.side_effect = [result(one=current), result(one=None)]
+
+    with pytest.raises(ValueError, match="Crop not found"):
+        await service.update_field_crop(10, uuid4(), {"crop_id": 999})
+
+    db.commit.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_update_field_crop_rolls_back_integrity_error(service, db):
+    current = SimpleNamespace(id=10, status="planned")
+    db.execute.return_value = result(one=current)
+    db.commit.side_effect = IntegrityError("update", {}, Exception("constraint"))
+
+    with pytest.raises(ValueError, match="Invalid field crop data"):
+        await service.update_field_crop(10, uuid4(), {"status": "planted"})
+
+    db.rollback.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_update_field_crop_rejects_unowned_target_field(service, db):
     current = SimpleNamespace(id=10, field_id=7)
     db.execute.side_effect = [result(one=current), result(one=None)]
@@ -197,3 +220,14 @@ async def test_delete_field_crop_returns_false_when_missing(service, db):
 
     assert await service.delete_field_crop(999, uuid4()) is False
     db.delete.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_delete_field_crop_rolls_back_integrity_error(service, db):
+    db.execute.return_value = result(one=SimpleNamespace(id=10))
+    db.commit.side_effect = IntegrityError("delete", {}, Exception("constraint"))
+
+    with pytest.raises(ValueError, match="Cannot delete field crop"):
+        await service.delete_field_crop(10, uuid4())
+
+    db.rollback.assert_awaited_once()

@@ -1,11 +1,12 @@
 import os
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 os.environ.setdefault("SECRET_KEY", "test-secret")
@@ -17,7 +18,11 @@ os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
 os.environ.setdefault("MODEL_USE_IN_RECOMENDATION", "test-model")
 
 from api.v1.auth import get_current_user
-from api.v1.field_recommendations import get_field_recommendation_service, router
+from api.v1.field_recommendations import (
+    get_field_recommendation_service,
+    router,
+    update_recommendation,
+)
 from services.rate_limit import enforce_ai_rate_limit
 
 USER_ID = uuid4()
@@ -76,6 +81,33 @@ def test_recommendation_routes_require_auth(service):
     response = TestClient(app).get("/api/v1/fields/7/recommendations")
 
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_recommendation_service_dependency_closes_session(monkeypatch):
+    from api.v1 import field_recommendations
+
+    session = object()
+    service = object()
+    events = []
+
+    @asynccontextmanager
+    async def session_context():
+        events.append("open")
+        try:
+            yield session
+        finally:
+            events.append("close")
+
+    monkeypatch.setattr(field_recommendations, "AsyncSessionLocal", session_context)
+    monkeypatch.setattr(
+        field_recommendations, "FieldRecommendationService", lambda session: service
+    )
+    dependency = get_field_recommendation_service()
+    assert await anext(dependency) is service
+    assert events == ["open"]
+    await dependency.aclose()
+    assert events == ["open", "close"]
 
 
 def test_recommendation_endpoint_enforces_ai_rate_limit(service, monkeypatch):
@@ -289,6 +321,23 @@ def test_update_recommendation_returns_404_when_missing(client, service):
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Recommendation not found"
+
+
+@pytest.mark.asyncio
+async def test_update_recommendation_rejects_field_change(service):
+    from models.field_recommendations import FieldRecommendationUpdate
+
+    with pytest.raises(HTTPException) as error:
+        await update_recommendation(
+            RECOMMENDATION_ID,
+            FieldRecommendationUpdate(field_id=99),
+            SimpleNamespace(id=USER_ID),
+            service,
+        )
+
+    assert error.value.status_code == 422
+    assert error.value.detail == "Cannot change the field of a recommendation"
+    service.update_recommendation.assert_not_awaited()
 
 
 def test_update_recommendation_rejects_invalid_uuid(client, service):

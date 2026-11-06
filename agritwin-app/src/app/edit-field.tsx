@@ -245,11 +245,6 @@ export default function EditFieldScreen() {
   }
 
   async function handleAddCrop() {
-    if (!selectedCropId) {
-      setErrorMessage(t('settings.manageCrops.errors.selectCrop'));
-      return;
-    }
-
     const validDate = (value: string) => {
       if (!value) return true;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -491,6 +486,7 @@ export default function EditFieldScreen() {
                     </Pressable>
 
                     <Modal
+                      testID="crop-selector-modal"
                       visible={cropSelectorOpen}
                       transparent
                       animationType="fade"
@@ -516,6 +512,7 @@ export default function EditFieldScreen() {
                             </Pressable>
                           </View>
                           <FlatList
+                            testID="crop-selector-list"
                             key={cropPage}
                             data={availableCrops.filter(
                               (crop) =>

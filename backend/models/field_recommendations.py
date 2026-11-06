@@ -20,6 +20,9 @@ class FieldRecommendationCreate(FieldRecommendationBase):
 
 
 class FieldRecommendationUpdate(BaseModel):
+    # Keep this field visible to the router so attempts to change ownership can
+    # be rejected explicitly instead of silently ignored by Pydantic.
+    field_id: int | None = None
     category: str | None = Field(default=None, max_length=50)
     title: str | None = Field(default=None, max_length=255)
     description: str | None = None

@@ -89,6 +89,17 @@ describe('useFieldCrops', () => {
     expect(mockedGetFieldCrops).toHaveBeenCalledTimes(2);
   });
 
+  it('uses the generic message when a request throws a non-Error value', async () => {
+    mockedGetFieldCrops.mockRejectedValue('offline');
+    const { result } = renderHook(() => useFieldCrops(7));
+    await waitFor(() => {
+      expect(result.current).toMatchObject({
+        status: 'error',
+        error: 'Error carregant els cultius',
+      });
+    });
+  });
+
   it('reloads when the field id changes', async () => {
     mockedGetFieldCrops.mockResolvedValue([crop]);
     const { result, rerender } = renderHook(

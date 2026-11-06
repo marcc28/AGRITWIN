@@ -61,6 +61,7 @@ export default function GardenPickerOverlay() {
       }}
     >
       <Pressable
+        testID="garden-picker-backdrop"
         onPress={() => setGardenPicker({ open: false })}
         style={{
           position: 'absolute',

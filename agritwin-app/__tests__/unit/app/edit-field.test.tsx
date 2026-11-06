@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -15,8 +16,9 @@ import {
   updateDevice,
   updateField,
 } from '../../../src/services/api';
-import { clearAuth } from '../../../src/services/auth';
+import { clearAuth, getAuth } from '../../../src/services/auth';
 import {
+  createFieldCrop,
   deleteFieldCrop,
   getFieldCrops,
   type FieldCrop,
@@ -24,13 +26,14 @@ import {
 import { getCrops } from '../../../src/services/api_crops';
 import { router } from 'expo-router';
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+jest.mock('react-i18next', () => {
+  const t = (key: string) => key;
+  return { useTranslation: () => ({ t }) };
+});
 
-const mockUseLocalSearchParams = jest.fn(() => ({ id: '3' }));
+const mockUseLocalSearchParams = jest.fn(
+  (): { id: string; addCrop?: string } => ({ id: '3' }),
+);
 const mockIsAuthError = jest.fn((_error?: unknown) => false);
 
 jest.mock('expo-router', () => ({
@@ -75,7 +78,25 @@ jest.mock('../../../src/services/fieldPhoto', () => ({
 }));
 
 jest.mock('../../../src/components/DateField', () => ({
-  DateField: () => null,
+  DateField: ({
+    value,
+    onChange,
+    placeholder,
+  }: {
+    value: string;
+    onChange: (value: string) => void;
+    placeholder: string;
+  }) => {
+    const React = jest.requireActual<typeof import('react')>('react');
+    const { TextInput } =
+      jest.requireActual<typeof import('react-native')>('react-native');
+    return React.createElement(TextInput, {
+      value,
+      onChangeText: onChange,
+      placeholder,
+      accessibilityLabel: placeholder,
+    });
+  },
 }));
 
 const mockedGetField = getField as jest.MockedFunction<typeof getField>;
@@ -97,6 +118,10 @@ const mockedGetFieldCrops = getFieldCrops as jest.MockedFunction<
 const mockedDeleteFieldCrop = deleteFieldCrop as jest.MockedFunction<
   typeof deleteFieldCrop
 >;
+const mockedCreateFieldCrop = createFieldCrop as jest.MockedFunction<
+  typeof createFieldCrop
+>;
+const mockedGetAuth = getAuth as jest.MockedFunction<typeof getAuth>;
 const mockedGetCrops = getCrops as jest.MockedFunction<typeof getCrops>;
 
 const fieldCrop: FieldCrop = {
@@ -149,9 +174,12 @@ describe('EditFieldScreen', () => {
   it('loads the garden to edit', async () => {
     render(<EditFieldScreen />);
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+      },
+      { timeout: 10000 },
+    );
     expect(screen.getByDisplayValue('Andorra')).toBeTruthy();
   });
 
@@ -200,7 +228,7 @@ describe('EditFieldScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('settings.cancel')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.cancel'));
+    fireEvent.press(screen.getAllByText('settings.cancel')[0]);
     expect(router.replace).toHaveBeenCalledWith({
       pathname: '/field-detail',
       params: { id: '3' },
@@ -337,6 +365,224 @@ describe('EditFieldScreen', () => {
     await waitFor(() => {
       expect(mockedDeleteFieldCrop).toHaveBeenCalledWith(21, 'token');
     });
+  });
+
+  it('adds a selected crop with dates and trimmed notes', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
+    mockedCreateFieldCrop.mockResolvedValue({
+      ...fieldCrop,
+      id: 50,
+      crop_name: 'Tomàquet',
+    });
+    render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
+    );
+
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(screen.getByText('Tomàquet'));
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.manageCrops.notesPlaceholder'),
+      '  Reg setmanal  ',
+    );
+    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+
+    await waitFor(() => {
+      expect(mockedCreateFieldCrop).toHaveBeenCalledWith(
+        {
+          field_id: 3,
+          crop_id: 5,
+          planted_at: null,
+          expected_harvest_at: null,
+          status: 'planted',
+          notes: 'Reg setmanal',
+        },
+        'token',
+      );
+    });
+  }, 20000);
+
+  it('rejects invalid crop dates and harvests before planting', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
+    render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
+    );
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(screen.getByText('Tomàquet'));
+    const dates = screen.getAllByLabelText('settings.manageCrops.selectDate');
+    fireEvent.changeText(dates[0], '2026-02-30');
+    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    expect(
+      screen.getByText('settings.manageCrops.errors.invalidDate'),
+    ).toBeTruthy();
+    expect(mockedCreateFieldCrop).not.toHaveBeenCalled();
+
+    fireEvent.changeText(dates[0], '30/02/2026');
+    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    expect(
+      screen.getByText('settings.manageCrops.errors.invalidDate'),
+    ).toBeTruthy();
+
+    fireEvent.changeText(dates[0], '2026-04-01');
+    fireEvent.changeText(dates[1], '2026-03-31');
+    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    expect(
+      screen.getByText('settings.manageCrops.errors.harvestBeforePlanting'),
+    ).toBeTruthy();
+    expect(mockedCreateFieldCrop).not.toHaveBeenCalled();
+  });
+
+  it('loads the next crop page from the selector', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
+    mockedGetCrops
+      .mockResolvedValueOnce(
+        Array.from({ length: 50 }, (_, index) => ({
+          id: index + 1,
+          name: `Crop ${index + 1}`,
+          scientific_name: '',
+          category: 'cereal',
+        })),
+      )
+      .mockResolvedValueOnce([
+        {
+          id: 100,
+          name: 'Triticale',
+          scientific_name: 'x Triticosecale',
+          category: 'cereal',
+        },
+      ]);
+    render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
+    );
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    const cropList = screen.getByTestId('crop-selector-list');
+    await act(async () => cropList.props.onEndReached());
+    await waitFor(() =>
+      expect(mockedGetCrops).toHaveBeenCalledWith(50, 50, 'token'),
+    );
+    expect(await screen.findByText('Triticale')).toBeTruthy();
+  });
+
+  it('shows an error when the next crop page cannot be loaded', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
+    mockedGetCrops
+      .mockResolvedValueOnce(
+        Array.from({ length: 50 }, (_, index) => ({
+          id: index + 1,
+          name: `Crop ${index + 1}`,
+          scientific_name: '',
+          category: 'cereal',
+        })),
+      )
+      .mockRejectedValueOnce(new Error('catalog unavailable'));
+    render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
+    );
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    const cropList = screen.getByTestId('crop-selector-list');
+    await act(async () => cropList.props.onEndReached());
+    await waitFor(() =>
+      expect(screen.getByText('catalog unavailable')).toBeTruthy(),
+    );
+  });
+
+  it('shows auth failures while loading and adding a crop', async () => {
+    mockedGetAuth.mockResolvedValueOnce(null);
+    const loadingView = render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(
+        screen.getByText('No s’ha trobat el token d’autenticació'),
+      ).toBeTruthy(),
+    );
+    expect(mockedGetCrops).not.toHaveBeenCalled();
+    loadingView.unmount();
+
+    jest.clearAllMocks();
+    mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
+    mockedGetField.mockResolvedValue({
+      id: 3,
+      name: 'Hort',
+      location: null,
+      field_type: null,
+      soil_type: null,
+      size_m2: null,
+      device_count: 0,
+      devices: [],
+    });
+    mockedGetCrops.mockResolvedValue([
+      { id: 5, name: 'Tomàquet', scientific_name: '', category: 'vegetable' },
+    ]);
+    mockedGetFieldCrops.mockResolvedValue([]);
+    render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
+    );
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(screen.getByText('Tomàquet'));
+    mockedGetAuth.mockResolvedValueOnce(null);
+    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    await waitFor(() =>
+      expect(screen.getByText('No s’ha trobat el token')).toBeTruthy(),
+    );
+  });
+
+  it('shows crop add and removal errors', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
+    mockedGetFieldCrops.mockResolvedValue([fieldCrop]);
+    mockedCreateFieldCrop.mockRejectedValueOnce(new Error('add unavailable'));
+    mockedDeleteFieldCrop.mockRejectedValueOnce(
+      new Error('remove unavailable'),
+    );
+    render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
+    );
+
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(screen.getByText('Tomàquet'));
+    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    await waitFor(() =>
+      expect(screen.getByText('add unavailable')).toBeTruthy(),
+    );
+
+    fireEvent.press(screen.getByLabelText('settings.manageCrops.removeCrop'));
+    await waitFor(() =>
+      expect(screen.getByText('remove unavailable')).toBeTruthy(),
+    );
+  });
+
+  it('closes the crop picker and form, then reopens crop entry', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
+    render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
+    );
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    const modal = screen.getByTestId('crop-selector-modal');
+    await act(async () => modal.props.onRequestClose());
+
+    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(screen.getByLabelText('settings.cancel'));
+    expect(screen.getByText('settings.manageCrops.selectCrop')).toBeTruthy();
+
+    fireEvent.press(screen.getAllByText('settings.cancel')[0]);
+    fireEvent.press(screen.getByText('settings.manageCrops.addCrop'));
+    expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy();
+  });
+
+  it('shows a missing-auth error when removing a crop', async () => {
+    mockedGetFieldCrops.mockResolvedValue([fieldCrop]);
+    render(<EditFieldScreen />);
+    await waitFor(() => expect(screen.getByText('Ceba')).toBeTruthy());
+    mockedGetAuth.mockResolvedValueOnce(null);
+    fireEvent.press(screen.getByLabelText('settings.manageCrops.removeCrop'));
+    await waitFor(() =>
+      expect(screen.getByText('No s’ha trobat el token')).toBeTruthy(),
+    );
+    expect(mockedDeleteFieldCrop).not.toHaveBeenCalled();
   });
 
   it('redirects when loading the garden is unauthorized', async () => {

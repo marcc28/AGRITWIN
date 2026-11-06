@@ -55,6 +55,27 @@ describe('field crops api', () => {
     );
   });
 
+  it('omits absent filters and keeps zero-valued filters', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [crop],
+    }) as jest.Mock;
+    await getFieldCrops(0, 10, 'token', {
+      field_id: 0,
+      crop_id: 0,
+      status: '',
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/crops/field-crops?offset=0&limit=10&field_id=0&crop_id=0',
+      expect.anything(),
+    );
+    await getFieldCrops(0, 10, 'token');
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      'http://localhost:8000/api/v1/crops/field-crops?offset=0&limit=10',
+      expect.anything(),
+    );
+  });
+
   it('returns the field-crop count', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -192,5 +213,48 @@ describe('field crops api', () => {
     await expect(deleteFieldCrop(15, 'token')).rejects.toThrow(
       'Error eliminant el cultiu del camp',
     );
+  });
+
+  it.each([
+    [getFieldCrops, [0, 10, 'token'], 'Field crop list unavailable'],
+    [getFieldCropsCount, ['token'], 'Field crop count unavailable'],
+    [getFieldCropById, [15, 'token'], 'Field crop unavailable'],
+    [
+      createFieldCrop,
+      [{ field_id: 7, crop_id: 3, status: 'planted' }, 'token'],
+      'Field crop create unavailable',
+    ],
+    [
+      updateFieldCrop,
+      [15, { status: 'planted' }, 'token'],
+      'Field crop update unavailable',
+    ],
+    [deleteFieldCrop, [15, 'token'], 'Field crop delete unavailable'],
+  ])(
+    'uses a server error detail for each operation',
+    async (api, args, detail) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ detail }),
+      }) as jest.Mock;
+      await expect(
+        (api as (...parameters: never[]) => Promise<unknown>)(
+          ...(args as never[]),
+        ),
+      ).rejects.toThrow(detail);
+    },
+  );
+
+  it('requires the public API URL at module initialization', () => {
+    const configuredUrl = process.env.EXPO_PUBLIC_API_URL;
+    delete process.env.EXPO_PUBLIC_API_URL;
+    try {
+      expect(() =>
+        jest.isolateModules(() => require('@/services/api_fieldCrops')),
+      ).toThrow('EXPO_PUBLIC_API_URL is not defined');
+    } finally {
+      if (configuredUrl === undefined) delete process.env.EXPO_PUBLIC_API_URL;
+      else process.env.EXPO_PUBLIC_API_URL = configuredUrl;
+    }
   });
 });

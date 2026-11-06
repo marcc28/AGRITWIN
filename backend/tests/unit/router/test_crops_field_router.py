@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -60,6 +61,31 @@ def test_field_crop_routes_require_auth(service):
     response = TestClient(app).get("/api/v1/crops/field-crops")
 
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_field_crop_service_dependency_closes_session(monkeypatch):
+    from api.v1 import crops_field
+
+    session = object()
+    service = object()
+    events = []
+
+    @asynccontextmanager
+    async def session_context():
+        events.append("open")
+        try:
+            yield session
+        finally:
+            events.append("close")
+
+    monkeypatch.setattr(crops_field, "AsyncSessionLocal", session_context)
+    monkeypatch.setattr(crops_field, "FieldCropService", lambda session: service)
+    dependency = get_field_crop_service()
+    assert await anext(dependency) is service
+    assert events == ["open"]
+    await dependency.aclose()
+    assert events == ["open", "close"]
 
 
 def test_list_field_crops_passes_filters_and_pagination(client, service):

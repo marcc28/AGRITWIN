@@ -3,10 +3,12 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { WeatherCard } from '@/components/WeatherCard';
+import { FieldCropsCard } from '@/components/FieldCropsCard';
 
 import { useCurrentField } from '@/hooks/use-current-field';
 import { useFieldWeather } from '@/hooks/use-field-weather';
 import { useFieldCrops } from '@/hooks/use-field-crops';
+import { createAddCropHandler } from '@/services/fieldCropNavigation';
 
 import { styles } from '@/styles/home.styles';
 
@@ -18,6 +20,7 @@ export default function HomeScreen() {
   const { state, retry } = useFieldWeather(field?.id ?? null, i18n.language);
 
   const crops = useFieldCrops(field ? Number(field.id) : null);
+  const openAddCrop = createAddCropHandler(field, router.push);
 
   const weather =
     field === undefined ? ({ status: 'loading' } as const) : state;
@@ -39,15 +42,6 @@ export default function HomeScreen() {
     }
   }
 
-  function openAddCrop() {
-    if (field) {
-      router.push({
-        pathname: '/edit-field',
-        params: { id: String(field.id), addCrop: 'true' },
-      });
-    }
-  }
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -63,6 +57,12 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
           <WeatherCard state={weather} onPress={openWeather} onRetry={retry} />
+          <FieldCropsCard
+            state={crops}
+            onRetry={crops.retry}
+            onAdd={openAddCrop}
+            addDisabled={!field}
+          />
         </View>
       </ScrollView>
     </View>

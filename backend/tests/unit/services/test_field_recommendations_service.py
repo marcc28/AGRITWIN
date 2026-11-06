@@ -1,3 +1,4 @@
+import importlib
 import json
 import os
 from datetime import UTC, datetime, timedelta
@@ -11,6 +12,7 @@ import pytest
 os.environ.setdefault("GEMINI_API_KEY", "test-api-key")
 os.environ.setdefault("MODEL_USE_IN_RECOMENDATION", "gemini-3.5-flash-lite")
 
+from services import field_recommendations_service as recommendation_module
 from services.field_recommendations_service import (
     FieldRecommendationService,
     _read_env_setting,
@@ -47,6 +49,35 @@ def test_read_env_setting_strips_trailing_newline(monkeypatch):
     monkeypatch.setenv("MODEL_USE_IN_RECOMENDATION", "gemini-3.5-flash-lite\n")
 
     assert _read_env_setting("MODEL_USE_IN_RECOMENDATION") == "gemini-3.5-flash-lite"
+
+
+@pytest.mark.parametrize(
+    ("missing_name", "expected_message"),
+    [
+        ("GEMINI_API_KEY", "GEMINI_API_KEY is not configured"),
+        ("MODEL_USE_IN_RECOMENDATION", "MODEL_USE_IN_RECOMENDATION is not configured"),
+    ],
+)
+def test_module_rejects_missing_ai_configuration(monkeypatch, missing_name, expected_message):
+    original_key = os.environ.get("GEMINI_API_KEY")
+    original_model = os.environ.get("MODEL_USE_IN_RECOMENDATION")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-api-key")
+    monkeypatch.setenv("MODEL_USE_IN_RECOMENDATION", "test-model")
+    monkeypatch.delenv(missing_name)
+
+    try:
+        with pytest.raises(RuntimeError, match=expected_message):
+            importlib.reload(recommendation_module)
+    finally:
+        if original_key is None:
+            monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+        else:
+            monkeypatch.setenv("GEMINI_API_KEY", original_key)
+        if original_model is None:
+            monkeypatch.delenv("MODEL_USE_IN_RECOMENDATION", raising=False)
+        else:
+            monkeypatch.setenv("MODEL_USE_IN_RECOMENDATION", original_model)
+        importlib.reload(recommendation_module)
 
 
 # --------------------------------------------------
@@ -693,7 +724,7 @@ async def test_get_or_generate_recommendations_saves_valid_recommendations(
     assert saved.description == "Bona opció després de l'ordi."
     assert saved.severity == "medium"
     assert saved.based_on == {"previous_crop": "Ordi"}
-    assert saved.model == "gemini-3.5-flash-lite"
+    assert saved.model == recommendation_module.model_gemini
 
     assert saved.generated_at.tzinfo == UTC
     assert saved.expires_at - saved.generated_at == timedelta(days=7)
@@ -720,6 +751,7 @@ async def test_get_or_generate_recommendations_ignores_invalid_items(
 
     ai_data = {
         "recommendations": [
+            None,
             {
                 "category": "invalid_category",
                 "title": "Invalid",
