@@ -283,6 +283,10 @@
       "loadFailed": "No se han podido cargar los datos del mercado"
     }
   },
+  "home": {
+    "title": "Tu huerto,\ncada día mejor.",
+    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto."
+  },
   "weather": {
     "subtitle": "Previsión del tiempo",
     "myField": "Mi campo",
@@ -307,6 +311,9 @@
     "noField": "Todavía no tienes ningún campo. Crea uno para ver el tiempo.",
     "noData": "No hay datos del tiempo para esta ubicación",
     "back": "Inicio",
+    "alertsTitle": "Alertas meteorológicas",
+    "noAlerts": "No hay alertas para tu huerto",
+    "close": "Cerrar",
     "uvLevels": {
       "low": "Bajo",
       "moderate": "Moderado",

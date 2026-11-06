@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { WeatherAlertBanner } from '@/components/WeatherAlerts';
 import { WeatherCard } from '@/components/WeatherCard';
 import { FieldCropsCard } from '@/components/FieldCropsCard';
 
@@ -18,6 +20,20 @@ export default function HomeScreen() {
   const field = useCurrentField();
 
   const { state, retry } = useFieldWeather(field?.id ?? null, i18n.language);
+  const alertsEnabled = useWeatherAlertsEnabled();
+  const [seenAlerts, setSeenAlerts] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void getSeenAlerts().then((seen) => {
+      if (active) {
+        setSeenAlerts(seen);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const crops = useFieldCrops(field ? Number(field.id) : null);
   const openAddCrop = createAddCropHandler(field, router.push);
@@ -42,6 +58,43 @@ export default function HomeScreen() {
     }
   }
 
+  const queue: { key: string; alert: WeatherAlert; now: boolean }[] = [];
+  if (alertsEnabled && weather.status === 'ready') {
+    const { currentAlerts, alerts } = activeAlerts(weather.weather);
+    currentAlerts.forEach((alert) =>
+      queue.push({
+        key: `${field?.id}:now:${alert.type}:${alert.day}`,
+        alert,
+        now: true,
+      }),
+    );
+    alerts.forEach((alert) =>
+      queue.push({
+        key: `${field?.id}:${alert.type}:${alert.starts_at ?? alert.day}`,
+        alert,
+        now: false,
+      }),
+    );
+  }
+  const pending =
+    seenAlerts === null
+      ? []
+      : queue.filter((item) => !seenAlerts.includes(item.key));
+  const next = pending[0];
+
+  function closeAlert() {
+    if (next) {
+      const { key } = next;
+      setSeenAlerts((seen) => [...(seen ?? []), key]);
+      void markAlertSeen(key);
+    }
+  }
+
+  function openAlert() {
+    closeAlert();
+    openWeather();
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -59,6 +112,18 @@ export default function HomeScreen() {
           <WeatherCard state={weather} onPress={openWeather} onRetry={retry} />
         </View>
       </ScrollView>
+
+      {next ? (
+        <WeatherAlertBanner
+          key={next.key}
+          alert={next.alert}
+          now={next.now}
+          position={queue.length - pending.length + 1}
+          total={queue.length}
+          onOpen={openAlert}
+          onClose={closeAlert}
+        />
+      ) : null}
     </View>
   );
 }
