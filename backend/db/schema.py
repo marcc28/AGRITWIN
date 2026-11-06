@@ -238,6 +238,7 @@ class Field(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -251,6 +252,7 @@ class Field(Base):
             "size_m2": float(self.size_m2) if self.size_m2 is not None else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
 
 class Device(Base):
     """An Arduino/ESP32 device installed in a field."""
@@ -339,7 +341,6 @@ class WeatherCache(Base):
     field: Mapped["Field"] = relationship(back_populates="weather")
 
 
-
 class Crop(Base):
     __tablename__ = "crops"
 
@@ -405,7 +406,7 @@ class FieldCrop(Base):
 
     planted_at: Mapped[date | None] = mapped_column(Date)
     expected_harvest_at: Mapped[date | None] = mapped_column(Date)
-    
+
     status: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
@@ -420,7 +421,6 @@ class FieldCrop(Base):
         nullable=False,
         server_default=func.now(),
     )
-
 
 
 class FieldRecommendation(Base):
@@ -476,4 +476,3 @@ class FieldRecommendation(Base):
         DateTime(timezone=True),
         nullable=True,
     )
-

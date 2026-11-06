@@ -13,8 +13,8 @@
     "explore": "Explorar",
     "market": "Mercat",
     "profile": "Perfil",
-  "clover": "Trèvol",
-  "calendar": "Calendari"
+    "clover": "Trèvol",
+    "calendar": "Calendari"
   },
   "fieldCrops": {
     "title": "Els meus cultius",
@@ -314,25 +314,8 @@
       "veryHigh": "Molt alt",
       "extreme": "Extrem"
     },
-    "weekdays": [
-      "dg.",
-      "dl.",
-      "dt.",
-      "dc.",
-      "dj.",
-      "dv.",
-      "ds."
-    ],
-    "compass": [
-      "N",
-      "NE",
-      "E",
-      "SE",
-      "S",
-      "SO",
-      "O",
-      "NO"
-    ]
+    "weekdays": ["dg.", "dl.", "dt.", "dc.", "dj.", "dv.", "ds."],
+    "compass": ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
   },
   "recommendations": {
     "screenTitle": "Recomanacions",

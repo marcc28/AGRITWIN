@@ -15,7 +15,13 @@ import {
   updateDevice,
   updateField,
 } from '../../../src/services/api';
-import { clearAuth, getAuth } from '../../../src/services/auth';
+import { clearAuth } from '../../../src/services/auth';
+import {
+  deleteFieldCrop,
+  getFieldCrops,
+  type FieldCrop,
+} from '../../../src/services/api_fieldCrops';
+import { getCrops } from '../../../src/services/api_crops';
 import { router } from 'expo-router';
 
 jest.mock('react-i18next', () => ({
@@ -85,6 +91,21 @@ const mockedUpdateDevice = updateDevice as jest.MockedFunction<
 const mockedDeleteDevice = deleteDevice as jest.MockedFunction<
   typeof deleteDevice
 >;
+const mockedGetFieldCrops = getFieldCrops as jest.MockedFunction<
+  typeof getFieldCrops
+>;
+const mockedDeleteFieldCrop = deleteFieldCrop as jest.MockedFunction<
+  typeof deleteFieldCrop
+>;
+const mockedGetCrops = getCrops as jest.MockedFunction<typeof getCrops>;
+
+const fieldCrop: FieldCrop = {
+  id: 21,
+  field_id: 3,
+  crop_id: 4,
+  crop_name: 'Ceba',
+  status: 'planted',
+};
 
 describe('EditFieldScreen', () => {
   beforeEach(() => {
@@ -108,6 +129,21 @@ describe('EditFieldScreen', () => {
         },
       ],
     });
+    mockedGetFieldCrops.mockResolvedValue([]);
+    mockedGetCrops.mockResolvedValue([
+      {
+        id: 4,
+        name: 'Ceba',
+        scientific_name: 'Allium cepa',
+        category: 'vegetable',
+      },
+      {
+        id: 5,
+        name: 'Tomàquet',
+        scientific_name: 'Solanum lycopersicum',
+        category: 'vegetable',
+      },
+    ]);
   });
 
   it('loads the garden to edit', async () => {
@@ -285,6 +321,21 @@ describe('EditFieldScreen', () => {
     fireEvent.press(screen.getByText('settings.accept'));
     await waitFor(() => {
       expect(screen.getByText('cannot save')).toBeTruthy();
+    });
+  });
+
+  it('removes an existing field crop', async () => {
+    mockedGetFieldCrops.mockResolvedValue([fieldCrop]);
+    mockedDeleteFieldCrop.mockResolvedValue(undefined);
+
+    render(<EditFieldScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('Ceba')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByLabelText('settings.manageCrops.removeCrop'));
+
+    await waitFor(() => {
+      expect(mockedDeleteFieldCrop).toHaveBeenCalledWith(21, 'token');
     });
   });
 

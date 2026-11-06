@@ -10,6 +10,8 @@ import {
 import FieldDetailScreen from '../../../src/app/field-detail';
 import { getDashboard, getField } from '../../../src/services/api';
 import { clearAuth } from '../../../src/services/auth';
+import { getFieldCrops } from '../../../src/services/api_fieldCrops';
+import { getCrops } from '../../../src/services/api_crops';
 import { router } from 'expo-router';
 
 jest.mock('react-i18next', () => ({
@@ -37,6 +39,15 @@ jest.mock('../../../src/services/api', () => ({
 
 jest.mock('../../../src/services/auth', () => ({
   clearAuth: jest.fn(),
+  getAuth: jest.fn(async () => ({ token: 'field-token' })),
+}));
+
+jest.mock('../../../src/services/api_fieldCrops', () => ({
+  getFieldCrops: jest.fn(async () => []),
+}));
+
+jest.mock('../../../src/services/api_crops', () => ({
+  getCrops: jest.fn(async () => []),
 }));
 
 jest.mock('../../../src/components/FieldPhoto', () => ({
@@ -60,6 +71,10 @@ const mockedGetField = getField as jest.MockedFunction<typeof getField>;
 const mockedGetDashboard = getDashboard as jest.MockedFunction<
   typeof getDashboard
 >;
+const mockedGetFieldCrops = getFieldCrops as jest.MockedFunction<
+  typeof getFieldCrops
+>;
+const mockedGetCrops = getCrops as jest.MockedFunction<typeof getCrops>;
 
 describe('FieldDetailScreen', () => {
   beforeEach(() => {
@@ -89,6 +104,8 @@ describe('FieldDetailScreen', () => {
       latest: null,
       history: [],
     });
+    mockedGetFieldCrops.mockResolvedValue([]);
+    mockedGetCrops.mockResolvedValue([]);
   });
 
   it('shows garden info and devices', async () => {
@@ -208,6 +225,69 @@ describe('FieldDetailScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('settings.fieldDetail.noDevices')).toBeTruthy();
     });
+  });
+
+  it('shows field crops and resolves their names from the crop catalog', async () => {
+    mockedGetFieldCrops.mockResolvedValue([
+      {
+        id: 31,
+        field_id: 3,
+        crop_id: 9,
+        crop_name: null,
+        planted_at: '2026-04-01',
+        expected_harvest_at: '2026-08-01',
+        status: 'planned',
+      },
+      {
+        id: 32,
+        field_id: 3,
+        crop_id: 10,
+        crop_name: 'Ceba',
+        status: 'harvested',
+      },
+    ]);
+    mockedGetCrops.mockResolvedValue([
+      {
+        id: 9,
+        name: 'Tomàquet',
+        scientific_name: 'Solanum lycopersicum',
+        category: 'vegetable',
+      },
+      {
+        id: 10,
+        name: 'Ceba',
+        scientific_name: 'Allium cepa',
+        category: 'vegetable',
+      },
+    ]);
+
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Tomàquet')).toBeTruthy();
+      expect(screen.getByText('Ceba')).toBeTruthy();
+    });
+    expect(
+      screen.getByText('settings.fieldDetail.cropStatuses.planned'),
+    ).toBeTruthy();
+    expect(
+      screen.getByText('settings.fieldDetail.cropStatuses.harvested'),
+    ).toBeTruthy();
+    expect(mockedGetFieldCrops).toHaveBeenCalledWith(0, 100, 'field-token', {
+      field_id: 3,
+    });
+    expect(mockedGetCrops).toHaveBeenCalledWith(0, 100, 'field-token');
+  });
+
+  it('shows field-crop loading errors without hiding the field', async () => {
+    mockedGetFieldCrops.mockRejectedValue(new Error('Cultius no disponibles'));
+
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Cultius no disponibles')).toBeTruthy();
+    });
+    expect(screen.getByText('Hort')).toBeTruthy();
   });
 
   it('opens the edit page', async () => {

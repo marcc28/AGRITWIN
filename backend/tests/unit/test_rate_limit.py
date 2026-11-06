@@ -69,9 +69,7 @@ async def test_enforce_limit_blocks_over_limit_and_expires_old_requests(monkeypa
 @pytest.mark.asyncio
 async def test_enforce_limit_separates_scope_and_identity(monkeypatch):
     monkeypatch.setenv("TEST_LIMIT", "1/minute")
-    monkeypatch.setattr(
-        rate_limit, "time", SimpleNamespace(monotonic=lambda: 5.0)
-    )
+    monkeypatch.setattr(rate_limit, "time", SimpleNamespace(monotonic=lambda: 5.0))
 
     await rate_limit._enforce_limit(
         scope="ai", identity="alice", env_name="TEST_LIMIT", default="1/day"
@@ -92,9 +90,7 @@ async def test_enforce_limit_separates_scope_and_identity(monkeypatch):
 @pytest.mark.asyncio
 async def test_ai_limit_is_per_user(monkeypatch):
     monkeypatch.setenv("AI_LIMIT_USAGE", "1/minute")
-    monkeypatch.setattr(
-        rate_limit, "time", SimpleNamespace(monotonic=lambda: 20.0)
-    )
+    monkeypatch.setattr(rate_limit, "time", SimpleNamespace(monotonic=lambda: 20.0))
 
     await rate_limit.enforce_ai_rate_limit(SimpleNamespace(id="account-1"))
     await rate_limit.enforce_ai_rate_limit(SimpleNamespace(id="account-2"))
@@ -108,23 +104,23 @@ async def test_ai_limit_is_per_user(monkeypatch):
 @pytest.mark.asyncio
 async def test_forum_limit_uses_remote_address(monkeypatch):
     monkeypatch.setenv("FORUM_RATE_LIMIT", "1/minute")
-    monkeypatch.setattr(
-        rate_limit, "time", SimpleNamespace(monotonic=lambda: 20.0)
-    )
+    monkeypatch.setattr(rate_limit, "time", SimpleNamespace(monotonic=lambda: 20.0))
 
     def request_with_client(host):
-        return Request({
-            "type": "http",
-            "http_version": "1.1",
-            "method": "GET",
-            "scheme": "http",
-            "path": "/",
-            "raw_path": b"/",
-            "query_string": b"",
-            "headers": [],
-            "client": (host, 1234),
-            "server": ("test", 80),
-        })
+        return Request(
+            {
+                "type": "http",
+                "http_version": "1.1",
+                "method": "GET",
+                "scheme": "http",
+                "path": "/",
+                "raw_path": b"/",
+                "query_string": b"",
+                "headers": [],
+                "client": (host, 1234),
+                "server": ("test", 80),
+            }
+        )
 
     await rate_limit.enforce_forum_rate_limit(request_with_client("192.0.2.1"))
     await rate_limit.enforce_forum_rate_limit(request_with_client("192.0.2.2"))
@@ -138,21 +134,21 @@ async def test_forum_limit_uses_remote_address(monkeypatch):
 @pytest.mark.asyncio
 async def test_forum_limit_uses_unknown_when_client_is_missing(monkeypatch):
     monkeypatch.setenv("FORUM_RATE_LIMIT", "1/minute")
-    monkeypatch.setattr(
-        rate_limit, "time", SimpleNamespace(monotonic=lambda: 20.0)
+    monkeypatch.setattr(rate_limit, "time", SimpleNamespace(monotonic=lambda: 20.0))
+    request = Request(
+        {
+            "type": "http",
+            "http_version": "1.1",
+            "method": "GET",
+            "scheme": "http",
+            "path": "/",
+            "raw_path": b"/",
+            "query_string": b"",
+            "headers": [],
+            "client": None,
+            "server": ("test", 80),
+        }
     )
-    request = Request({
-        "type": "http",
-        "http_version": "1.1",
-        "method": "GET",
-        "scheme": "http",
-        "path": "/",
-        "raw_path": b"/",
-        "query_string": b"",
-        "headers": [],
-        "client": None,
-        "server": ("test", 80),
-    })
 
     await rate_limit.enforce_forum_rate_limit(request)
     with pytest.raises(HTTPException):

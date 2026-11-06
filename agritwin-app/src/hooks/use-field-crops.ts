@@ -1,9 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
-import {
-  getFieldCrops,
-  type FieldCrop,
-} from '@/services/api_fieldCrops';
+import { getFieldCrops, type FieldCrop } from '@/services/api_fieldCrops';
 
 import { getAuth } from '@/services/auth';
 
@@ -37,14 +34,9 @@ export function useFieldCrops(fieldId: number | null) {
         return;
       }
 
-      const crops = await getFieldCrops(
-        0,
-        100,
-        token,
-        {
-          field_id: fieldId,
-        },
-      );
+      const crops = await getFieldCrops(0, 100, token, {
+        field_id: fieldId,
+      });
 
       setState({
         status: 'success',

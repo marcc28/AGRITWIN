@@ -3,10 +3,7 @@ import { Colors } from '../constants/theme';
 
 type ThemeColors = typeof Colors.light | typeof Colors.dark;
 
-export function getMarketStyles(
-  colors: ThemeColors,
-  compactLandscape = false,
-) {
+export function getMarketStyles(colors: ThemeColors, compactLandscape = false) {
   return StyleSheet.create({
     trackWrap: {
       paddingHorizontal: compactLandscape ? 16 : 20,

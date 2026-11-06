@@ -15,19 +15,12 @@ export default function HomeScreen() {
 
   const field = useCurrentField();
 
-  const { state, retry } = useFieldWeather(
-    field?.id ?? null,
-    i18n.language,
-  );
+  const { state, retry } = useFieldWeather(field?.id ?? null, i18n.language);
 
-  const crops = useFieldCrops(
-    field ? Number(field.id) : null,
-  );
+  const crops = useFieldCrops(field ? Number(field.id) : null);
 
   const weather =
-    field === undefined
-      ? ({ status: 'loading' } as const)
-      : state;
+    field === undefined ? ({ status: 'loading' } as const) : state;
 
   const today = new Date()
     .toLocaleDateString(i18n.resolvedLanguage, {
@@ -67,16 +60,9 @@ export default function HomeScreen() {
             {t('home.titleSecond')}
           </Text>
 
-          <Text style={styles.subtitle}>
-            {t('home.subtitle')}
-          </Text>
+          <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
-          <WeatherCard
-            state={weather}
-            onPress={openWeather}
-            onRetry={retry}
-          />
-
+          <WeatherCard state={weather} onPress={openWeather} onRetry={retry} />
         </View>
       </ScrollView>
     </View>

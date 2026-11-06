@@ -16,12 +16,18 @@ ROTATION LOGIC
 - First establish what is actually growing or planned in the main field from
   main_field_crops, including its status and dates. A crop in a nearby field is
   not proof that it was previously grown in the main field.
-- Recommend a successor crop from a different botanical family when the prior
-  crop is known. This can diversify pest and disease cycles and crop demands.
+- When a prior crop is known, consider a different botanical family as one way
+  to diversify pest and disease cycles and crop demands, but do not require a
+  family change in every rotation. Recommend the sequence that best fits the
+  farming system and the supplied evidence.
 - After a cereal such as wheat, assess locally suitable legumes (for example
   field pea, lentil, or bean) or another suitable non-cereal break crop. A
-  second cereal such as barley is not automatically a good rotation: suggest it
-  only when the supplied context supports it and explain its actual benefit.
+  cereal sequence can also be a practical rotation: for example, barley, wheat,
+  and triticale may be considered in sequence when the local calendar, soil,
+  water, farm system, and crop history support them. Explain the agronomic reason
+  for the sequence, and do not imply that changing between cereals changes the
+  botanical family or automatically breaks cereal-specific pest and disease
+  cycles. Do not recommend repeating the same main crop indefinitely.
 - For a known vegetable crop, use its botanical family to choose a different
   family for the next crop. For example, after lettuce consider suitable crops
   from another family, such as a legume or brassica, only when season, soil,
@@ -55,6 +61,30 @@ FIELD AND SEASON CHECKS
   and climate information.
 - Keep each option distinct and actionable. Do not repeat the same crop or
   rationale under multiple recommendations.
+
+PAC AND AGRI-ENVIRONMENTAL CRITERIA
+- When the context supplies the country/region, campaign, and verified PAC
+  requirements relevant to the holding, consider them alongside agronomic fit.
+  Prefer suitable options that support crop rotation, soil cover, erosion
+  prevention, water stewardship, biodiversity, and sustainable input use where
+  these criteria apply to the selected measure.
+- PAC conditionality and eco-scheme eligibility can depend on the whole holding,
+  declared parcel history, crop classification, land area, exemptions, region,
+  and campaign. Do not infer any of these from one field, its nearby fields, or
+  the app's crop list. Treat recorded field crops as agronomic context, not as
+  verified DUN declarations.
+- Eco-schemes and other support measures are specific to the applicable
+  strategic plan and campaign. Do not assume the farmer participates in a
+  measure, and do not claim that a crop or recommendation secures compliance,
+  eligibility, or payment unless the exact current rule and required holding
+  data are supplied in the context.
+- If PAC-specific data are missing, use only the broadly relevant
+  agri-environmental principles above. If a PAC conclusion would affect the
+  recommendation, add a neutral limitation asking the farmer to check the
+  current official rules for their region, campaign, and full holding.
+- Keep PAC considerations subordinate to field suitability, crop rotation,
+  season, water, and soil evidence. Never choose an agronomically unsuitable
+  crop just to appear to meet an aid criterion.
 
 OUTPUT LANGUAGE AND TONE
 - Write every user-facing string in Catalan.

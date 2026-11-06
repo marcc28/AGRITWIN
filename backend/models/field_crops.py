@@ -6,6 +6,7 @@ from pydantic import AliasPath, BaseModel, ConfigDict, Field
 # FIELD CROPS
 # -------------------------
 
+
 class FieldCropCreate(BaseModel):
     field_id: int
     crop_id: int

@@ -84,9 +84,7 @@ async def create_field_crop(
             notes=data.notes,
         )
     except ValueError as exc:
-        status_code = (
-            404 if str(exc) in ("Field not found", "Crop not found") else 400
-        )
+        status_code = 404 if str(exc) in ("Field not found", "Crop not found") else 400
         raise HTTPException(status_code, detail=str(exc)) from exc
 
 
@@ -104,9 +102,7 @@ async def update_field_crop(
             data=data.model_dump(exclude_unset=True),
         )
     except ValueError as exc:
-        status_code = (
-            404 if str(exc) in ("Field not found", "Crop not found") else 400
-        )
+        status_code = 404 if str(exc) in ("Field not found", "Crop not found") else 400
         raise HTTPException(status_code, detail=str(exc)) from exc
 
     if field_crop is None:

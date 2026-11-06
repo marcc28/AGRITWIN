@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
@@ -17,15 +17,13 @@ os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
 os.environ.setdefault("MODEL_USE_IN_RECOMENDATION", "test-model")
 
 from api.v1.auth import get_current_user
-from api.v1.field_recommendations import router
-from db.schema import User
+from api.v1.field_recommendations import get_field_recommendation_service, router
 from services.rate_limit import enforce_ai_rate_limit
-from api.v1.field_recommendations import get_field_recommendation_service
 
 USER_ID = uuid4()
 RECOMMENDATION_ID = uuid4()
-GENERATED_AT = datetime(2026, 5, 1, 10, 0, tzinfo=timezone.utc)
-EXPIRES_AT = datetime(2026, 5, 8, 10, 0, tzinfo=timezone.utc)
+GENERATED_AT = datetime(2026, 5, 1, 10, 0, tzinfo=UTC)
+EXPIRES_AT = datetime(2026, 5, 8, 10, 0, tzinfo=UTC)
 
 
 def recommendation(**overrides):
@@ -138,9 +136,7 @@ def test_get_field_recommendations_rejects_invalid_radius(client, service, radiu
 def test_refresh_field_recommendations_forces_regeneration(client, service):
     service.get_or_generate_recommendations.return_value = [recommendation()]
 
-    response = client.post(
-        "/api/v1/fields/7/recommendations/refresh?radius_meters=500"
-    )
+    response = client.post("/api/v1/fields/7/recommendations/refresh?radius_meters=500")
 
     assert response.status_code == 200
     service.get_or_generate_recommendations.assert_awaited_once_with(
@@ -163,9 +159,7 @@ def test_refresh_field_recommendations_returns_404_for_unknown_field(client, ser
 def test_list_recommendations_passes_filters_and_pagination(client, service):
     service.list_recommendations.return_value = [recommendation()]
 
-    response = client.get(
-        "/api/v1/field-recommendations?field_id=7&offset=3&limit=4"
-    )
+    response = client.get("/api/v1/field-recommendations?field_id=7&offset=3&limit=4")
 
     assert response.status_code == 200
     assert len(response.json()) == 1

@@ -82,9 +82,7 @@ export default function EditFieldScreen() {
   const [selectedCropName, setSelectedCropName] = useState('');
   const cropPageLoading = useRef(false);
   const [addingCrop, setAddingCrop] = useState(false);
-  const [showCropForm, setShowCropForm] = useState(
-    params.addCrop === 'true',
-  );
+  const [showCropForm, setShowCropForm] = useState(params.addCrop === 'true');
   const [plantedAt, setPlantedAt] = useState('');
   const [expectedHarvestAt, setExpectedHarvestAt] = useState('');
   const [cropNotes, setCropNotes] = useState('');
@@ -166,9 +164,7 @@ export default function EditFieldScreen() {
       setHasMoreCrops(nextPage.length === CROP_PAGE_SIZE);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : t('settings.errors.loadCrops'),
+        error instanceof Error ? error.message : t('settings.errors.loadCrops'),
       );
       setHasMoreCrops(false);
     } finally {
@@ -441,7 +437,8 @@ export default function EditFieldScreen() {
                   return (
                     <View key={String(fieldCrop.id)} style={styles.cropRow}>
                       <Text style={styles.cropName}>
-                        {fieldCrop.crop_name ?? crop?.name ??
+                        {fieldCrop.crop_name ??
+                          crop?.name ??
                           t('fieldCrops.crop', { id: fieldCrop.crop_id })}
                       </Text>
 
@@ -450,7 +447,9 @@ export default function EditFieldScreen() {
                         disabled={saving || addingCrop}
                         accessibilityLabel={t(
                           'settings.manageCrops.removeCrop',
-                          { crop: crop?.name ?? t('settings.fieldDetail.crops') },
+                          {
+                            crop: crop?.name ?? t('settings.fieldDetail.crops'),
+                          },
                         )}
                         hitSlop={8}
                       >
@@ -551,9 +550,7 @@ export default function EditFieldScreen() {
                                 />
                               ) : (
                                 <Text style={styles.cropEmpty}>
-                                  {t(
-                                    'settings.manageCrops.noAvailableCrops',
-                                  )}
+                                  {t('settings.manageCrops.noAvailableCrops')}
                                 </Text>
                               )
                             }

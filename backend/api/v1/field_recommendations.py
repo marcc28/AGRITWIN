@@ -1,8 +1,6 @@
-
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.auth import get_current_user
 from db import AsyncSessionLocal
@@ -32,6 +30,7 @@ async def get_field_recommendation_service():
 # GET: Obtenir recomanacions d'un camp
 # --------------------------------------------------
 
+
 @router.get(
     "/fields/{field_id}/recommendations",
     response_model=list[FieldRecommendationRead],
@@ -41,9 +40,7 @@ async def get_field_recommendations(
     field_id: int,
     radius_meters: int = Query(1000, ge=100, le=10000),
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     recommendations = await service.get_or_generate_recommendations(
         field_id=field_id,
@@ -64,6 +61,7 @@ async def get_field_recommendations(
 # POST: Forçar la generació de noves recomanacions
 # --------------------------------------------------
 
+
 @router.post(
     "/fields/{field_id}/recommendations/refresh",
     response_model=list[FieldRecommendationRead],
@@ -73,9 +71,7 @@ async def refresh_field_recommendations(
     field_id: int,
     radius_meters: int = Query(1000, ge=100, le=10000),
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     recommendations = await service.get_or_generate_recommendations(
         field_id=field_id,
@@ -97,6 +93,7 @@ async def refresh_field_recommendations(
 # GET: Llistar recomanacions de l'usuari
 # --------------------------------------------------
 
+
 @router.get(
     "/field-recommendations",
     response_model=list[FieldRecommendationRead],
@@ -106,9 +103,7 @@ async def get_recommendations(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     return await service.list_recommendations(
         user_id=current_user.id,
@@ -122,15 +117,14 @@ async def get_recommendations(
 # GET: Comptar recomanacions
 # --------------------------------------------------
 
+
 @router.get(
     "/field-recommendations/count",
 )
 async def count_recommendations(
     field_id: int | None = Query(None, gt=0),
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     total = await service.count_recommendations(
         user_id=current_user.id,
@@ -144,6 +138,7 @@ async def count_recommendations(
 # GET: Obtenir una recomanació per UUID
 # --------------------------------------------------
 
+
 @router.get(
     "/field-recommendations/{recommendation_id}",
     response_model=FieldRecommendationRead,
@@ -151,9 +146,7 @@ async def count_recommendations(
 async def get_recommendation(
     recommendation_id: UUID,
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     recommendation = await service.get_recommendation(
         recommendation_id=recommendation_id,
@@ -173,6 +166,7 @@ async def get_recommendation(
 # POST: Crear una recomanació manualment
 # --------------------------------------------------
 
+
 @router.post(
     "/field-recommendations",
     response_model=FieldRecommendationRead,
@@ -181,9 +175,7 @@ async def get_recommendation(
 async def create_recommendation(
     data: FieldRecommendationCreate,
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     belongs = await service.field_belongs_to_user(
         field_id=data.field_id,
@@ -196,14 +188,13 @@ async def create_recommendation(
             detail="Field not found",
         )
 
-    return await service.create_recommendation(
-        data=data.model_dump()
-    )
+    return await service.create_recommendation(data=data.model_dump())
 
 
 # --------------------------------------------------
 # PATCH: Actualitzar una recomanació
 # --------------------------------------------------
+
 
 @router.patch(
     "/field-recommendations/{recommendation_id}",
@@ -213,9 +204,7 @@ async def update_recommendation(
     recommendation_id: UUID,
     data: FieldRecommendationUpdate,
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     update_data = data.model_dump(exclude_unset=True)
 
@@ -245,6 +234,7 @@ async def update_recommendation(
 # DELETE: Eliminar una recomanació
 # --------------------------------------------------
 
+
 @router.delete(
     "/field-recommendations/{recommendation_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -252,9 +242,7 @@ async def update_recommendation(
 async def delete_recommendation(
     recommendation_id: UUID,
     current_user: User = Depends(get_current_user),
-    service: FieldRecommendationService = Depends(
-        get_field_recommendation_service
-    ),
+    service: FieldRecommendationService = Depends(get_field_recommendation_service),
 ):
     deleted = await service.delete_recommendation(
         recommendation_id=recommendation_id,

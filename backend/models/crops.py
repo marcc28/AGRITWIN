@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 # CROPS
 # -------------------------
 
+
 class CropCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     scientific_name: str | None = Field(None, max_length=150)
@@ -26,5 +27,3 @@ class CropRead(BaseModel):
     scientific_name: str | None
     category: str | None
     created_at: datetime
-
-

@@ -1,4 +1,3 @@
-
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,23 +15,16 @@ class CropService:
         limit: int = 10,
     ) -> list[Crop]:
         result = await self._db.execute(
-            select(Crop)
-            .order_by(Crop.name)
-            .offset(offset)
-            .limit(limit)
+            select(Crop).order_by(Crop.name).offset(offset).limit(limit)
         )
         return list(result.scalars().all())
 
     async def get_crop_by_id(self, crop_id: int) -> Crop | None:
-        result = await self._db.execute(
-            select(Crop).where(Crop.id == crop_id)
-        )
+        result = await self._db.execute(select(Crop).where(Crop.id == crop_id))
         return result.scalar_one_or_none()
 
     async def search_crops(self, name: str) -> list[Crop]:
-        result = await self._db.execute(
-            select(Crop).where(Crop.name.ilike(f"%{name}%"))
-        )
+        result = await self._db.execute(select(Crop).where(Crop.name.ilike(f"%{name}%")))
         return list(result.scalars().all())
 
     async def create_crop(
@@ -92,14 +84,10 @@ class CropService:
             await self._db.commit()
         except IntegrityError:
             await self._db.rollback()
-            raise ValueError(
-                "Cannot delete this crop because it is associated with fields"
-            )
+            raise ValueError("Cannot delete this crop because it is associated with fields")
 
         return True
 
     async def count_crops(self) -> int:
-        result = await self._db.execute(
-            select(func.count()).select_from(Crop)
-        )
+        result = await self._db.execute(select(func.count()).select_from(Crop))
         return result.scalar_one()

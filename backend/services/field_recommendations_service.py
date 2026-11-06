@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from google import genai
@@ -314,7 +314,7 @@ class FieldRecommendationService:
         if not belongs:
             return None
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # --------------------------------------------------
         # 2. Buscar recomanacions vigents a PostgreSQL
@@ -396,10 +396,7 @@ class FieldRecommendationService:
         response = await client.aio.interactions.create(
             model=model_gemini,
             input=prompt,
-            generation_config={
-                "temperature": 0.1,
-                "max_output_tokens": 3000
-            },
+            generation_config={"temperature": 0.1, "max_output_tokens": 3000},
         )
 
         # Recuperar resposta

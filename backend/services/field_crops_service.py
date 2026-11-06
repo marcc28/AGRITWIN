@@ -1,4 +1,3 @@
-
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,11 +47,7 @@ class FieldCropService:
         if status is not None:
             query = query.where(FieldCrop.status == status)
 
-        query = (
-            query.order_by(FieldCrop.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        query = query.order_by(FieldCrop.created_at.desc()).offset(offset).limit(limit)
 
         result = await self._db.execute(query)
         return list(result.scalars().all())
@@ -103,9 +98,7 @@ class FieldCropService:
         if not await self.field_belongs_to_user(field_id, user_id):
             raise ValueError("Field not found")
 
-        result = await self._db.execute(
-            select(Crop).where(Crop.id == crop_id)
-        )
+        result = await self._db.execute(select(Crop).where(Crop.id == crop_id))
         crop = result.scalar_one_or_none()
 
         if crop is None:
@@ -153,9 +146,7 @@ class FieldCropService:
                 raise ValueError("Field not found")
 
         if "crop_id" in data:
-            result = await self._db.execute(
-                select(Crop).where(Crop.id == data["crop_id"])
-            )
+            result = await self._db.execute(select(Crop).where(Crop.id == data["crop_id"]))
             crop = result.scalar_one_or_none()
             if crop is None:
                 raise ValueError("Crop not found")

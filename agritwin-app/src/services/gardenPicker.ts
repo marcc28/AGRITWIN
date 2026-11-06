@@ -151,12 +151,14 @@ export async function loadGardenPickerFields(
 
   loadingPromise = request;
   loadingUsername = username;
-  void request.finally(() => {
-    if (loadingPromise === request) {
-      loadingPromise = null;
-      loadingUsername = null;
-    }
-  }).catch(() => undefined);
+  void request
+    .finally(() => {
+      if (loadingPromise === request) {
+        loadingPromise = null;
+        loadingUsername = null;
+      }
+    })
+    .catch(() => undefined);
 
   return request;
 }

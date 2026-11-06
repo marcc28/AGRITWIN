@@ -44,7 +44,7 @@ function RecommendationCard({
       month: 'short',
       year: 'numeric',
     });
-   
+
   return (
     <View style={styles.recommendationCard}>
       <View style={styles.cardHeader}>

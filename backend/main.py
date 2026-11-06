@@ -76,6 +76,7 @@ app.include_router(
     prefix="/api/v1",
 )
 
+
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):
     return JSONResponse(content=None, status_code=200)

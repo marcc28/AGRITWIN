@@ -13,7 +13,7 @@ it('configures the Stripe client with the server key and fetch transport', () =>
   expect(Stripe).toHaveBeenCalledWith(
     undefined,
     expect.objectContaining({
-      apiVersion: '2026-09-30.endive',
+      apiVersion: '2026-10-28.endive',
       httpClient: 'fetch-http-client',
       appInfo: { name: 'expo-router-stripe' },
     }),
