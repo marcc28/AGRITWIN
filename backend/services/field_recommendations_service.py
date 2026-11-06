@@ -11,8 +11,13 @@ from sqlalchemy.orm import aliased
 from db.schema import Crop, Field, FieldCrop, FieldRecommendation
 from prompts.field_recommendation_prompt import build_recommendation_prompt
 
-api_key = os.getenv("GEMINI_API_KEY")
-model_gemini = os.getenv("MODEL_USE_IN_RECOMENDATION")
+def _read_env_setting(name: str) -> str:
+    """Read a configuration value without surrounding whitespace."""
+    return os.getenv(name, "").strip()
+
+
+api_key = _read_env_setting("GEMINI_API_KEY")
+model_gemini = _read_env_setting("MODEL_USE_IN_RECOMENDATION")
 
 if not api_key:
     raise RuntimeError("GEMINI_API_KEY is not configured")

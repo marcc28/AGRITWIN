@@ -13,6 +13,7 @@ os.environ.setdefault("MODEL_USE_IN_RECOMENDATION", "gemini-3.5-flash-lite")
 
 from services.field_recommendations_service import (
     FieldRecommendationService,
+    _read_env_setting,
     serialize_rows,
 )
 
@@ -40,6 +41,12 @@ def db():
 @pytest.fixture
 def service(db):
     return FieldRecommendationService(db)
+
+
+def test_read_env_setting_strips_trailing_newline(monkeypatch):
+    monkeypatch.setenv("MODEL_USE_IN_RECOMENDATION", "gemini-3.5-flash-lite\n")
+
+    assert _read_env_setting("MODEL_USE_IN_RECOMENDATION") == "gemini-3.5-flash-lite"
 
 
 # --------------------------------------------------
