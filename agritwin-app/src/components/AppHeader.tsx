@@ -117,6 +117,10 @@ export default function AppHeader() {
   }, []);
 
   function handleTogglePicker() {
+    if (!canSwitch) {
+      return;
+    }
+
     if (pickerOpen) {
       setPickerOpen(false);
       setGardenPicker({ open: false });

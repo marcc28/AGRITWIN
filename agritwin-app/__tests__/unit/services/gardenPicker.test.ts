@@ -6,7 +6,13 @@ import {
 
 describe('gardenPicker', () => {
   beforeEach(() => {
-    setGardenPicker({ open: false, fields: [], currentId: null });
+    setGardenPicker({
+      open: false,
+      fields: [],
+      currentId: null,
+      loaded: false,
+      refreshing: false,
+    });
   });
 
   it('starts closed with no fields', () => {
@@ -14,6 +20,8 @@ describe('gardenPicker', () => {
       open: false,
       fields: [],
       currentId: null,
+      loaded: false,
+      refreshing: false,
     });
   });
 

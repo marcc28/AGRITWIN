@@ -28,6 +28,10 @@ jest.mock('../../../src/hooks/use-field-weather', () => ({
   useFieldWeather: jest.fn(),
 }));
 
+jest.mock('../../../src/hooks/use-field-crops', () => ({
+  useFieldCrops: jest.fn(() => ({ status: 'success', data: [] })),
+}));
+
 jest.mock('../../../src/components/WeatherCard', () => ({
   WeatherCard: ({
     state,
@@ -74,7 +78,9 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(screen.getByTestId('home-screen')).toBeTruthy();
-    expect(screen.getByText(/El teu hort/)).toBeTruthy();
+    expect(
+      screen.getByText(/home\.titleFirst\s+home\.titleSecond/),
+    ).toBeTruthy();
   });
 
   it('shows the weather of the chosen field', () => {

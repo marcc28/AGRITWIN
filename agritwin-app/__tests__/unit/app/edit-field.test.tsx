@@ -15,7 +15,7 @@ import {
   updateDevice,
   updateField,
 } from '../../../src/services/api';
-import { clearAuth } from '../../../src/services/auth';
+import { clearAuth, getAuth } from '../../../src/services/auth';
 import { router } from 'expo-router';
 
 jest.mock('react-i18next', () => ({
@@ -45,6 +45,17 @@ jest.mock('../../../src/services/api', () => ({
 
 jest.mock('../../../src/services/auth', () => ({
   clearAuth: jest.fn(),
+  getAuth: jest.fn(async () => ({ token: 'token' })),
+}));
+
+jest.mock('../../../src/services/api_fieldCrops', () => ({
+  createFieldCrop: jest.fn(),
+  deleteFieldCrop: jest.fn(),
+  getFieldCrops: jest.fn(async () => []),
+}));
+
+jest.mock('../../../src/services/api_crops', () => ({
+  getCrops: jest.fn(async () => []),
 }));
 
 jest.mock('../../../src/services/currentField', () => ({
@@ -55,6 +66,10 @@ jest.mock('../../../src/services/currentField', () => ({
 jest.mock('../../../src/services/fieldPhoto', () => ({
   getFieldPhotoIndex: jest.fn(async () => 1),
   setFieldPhotoIndex: jest.fn(),
+}));
+
+jest.mock('../../../src/components/DateField', () => ({
+  DateField: () => null,
 }));
 
 const mockedGetField = getField as jest.MockedFunction<typeof getField>;
