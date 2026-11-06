@@ -239,26 +239,28 @@ class FieldRecommendationService:
         now: datetime,
     ) -> list[FieldRecommendation]:
 
-        latest_generation = (
-            select(func.max(FieldRecommendation.generated_at))
-            .where(
-                FieldRecommendation.field_id == field_id,
-                FieldRecommendation.expires_at > now,
-            )
-            .scalar_subquery()
-        )
-
         result = await self._db.execute(
             select(FieldRecommendation)
             .where(
                 FieldRecommendation.field_id == field_id,
                 FieldRecommendation.expires_at > now,
-                FieldRecommendation.generated_at == latest_generation,
             )
             .order_by(FieldRecommendation.generated_at.desc())
         )
 
-        return list(result.scalars().all())
+        active_recommendations = list(result.scalars().all())
+        if not active_recommendations:
+            return []
+
+        latest_generation = active_recommendations[0].generated_at
+        # Older rows were saved one at a time with slightly different database
+        # timestamps. Keep recommendations from that same generation together.
+        return [
+            recommendation
+            for recommendation in active_recommendations
+            if latest_generation - recommendation.generated_at
+            <= timedelta(seconds=5)
+        ]
 
     async def get_crops_from_fields(
         self,
@@ -473,6 +475,7 @@ class FieldRecommendationService:
                     "severity": severity,
                     "based_on": based_on,
                     "model": model_gemini,
+                    "generated_at": now,
                     "expires_at": expires_at,
                 }
             )
