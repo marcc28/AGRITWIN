@@ -5,6 +5,7 @@ import {
   View,
   StyleSheet,
   useColorScheme,
+  useWindowDimensions,
   type ImageSourcePropType,
 } from 'react-native';
 import { usePathname } from 'expo-router';
@@ -33,6 +34,8 @@ function WebTabButton({
   icon: ImageSourcePropType;
 }) {
   const scheme = useColorScheme();
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const pathname = usePathname();
   const active = Boolean(isFocused) || pathname.startsWith(`/app/${name}`);
@@ -52,13 +55,22 @@ function WebTabButton({
                 borderColor: colors.successBorder,
               }
             : null,
+          compactLandscape ? styles.iconWrapCompact : null,
         ]}
       >
-        <Image source={icon} style={[styles.icon, { tintColor: tint }]} />
+        <Image
+          source={icon}
+          style={[
+            styles.icon,
+            compactLandscape ? styles.iconCompact : null,
+            { tintColor: tint },
+          ]}
+        />
       </View>
       <Text
         style={[
           styles.label,
+          compactLandscape ? styles.labelCompact : null,
           {
             color: tint,
             fontWeight: active ? '800' : '500',
@@ -74,6 +86,8 @@ function WebTabButton({
 export default function WebLayout() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   return (
@@ -90,6 +104,7 @@ export default function WebLayout() {
                 backgroundColor: colors.surface,
                 borderTopColor: colors.border,
               },
+              compactLandscape ? styles.tabListCompact : null,
             ]}
           >
             <TabTrigger name="home" href="/app/home" asChild>
@@ -161,6 +176,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingHorizontal: 10,
   },
+  tabListCompact: {
+    paddingTop: 3,
+    paddingBottom: 4,
+  },
   tab: {
     flex: 1,
     alignItems: 'center',
@@ -180,11 +199,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
+  iconWrapCompact: {
+    width: 40,
+    height: 26,
+  },
   icon: {
     width: 22,
     height: 22,
   },
+  iconCompact: {
+    width: 19,
+    height: 19,
+  },
   label: {
     fontSize: 11,
+  },
+  labelCompact: {
+    fontSize: 10,
   },
 });

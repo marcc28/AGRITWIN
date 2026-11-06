@@ -3,24 +3,27 @@ import { Colors } from '../constants/theme';
 
 type ThemeColors = typeof Colors.light | typeof Colors.dark;
 
-export function getMarketStyles(colors: ThemeColors) {
+export function getMarketStyles(
+  colors: ThemeColors,
+  compactLandscape = false,
+) {
   return StyleSheet.create({
     trackWrap: {
-      paddingHorizontal: 20,
-      paddingTop: 12,
+      paddingHorizontal: compactLandscape ? 16 : 20,
+      paddingTop: compactLandscape ? 6 : 12,
     },
 
     track: {
       flexDirection: 'row',
       backgroundColor: colors.surfaceSecondary,
       borderRadius: 24,
-      padding: 4,
-      gap: 8,
+      padding: compactLandscape ? 3 : 4,
+      gap: compactLandscape ? 6 : 8,
     },
 
     segment: {
       flex: 1,
-      height: 40,
+      height: compactLandscape ? 34 : 40,
       borderRadius: 20,
       alignItems: 'center',
       justifyContent: 'center',
@@ -46,17 +49,17 @@ export function getMarketStyles(colors: ThemeColors) {
     },
 
     list: {
-      padding: 20,
-      gap: 14,
-      paddingBottom: 24,
+      padding: compactLandscape ? 12 : 20,
+      gap: compactLandscape ? 8 : 14,
+      paddingBottom: compactLandscape ? 12 : 24,
       flexGrow: 1,
     },
 
     priceCard: {
       backgroundColor: colors.surface,
       borderRadius: 16,
-      padding: 12,
-      marginBottom: 10,
+      padding: compactLandscape ? 9 : 12,
+      marginBottom: compactLandscape ? 4 : 10,
 
       shadowColor: colors.shadow,
       shadowOffset: {
@@ -106,7 +109,7 @@ export function getMarketStyles(colors: ThemeColors) {
     },
 
     productName: {
-      fontSize: 18,
+      fontSize: compactLandscape ? 16 : 18,
       fontWeight: '600',
       color: colors.text,
     },
@@ -123,7 +126,7 @@ export function getMarketStyles(colors: ThemeColors) {
     },
 
     priceValue: {
-      fontSize: 20,
+      fontSize: compactLandscape ? 18 : 20,
       fontWeight: '700',
       color: colors.primary,
     },
@@ -131,8 +134,8 @@ export function getMarketStyles(colors: ThemeColors) {
     priceBottom: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: 10,
-      paddingTop: 9,
+      marginTop: compactLandscape ? 6 : 10,
+      paddingTop: compactLandscape ? 6 : 9,
       borderTopWidth: 1,
       borderTopColor: colors.border,
     },
@@ -190,15 +193,15 @@ export function getMarketStyles(colors: ThemeColors) {
       justifyContent: 'center',
       gap: 24,
       paddingHorizontal: 20,
-      paddingVertical: 12,
+      paddingVertical: compactLandscape ? 6 : 12,
       borderTopWidth: 1,
       borderTopColor: colors.border,
       backgroundColor: colors.background,
     },
 
     arrowButton: {
-      width: 44,
-      height: 44,
+      width: compactLandscape ? 36 : 44,
+      height: compactLandscape ? 36 : 44,
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 22,
@@ -280,9 +283,9 @@ export function getMarketStyles(colors: ThemeColors) {
     },
 
     searchWrap: {
-      marginHorizontal: 20,
-      marginTop: 16,
-      marginBottom: 12,
+      marginHorizontal: compactLandscape ? 16 : 20,
+      marginTop: compactLandscape ? 8 : 16,
+      marginBottom: compactLandscape ? 6 : 12,
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.background,
@@ -290,7 +293,7 @@ export function getMarketStyles(colors: ThemeColors) {
       borderWidth: 1,
       borderColor: colors.border,
       paddingHorizontal: 14,
-      height: 48,
+      height: compactLandscape ? 40 : 48,
     },
 
     searchIcon: {
