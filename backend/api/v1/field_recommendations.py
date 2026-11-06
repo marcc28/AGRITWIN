@@ -15,6 +15,7 @@ from models.field_recommendations import (
 from services.field_recommendations_service import (
     FieldRecommendationService,
 )
+from services.rate_limit import enforce_ai_rate_limit
 
 router = APIRouter(
     tags=["Field Recommendations"],
@@ -34,6 +35,7 @@ async def get_field_recommendation_service():
 @router.get(
     "/fields/{field_id}/recommendations",
     response_model=list[FieldRecommendationRead],
+    dependencies=[Depends(enforce_ai_rate_limit)],
 )
 async def get_field_recommendations(
     field_id: int,
@@ -65,6 +67,7 @@ async def get_field_recommendations(
 @router.post(
     "/fields/{field_id}/recommendations/refresh",
     response_model=list[FieldRecommendationRead],
+    dependencies=[Depends(enforce_ai_rate_limit)],
 )
 async def refresh_field_recommendations(
     field_id: int,

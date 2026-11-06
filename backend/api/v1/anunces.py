@@ -12,6 +12,7 @@ from fastapi import (
 from db import AsyncSessionLocal
 from models.anunce import AnunceRead
 from services.anunce_service import AnunceService
+from services.rate_limit import enforce_forum_rate_limit
 from services.supabase_storage_service import SupabaseService
 
 router = APIRouter(
@@ -83,6 +84,7 @@ async def get_anunce(
     "",
     response_model=AnunceRead,
     status_code=201,
+    dependencies=[Depends(enforce_forum_rate_limit)],
 )
 async def create_anunce(
     title: str = Form(...),

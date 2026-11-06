@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { WeatherCard } from '@/components/WeatherCard';
-import { FieldCropsCard } from '@/components/FieldCropsCard';
 
 import { useCurrentField } from '@/hooks/use-current-field';
 import { useFieldWeather } from '@/hooks/use-field-weather';
@@ -78,13 +77,6 @@ export default function HomeScreen() {
             onRetry={retry}
           />
 
-          {/* Els meus cultius */}
-          <FieldCropsCard
-            state={crops}
-            onRetry={crops.retry}
-            onAdd={openAddCrop}
-            addDisabled={!field}
-          />
         </View>
       </ScrollView>
     </View>

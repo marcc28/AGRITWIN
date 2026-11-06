@@ -376,6 +376,7 @@ class FieldRecommendationService:
         # 7. Construir el context per a Gemini
         # --------------------------------------------------
         context = {
+            "current_date": now.date().isoformat(),
             "main_field": field_context,
             "main_field_crops": serialize_rows(field_crops),
             "nearby_fields": nearby_fields,
