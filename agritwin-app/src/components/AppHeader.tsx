@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 
 import { Colors } from '@/constants/theme';
 import { clearAuth, getAuth } from '@/services/auth';
-import { getFields, isAuthError, type Field } from '@/services/api';
+import { isAuthError, type Field } from '@/services/api';
 import {
   getCurrentField,
   setCurrentField,
@@ -14,6 +14,7 @@ import {
 } from '@/services/currentField';
 import {
   getGardenPicker,
+  loadGardenPickerFields,
   setGardenPicker,
   subscribeGardenPicker,
 } from '@/services/gardenPicker';
@@ -55,10 +56,12 @@ export default function AppHeader() {
         return;
       }
 
+      // Start loading the picker list as soon as authentication is known.
+      const fieldsPromise = loadGardenPickerFields();
       await applyStoredField();
 
       try {
-        const gardens = await getFields();
+        const gardens = await fieldsPromise;
         if (cancelled) {
           return;
         }
@@ -95,14 +98,15 @@ export default function AppHeader() {
       }
     }
 
-    void loadHeader();
     const unsubscribeField = subscribeCurrentField(() => {
       void applyStoredField();
     });
     const unsubscribePicker = subscribeGardenPicker(() => {
       const next = getGardenPicker();
       setPickerOpen(next.open);
+      setFields(next.fields);
     });
+    void loadHeader();
 
     return () => {
       cancelled = true;
@@ -112,32 +116,23 @@ export default function AppHeader() {
     };
   }, []);
 
-  async function handleTogglePicker() {
+  function handleTogglePicker() {
     if (pickerOpen) {
       setPickerOpen(false);
       setGardenPicker({ open: false });
       return;
     }
 
-    try {
-      const gardens = await getFields();
-      setFields(gardens);
-      if (gardens.length <= 1) {
-        setGardenPicker({ open: false, fields: gardens, currentId });
-        return;
-      }
-      setPickerOpen(true);
-      setGardenPicker({
-        open: true,
-        fields: gardens,
-        currentId,
-      });
-    } catch (error) {
+    const cached = getGardenPicker().fields;
+    setPickerOpen(true);
+    setGardenPicker({ open: true, fields: cached, currentId });
+
+    // Render the cached list immediately; refresh it without blocking the menu.
+    loadGardenPickerFields(true).catch((error) => {
       if (isAuthError(error)) {
-        await clearAuth();
-        router.replace('/auth/login');
+        void clearAuth().then(() => router.replace('/auth/login'));
       }
-    }
+    });
   }
 
   const canSwitch = fields.length > 1;

@@ -44,7 +44,7 @@ function RecommendationCard({
       month: 'short',
       year: 'numeric',
     });
-
+   
   return (
     <View style={styles.recommendationCard}>
       <View style={styles.cardHeader}>
@@ -114,6 +114,17 @@ export default function RecommendationsScreen() {
 
   const { status, data, retry } = useFieldRecommendations(fieldId ?? null);
 
+  console.log('📌 Recommendations status:', status);
+  console.log('📌 Recommendations count:', data?.length);
+  console.log('📌 Recommendations data:', JSON.stringify(data, null, 2));
+  data?.forEach((recommendation, index) => {
+    console.log(`Recomanació ${index + 1}:`, {
+      id: recommendation.id,
+      title: recommendation.title,
+      severity: recommendation.severity,
+      category: recommendation.category,
+    });
+  });
   return (
     <View style={styles.container}>
       <Stack.Screen

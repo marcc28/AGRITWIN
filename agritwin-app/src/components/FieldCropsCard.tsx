@@ -30,17 +30,6 @@ export function FieldCropsCard({
   addDisabled = false,
 }: Props) {
   const { t, i18n } = useTranslation();
-  state.data.forEach((crop, index) => {
-    console.log(`🌱 CROP ${index + 1}:`, crop);
-    console.log('ID:', crop.id);
-    console.log('FIELD ID:', crop.field_id);
-    console.log('CROP ID:', crop.crop_id);
-    console.log('CROP NAME:', crop.crop_name);
-    console.log('PLANTED AT:', crop.planted_at);
-    console.log('EXPECTED HARVEST:', crop.expected_harvest_at);
-    console.log('STATUS:', crop.status);
-    console.log('NOTES:', crop.notes);
-  });
 
   return (
     <View style={styles.card}>

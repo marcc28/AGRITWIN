@@ -13,10 +13,22 @@ import {
 import type { Field } from '@/services/api';
 
 async function selectGarden(field: Field) {
-  await setCurrentField({ id: field.id, name: field.name });
-  setGardenPicker({ open: false, currentId: field.id });
-}
+  // Tanquem el selector immediatament
+  setGardenPicker({
+    open: false,
+    currentId: field.id,
+  });
 
+  // Després desem el camp seleccionat
+  try {
+    await setCurrentField({
+      id: field.id,
+      name: field.name,
+    });
+  } catch (error) {
+    console.error('Error seleccionant el camp:', error);
+  }
+}
 export default function GardenPickerOverlay() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
@@ -24,9 +36,12 @@ export default function GardenPickerOverlay() {
   const [picker, setPicker] = useState(getGardenPicker);
 
   useEffect(() => {
-    return subscribeGardenPicker(() => {
+    const unsubscribe = subscribeGardenPicker(() => {
       setPicker(getGardenPicker());
     });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   if (!picker.open || picker.fields.length <= 1) {

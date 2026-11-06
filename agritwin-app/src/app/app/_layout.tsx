@@ -6,11 +6,21 @@ import { Colors } from '@/constants/theme';
 import AppHeader from '@/components/AppHeader';
 import GardenPickerOverlay from '@/components/GardenPickerOverlay';
 
+import { useEffect } from 'react';
+import { loadGardenPickerFields } from '@/services/gardenPicker';
+
+
 export default function Layout() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
+  useEffect(() => {
+    loadGardenPickerFields().catch((error) => {
+      console.error('Error carregant els camps:', error);
+    });
+  }, []);
+  
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {/* A dalt */}
