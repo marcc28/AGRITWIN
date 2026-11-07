@@ -3,7 +3,7 @@ target-version = "py313"
 
 [lint]
 select = ["E", "F", "I", "B", "UP", "ASYNC"]
-ignore = ["E501", "B008"]
+ignore = ["E501", "B008", "B904"]
 
 [lint.isort]
 known-third-party = ["fastapi", "supabase"]

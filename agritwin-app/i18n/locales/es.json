@@ -3,7 +3,35 @@
     "error": "Error",
     "success": "Éxito"
   },
-
+  "home": {
+    "titleFirst": "Tu huerto,",
+    "titleSecond": "cada día mejor.",
+    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto."
+  },
+  "tabs": {
+    "home": "Inicio",
+    "explore": "Explorar",
+    "market": "Mercado",
+    "profile": "Perfil",
+    "clover": "Trébol",
+    "calendar": "Calendario"
+  },
+  "fieldCrops": {
+    "title": "Mis cultivos",
+    "loadError": "No se han podido cargar los cultivos.",
+    "retry": "Volver a intentarlo",
+    "empty": "Todavía no tienes ningún cultivo plantado en esta zona.",
+    "crop": "Cultivo n.º {{id}}",
+    "planted": "Plantado",
+    "noDate": "Fecha no disponible",
+    "expectedHarvest": "Cosecha prevista",
+    "status": "Estado",
+    "statuses": {
+      "planned": "Planificado",
+      "planted": "Plantado",
+      "harvested": "Cosechado"
+    }
+  },
   "login": {
     "title": "Iniciar sesión",
     "username": "Nombre de usuario",
@@ -19,25 +47,19 @@
       "invalidCredentials": "Contraseña incorrecta. Regístrate si no tienes una cuenta."
     }
   },
-
   "signup": {
     "title": "Crear cuenta",
     "username": "Nombre de usuario",
     "email": "Correo electrónico",
     "password": "Contraseña",
     "passwordConfirmation": "Repetir contraseña",
-
     "acceptPrivacy": "Acepto el Aviso de privacidad",
     "acceptSecurity": "Acepto la Política de seguridad",
-
     "socialLogin": "O inicia sesión con",
-
     "logIn": "Iniciar sesión",
     "signUp": "Crear cuenta",
     "creatingAccount": "Creando cuenta...",
-
     "success": "La cuenta se ha creado correctamente",
-
     "errors": {
       "requiredFields": "Rellena todos los campos",
       "invalidEmail": "Formato de correo electrónico incorrecto",
@@ -46,7 +68,6 @@
       "securityRequired": "Debes aceptar la Política de seguridad",
       "createFailed": "No se ha podido crear la cuenta"
     },
-
     "legal": {
       "privacy": "Aviso de privacidad",
       "security": "Política de seguridad",
@@ -56,7 +77,6 @@
       "loadError": "No se ha podido cargar el documento"
     }
   },
-
   "settings": {
     "title": "Perfil",
     "eyebrow": "PERFIL DE USUARIO",
@@ -119,6 +139,13 @@
       "edit": "Editar",
       "devices": "Dispositivos",
       "noDevices": "Este campo aún no tiene ningún dispositivo.",
+      "crops": "Cultivos",
+      "noCrops": "Este campo aún no tiene ningún cultivo.",
+      "cropStatuses": {
+        "planned": "Planificado",
+        "planted": "Plantado",
+        "harvested": "Cosechado"
+      },
       "devicePopupTitle": "Detalles del dispositivo",
       "devicePopupClose": "Cerrar",
       "deviceStatus": "Estado",
@@ -174,6 +201,7 @@
       "loadData": "No se han podido cargar los datos",
       "gardenNotFound": "No se ha encontrado este jardín",
       "loadGarden": "No se ha podido cargar el jardín",
+      "loadCrops": "No se han podido cargar los cultivos",
       "invalidId": "Identificador no válido",
       "nameRequired": "El nombre es obligatorio",
       "sizeNumber": "El tamaño debe ser un número",
@@ -215,6 +243,29 @@
         "deviceSaveFailed": "No se han podido guardar los dispositivos",
         "createFailed": "No se ha podido crear el campo"
       }
+    },
+    "manageCrops": {
+      "title": "Cultivos",
+      "hint": "Gestiona los cultivos de este campo.",
+      "cropType": "Tipo de cultivo",
+      "selectCrop": "Selecciona un cultivo",
+      "noAvailableCrops": "No hay más cultivos que añadir.",
+      "plantedAt": "Fecha de plantación",
+      "expectedHarvestAt": "Cosecha prevista",
+      "selectDate": "Selecciona una fecha",
+      "notes": "Notas",
+      "notesPlaceholder": "Detalles sobre este cultivo",
+      "adding": "Añadiendo…",
+      "saveCrop": "Guardar cultivo",
+      "addCrop": "Añadir un cultivo",
+      "removeCrop": "Eliminar {{crop}}",
+      "errors": {
+        "selectCrop": "Selecciona primero un cultivo",
+        "invalidDate": "Las fechas deben tener el formato AAAA-MM-DD",
+        "harvestBeforePlanting": "La cosecha prevista no puede ser anterior a la plantación",
+        "addFailed": "Error al añadir el cultivo",
+        "removeFailed": "Error al eliminar el cultivo"
+      }
     }
   },
   "languages": {
@@ -223,13 +274,14 @@
     "english": "Inglés",
     "italian": "Italiano"
   },
-
   "market": {
     "prices": "Precios",
     "news": "Noticias",
     "buy": "Comprar",
     "units": "unidades",
-    "errors": { "loadFailed": "No se han podido cargar los datos del mercado" }
+    "errors": {
+      "loadFailed": "No se han podido cargar los datos del mercado"
+    }
   },
   "home": {
     "title": "Tu huerto,\ncada día mejor.",
@@ -271,5 +323,37 @@
     },
     "weekdays": ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
     "compass": ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
+  },
+  "recommendations": {
+    "screenTitle": "Recomendaciones",
+    "title": "Recomendaciones del campo",
+    "subtitle": "Consejos prácticos basados en los datos de tu campo.",
+    "field": "Campo",
+    "loading": "Cargando recomendaciones…",
+    "loadError": "No se han podido cargar las recomendaciones. Comprueba la conexión e inténtalo de nuevo.",
+    "retry": "Volver a intentarlo",
+    "emptyTitle": "Todavía no hay recomendaciones",
+    "emptyDescription": "Cuando haya suficientes datos del campo, aquí verás recomendaciones útiles.",
+    "results": "{{count}} recomendaciones",
+    "basedOn": "Basado en",
+    "generatedAt": "Generada",
+    "expiresAt": "Caduca",
+    "open": "Abrir recomendaciones del campo",
+    "back": "Atrás",
+    "categories": {
+      "soil": "Suelo",
+      "irrigation": "Riego",
+      "crops": "Cultivos",
+      "fertilization": "Fertilización",
+      "pests": "Plagas",
+      "weather": "Tiempo",
+      "general": "General"
+    },
+    "severities": {
+      "info": "Información",
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    }
   }
 }

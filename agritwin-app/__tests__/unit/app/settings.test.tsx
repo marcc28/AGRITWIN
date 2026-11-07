@@ -60,6 +60,10 @@ jest.mock('../../../src/components/FieldPhoto', () => ({
   FieldPhoto: () => null,
 }));
 
+jest.mock('../../../src/hooks/use-field-crops', () => ({
+  useFieldCrops: () => ({ status: 'success', data: [], retry: jest.fn() }),
+}));
+
 const mockedGetMe = getMe as jest.MockedFunction<typeof getMe>;
 const mockedGetFields = getFields as jest.MockedFunction<typeof getFields>;
 const mockedUpdateMe = updateMe as jest.MockedFunction<typeof updateMe>;
@@ -278,6 +282,21 @@ describe('SettingsScreen', () => {
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/create-field',
       params: { from: 'profile' },
+    });
+  });
+
+  it('opens crop entry for the selected garden', async () => {
+    render(<SettingsScreen />);
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('settings.manageCrops.addCrop'),
+      ).toBeTruthy(),
+    );
+    await waitFor(() => expect(screen.getByText('Hort')).toBeTruthy());
+    fireEvent.press(screen.getByLabelText('settings.manageCrops.addCrop'));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/edit-field',
+      params: { id: '3', addCrop: 'true' },
     });
   });
 
