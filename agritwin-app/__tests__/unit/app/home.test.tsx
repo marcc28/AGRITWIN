@@ -31,6 +31,15 @@ jest.mock('../../../src/hooks/use-field-weather', () => ({
   useFieldWeather: jest.fn(),
 }));
 
+jest.mock('../../../src/hooks/use-weather-alerts-enabled', () => ({
+  useWeatherAlertsEnabled: jest.fn(),
+}));
+
+jest.mock('../../../src/services/seenWeatherAlerts', () => ({
+  getSeenAlerts: jest.fn().mockResolvedValue([]),
+  markAlertSeen: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../../src/hooks/use-field-crops', () => ({
   useFieldCrops: jest.fn(() => ({
     status: 'success',
@@ -108,9 +117,7 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(screen.getByTestId('home-screen')).toBeTruthy();
-    expect(
-      screen.getByText(/home\.titleFirst\s+home\.titleSecond/),
-    ).toBeTruthy();
+    expect(screen.getByText(/home\.title\s+home\.subtitle/)).toBeTruthy();
   });
 
   it('shows the weather of the chosen field', () => {
