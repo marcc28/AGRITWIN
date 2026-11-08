@@ -124,7 +124,7 @@ describe('HomeScreen', () => {
 
     expect(screen.getByText('home.subtitle')).toBeTruthy();
   });
-  
+
   it('shows the weather of the chosen field', () => {
     render(<HomeScreen />);
 
