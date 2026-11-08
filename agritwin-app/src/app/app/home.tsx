@@ -114,12 +114,6 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
 
           <WeatherCard state={weather} onPress={openWeather} onRetry={retry} />
-          <FieldCropsCard
-            state={crops}
-            onRetry={crops.retry}
-            onAdd={openAddCrop}
-            addDisabled={!field}
-          />
         </View>
       </ScrollView>
 

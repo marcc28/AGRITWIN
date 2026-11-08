@@ -166,15 +166,6 @@ describe('HomeScreen', () => {
     });
   });
 
-  it('opens crop entry from the field card', () => {
-    render(<HomeScreen />);
-    fireEvent.press(screen.getByLabelText('settings.manageCrops.addCrop'));
-    expect(router.push).toHaveBeenCalledWith({
-      pathname: '/edit-field',
-      params: { id: '2', addCrop: 'true' },
-    });
-  });
-
   it('retries the weather', () => {
     render(<HomeScreen />);
 
