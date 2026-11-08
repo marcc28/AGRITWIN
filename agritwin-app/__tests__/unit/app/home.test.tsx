@@ -117,9 +117,14 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(screen.getByTestId('home-screen')).toBeTruthy();
-    expect(screen.getByText(/home\.title\s+home\.subtitle/)).toBeTruthy();
-  });
 
+    expect(
+      screen.getByText(/home\.titleFirst[\s\S]*home\.titleSecond/),
+    ).toBeTruthy();
+
+    expect(screen.getByText('home.subtitle')).toBeTruthy();
+  });
+  
   it('shows the weather of the chosen field', () => {
     render(<HomeScreen />);
 
