@@ -60,8 +60,13 @@ const setupApiMocks = () => {
   (getMarketProductsCount as jest.Mock).mockResolvedValue(6);
   (getAnuncesCount as jest.Mock).mockResolvedValue(1);
 
-  (getcontentfeed as jest.Mock).mockResolvedValue(mockProducts);
-  (getnews as jest.Mock).mockResolvedValue(mockNews);
+  (getcontentfeed as jest.Mock).mockImplementation(
+    (offset: number, limit: number) =>
+      Promise.resolve(mockProducts.slice(offset, offset + limit)),
+  );
+  (getnews as jest.Mock).mockImplementation((offset: number, limit: number) =>
+    Promise.resolve(mockNews.slice(offset, offset + limit)),
+  );
 
   (searchMarketProducts as jest.Mock).mockResolvedValue([mockProducts[0]]);
   (searchNews as jest.Mock).mockResolvedValue(mockNews);
@@ -91,8 +96,8 @@ describe('MarketScreen', () => {
     expect(getMarketProductsCount).toHaveBeenCalled();
     expect(getAnuncesCount).toHaveBeenCalled();
 
-    expect(getcontentfeed).toHaveBeenCalledWith(0, 6);
-    expect(getnews).toHaveBeenCalledWith(0, 1);
+    expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
+    expect(getnews).toHaveBeenCalledWith(0, 5);
   }, 15000);
 
   it('mostra el nom i els preus dels productes', async () => {
@@ -215,7 +220,7 @@ describe('MarketScreen', () => {
     screen.unmount();
     await act(async () => resolveProducts?.(mockProducts));
 
-    expect(getnews).toHaveBeenCalledWith(0, 1);
+    expect(getnews).toHaveBeenCalledWith(0, 5);
   });
 
   // --------------------------------------------------
@@ -320,6 +325,7 @@ describe('MarketScreen', () => {
       );
     });
 
+    expect(getcontentfeed).toHaveBeenLastCalledWith(5, 5);
     expect(screen.getByTestId('product-item-6')).toBeTruthy();
   });
 

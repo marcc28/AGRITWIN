@@ -283,10 +283,6 @@
       "loadFailed": "No s'han pogut carregar les dades del mercat"
     }
   },
-  "home": {
-    "title": "El teu hort,\ncada dia millor.",
-    "subtitle": "Tasques, temps i cultius adaptats al teu hort."
-  },
   "weather": {
     "subtitle": "Previsió del temps",
     "myField": "El meu camp",

@@ -43,17 +43,15 @@ export default function Layout() {
               renderingMode="template"
             />
           </NativeTabs.Trigger>
-
-          <NativeTabs.Trigger name="edit_calendar">
+          <NativeTabs.Trigger name="calendar">
             <NativeTabs.Trigger.Label>
-              {t('tabs.explore')}
+              {t('tabs.calendar')}
             </NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
               src={require('@assets/images/tabIcons/edit_calendar.png')}
               renderingMode="template"
             />
           </NativeTabs.Trigger>
-
           <NativeTabs.Trigger name="clover">
             <NativeTabs.Trigger.Label>
               {t('tabs.clover')}

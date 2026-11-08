@@ -106,9 +106,9 @@ export default function HomeScreen() {
           <Text style={styles.date}>{today}</Text>
 
           <Text style={styles.title}>
-            {t('home.title')}
+            {t('home.titleFirst')}
             {'\n'}
-            {t('home.subtitle')}
+            {t('home.titleSecond')}
           </Text>
 
           <Text style={styles.subtitle}>{t('home.subtitle')}</Text>

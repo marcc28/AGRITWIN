@@ -47,7 +47,11 @@ type News = {
   url_image?: string | null;
 };
 
-const PAGE_SIZE = 5;
+const configuredPageSize = Number(process.env.EXPO_PUBLIC_MARKET_PAGE_SIZE);
+const PAGE_SIZE =
+  Number.isInteger(configuredPageSize) && configuredPageSize > 0
+    ? configuredPageSize
+    : 5;
 
 function MarketImagePreview({
   title,
@@ -174,10 +178,23 @@ export default function MarketScreen() {
   const [products, setProducts] = useState<Product[]>([]);
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingPage, setLoadingPage] = useState(false);
+  const [pageLoadError, setPageLoadError] = useState('');
   const [page, setPage] = useState(0);
+  const [productsTotal, setProductsTotal] = useState(0);
+  const [newsTotal, setNewsTotal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const currentItems = tab === 'prices' ? products : news;
-  const totalPages = Math.ceil(currentItems.length / PAGE_SIZE);
+  const isSearching = Boolean(searchQuery.trim());
+  const currentTotal = isSearching
+    ? currentItems.length
+    : tab === 'prices'
+      ? productsTotal
+      : newsTotal;
+  const totalPages = Math.ceil(currentTotal / PAGE_SIZE);
 
   const visibleProducts = products.slice(
     page * PAGE_SIZE,
@@ -188,9 +205,6 @@ export default function MarketScreen() {
 
   const canGoBack = page > 0;
   const canGoForward = page + 1 < totalPages;
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState('');
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allNews, setAllNews] = useState<News[]>([]);
@@ -233,11 +247,13 @@ export default function MarketScreen() {
         ]);
 
         const [productsData, newsData] = await Promise.all([
-          getcontentfeed(0, productsCount),
-          getnews(0, newsCount),
+          getcontentfeed(0, PAGE_SIZE),
+          getnews(0, PAGE_SIZE),
         ]);
 
         if (active) {
+          setProductsTotal(productsCount);
+          setNewsTotal(newsCount);
           setAllProducts(productsData);
           setAllNews(newsData);
 
@@ -265,7 +281,6 @@ export default function MarketScreen() {
 
     const query = searchQuery.trim();
     let active = true;
-    setPage(0);
     setSearchError('');
 
     if (!query) {
@@ -302,6 +317,11 @@ export default function MarketScreen() {
     };
   }, [searchQuery, tab, loading, allProducts, allNews]);
 
+  useEffect(() => {
+    setPage(0);
+    setPageLoadError('');
+  }, [searchQuery, tab]);
+
   const changeTab = (nextTab: Tab) => {
     setTab(nextTab);
     setPage(0);
@@ -309,10 +329,43 @@ export default function MarketScreen() {
 
   const goBack = () => {
     setPage((current) => Math.max(0, current - 1));
+    setPageLoadError('');
   };
 
-  const goForward = () => {
-    setPage((current) => Math.min(Math.max(0, totalPages - 1), current + 1));
+  const goForward = async () => {
+    if (loadingPage || !canGoForward) return;
+
+    const nextPage = page + 1;
+    const nextOffset = nextPage * PAGE_SIZE;
+    const loadedItems = tab === 'prices' ? allProducts : allNews;
+
+    if (!isSearching && loadedItems.length < nextOffset + 1) {
+      setLoadingPage(true);
+      setPageLoadError('');
+      try {
+        const batch =
+          tab === 'prices'
+            ? await getcontentfeed(nextOffset, PAGE_SIZE)
+            : await getnews(nextOffset, PAGE_SIZE);
+        if (tab === 'prices') {
+          setAllProducts((previous) => [...previous, ...batch]);
+          setProducts((previous) => [...previous, ...batch]);
+        } else {
+          setAllNews((previous) => [...previous, ...batch]);
+          setNews((previous) => [...previous, ...batch]);
+        }
+      } catch (error) {
+        console.error('Error carregant més dades del mercat:', error);
+        setPageLoadError(
+          'No s’han pogut carregar més dades. Torna-ho a provar.',
+        );
+        return;
+      } finally {
+        setLoadingPage(false);
+      }
+    }
+
+    setPage(nextPage);
   };
 
   const openProduct = (productId: string | number) => {
@@ -530,6 +583,15 @@ export default function MarketScreen() {
         )}
       </ScrollView>
 
+      {loadingPage && (
+        <Text style={styles.statusText}>
+          {t('common.loading', 'Carregant...')}
+        </Text>
+      )}
+      {pageLoadError ? (
+        <Text style={styles.statusText}>{pageLoadError}</Text>
+      ) : null}
+
       {!loading && totalPages > 1 && (
         <View style={styles.pagination}>
           <Pressable
@@ -559,7 +621,7 @@ export default function MarketScreen() {
             testID="market-next-page"
             accessibilityRole="button"
             accessibilityLabel="Cinc elements endavant"
-            disabled={!canGoForward}
+            disabled={!canGoForward || loadingPage}
             onPress={goForward}
             style={({ pressed }) => [
               styles.arrowButton,
