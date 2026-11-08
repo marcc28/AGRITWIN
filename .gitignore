@@ -35,6 +35,8 @@ google-services.json
 
 **/.venv
 **/.env
+**/.env**
+
 **/.claude
 **/.vscode
 **/CLAUDE.md
@@ -50,6 +52,8 @@ google-services.json
 backend/.coverage
 
 ./agritwin-app/.env**
+./agritwin-app/.env.e2e
+
 agritwin-app/coverage/
 
 **/__pycache__/**
