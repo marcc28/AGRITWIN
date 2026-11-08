@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
   useColorScheme,
+  useWindowDimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -163,7 +164,9 @@ export default function MarketScreen() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-  const styles = getMarketStyles(colors);
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
+  const styles = getMarketStyles(colors, compactLandscape);
   const router = useRouter();
   const marketRef = useRef<View>(null);
 

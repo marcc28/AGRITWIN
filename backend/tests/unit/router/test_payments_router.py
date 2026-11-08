@@ -18,12 +18,8 @@ async def test_payment_routes_delegate_to_the_service():
     service.create_payment_sheet.return_value = {"paymentIntent": "pi_secret"}
     service.create_checkout_session.return_value = {"url": "https://stripe.test"}
 
-    assert await payments.create_payment_sheet(body, service) == {
-        "paymentIntent": "pi_secret"
-    }
-    assert await payments.create_checkout_session(body, service) == {
-        "url": "https://stripe.test"
-    }
+    assert await payments.create_payment_sheet(body, service) == {"paymentIntent": "pi_secret"}
+    assert await payments.create_checkout_session(body, service) == {"url": "https://stripe.test"}
 
     service.create_payment_sheet.assert_awaited_once_with(body)
     service.create_checkout_session.assert_awaited_once_with(body)
@@ -45,9 +41,7 @@ async def test_payment_service_dependency_uses_and_closes_database_session(monke
             events.append("close")
 
     monkeypatch.setattr(payments, "AsyncSessionLocal", session_context)
-    monkeypatch.setattr(
-        payments, "ConteMercatService", lambda session: market_service
-    )
+    monkeypatch.setattr(payments, "ConteMercatService", lambda session: market_service)
     monkeypatch.setattr(
         payments,
         "PaymentService",

@@ -5,9 +5,11 @@ import {
   View,
   StyleSheet,
   useColorScheme,
+  useWindowDimensions,
   type ImageSourcePropType,
 } from 'react-native';
 import { usePathname } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   Tabs,
   TabList,
@@ -32,6 +34,8 @@ function WebTabButton({
   icon: ImageSourcePropType;
 }) {
   const scheme = useColorScheme();
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const pathname = usePathname();
   const active = Boolean(isFocused) || pathname.startsWith(`/app/${name}`);
@@ -51,13 +55,22 @@ function WebTabButton({
                 borderColor: colors.successBorder,
               }
             : null,
+          compactLandscape ? styles.iconWrapCompact : null,
         ]}
       >
-        <Image source={icon} style={[styles.icon, { tintColor: tint }]} />
+        <Image
+          source={icon}
+          style={[
+            styles.icon,
+            compactLandscape ? styles.iconCompact : null,
+            { tintColor: tint },
+          ]}
+        />
       </View>
       <Text
         style={[
           styles.label,
+          compactLandscape ? styles.labelCompact : null,
           {
             color: tint,
             fontWeight: active ? '800' : '500',
@@ -71,7 +84,10 @@ function WebTabButton({
 }
 
 export default function WebLayout() {
+  const { t } = useTranslation();
   const scheme = useColorScheme();
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   return (
@@ -88,33 +104,41 @@ export default function WebLayout() {
                 backgroundColor: colors.surface,
                 borderTopColor: colors.border,
               },
+              compactLandscape ? styles.tabListCompact : null,
             ]}
           >
             <TabTrigger name="home" href="/app/home" asChild>
               <WebTabButton
                 name="home"
-                label="Inici"
+                label={t('tabs.home')}
                 icon={require('@assets/images/tabIcons/home.png')}
               />
             </TabTrigger>
-            <TabTrigger name="explore" href="/app/explore" asChild>
+            <TabTrigger name="calendar" href="/app/calendar" asChild>
               <WebTabButton
-                name="explore"
-                label="Explorar"
-                icon={require('@assets/images/tabIcons/explore.png')}
+                name="calendar"
+                label={t('tabs.calendar')}
+                icon={require('@assets/images/tabIcons/edit_calendar.png')}
+              />
+            </TabTrigger>
+            <TabTrigger name="clover" href="/app/clover" asChild>
+              <WebTabButton
+                name="clover"
+                label={t('tabs.clover')}
+                icon={require('@assets/images/tabIcons/clover.png')}
               />
             </TabTrigger>
             <TabTrigger name="market" href="/app/market" asChild>
               <WebTabButton
                 name="market"
-                label="Mercat"
+                label={t('tabs.market')}
                 icon={require('@assets/images/tabIcons/market.png')}
               />
             </TabTrigger>
             <TabTrigger name="settings" href="/app/settings" asChild>
               <WebTabButton
                 name="settings"
-                label="Perfil"
+                label={t('tabs.profile')}
                 icon={require('@assets/images/tabIcons/settings.png')}
               />
             </TabTrigger>
@@ -152,6 +176,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingHorizontal: 10,
   },
+  tabListCompact: {
+    paddingTop: 3,
+    paddingBottom: 4,
+  },
   tab: {
     flex: 1,
     alignItems: 'center',
@@ -171,11 +199,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
+  iconWrapCompact: {
+    width: 40,
+    height: 26,
+  },
   icon: {
     width: 22,
     height: 22,
   },
+  iconCompact: {
+    width: 19,
+    height: 19,
+  },
   label: {
     fontSize: 11,
+  },
+  labelCompact: {
+    fontSize: 10,
   },
 });

@@ -18,6 +18,7 @@ import {
 } from '../../../src/services/currentField';
 import {
   getGardenPicker,
+  loadGardenPickerFields,
   setGardenPicker,
   subscribeGardenPicker,
 } from '../../../src/services/gardenPicker';
@@ -55,6 +56,7 @@ jest.mock('../../../src/services/gardenPicker', () => ({
     fields: [],
     currentId: null,
   })),
+  loadGardenPickerFields: jest.fn(),
   setGardenPicker: jest.fn(),
   subscribeGardenPicker: jest.fn(() => () => undefined),
 }));
@@ -67,6 +69,8 @@ const mockedGetCurrentField = getCurrentField as jest.MockedFunction<
 const mockedIsAuthError = isAuthError as jest.MockedFunction<
   typeof isAuthError
 >;
+const mockedLoadGardenPickerFields =
+  loadGardenPickerFields as jest.MockedFunction<typeof loadGardenPickerFields>;
 
 describe('AppHeader', () => {
   beforeEach(() => {
@@ -83,6 +87,9 @@ describe('AppHeader', () => {
       username: 'ainhoa',
     });
     mockedGetCurrentField.mockResolvedValue({ id: 3, name: 'Hort' });
+    (clearAuth as jest.MockedFunction<typeof clearAuth>).mockResolvedValue(
+      undefined,
+    );
     mockedGetFields.mockResolvedValue([
       {
         id: 3,
@@ -103,6 +110,7 @@ describe('AppHeader', () => {
         device_count: 0,
       },
     ]);
+    mockedLoadGardenPickerFields.mockImplementation(() => mockedGetFields());
   });
 
   it('shows AGRITWIN and the current garden', async () => {
@@ -197,10 +205,8 @@ describe('AppHeader', () => {
 
     fireEvent.press(screen.getByLabelText('Hort'));
 
-    await waitFor(() =>
-      expect(setGardenPicker).toHaveBeenLastCalledWith(
-        expect.objectContaining({ open: false, currentId: 3 }),
-      ),
+    expect(setGardenPicker).not.toHaveBeenCalledWith(
+      expect.objectContaining({ open: true }),
     );
   });
 

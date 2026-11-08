@@ -123,9 +123,7 @@ async def test_rejects_missing_stripe_key(monkeypatch, market_service):
     service = PaymentService(market_service)
 
     with pytest.raises(HTTPException) as exc:
-        await service.create_payment_sheet(
-            PaymentRequest(productId=uuid4(), quantity=1)
-        )
+        await service.create_payment_sheet(PaymentRequest(productId=uuid4(), quantity=1))
 
     assert exc.value.status_code == 500
     assert exc.value.detail == "Falta STRIPE_SECRET_KEY"
@@ -137,9 +135,7 @@ async def test_rejects_unknown_product(payment_service, market_service):
     market_service.get_conte_mercat_by_id.return_value = None
 
     with pytest.raises(HTTPException) as exc:
-        await payment_service.create_checkout_session(
-            PaymentRequest(productId=uuid4(), quantity=1)
-        )
+        await payment_service.create_checkout_session(PaymentRequest(productId=uuid4(), quantity=1))
 
     assert exc.value.status_code == 404
     assert exc.value.detail == "No s'ha trobat el producte del mercat"
@@ -161,9 +157,7 @@ async def test_payment_sheet_rejects_invalid_prices(
     product.price = price
 
     with pytest.raises(HTTPException) as exc:
-        await payment_service.create_payment_sheet(
-            PaymentRequest(productId=product.id, quantity=1)
-        )
+        await payment_service.create_payment_sheet(PaymentRequest(productId=product.id, quantity=1))
 
     assert exc.value.status_code == 400
     assert exc.value.detail == expected_detail
@@ -175,18 +169,14 @@ async def test_checkout_requires_return_urls(payment_service, monkeypatch):
     monkeypatch.delenv("STRIPE_CANCEL_URL", raising=False)
 
     with pytest.raises(HTTPException) as exc:
-        await payment_service.create_checkout_session(
-            PaymentRequest(productId=uuid4(), quantity=1)
-        )
+        await payment_service.create_checkout_session(PaymentRequest(productId=uuid4(), quantity=1))
 
     assert exc.value.status_code == 500
     assert exc.value.detail == "Falten les URLs de retorn de Stripe"
 
 
 @pytest.mark.asyncio
-async def test_checkout_requires_stripe_to_return_a_url(
-    payment_service, monkeypatch
-):
+async def test_checkout_requires_stripe_to_return_a_url(payment_service, monkeypatch):
     monkeypatch.setenv("STRIPE_SUCCESS_URL", "https://app.test/success")
     monkeypatch.setenv("STRIPE_CANCEL_URL", "https://app.test/cancel")
     monkeypatch.setattr(
@@ -196,18 +186,14 @@ async def test_checkout_requires_stripe_to_return_a_url(
     )
 
     with pytest.raises(HTTPException) as exc:
-        await payment_service.create_checkout_session(
-            PaymentRequest(productId=uuid4(), quantity=1)
-        )
+        await payment_service.create_checkout_session(PaymentRequest(productId=uuid4(), quantity=1))
 
     assert exc.value.status_code == 502
     assert exc.value.detail == "Stripe no ha retornat cap URL"
 
 
 @pytest.mark.asyncio
-async def test_stripe_errors_are_returned_as_gateway_errors(
-    payment_service, monkeypatch
-):
+async def test_stripe_errors_are_returned_as_gateway_errors(payment_service, monkeypatch):
     monkeypatch.setattr(
         stripe.Customer,
         "create",
@@ -215,18 +201,14 @@ async def test_stripe_errors_are_returned_as_gateway_errors(
     )
 
     with pytest.raises(HTTPException) as exc:
-        await payment_service.create_payment_sheet(
-            PaymentRequest(productId=uuid4(), quantity=1)
-        )
+        await payment_service.create_payment_sheet(PaymentRequest(productId=uuid4(), quantity=1))
 
     assert exc.value.status_code == 502
     assert exc.value.detail == "Stripe no ha pogut preparar el pagament"
 
 
 @pytest.mark.asyncio
-async def test_checkout_stripe_errors_are_returned_as_gateway_errors(
-    payment_service, monkeypatch
-):
+async def test_checkout_stripe_errors_are_returned_as_gateway_errors(payment_service, monkeypatch):
     monkeypatch.setenv("STRIPE_SUCCESS_URL", "https://app.test/success")
     monkeypatch.setenv("STRIPE_CANCEL_URL", "https://app.test/cancel")
     monkeypatch.setattr(
@@ -236,9 +218,7 @@ async def test_checkout_stripe_errors_are_returned_as_gateway_errors(
     )
 
     with pytest.raises(HTTPException) as exc:
-        await payment_service.create_checkout_session(
-            PaymentRequest(productId=uuid4(), quantity=1)
-        )
+        await payment_service.create_checkout_session(PaymentRequest(productId=uuid4(), quantity=1))
 
     assert exc.value.status_code == 502
     assert exc.value.detail == "No s'ha pogut crear la sessió de Stripe"

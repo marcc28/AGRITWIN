@@ -12,6 +12,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 
+import { FieldCropsCard } from '@/components/FieldCropsCard';
+import { createAddCropHandler } from '@/services/fieldCropNavigation';
+
+import { useCurrentField } from '@/hooks/use-current-field';
+import { useFieldCrops } from '@/hooks/use-field-crops';
+
 import {
   getMe,
   getFields,
@@ -225,6 +231,10 @@ export default function SettingsScreen() {
     await setCurrentField({ id: field.id, name: field.name });
     setCurrentFieldId(field.id);
   }
+  const field = useCurrentField();
+  const openAddCrop = createAddCropHandler(field, router.push);
+
+  const crops = useFieldCrops(field ? Number(field.id) : null);
 
   return (
     <View style={styles.screen}>
@@ -487,6 +497,14 @@ export default function SettingsScreen() {
               </Text>
             </Pressable>
           ) : null}
+
+          {/* Els meus cultius */}
+          <FieldCropsCard
+            state={crops}
+            onRetry={crops.retry}
+            onAdd={openAddCrop}
+            addDisabled={!field}
+          />
 
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Image

@@ -22,16 +22,13 @@ async def test_list_count_search_and_get_products(service):
     service.get_conte_mercat_by_product.return_value = [product]
     service.get_conte_mercat_by_id.return_value = product
 
-    assert await content_market.get_conte_mercat(
-        offset=10, limit=4, service=service
-    ) == [product]
+    assert await content_market.get_conte_mercat(offset=10, limit=4, service=service) == [product]
     assert await content_market.count_content_market(service=service) == {"total": 8}
-    assert await content_market.search_conte_mercat(
-        product="patata", service=service
-    ) == [product]
-    assert await content_market.get_conte_mercat_by_id(
-        conte_mercat_id=product.id, service=service
-    ) is product
+    assert await content_market.search_conte_mercat(product="patata", service=service) == [product]
+    assert (
+        await content_market.get_conte_mercat_by_id(conte_mercat_id=product.id, service=service)
+        is product
+    )
 
     service.list_conte_mercat.assert_awaited_once_with(offset=10, limit=4)
     service.get_conte_mercat_by_product.assert_awaited_once_with("patata")
@@ -42,9 +39,7 @@ async def test_get_missing_product_returns_404(service):
     service.get_conte_mercat_by_id.return_value = None
 
     with pytest.raises(HTTPException) as exc:
-        await content_market.get_conte_mercat_by_id(
-            conte_mercat_id=uuid4(), service=service
-        )
+        await content_market.get_conte_mercat_by_id(conte_mercat_id=uuid4(), service=service)
 
     assert exc.value.status_code == 404
     assert exc.value.detail == "Conte mercat not found"
