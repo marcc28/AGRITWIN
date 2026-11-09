@@ -7,14 +7,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-def main():
+def build_manifest():
     commit = subprocess.check_output(
         ["git", "rev-parse", "HEAD"],
         text=True,
     ).strip()
 
-    report = {
-        "schema_version": 1,
+    return {
+        "schema_version": 2,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "commit": commit,
         "repository": os.getenv("GITHUB_REPOSITORY"),
@@ -30,6 +30,9 @@ def main():
         },
     }
 
+
+def main():
+    report = build_manifest()
     output = Path("reports/security/manifest.json")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
