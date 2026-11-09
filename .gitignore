@@ -61,3 +61,4 @@ agritwin-app/coverage/
 **/**/__pycache__/**
 **/**/**/__pycache__/**
 backend/services/__pycache__/
+backend/client_secret.json

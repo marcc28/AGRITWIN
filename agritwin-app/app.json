@@ -47,7 +47,8 @@
           "publishableKey": "pk_test_51T8JyBFnYQkzHZlYk9fRD5eK4xVzsCSNB47AiTT2O3V8UWisBRC3DFGhFOjZqUL3sYB9RVm7nLGXCRZITyAJpQgD00xwr84UKT",
           "enableGooglePay": false
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

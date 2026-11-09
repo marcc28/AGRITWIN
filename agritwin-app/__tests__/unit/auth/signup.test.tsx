@@ -31,6 +31,7 @@ jest.mock('../../../src/services/api', () => ({
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -66,26 +67,41 @@ jest.mock('../../../assets/images/instagram.png', () => 'instagram.png');
 jest.mock('../../../assets/images/twitter.png', () => 'twitter.png');
 
 const mockedSignup = signup as jest.MockedFunction<typeof signup>;
+
 const mockedGetPrivacyPolicy = getPrivacyPolicy as jest.MockedFunction<
   typeof getPrivacyPolicy
 >;
+
 const mockedGetSecurityPolicy = getSecurityPolicy as jest.MockedFunction<
   typeof getSecurityPolicy
 >;
 
 const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
 
-const getPrivacyCheckbox = () => screen.getByLabelText('Accept privacy notice');
-const getSecurityCheckbox = () =>
-  screen.getByLabelText('Accept security policy');
+const getPrivacyCheckbox = () => screen.getByTestId('privacy-checkbox-press');
+
+const getSecurityCheckbox = () => screen.getByTestId('security-checkbox-press');
+
+const setCheckbox = (
+  checkbox: ReturnType<typeof screen.getByTestId>,
+  checked: boolean,
+) => {
+  const currentValue = checkbox.props.accessibilityState?.checked ?? false;
+
+  if (currentValue !== checked) {
+    fireEvent.press(checkbox);
+  }
+};
+
+const acceptBothPolicies = () => {
+  setCheckbox(getPrivacyCheckbox(), true);
+  setCheckbox(getSecurityCheckbox(), true);
+};
 
 const fillValidSignupForm = () => {
   fireEvent.changeText(screen.getByTestId('signup-username'), 'testuser');
-
   fireEvent.changeText(screen.getByTestId('signup-email'), 'test@example.com');
-
   fireEvent.changeText(screen.getByTestId('signup-password'), 'Password123');
-
   fireEvent.changeText(
     screen.getByTestId('signup-password-confirm'),
     'Password123',
@@ -102,15 +118,14 @@ describe('SignupScreen', () => {
       render(<SignupScreen />);
 
       expect(screen.getByText('AgriTwin')).toBeTruthy();
-
       expect(screen.getByTestId('signup-title')).toBeTruthy();
       expect(screen.getByTestId('signup-username')).toBeTruthy();
       expect(screen.getByTestId('signup-password')).toBeTruthy();
       expect(screen.getByTestId('signup-password-confirm')).toBeTruthy();
       expect(screen.getByTestId('signup-email')).toBeTruthy();
 
-      expect(screen.getByTestId('privacy-checkbox-press')).toBeTruthy();
-      expect(screen.getByTestId('security-checkbox-press')).toBeTruthy();
+      expect(getPrivacyCheckbox()).toBeTruthy();
+      expect(getSecurityCheckbox()).toBeTruthy();
 
       expect(screen.getByTestId('login-button')).toBeTruthy();
       expect(screen.getByTestId('signup-button')).toBeTruthy();
@@ -131,21 +146,20 @@ describe('SignupScreen', () => {
       render(<SignupScreen />);
 
       fireEvent.changeText(screen.getByTestId('signup-username'), 'testuser');
-
       fireEvent.changeText(
         screen.getByTestId('signup-email'),
         'test@example.com',
       );
-
       fireEvent.changeText(
         screen.getByTestId('signup-password'),
         'Password123',
       );
-
       fireEvent.changeText(
         screen.getByTestId('signup-password-confirm'),
         'DifferentPassword',
       );
+
+      acceptBothPolicies();
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -158,8 +172,8 @@ describe('SignupScreen', () => {
 
       fillValidSignupForm();
 
-      // Privacy queda sense acceptar
-      fireEvent.press(screen.getByTestId('security-checkbox-press'));
+      setCheckbox(getPrivacyCheckbox(), false);
+      setCheckbox(getSecurityCheckbox(), true);
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -172,8 +186,8 @@ describe('SignupScreen', () => {
 
       fillValidSignupForm();
 
-      // Privacy acceptada, security no
-      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
+      setCheckbox(getPrivacyCheckbox(), true);
+      setCheckbox(getSecurityCheckbox(), false);
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -185,21 +199,17 @@ describe('SignupScreen', () => {
       render(<SignupScreen />);
 
       fireEvent.changeText(screen.getByTestId('signup-username'), 'testuser');
-
       fireEvent.changeText(screen.getByTestId('signup-email'), 'invalid-email');
-
       fireEvent.changeText(
         screen.getByTestId('signup-password'),
         'Password123',
       );
-
       fireEvent.changeText(
         screen.getByTestId('signup-password-confirm'),
         'Password123',
       );
 
-      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
-      fireEvent.press(screen.getByTestId('security-checkbox-press'));
+      acceptBothPolicies();
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -207,6 +217,7 @@ describe('SignupScreen', () => {
       expect(mockedSignup).not.toHaveBeenCalled();
     });
   });
+
   describe('successful signup', () => {
     it('calls signup with the correct data', async () => {
       mockedSignup.mockResolvedValue({
@@ -219,29 +230,25 @@ describe('SignupScreen', () => {
       render(<SignupScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('signup-username'),
         '  testuser  ',
       );
-
       fireEvent.changeText(
-        screen.getByPlaceholderText('Email'),
+        screen.getByTestId('signup-email'),
         '  test@example.com  ',
       );
-
       fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
+        screen.getByTestId('signup-password'),
+        'Password123',
+      );
+      fireEvent.changeText(
+        screen.getByTestId('signup-password-confirm'),
         'Password123',
       );
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Repetir contrasenya'),
-        'Password123',
-      );
+      acceptBothPolicies();
 
-      fireEvent.press(getPrivacyCheckbox());
-      fireEvent.press(getSecurityCheckbox());
-
-      fireEvent.press(screen.getByText('Sign Up'));
+      fireEvent.press(screen.getByTestId('signup-button'));
 
       await waitFor(() => {
         expect(mockedSignup).toHaveBeenCalledTimes(1);
@@ -267,9 +274,7 @@ describe('SignupScreen', () => {
       render(<SignupScreen />);
 
       fillValidSignupForm();
-
-      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
-      fireEvent.press(screen.getByTestId('security-checkbox-press'));
+      acceptBothPolicies();
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -286,9 +291,7 @@ describe('SignupScreen', () => {
       render(<SignupScreen />);
 
       fillValidSignupForm();
-
-      fireEvent.press(screen.getByTestId('privacy-checkbox-press'));
-      fireEvent.press(screen.getByTestId('security-checkbox-press'));
+      acceptBothPolicies();
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -304,30 +307,19 @@ describe('SignupScreen', () => {
 
       render(<SignupScreen />);
 
+      fillValidSignupForm();
       fireEvent.changeText(
-        screen.getByPlaceholderText("Nom d'usuari"),
+        screen.getByTestId('signup-username'),
         'existinguser',
       );
-
       fireEvent.changeText(
-        screen.getByPlaceholderText('Email'),
+        screen.getByTestId('signup-email'),
         'existing@example.com',
       );
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Contrasenya'),
-        'Password123',
-      );
+      acceptBothPolicies();
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Repetir contrasenya'),
-        'Password123',
-      );
-
-      fireEvent.press(getPrivacyCheckbox());
-      fireEvent.press(getSecurityCheckbox());
-
-      fireEvent.press(screen.getByText('Sign Up'));
+      fireEvent.press(screen.getByTestId('signup-button'));
 
       expect(await screen.findByText('Aquest usuari ja existeix')).toBeTruthy();
 
@@ -339,7 +331,7 @@ describe('SignupScreen', () => {
     it('navigates to login when Log In is pressed', () => {
       render(<SignupScreen />);
 
-      fireEvent.press(screen.getByText('Log In'));
+      fireEvent.press(screen.getByTestId('login-button'));
 
       expect(mockedRouterPush).toHaveBeenCalledWith('/auth/login');
     });
@@ -358,9 +350,7 @@ describe('SignupScreen', () => {
       fireEvent.press(screen.getByText('Privacy Notice'));
 
       expect(await screen.findByText('Privacy policy content')).toBeTruthy();
-
       expect(screen.getByText('Version 1.0')).toBeTruthy();
-
       expect(mockedGetPrivacyPolicy).toHaveBeenCalledTimes(1);
     });
 
@@ -376,9 +366,7 @@ describe('SignupScreen', () => {
       fireEvent.press(screen.getByText('Security Policy'));
 
       expect(await screen.findByText('Security policy content')).toBeTruthy();
-
       expect(screen.getByText('Version 2.0')).toBeTruthy();
-
       expect(mockedGetSecurityPolicy).toHaveBeenCalledTimes(1);
     });
 
@@ -443,9 +431,7 @@ describe('SignupScreen', () => {
     it('allows the privacy checkbox to be toggled', () => {
       render(<SignupScreen />);
 
-      const privacyCheckbox = getPrivacyCheckbox();
-
-      fireEvent.press(privacyCheckbox);
+      fireEvent.press(getPrivacyCheckbox());
 
       expect(getPrivacyCheckbox().props.accessibilityState).toMatchObject({
         checked: true,
@@ -461,9 +447,7 @@ describe('SignupScreen', () => {
     it('allows the security checkbox to be toggled', () => {
       render(<SignupScreen />);
 
-      const securityCheckbox = getSecurityCheckbox();
-
-      fireEvent.press(securityCheckbox);
+      fireEvent.press(getSecurityCheckbox());
 
       expect(getSecurityCheckbox().props.accessibilityState).toMatchObject({
         checked: true,

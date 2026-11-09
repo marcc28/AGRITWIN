@@ -9,7 +9,13 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     padding: 20,
   },
-
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+    marginTop: 5,
+  },
   container: {
     width: '100%',
     maxWidth: 350,
