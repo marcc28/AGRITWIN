@@ -12,13 +12,6 @@ export type LegalDocument = {
   content: string;
 };
 
-export type News = {
-  id: string | number;
-  title: string;
-  subtile: string;
-  agent: string;
-  content: string;
-};
 // --------------------------------------------------
 // SIGN UP
 // --------------------------------------------------
@@ -77,66 +70,6 @@ export async function login(username: string, password: string) {
 
   if (!response.ok) {
     throw new Error(data.detail || 'Error iniciant sessió');
-  }
-
-  return data;
-}
-
-export async function getnews(offset: number, limite: number): Promise<News[]> {
-  const response = await fetch(
-    `${API_URL}/api/v1/anunces?offset=${offset}&limite=${limite}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'Error obtenint les notícies');
-  }
-
-  return data;
-}
-
-export async function getanunces(offset: number, limite: number) {
-  const response = await fetch(
-    `${API_URL}/api/v1/anunces?offset=${offset}&limite=${limite}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'Error obtenint els anuncis');
-  }
-
-  return data;
-}
-
-export async function getcontentfeed(offset: number, limite: number) {
-  const response = await fetch(
-    `${API_URL}/api/v1/conte_mercat?offset=${offset}&limite=${limite}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'Error obtenint els anuncis');
   }
 
   return data;
@@ -256,6 +189,17 @@ function errorDetail(data: unknown, fallback: string): string {
   return fallback;
 }
 
+type MeListener = (me: Me) => void;
+
+const meListeners = new Set<MeListener>();
+
+export function subscribeMe(listener: MeListener) {
+  meListeners.add(listener);
+  return () => {
+    meListeners.delete(listener);
+  };
+}
+
 export async function getMe(): Promise<Me> {
   const auth = await getAuth();
 
@@ -300,6 +244,7 @@ export async function updateMe(payload: MeUpdate): Promise<Me> {
     throw new Error(errorDetail(data, 'No s’ha pogut guardar el perfil'));
   }
 
+  meListeners.forEach((listener) => listener(data as Me));
   return data as Me;
 }
 
@@ -673,6 +618,17 @@ export type DailyWeather = {
   sunset: string | null;
 };
 
+export type WeatherAlert = {
+  type: string;
+  message: string;
+  starts_at: string | null;
+  day: string | null;
+  rain_probability: number | null;
+  rain_mm: number | null;
+  temperature: number | null;
+  wind_speed: number | null;
+};
+
 export type FieldWeather = {
   units: string;
   lang: string;
@@ -703,6 +659,8 @@ export type FieldWeather = {
   };
   hourly: HourlyWeather[];
   daily: DailyWeather[];
+  current_alerts?: WeatherAlert[];
+  alerts?: WeatherAlert[];
 };
 
 export class WeatherRequestError extends Error {

@@ -25,6 +25,10 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+The market loads products and news in batches of five by default. Set
+`EXPO_PUBLIC_MARKET_PAGE_SIZE` in your `.env` file to change the batch size; it
+must be a positive whole number.
+
 ## Get a fresh project
 
 When you're ready, run:

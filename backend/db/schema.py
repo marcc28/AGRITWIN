@@ -1,4 +1,5 @@
-from datetime import datetime
+import uuid
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID as PyUUID
@@ -145,6 +146,10 @@ class Anunce(Base):
     subtile: Mapped[str | None] = mapped_column(String(255))
     agent: Mapped[str | None] = mapped_column(String(255))
     content: Mapped[str | None] = mapped_column(Text)
+    image_url: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -168,6 +173,10 @@ class ConteMercat(Base):
     price_per_kg: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
     left_units: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default=text("0")
+    )
+    image_url: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -229,6 +238,20 @@ class Field(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": str(self.user_id),
+            "name": self.name,
+            "location": self.location,
+            "lat": self.lat,
+            "lon": self.lon,
+            "field_type": self.field_type,
+            "soil_type": self.soil_type,
+            "size_m2": float(self.size_m2) if self.size_m2 is not None else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
 
 
 class Device(Base):
@@ -316,3 +339,140 @@ class WeatherCache(Base):
     alert_message: Mapped[str | None] = mapped_column(Text)
 
     field: Mapped["Field"] = relationship(back_populates="weather")
+
+
+class Crop(Base):
+    __tablename__ = "crops"
+
+    id: Mapped[int] = mapped_column(
+        BigIntType,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        unique=True,
+    )
+
+    scientific_name: Mapped[str | None] = mapped_column(String(150))
+    category: Mapped[str | None] = mapped_column(String(100))
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class FieldCrop(Base):
+    __tablename__ = "field_crops"
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('planned', 'planted', 'harvested')",
+            name="chk_field_crop_status",
+        ),
+        CheckConstraint(
+            "expected_harvest_at IS NULL "
+            "OR planted_at IS NULL "
+            "OR expected_harvest_at >= planted_at",
+            name="chk_field_crop_dates",
+        ),
+        Index("idx_field_crops_field_id", "field_id"),
+        Index("idx_field_crops_crop_id", "crop_id"),
+    )
+
+    id: Mapped[int] = mapped_column(
+        BigIntType,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    field_id: Mapped[int] = mapped_column(
+        BigIntType,
+        ForeignKey("fields.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    crop_id: Mapped[int] = mapped_column(
+        BigIntType,
+        ForeignKey("crops.id"),
+        nullable=False,
+    )
+
+    crop: Mapped["Crop"] = relationship(lazy="joined")
+
+    planted_at: Mapped[date | None] = mapped_column(Date)
+    expected_harvest_at: Mapped[date | None] = mapped_column(Date)
+
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="planted",
+        server_default=text("'planted'"),
+    )
+
+    notes: Mapped[str | None] = mapped_column(Text)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class FieldRecommendation(Base):
+    __tablename__ = "field_recommendations"
+
+    __table_args__ = (
+        CheckConstraint(
+            "severity IN ('info', 'low', 'medium', 'high')",
+            name="chk_recommendation_severity",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    field_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("fields.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    category: Mapped[str] = mapped_column(String(50), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+
+    severity: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="info",
+    )
+
+    based_on: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+    )
+
+    model: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )

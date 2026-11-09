@@ -1,10 +1,19 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 
 from db import AsyncSessionLocal
-from models.anunce import AnunceCreate, AnunceRead
+from models.anunce import AnunceRead
 from services.anunce_service import AnunceService
+from services.rate_limit import enforce_forum_rate_limit
+from services.supabase_storage_service import SupabaseService
 
 router = APIRouter(
     prefix="/anunces",
@@ -12,7 +21,7 @@ router = APIRouter(
 )
 
 
-async def get_anunce_service() -> AnunceService:
+async def get_anunce_service():
     async with AsyncSessionLocal() as session:
         yield AnunceService(session=session)
 
@@ -30,6 +39,26 @@ async def list_anunces(
         offset=offset,
         limit=limit,
     )
+
+
+@router.get(
+    "/search",
+    response_model=list[AnunceRead],
+)
+async def search_anunces(
+    title: str,
+    service: AnunceService = Depends(get_anunce_service),
+):
+    return await service.get_anunces_by_title(title)
+
+
+@router.get("/count")
+async def count_anunces(
+    service: AnunceService = Depends(get_anunce_service),
+):
+    total = await service.count_anunces()
+
+    return {"total": total}
 
 
 @router.get(
@@ -55,17 +84,52 @@ async def get_anunce(
     "",
     response_model=AnunceRead,
     status_code=201,
+    dependencies=[Depends(enforce_forum_rate_limit)],
 )
 async def create_anunce(
-    data: AnunceCreate,
+    title: str = Form(...),
+    subtile: str | None = Form(None),
+    agent: str | None = Form(None),
+    content: str | None = Form(None),
+    image: UploadFile | None = File(None),
     service: AnunceService = Depends(get_anunce_service),
 ):
-    return await service.create_anunce(
-        title=data.title,
-        subtile=data.subtile,
-        agent=data.agent,
-        content=data.content,
+    # 1. Crear l'anunci a la base de dades
+    anunce = await service.create_anunce(
+        title=title,
+        subtile=subtile,
+        agent=agent,
+        content=content,
     )
+
+    # 2. Si s'ha enviat una imatge, pujar-la a Supabase
+    if image is not None:
+        storage = SupabaseService()
+
+        try:
+            path = await storage.upload_anunce_image(
+                file=image,
+                anunce_id=anunce.id,
+            )
+
+            # 3. Obtenir la URL pública
+            image_url = storage.get_anunce_image_url(path)
+
+            # 4. Guardar la URL a la base de dades
+            anunce = await service.update_image_url(
+                anunce_id=anunce.id,
+                image_url=image_url,
+            )
+
+        except Exception as exc:
+            await service._db.rollback()
+
+            raise HTTPException(
+                status_code=500,
+                detail="Error en pujar o guardar la imatge de l'anunci",
+            ) from exc
+
+    return anunce
 
 
 @router.delete(

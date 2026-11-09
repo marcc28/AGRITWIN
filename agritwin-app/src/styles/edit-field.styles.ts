@@ -185,4 +185,152 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.light.surface,
   },
+
+  cropSection: {
+    marginTop: 22,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+  },
+
+  cropSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.light.primaryDark,
+  },
+
+  cropSectionHint: {
+    marginTop: 4,
+    fontSize: 12,
+    color: Colors.light.textMuted,
+  },
+
+  cropRow: {
+    marginTop: 10,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: Colors.light.background,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  cropName: {
+    flex: 1,
+    color: Colors.light.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  addCropButton: {
+    marginTop: 12,
+    minHeight: 46,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+
+  addCropText: {
+    color: Colors.light.primary,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+
+  cropForm: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: Colors.light.background,
+  },
+
+  cropPicker: {
+    minHeight: 48,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    borderRadius: 14,
+    backgroundColor: Colors.light.surface,
+  },
+  cropPickerText: {
+    flex: 1,
+    color: Colors.light.text,
+    fontSize: 14,
+  },
+  cropPickerPlaceholder: {
+    color: Colors.light.textMuted,
+  },
+  cropModalBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  cropModal: {
+    maxHeight: '75%',
+    borderRadius: 18,
+    padding: 16,
+    backgroundColor: Colors.light.surface,
+  },
+  cropModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  cropModalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.light.text,
+  },
+  cropOption: {
+    minHeight: 48,
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  cropOptionText: {
+    color: Colors.light.text,
+    fontSize: 14,
+  },
+  cropListLoader: {
+    padding: 16,
+  },
+  cropEmpty: {
+    padding: 16,
+    color: Colors.light.textMuted,
+    textAlign: 'center',
+  },
+
+  cropNotesInput: {
+    height: 88,
+    paddingTop: 12,
+    textAlignVertical: 'top',
+  },
+
+  cropSubmit: {
+    marginTop: 14,
+    width: '100%',
+  },
+
+  cropCancel: {
+    alignSelf: 'center',
+    padding: 10,
+    marginTop: 4,
+  },
+
+  cropCancelText: {
+    color: Colors.light.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });

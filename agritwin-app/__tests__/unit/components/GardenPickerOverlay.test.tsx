@@ -48,6 +48,11 @@ describe('GardenPickerOverlay', () => {
     expect(toJSON()).toBeNull();
   });
 
+  it('hides the selector when only one garden exists', () => {
+    setGardenPicker({ open: true, fields: [field(1, 'Hort')], currentId: 1 });
+    expect(render(<GardenPickerOverlay />).toJSON()).toBeNull();
+  });
+
   it('lists gardens and selects one', async () => {
     setGardenPicker({
       open: true,
@@ -61,5 +66,39 @@ describe('GardenPickerOverlay', () => {
     await waitFor(() => {
       expect(setCurrentField).toHaveBeenCalledWith({ id: 2, name: 'Camp' });
     });
+  });
+
+  it('closes the selector from the backdrop', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort'), field(2, 'Camp')],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+    fireEvent.press(screen.getByTestId('garden-picker-backdrop'));
+    expect(screen.queryByText('Hort')).toBeNull();
+  });
+
+  it('logs a selection save error', async () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort'), field(2, 'Camp')],
+      currentId: 1,
+    });
+    const log = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    (setCurrentField as jest.Mock).mockRejectedValueOnce(
+      new Error('storage failed'),
+    );
+    render(<GardenPickerOverlay />);
+    fireEvent.press(screen.getByText('Camp'));
+    await waitFor(() =>
+      expect(log).toHaveBeenCalledWith(
+        'Error seleccionant el camp:',
+        expect.any(Error),
+      ),
+    );
+    log.mockRestore();
   });
 });

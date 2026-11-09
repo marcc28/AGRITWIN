@@ -3,7 +3,35 @@
     "error": "Errore",
     "success": "Successo"
   },
-
+  "home": {
+    "titleFirst": "Il tuo orto,",
+    "titleSecond": "ogni giorno migliore.",
+    "subtitle": "Attività, meteo e colture per il tuo orto."
+  },
+  "tabs": {
+    "home": "Home",
+    "explore": "Esplora",
+    "market": "Mercato",
+    "profile": "Profilo",
+    "clover": "Trifoglio",
+    "calendar": "Calendario"
+  },
+  "fieldCrops": {
+    "title": "Le mie colture",
+    "loadError": "Impossibile caricare le colture.",
+    "retry": "Riprova",
+    "empty": "Non hai ancora colture piantate in quest’area.",
+    "crop": "Coltura n. {{id}}",
+    "planted": "Piantata",
+    "noDate": "Data non disponibile",
+    "expectedHarvest": "Raccolta prevista",
+    "status": "Stato",
+    "statuses": {
+      "planned": "Pianificata",
+      "planted": "Piantata",
+      "harvested": "Raccolta"
+    }
+  },
   "login": {
     "title": "Accedi",
     "username": "Nome utente",
@@ -19,25 +47,19 @@
       "invalidCredentials": "Password errata. Registrati se non hai un account."
     }
   },
-
   "signup": {
     "title": "Crea account",
     "username": "Nome utente",
     "email": "Email",
     "password": "Password",
     "passwordConfirmation": "Ripeti la password",
-
     "acceptPrivacy": "Accetto l'Informativa sulla privacy",
     "acceptSecurity": "Accetto la Politica di sicurezza",
-
     "socialLogin": "Oppure registrati con",
-
     "logIn": "Accedi",
     "signUp": "Crea account",
     "creatingAccount": "Creazione account...",
-
     "success": "Account creato con successo",
-
     "errors": {
       "requiredFields": "Compila tutti i campi",
       "invalidEmail": "Formato email non valido",
@@ -46,7 +68,6 @@
       "securityRequired": "Devi accettare la Politica di sicurezza",
       "createFailed": "Non è stato possibile creare l'account"
     },
-
     "legal": {
       "privacy": "Informativa sulla privacy",
       "security": "Politica di sicurezza",
@@ -56,7 +77,6 @@
       "loadError": "Non è stato possibile caricare il documento"
     }
   },
-
   "settings": {
     "title": "Profilo",
     "eyebrow": "PROFILO UTENTE",
@@ -119,6 +139,13 @@
       "edit": "Modifica",
       "devices": "Dispositivi",
       "noDevices": "Questo campo non ha ancora nessun dispositivo.",
+      "crops": "Colture",
+      "noCrops": "Questo campo non ha ancora nessuna coltura.",
+      "cropStatuses": {
+        "planned": "Pianificata",
+        "planted": "Piantata",
+        "harvested": "Raccolta"
+      },
       "devicePopupTitle": "Dettagli del dispositivo",
       "devicePopupClose": "Chiudi",
       "deviceStatus": "Stato",
@@ -174,6 +201,7 @@
       "loadData": "Impossibile caricare i dati",
       "gardenNotFound": "Giardino non trovato",
       "loadGarden": "Impossibile caricare il giardino",
+      "loadCrops": "Impossibile caricare le colture",
       "invalidId": "Identificatore non valido",
       "nameRequired": "Il nome è obbligatorio",
       "sizeNumber": "La dimensione deve essere un numero",
@@ -215,6 +243,29 @@
         "deviceSaveFailed": "Impossibile salvare i dispositivi",
         "createFailed": "Impossibile creare il campo"
       }
+    },
+    "manageCrops": {
+      "title": "Colture",
+      "hint": "Gestisci le colture di questo campo.",
+      "cropType": "Tipo di coltura",
+      "selectCrop": "Seleziona una coltura",
+      "noAvailableCrops": "Non ci sono altre colture da aggiungere.",
+      "plantedAt": "Data di piantagione",
+      "expectedHarvestAt": "Raccolta prevista",
+      "selectDate": "Seleziona una data",
+      "notes": "Note",
+      "notesPlaceholder": "Dettagli su questa coltura",
+      "adding": "Aggiunta…",
+      "saveCrop": "Salva coltura",
+      "addCrop": "Aggiungi una coltura",
+      "removeCrop": "Rimuovi {{crop}}",
+      "errors": {
+        "selectCrop": "Seleziona prima una coltura",
+        "invalidDate": "Le date devono essere nel formato AAAA-MM-GG",
+        "harvestBeforePlanting": "La raccolta prevista non può precedere la piantagione",
+        "addFailed": "Errore durante l’aggiunta della coltura",
+        "removeFailed": "Errore durante la rimozione della coltura"
+      }
     }
   },
   "languages": {
@@ -231,6 +282,10 @@
     "errors": {
       "loadFailed": "Non è stato possibile caricare i dati del mercato"
     }
+  },
+  "home": {
+    "title": "Il tuo orto,\nogni giorno migliore.",
+    "subtitle": "Attività, meteo e colture adattati al tuo orto."
   },
   "weather": {
     "subtitle": "Previsioni meteo",
@@ -256,6 +311,9 @@
     "noField": "Non hai ancora nessun campo. Creane uno per vedere il meteo.",
     "noData": "Nessun dato meteo per questa posizione",
     "back": "Home",
+    "alertsTitle": "Avvisi meteorologici",
+    "noAlerts": "Nessun avviso per il tuo orto",
+    "close": "Chiudi",
     "uvLevels": {
       "low": "Basso",
       "moderate": "Moderato",
@@ -265,5 +323,37 @@
     },
     "weekdays": ["dom", "lun", "mar", "mer", "gio", "ven", "sab"],
     "compass": ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
+  },
+  "recommendations": {
+    "screenTitle": "Raccomandazioni",
+    "title": "Consigli per il campo",
+    "subtitle": "Consigli pratici basati sui dati del tuo campo.",
+    "field": "Campo",
+    "loading": "Caricamento dei consigli…",
+    "loadError": "Impossibile caricare i consigli. Controlla la connessione e riprova.",
+    "retry": "Riprova",
+    "emptyTitle": "Nessun consiglio disponibile",
+    "emptyDescription": "I consigli utili appariranno qui quando saranno disponibili dati sufficienti sul campo.",
+    "results": "{{count}} consigli",
+    "basedOn": "Basato su",
+    "generatedAt": "Generato",
+    "expiresAt": "Scade",
+    "open": "Apri i consigli per il campo",
+    "back": "Indietro",
+    "categories": {
+      "soil": "Suolo",
+      "irrigation": "Irrigazione",
+      "crops": "Colture",
+      "fertilization": "Fertilizzazione",
+      "pests": "Parassiti",
+      "weather": "Meteo",
+      "general": "Generale"
+    },
+    "severities": {
+      "info": "Informazione",
+      "low": "Bassa",
+      "medium": "Media",
+      "high": "Alta"
+    }
   }
 }

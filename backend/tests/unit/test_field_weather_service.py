@@ -264,3 +264,35 @@ async def test_field_owner_is_checked_before_weather_request(sessions):
         await forecast(sessions, recorder(calls), username="nobody")
     assert exc.value.status_code == 404
     assert calls == []
+
+
+async def test_alerts_are_saved_in_weather_cache(sessions):
+    calls = []
+    result = await forecast(sessions, recorder(calls))
+    cached = await forecast(sessions, recorder(calls), days=1)
+
+    assert [alert.message for alert in result.current_alerts] == ["Ara hi ha pluja"]
+    assert [alert.message for alert in result.alerts] == [
+        "Es preveu pluja el 12/10 a les 15:00 (75%)"
+    ]
+    assert cached.alerts == result.alerts
+    assert len(calls) == 2
+    row = await cache_row(sessions)
+    assert row.alert_active is True
+    assert row.alert_type == "rain"
+    assert row.alert_message == "Ara hi ha pluja\nEs preveu pluja el 12/10 a les 15:00 (75%)"
+
+
+async def test_alerts_are_cleared_when_the_bad_weather_is_gone(sessions, monkeypatch):
+    await forecast(sessions, recorder([]))
+    monkeypatch.setattr("services.field_weather_service.detect_current_alerts", lambda _: [])
+    monkeypatch.setattr("services.field_weather_service.detect_alerts", lambda _: [])
+
+    result = await forecast(sessions, recorder([]), cache_seconds=0)
+
+    assert result.current_alerts == []
+    assert result.alerts == []
+    row = await cache_row(sessions)
+    assert row.alert_active is False
+    assert row.alert_type is None
+    assert row.alert_message is None

@@ -192,4 +192,35 @@ describe('useFieldWeather', () => {
 
     expect(result.current.state).toEqual({ status: 'ready', weather: other });
   });
+
+  it('refreshes the weather every 10 minutes', async () => {
+    jest.useFakeTimers();
+    const refreshed = {
+      daily: [{ date: '2026-10-25' }],
+    } as unknown as FieldWeather;
+    mockedGetFieldWeather
+      .mockResolvedValueOnce(weather)
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce(refreshed);
+
+    const { result } = renderHook(() => useFieldWeather(1, 'ca'));
+    await waitFor(() => {
+      expect(result.current.state).toEqual({ status: 'ready', weather });
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(10 * 60 * 1000);
+    });
+    expect(result.current.state).toEqual({ status: 'ready', weather });
+
+    await act(async () => {
+      jest.advanceTimersByTime(10 * 60 * 1000);
+    });
+    expect(result.current.state).toEqual({
+      status: 'ready',
+      weather: refreshed,
+    });
+    expect(mockedGetFieldWeather).toHaveBeenCalledTimes(3);
+    jest.useRealTimers();
+  });
 });

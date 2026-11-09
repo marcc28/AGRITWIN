@@ -9,14 +9,15 @@ import {
 
 import FieldDetailScreen from '../../../src/app/field-detail';
 import { getDashboard, getField } from '../../../src/services/api';
-import { clearAuth } from '../../../src/services/auth';
+import { clearAuth, getAuth } from '../../../src/services/auth';
+import { getFieldCrops } from '../../../src/services/api_fieldCrops';
+import { getCrops } from '../../../src/services/api_crops';
 import { router } from 'expo-router';
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+jest.mock('react-i18next', () => {
+  const t = (key: string) => key;
+  return { useTranslation: () => ({ t }) };
+});
 
 const mockUseLocalSearchParams = jest.fn(() => ({ id: '3' }));
 const mockIsAuthError = jest.fn((_error?: unknown) => false);
@@ -37,6 +38,15 @@ jest.mock('../../../src/services/api', () => ({
 
 jest.mock('../../../src/services/auth', () => ({
   clearAuth: jest.fn(),
+  getAuth: jest.fn(async () => ({ token: 'field-token' })),
+}));
+
+jest.mock('../../../src/services/api_fieldCrops', () => ({
+  getFieldCrops: jest.fn(async () => []),
+}));
+
+jest.mock('../../../src/services/api_crops', () => ({
+  getCrops: jest.fn(async () => []),
 }));
 
 jest.mock('../../../src/components/FieldPhoto', () => ({
@@ -45,8 +55,9 @@ jest.mock('../../../src/components/FieldPhoto', () => ({
 
 jest.mock('../../../src/components/SensorCard', () => ({
   SensorCard: ({ title, onPress }: { title: string; onPress: () => void }) => {
-    const React = require('react');
-    const { Pressable, Text } = require('react-native');
+    const React = jest.requireActual<typeof import('react')>('react');
+    const { Pressable, Text } =
+      jest.requireActual<typeof import('react-native')>('react-native');
     return (
       <Pressable onPress={onPress}>
         <Text>{title}</Text>
@@ -59,6 +70,11 @@ const mockedGetField = getField as jest.MockedFunction<typeof getField>;
 const mockedGetDashboard = getDashboard as jest.MockedFunction<
   typeof getDashboard
 >;
+const mockedGetAuth = getAuth as jest.MockedFunction<typeof getAuth>;
+const mockedGetFieldCrops = getFieldCrops as jest.MockedFunction<
+  typeof getFieldCrops
+>;
+const mockedGetCrops = getCrops as jest.MockedFunction<typeof getCrops>;
 
 describe('FieldDetailScreen', () => {
   beforeEach(() => {
@@ -88,6 +104,8 @@ describe('FieldDetailScreen', () => {
       latest: null,
       history: [],
     });
+    mockedGetFieldCrops.mockResolvedValue([]);
+    mockedGetCrops.mockResolvedValue([]);
   });
 
   it('shows garden info and devices', async () => {
@@ -115,6 +133,16 @@ describe('FieldDetailScreen', () => {
     expect(screen.getByText('ESP32')).toBeTruthy();
     expect(screen.getByText('SN-1')).toBeTruthy();
     fireEvent.press(screen.getByText('settings.fieldDetail.devicePopupClose'));
+    expect(
+      screen.queryByText('settings.fieldDetail.devicePopupTitle'),
+    ).toBeNull();
+  });
+
+  it('closes device details when tapping outside the popup', async () => {
+    render(<FieldDetailScreen />);
+    await waitFor(() => expect(screen.getByText('dev-1')).toBeTruthy());
+    fireEvent.press(screen.getByText('dev-1'));
+    fireEvent.press(screen.getByTestId('device-popup-backdrop'));
     expect(
       screen.queryByText('settings.fieldDetail.devicePopupTitle'),
     ).toBeNull();
@@ -206,6 +234,98 @@ describe('FieldDetailScreen', () => {
 
     await waitFor(() => {
       expect(screen.getByText('settings.fieldDetail.noDevices')).toBeTruthy();
+    });
+  });
+
+  it('shows field crops and resolves their names from the crop catalog', async () => {
+    mockedGetFieldCrops.mockResolvedValue([
+      {
+        id: 31,
+        field_id: 3,
+        crop_id: 9,
+        crop_name: null,
+        planted_at: '2026-04-01',
+        expected_harvest_at: '2026-08-01',
+        status: 'planned',
+      },
+      {
+        id: 32,
+        field_id: 3,
+        crop_id: 10,
+        crop_name: 'Ceba',
+        status: 'harvested',
+      },
+    ]);
+    mockedGetCrops.mockResolvedValue([
+      {
+        id: 9,
+        name: 'Tomàquet',
+        scientific_name: 'Solanum lycopersicum',
+        category: 'vegetable',
+      },
+      {
+        id: 10,
+        name: 'Ceba',
+        scientific_name: 'Allium cepa',
+        category: 'vegetable',
+      },
+    ]);
+
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Tomàquet')).toBeTruthy();
+      expect(screen.getByText('Ceba')).toBeTruthy();
+    });
+    expect(
+      screen.getByText('settings.fieldDetail.cropStatuses.planned'),
+    ).toBeTruthy();
+    expect(
+      screen.getByText('settings.fieldDetail.cropStatuses.harvested'),
+    ).toBeTruthy();
+    expect(mockedGetFieldCrops).toHaveBeenCalledWith(0, 100, 'field-token', {
+      field_id: 3,
+    });
+    expect(mockedGetCrops).toHaveBeenCalledWith(0, 100, 'field-token');
+  });
+
+  it('shows field-crop loading errors without hiding the field', async () => {
+    mockedGetFieldCrops.mockRejectedValue(new Error('Cultius no disponibles'));
+
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Cultius no disponibles')).toBeTruthy();
+    });
+    expect(screen.getByText('Hort')).toBeTruthy();
+  });
+
+  it('shows an error when crop loading has no auth token', async () => {
+    mockedGetAuth.mockResolvedValueOnce(
+      null as Awaited<ReturnType<typeof getAuth>>,
+    );
+    render(<FieldDetailScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('Not authenticated')).toBeTruthy(),
+    );
+    expect(mockedGetFieldCrops).not.toHaveBeenCalled();
+  });
+
+  it('uses a fallback message for non-Error crop failures', async () => {
+    mockedGetFieldCrops.mockRejectedValue('offline');
+    render(<FieldDetailScreen />);
+    await waitFor(() =>
+      expect(screen.getByText('settings.errors.loadCrops')).toBeTruthy(),
+    );
+  });
+
+  it('clears an invalid session after crop requests', async () => {
+    mockIsAuthError.mockReturnValue(true);
+    mockedGetFieldCrops.mockRejectedValue(new Error('Not authenticated'));
+    render(<FieldDetailScreen />);
+    await waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/auth/login');
     });
   });
 

@@ -50,6 +50,11 @@ jobs:
           DSQL_HOST: ${{ secrets.DSQL_HOST }}
           REGION : ${{secrets.REGION}}
           OPENWEATHER_API_KEY: ${{secrets.OPENWEATHER_API_KEY}}
+          GEMINI_API_KEY : ${{secrets.GEMINI_API_KEY}}
+          MODEL_USE_IN_RECOMENDATION: ${{secrets.MODEL_USE_IN_RECOMENDATION}}
+          AI_LIMIT_USAGE: ${{secrets.AI_LIMIT_USAGE}}
+          FORUM_RATE_LIMIT: ${{secrets.FORUM_RATE_LIMIT}}
+
         run: >
             uv run pytest 
             -v --cov 
@@ -71,7 +76,7 @@ jobs:
 
       - name: Run frontend unit tests with coverage
         working-directory: ./agritwin-app
-        run: npx jest __tests__ --coverage
+        run: npx jest __tests__ --coverage --runInBand
       
       - name: Verify frontend coverage report
         working-directory: ./agritwin-app

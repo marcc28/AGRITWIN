@@ -3,7 +3,35 @@
     "error": "Error",
     "success": "Èxit"
   },
-
+  "home": {
+    "titleFirst": "El teu hort,",
+    "titleSecond": "cada dia millor.",
+    "subtitle": "Tasques, temps i cultius adaptats al teu hort."
+  },
+  "tabs": {
+    "home": "Inici",
+    "explore": "Explorar",
+    "market": "Mercat",
+    "profile": "Perfil",
+    "clover": "Trèvol",
+    "calendar": "Calendari"
+  },
+  "fieldCrops": {
+    "title": "Els meus cultius",
+    "loadError": "No s'han pogut carregar els cultius.",
+    "retry": "Torna-ho a provar",
+    "empty": "Encara no tens cap cultiu plantat en aquesta zona.",
+    "crop": "Cultiu #{{id}}",
+    "planted": "Plantat",
+    "noDate": "Data no disponible",
+    "expectedHarvest": "Collita prevista",
+    "status": "Estat",
+    "statuses": {
+      "planned": "Planificat",
+      "planted": "Plantat",
+      "harvested": "Collit"
+    }
+  },
   "login": {
     "title": "Inicia sessió",
     "username": "Nom d'usuari",
@@ -19,25 +47,19 @@
       "invalidCredentials": "Contrasenya incorrecta. Fes sign up si no tens compte."
     }
   },
-
   "signup": {
     "title": "Crear compte",
     "username": "Nom d'usuari",
     "email": "Correu electrònic",
     "password": "Contrasenya",
     "passwordConfirmation": "Repetir contrasenya",
-
     "acceptPrivacy": "Accepto la Privacy Notice",
     "acceptSecurity": "Accepto la Security Policy",
-
     "socialLogin": "O inicia sessió amb",
-
     "logIn": "Iniciar sessió",
     "signUp": "Crear compte",
     "creatingAccount": "Creant compte...",
-
     "success": "El compte s'ha creat correctament",
-
     "errors": {
       "requiredFields": "Omple tots els camps",
       "invalidEmail": "Format de correu electrònic incorrecte",
@@ -46,7 +68,6 @@
       "securityRequired": "Has d'acceptar la Security Policy",
       "createFailed": "No s'ha pogut crear el compte"
     },
-
     "legal": {
       "privacy": "Privacy Notice",
       "security": "Security Policy",
@@ -56,7 +77,6 @@
       "loadError": "No s'ha pogut carregar el document"
     }
   },
-
   "settings": {
     "title": "Perfil",
     "eyebrow": "PERFIL D'USUARI",
@@ -119,6 +139,13 @@
       "edit": "Editar",
       "devices": "Dispositius",
       "noDevices": "Aquest camp encara no té cap dispositiu.",
+      "crops": "Cultius",
+      "noCrops": "Aquest camp encara no té cap cultiu.",
+      "cropStatuses": {
+        "planned": "Planificat",
+        "planted": "Plantat",
+        "harvested": "Collit"
+      },
       "devicePopupTitle": "Detalls del dispositiu",
       "devicePopupClose": "Tancar",
       "deviceStatus": "Estat",
@@ -174,6 +201,7 @@
       "loadData": "No s’han pogut carregar les dades",
       "gardenNotFound": "No s’ha trobat aquest jardí",
       "loadGarden": "No s’ha pogut carregar el jardí",
+      "loadCrops": "No s’han pogut carregar els cultius",
       "invalidId": "Identificador invàlid",
       "nameRequired": "El nom és obligatori",
       "sizeNumber": "La mida ha de ser un número",
@@ -215,6 +243,29 @@
         "deviceSaveFailed": "No s’han pogut guardar els dispositius",
         "createFailed": "No s’ha pogut crear el camp"
       }
+    },
+    "manageCrops": {
+      "title": "Cultius",
+      "hint": "Gestiona els cultius d’aquest camp.",
+      "cropType": "Tipus de cultiu",
+      "selectCrop": "Selecciona un cultiu",
+      "noAvailableCrops": "No hi ha més cultius per afegir.",
+      "plantedAt": "Data de plantació",
+      "expectedHarvestAt": "Collita prevista",
+      "selectDate": "Selecciona una data",
+      "notes": "Notes",
+      "notesPlaceholder": "Detalls sobre aquest cultiu",
+      "adding": "Afegint…",
+      "saveCrop": "Desar cultiu",
+      "addCrop": "Afegir un cultiu",
+      "removeCrop": "Eliminar {{crop}}",
+      "errors": {
+        "selectCrop": "Selecciona un cultiu primer",
+        "invalidDate": "Les dates han de tenir el format AAAA-MM-DD",
+        "harvestBeforePlanting": "La collita prevista no pot ser anterior a la plantació",
+        "addFailed": "Error afegint el cultiu",
+        "removeFailed": "Error eliminant el cultiu"
+      }
     }
   },
   "languages": {
@@ -228,7 +279,9 @@
     "news": "Notícies",
     "buy": "Compra",
     "units": "unitats",
-    "errors": { "loadFailed": "No s'han pogut carregar les dades del mercat" }
+    "errors": {
+      "loadFailed": "No s'han pogut carregar les dades del mercat"
+    }
   },
   "weather": {
     "subtitle": "Previsió del temps",
@@ -254,6 +307,9 @@
     "noField": "Encara no tens cap camp. Crea'n un per veure el temps.",
     "noData": "No hi ha dades del temps per a aquesta ubicació",
     "back": "Inici",
+    "alertsTitle": "Alertes meteorològiques",
+    "noAlerts": "No hi ha alertes per al teu hort",
+    "close": "Tanca",
     "uvLevels": {
       "low": "Baix",
       "moderate": "Moderat",
@@ -263,5 +319,37 @@
     },
     "weekdays": ["dg.", "dl.", "dt.", "dc.", "dj.", "dv.", "ds."],
     "compass": ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
+  },
+  "recommendations": {
+    "screenTitle": "Recomanacions",
+    "title": "Recomanacions del camp",
+    "subtitle": "Consells pràctics basats en les dades del teu camp.",
+    "field": "Camp",
+    "loading": "Carregant recomanacions…",
+    "loadError": "No s’han pogut carregar les recomanacions. Comprova la connexió i torna-ho a provar.",
+    "retry": "Torna-ho a provar",
+    "emptyTitle": "Encara no hi ha recomanacions",
+    "emptyDescription": "Quan hi hagi prou dades del camp, aquí hi veuràs recomanacions útils.",
+    "results": "{{count}} recomanacions",
+    "basedOn": "Basat en",
+    "generatedAt": "Generada",
+    "expiresAt": "Caduca",
+    "open": "Obre les recomanacions del camp",
+    "back": "Enrere",
+    "categories": {
+      "soil": "Sòl",
+      "irrigation": "Reg",
+      "crops": "Cultius",
+      "fertilization": "Fertilització",
+      "pests": "Plagues",
+      "weather": "Temps",
+      "general": "General"
+    },
+    "severities": {
+      "info": "Informació",
+      "low": "Baixa",
+      "medium": "Mitjana",
+      "high": "Alta"
+    }
   }
 }

@@ -7,7 +7,20 @@ from fastapi.responses import JSONResponse
 from mangum import Mangum
 from starlette.middleware.sessions import SessionMiddleware
 
-from api.v1 import anunces, auth, content_market, dashboard, fields, legal, user, weather
+from api.v1 import (
+    anunces,
+    auth,
+    content_market,
+    crops,
+    crops_field,
+    dashboard,
+    field_recommendations,
+    fields,
+    legal,
+    payments,
+    user,
+    weather,
+)
 
 load_dotenv()
 
@@ -28,18 +41,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
 
     response.headers["Strict-Transport-Security"] = "max-age=31536000"
-    response.headers["Cache-Control"] = (
-        "no-store, no-cache, must-revalidate, private"
-    )
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
 
     return response
+
 
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(legal.router, prefix="/api/v1")
@@ -48,11 +61,26 @@ app.include_router(anunces.router, prefix="/api/v1")
 app.include_router(content_market.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(fields.router, prefix="/api/v1")
+app.include_router(field_recommendations.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
+app.include_router(
+    payments.router,
+    prefix="/api/v1/payments",
+    tags=["payments"],
+)
+
+app.include_router(crops_field.router, prefix="/api/v1/crops")
+app.include_router(crops.router, prefix="/api/v1")
+app.include_router(
+    field_recommendations.router,
+    prefix="/api/v1",
+)
+
 
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):
     return JSONResponse(content=None, status_code=200)
+
 
 # AWS Lambda handler
 handler = Mangum(app)

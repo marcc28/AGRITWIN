@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { Stack, router, useSegments } from 'expo-router';
 
-import { getFields, isAuthError } from '../services/api';
+import { isAuthError } from '../services/api';
 import { clearAuth, getAuth } from '../services/auth';
+import { loadGardenPickerFields } from '../services/gardenPicker';
 import '../../i18n';
 
 export default function RootLayout() {
@@ -36,7 +37,7 @@ export default function RootLayout() {
 
     async function sendToApp() {
       try {
-        const fields = await getFields();
+        const fields = await loadGardenPickerFields();
         if (!active) {
           return;
         }
@@ -53,7 +54,7 @@ export default function RootLayout() {
 
     async function keepCreateFieldIfNeeded() {
       try {
-        const fields = await getFields();
+        const fields = await loadGardenPickerFields();
         if (!active) {
           return;
         }
