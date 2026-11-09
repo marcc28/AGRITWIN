@@ -18,6 +18,8 @@ Download the `security-report-<run>-<attempt>` artifact from the workflow run:
 - `execution-report.html` and `.json`: execution provenance, results and errors.
 - `manifest.json`: source commit, target, tool versions and image digest.
 - `coverage.json`: observed response statuses and omitted operations/reasons.
+- `external-analyses.json`: existing Sonar measures/quality gate and CodeQL
+  alerts, analysis dates, categories and associated workflow revisions.
 - `zap-baseline.html` and `.json`: normalized baseline alerts.
 - `zap-api.html` and `.json`: normalized passive API alerts.
 - `sprint-summary.md` and `.json`: comparison to the previous available successful
@@ -32,15 +34,20 @@ for longer sprint records as needed.
 
 - The source commit identifies the reporting configuration, not necessarily
   the deployed application revision. The deployed revision remains unverified.
-- Authentication is not configured. Cross-user access, authenticated behavior,
-  mutations, MQTT, Sonar and CodeQL are not validated by this workflow.
+- Application authentication is not configured. Cross-user access,
+  authenticated behavior, mutations and MQTT are not validated by this workflow.
 - A completed run with alerts is successful report generation, not a claim
   that the application is secure. Findings require review.
 - Operational scanner errors or missing reports fail the final check after
   available reports are uploaded.
 - Alerts no longer observed are not automatically marked fixed. Confirm
   coverage and retest before closing findings.
-- The existing Sonar and CodeQL workflows remain separate sources of evidence.
+- Sonar and CodeQL remain separate analyses. Their latest available results
+  are read and included without starting either scanner. CodeQL stays weekly.
+  Results from a different branch/revision do not validate the current commit.
+  Unavailable data is explicit and never treated as zero findings.
+- Sonar is queried through its public read API without additional credentials.
+  CodeQL uses the runner token with read-only security-event permission.
 
 The workflow runs for the configured branch pushes and PRs. Manual dispatch
 and the weekly schedule become available when the workflow is present in the

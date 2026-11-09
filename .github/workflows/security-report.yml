@@ -23,6 +23,7 @@ on:
 permissions:
   contents: read
   actions: read
+  security-events: read
 
 concurrency:
   group: deployed-security-report
@@ -70,7 +71,14 @@ jobs:
             gh run download "$previous_run" --pattern 'security-report-*' --dir reports/previous || printf 'Previous report is unavailable; comparison will be recorded as an initial snapshot.\n'
           fi
 
-      - name: Generate HTML, JSON and sprint reports
+      - name: Collect existing Sonar and weekly CodeQL results
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: python scripts/security/collect_analysis_results.py
+
+      - name: Generate consolidated HTML, JSON and sprint reports
         if: always()
         run: python scripts/security/deployed_security_report.py finalize
 

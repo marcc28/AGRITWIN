@@ -264,6 +264,21 @@ def html_report(title, paragraphs, findings):
 
 def finalize():
     report = json.loads((OUTPUT / "manifest.json").read_text())
+    external_path = OUTPUT / "external-analyses.json"
+    external = json.loads(external_path.read_text()) if external_path.is_file() else {}
+    external_paragraphs = []
+    for name in ("sonar", "codeql"):
+        entry = external.get(name, {"status": "unavailable", "reason": "No external result was collected"})
+        report["checks"][name] = "external_results_available" if entry["status"] == "available" else "external_results_unavailable"
+        if entry["status"] != "available":
+            external_paragraphs.append(f"{name}: results unavailable. {entry.get('reason', entry['status'])}. This is not a zero-alert result.")
+        elif name == "sonar":
+            workflow = entry.get("associated_workflow") or {}
+            external_paragraphs.append(f"Sonar: branch {entry['analysis_branch']}; quality gate {entry['quality_gate']}; overall vulnerabilities {entry['vulnerabilities']}; rating {entry['security_rating']}; hotspots {entry['security_hotspots']}. Analysis date: {entry.get('analysis_date') or 'unavailable'}. Associated workflow commit: {workflow.get('commit') or 'unavailable'}; server-side revision is not verified.")
+        else:
+            snapshots = "; ".join(f"{a['category']}: {a['commit']} at {a['created_at']}" for a in entry["latest_analyses"])
+            external_paragraphs.append(f"CodeQL: existing weekly results on {entry['analysis_branch']}; open alerts {entry['open_alerts']}. {snapshots}. This workflow did not start a new CodeQL scan.")
+    report["external_analyses"] = external
     merged = {}
     for name, check in (("zap-baseline", "zap_baseline"), ("zap-api", "zap_api")):
         exit_file = WORK / f"{name}.exit"
@@ -282,7 +297,8 @@ def finalize():
             ))
             for finding in parsed["findings"]:
                 if finding["id"] in merged:
-                    merged[finding["id"]]["sources"].append(name)
+                    if name not in merged[finding["id"]]["sources"]:
+                        merged[finding["id"]]["sources"].append(name)
                 else:
                     merged[finding["id"]] = finding
         except Exception as error:
@@ -309,8 +325,8 @@ def finalize():
         f"Deployment: {TARGET}. Deployed commit is unverified; this is not a test instance of the source commit.",
         f"Observed endpoints: {len(report['observed_endpoints'])}. Unique alerts: {len(merged)}.",
         "Anonymous GET-only coverage. No active attacks, form submission, write operations, cross-user permission tests or MQTT tests.",
-        "Sonar and CodeQL remain separate workflows; their results are not represented as passing here.",
-    ] + report["errors"]
+        "ZAP alerts below are separate from Sonar and CodeQL snapshots. The tools may have analyzed different source revisions.",
+    ] + external_paragraphs + report["errors"]
     (OUTPUT / "execution-report.html").write_text(html_report("AGRITWIN security execution report", paragraphs, report["findings"]))
     previous = None
     for path in sorted(Path("reports/previous").rglob("execution-report.json")):
@@ -328,6 +344,7 @@ def finalize():
         "still_observed": sorted(current_ids & old_ids),
         "not_observed_again": sorted(old_ids - current_ids) if report["execution_status"] != "error" else [],
         "closure_policy": "Disappearing alerts are not confirmed fixes. Review coverage and retest before closing.",
+        "external_analyses": external,
     }
     write_json(OUTPUT / "sprint-summary.json", snapshot)
     lines = ["# AGRITWIN Sprint Security Summary", "", f"- Source commit: `{report['commit']}`", f"- Execution status: {report['execution_status']}", f"- Comparison: {snapshot['comparison_status']}", f"- Previous comparable run: {snapshot['baseline_run_id'] or 'not available'}", f"- Current alert counts: {report['severity_counts']}", f"- Newly observed: {len(snapshot['newly_observed'])}", f"- Still observed: {len(snapshot['still_observed'])}", f"- Not observed again: {len(snapshot['not_observed_again'])}", "", "## Scope and decisions", "", *[f"- {p}" for p in paragraphs], "", "No application fixes are applied. Each alert requires evaluation and a recorded decision.", "Disappearing alerts are not confirmed fixes; compare coverage and verify the deployed revision before closure.", "", "## Current alerts", ""]
