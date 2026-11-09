@@ -230,7 +230,9 @@ describe('AppHeader', () => {
     jest.useFakeTimers();
     try {
       render(<AppHeader />);
-      await waitFor(() => expect(mockedLoadGardenPickerFields).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalled(),
+      );
       mockedLoadGardenPickerFields.mockClear();
 
       await act(async () => {
@@ -249,7 +251,9 @@ describe('AppHeader', () => {
     jest.useFakeTimers();
     try {
       render(<AppHeader />);
-      await waitFor(() => expect(mockedLoadGardenPickerFields).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalled(),
+      );
       mockedLoadGardenPickerFields.mockRejectedValueOnce(new Error('expired'));
       mockedIsAuthError.mockReturnValue(true);
 
@@ -270,7 +274,9 @@ describe('AppHeader', () => {
     jest.useFakeTimers();
     try {
       render(<AppHeader />);
-      await waitFor(() => expect(mockedLoadGardenPickerFields).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalled(),
+      );
       mockedLoadGardenPickerFields.mockClear();
       mockedGetAuth.mockResolvedValueOnce(null);
 

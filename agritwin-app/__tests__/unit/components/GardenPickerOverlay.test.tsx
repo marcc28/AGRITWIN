@@ -68,10 +68,7 @@ describe('GardenPickerOverlay', () => {
   it('shows an Arduino dot on each garden from the cached list', () => {
     setGardenPicker({
       open: true,
-      fields: [
-        field(1, 'Hort', 2, 2),
-        field(2, 'Camp', 0, 1),
-      ],
+      fields: [field(1, 'Hort', 2, 2), field(2, 'Camp', 0, 1)],
       currentId: 1,
     });
     render(<GardenPickerOverlay />);

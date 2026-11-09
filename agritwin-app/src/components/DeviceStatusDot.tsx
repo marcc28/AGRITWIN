@@ -5,11 +5,7 @@ import {
   type DeviceHealth,
 } from '@/services/deviceHealth';
 
-export default function DeviceStatusDot({
-  health,
-}: {
-  health: DeviceHealth;
-}) {
+export default function DeviceStatusDot({ health }: { health: DeviceHealth }) {
   return (
     <View
       testID={`device-health-${health}`}
