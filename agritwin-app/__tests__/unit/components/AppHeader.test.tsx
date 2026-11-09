@@ -34,6 +34,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 jest.mock('../../../src/services/api', () => ({
   getFields: jest.fn(),
   isAuthError: jest.fn(() => false),
@@ -111,6 +117,175 @@ describe('AppHeader', () => {
       },
     ]);
     mockedLoadGardenPickerFields.mockImplementation(() => mockedGetFields());
+  });
+
+  it('shows the Arduino dot from the garden list', async () => {
+    mockedGetFields.mockResolvedValue([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 2,
+        devices_online: 1,
+      },
+      {
+        id: 4,
+        name: 'Camp',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 0,
+        devices_online: 0,
+      },
+    ]);
+
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('device-health-partial')).toBeTruthy();
+      expect(
+        screen.getByLabelText('settings.deviceHealth.partial'),
+      ).toBeTruthy();
+    });
+  });
+
+  it('shows a green Arduino dot when every board is online', async () => {
+    mockedGetFields.mockResolvedValue([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 2,
+        devices_online: 2,
+      },
+      {
+        id: 4,
+        name: 'Camp',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 1,
+        devices_online: 0,
+      },
+    ]);
+
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('device-health-ok')).toBeTruthy();
+    });
+  });
+
+  it('shows a red Arduino dot when no board is online', async () => {
+    mockedGetFields.mockResolvedValue([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 0,
+        devices_online: 0,
+      },
+      {
+        id: 4,
+        name: 'Camp',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 1,
+        devices_online: 1,
+      },
+    ]);
+
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('device-health-down')).toBeTruthy();
+    });
+  });
+
+  it('hides the Arduino dot when devices_online is missing', async () => {
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Hort')).toBeTruthy();
+    });
+    expect(screen.queryByTestId('device-health-ok')).toBeNull();
+    expect(screen.queryByTestId('device-health-partial')).toBeNull();
+    expect(screen.queryByTestId('device-health-down')).toBeNull();
+  });
+
+  it('refreshes the garden list every 20 seconds while the header is open', async () => {
+    jest.useFakeTimers();
+    try {
+      render(<AppHeader />);
+      await waitFor(() => expect(mockedLoadGardenPickerFields).toHaveBeenCalled());
+      mockedLoadGardenPickerFields.mockClear();
+
+      await act(async () => {
+        jest.advanceTimersByTime(20000);
+      });
+
+      await waitFor(() => {
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalledWith(true);
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('routes to login if the periodic refresh finds an expired session', async () => {
+    jest.useFakeTimers();
+    try {
+      render(<AppHeader />);
+      await waitFor(() => expect(mockedLoadGardenPickerFields).toHaveBeenCalled());
+      mockedLoadGardenPickerFields.mockRejectedValueOnce(new Error('expired'));
+      mockedIsAuthError.mockReturnValue(true);
+
+      await act(async () => {
+        jest.advanceTimersByTime(20000);
+      });
+
+      await waitFor(() => {
+        expect(clearAuth).toHaveBeenCalled();
+        expect(router.replace).toHaveBeenCalledWith('/auth/login');
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('skips the periodic refresh when there is no session', async () => {
+    jest.useFakeTimers();
+    try {
+      render(<AppHeader />);
+      await waitFor(() => expect(mockedLoadGardenPickerFields).toHaveBeenCalled());
+      mockedLoadGardenPickerFields.mockClear();
+      mockedGetAuth.mockResolvedValueOnce(null);
+
+      await act(async () => {
+        jest.advanceTimersByTime(20000);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockedLoadGardenPickerFields).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('shows AGRITWIN and the current garden', async () => {
