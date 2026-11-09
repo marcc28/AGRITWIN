@@ -132,6 +132,11 @@
     "size": "Tamaño (m²)",
     "loading": "Cargando…",
     "saving": "Guardando…",
+    "deviceHealth": {
+      "ok": "Todos los Arduino funcionan",
+      "partial": "Alguno de los Arduino no funciona",
+      "down": "Ningún Arduino funciona"
+    },
     "fieldDetail": {
       "back": "Mis jardines",
       "eyebrow": "INFORMACIÓN DEL CAMPO",

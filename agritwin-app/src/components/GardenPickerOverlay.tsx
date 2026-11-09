@@ -2,8 +2,14 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/constants/theme';
+import DeviceStatusDot from '@/components/DeviceStatusDot';
+import {
+  DEVICE_HEALTH_LABEL,
+  deviceHealthFromCounts,
+} from '@/services/deviceHealth';
 import { setCurrentField } from '@/services/currentField';
 import {
   getGardenPicker,
@@ -33,6 +39,7 @@ export default function GardenPickerOverlay() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [picker, setPicker] = useState(getGardenPicker);
 
   useEffect(() => {
@@ -108,6 +115,27 @@ export default function GardenPickerOverlay() {
                 opacity: pressed ? 0.7 : 1,
               })}
             >
+              {field.devices_online == null ? null : (
+                <View
+                  accessible
+                  accessibilityLabel={t(
+                    DEVICE_HEALTH_LABEL[
+                      deviceHealthFromCounts(
+                        field.device_count,
+                        field.devices_online,
+                      )
+                    ],
+                  )}
+                  style={{ marginRight: 8 }}
+                >
+                  <DeviceStatusDot
+                    health={deviceHealthFromCounts(
+                      field.device_count,
+                      field.devices_online,
+                    )}
+                  />
+                </View>
+              )}
               <Text
                 numberOfLines={1}
                 style={{

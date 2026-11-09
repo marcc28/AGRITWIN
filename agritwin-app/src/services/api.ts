@@ -314,6 +314,7 @@ export type Field = {
   soil_type: string | null;
   size_m2: number | null;
   device_count: number;
+  devices_online?: number;
 };
 
 export type FieldPayload = {
@@ -413,6 +414,9 @@ export async function getFields(): Promise<Field[]> {
     ...field,
     id: Number(field.id),
     device_count: Number(field.device_count),
+    ...(field.devices_online == null
+      ? {}
+      : { devices_online: Number(field.devices_online) }),
   }));
 }
 
