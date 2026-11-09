@@ -227,7 +227,7 @@ describe('AppHeader', () => {
   });
 
   it('refreshes the garden list every 20 seconds while the header is open', async () => {
-    jest.useFakeTimers();
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
     try {
       render(<AppHeader />);
       await waitFor(() =>
@@ -235,20 +235,26 @@ describe('AppHeader', () => {
       );
       mockedLoadGardenPickerFields.mockClear();
 
+      const refreshCall = setIntervalSpy.mock.calls.find(
+        (call) => call[1] === 20000,
+      );
+      expect(refreshCall).toBeTruthy();
+      const refresh = refreshCall?.[0] as () => void;
+
       await act(async () => {
-        jest.advanceTimersByTime(20000);
+        refresh();
       });
 
       await waitFor(() => {
         expect(mockedLoadGardenPickerFields).toHaveBeenCalledWith(true);
       });
     } finally {
-      jest.useRealTimers();
+      setIntervalSpy.mockRestore();
     }
   });
 
   it('routes to login if the periodic refresh finds an expired session', async () => {
-    jest.useFakeTimers();
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
     try {
       render(<AppHeader />);
       await waitFor(() =>
@@ -257,8 +263,13 @@ describe('AppHeader', () => {
       mockedLoadGardenPickerFields.mockRejectedValueOnce(new Error('expired'));
       mockedIsAuthError.mockReturnValue(true);
 
+      const refreshCall = setIntervalSpy.mock.calls.find(
+        (call) => call[1] === 20000,
+      );
+      const refresh = refreshCall?.[0] as () => void;
+
       await act(async () => {
-        jest.advanceTimersByTime(20000);
+        refresh();
       });
 
       await waitFor(() => {
@@ -266,12 +277,12 @@ describe('AppHeader', () => {
         expect(router.replace).toHaveBeenCalledWith('/auth/login');
       });
     } finally {
-      jest.useRealTimers();
+      setIntervalSpy.mockRestore();
     }
   });
 
   it('skips the periodic refresh when there is no session', async () => {
-    jest.useFakeTimers();
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
     try {
       render(<AppHeader />);
       await waitFor(() =>
@@ -280,17 +291,19 @@ describe('AppHeader', () => {
       mockedLoadGardenPickerFields.mockClear();
       mockedGetAuth.mockResolvedValueOnce(null);
 
-      await act(async () => {
-        jest.advanceTimersByTime(20000);
-      });
+      const refreshCall = setIntervalSpy.mock.calls.find(
+        (call) => call[1] === 20000,
+      );
+      const refresh = refreshCall?.[0] as () => void;
 
       await act(async () => {
+        refresh();
         await Promise.resolve();
       });
 
       expect(mockedLoadGardenPickerFields).not.toHaveBeenCalled();
     } finally {
-      jest.useRealTimers();
+      setIntervalSpy.mockRestore();
     }
   });
 
