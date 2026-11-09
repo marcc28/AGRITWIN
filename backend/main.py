@@ -40,13 +40,21 @@ CORS_ORIGINS = [
 
 app = FastAPI(title="AgriTwin")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("SECRET_KEY environment variable is not set")
 
-app.add_middleware(SessionMiddleware, secret_key=secret_key)
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=secret_key,
+    session_cookie="agritwin_session",
+    max_age=60 * 60 * 24 * 14,
+    same_site="lax",
+    https_only=(ENVIRONMENT == "production"),
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -54,7 +62,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
@@ -89,11 +96,6 @@ app.include_router(
 
 app.include_router(crops_field.router, prefix="/api/v1/crops")
 app.include_router(crops.router, prefix="/api/v1")
-app.include_router(
-    field_recommendations.router,
-    prefix="/api/v1",
-)
-
 
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):

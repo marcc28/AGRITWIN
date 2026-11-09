@@ -1,3 +1,6 @@
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // --------------------------------------------------
@@ -13,9 +16,8 @@ export type SocialLoginSuccess = {
 export type SocialSignupRequired = {
   status: 'signup_required';
   signup_token: string;
-  email?: string;
+  email: string;
   name: string;
-  provider?: string;
 };
 
 export type SocialLoginResponse = SocialLoginSuccess | SocialSignupRequired;
@@ -31,7 +33,7 @@ export type XSignupRequired = {
   status: 'signup_required';
   signup_token: string;
   name: string;
-  email?: string;
+  email: string;
 };
 
 
@@ -48,7 +50,7 @@ export type FacebookSignupRequired = {
   status: 'signup_required';
   signup_token: string;
   name: string;
-  email?: string;
+  email: string;
 };
 
 export type FacebookLoginResponse =
@@ -99,7 +101,6 @@ export async function completeSocialSignup(
   username: string,
   privacyAccepted: boolean,
   securityAccepted: boolean,
-  email?: string,
 ) {
   const response = await fetch(`${API_URL}/api/v1/social/signup`, {
     method: 'POST',
@@ -111,7 +112,6 @@ export async function completeSocialSignup(
       username,
       privacy_terms_accepted: privacyAccepted,
       security_terms_accepted: securityAccepted,
-      ...(email ? { email } : {}),
     }),
   });
 
