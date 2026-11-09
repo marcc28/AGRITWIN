@@ -1,4 +1,3 @@
-
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
@@ -181,9 +180,7 @@ describe('auth service', () => {
       });
 
       expect(localStorageMock.getItem).toHaveBeenCalledWith(TOKEN_KEY);
-      expect(localStorageMock.getItem).toHaveBeenCalledWith(
-        REFRESH_TOKEN_KEY,
-      );
+      expect(localStorageMock.getItem).toHaveBeenCalledWith(REFRESH_TOKEN_KEY);
       expect(localStorageMock.getItem).toHaveBeenCalledWith(USERNAME_KEY);
     });
 
@@ -242,20 +239,14 @@ describe('auth service', () => {
         username: 'testuser',
       });
 
-      expect(SecureStore.getItemAsync).toHaveBeenNthCalledWith(
-        1,
-        TOKEN_KEY,
-      );
+      expect(SecureStore.getItemAsync).toHaveBeenNthCalledWith(1, TOKEN_KEY);
 
       expect(SecureStore.getItemAsync).toHaveBeenNthCalledWith(
         2,
         REFRESH_TOKEN_KEY,
       );
 
-      expect(SecureStore.getItemAsync).toHaveBeenNthCalledWith(
-        3,
-        USERNAME_KEY,
-      );
+      expect(SecureStore.getItemAsync).toHaveBeenNthCalledWith(3, USERNAME_KEY);
     });
 
     it('should return null when access token does not exist', async () => {
@@ -352,9 +343,9 @@ describe('auth service', () => {
         new Error('SecureStore write failed'),
       );
 
-      await expect(
-        setAuth('testuser', 'access-token'),
-      ).rejects.toThrow('SecureStore write failed');
+      await expect(setAuth('testuser', 'access-token')).rejects.toThrow(
+        'SecureStore write failed',
+      );
     });
 
     it('should propagate SecureStore getItemAsync errors', async () => {
@@ -374,9 +365,7 @@ describe('auth service', () => {
         new Error('SecureStore delete failed'),
       );
 
-      await expect(clearAuth()).rejects.toThrow(
-        'SecureStore delete failed',
-      );
+      await expect(clearAuth()).rejects.toThrow('SecureStore delete failed');
     });
 
     it('should propagate clearCurrentField errors', async () => {

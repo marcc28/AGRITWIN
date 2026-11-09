@@ -51,8 +51,6 @@ class PasswordUpdate(BaseModel):
     new_password_conf: str
 
 
-
-
 class SocialLoginRequest(BaseModel):
     id_token: str = Field(min_length=1)
 

@@ -30,9 +30,7 @@ def make_httpx_client_mock(responses):
 def test_authorization_url_contains_required_parameters():
     url = fb.FacebookAuthService.authorization_url("state-value")
 
-    assert url.startswith(
-        "https://www.facebook.com/v21.0/dialog/oauth?"
-    )
+    assert url.startswith("https://www.facebook.com/v21.0/dialog/oauth?")
     assert "client_id=client-id" in url
     assert "redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Fcallback" in url
     assert "response_type=code" in url
@@ -66,9 +64,7 @@ async def test_fetch_identity_exchanges_code_and_returns_identity(monkeypatch):
         "email": "user@example.com",
     }
 
-    client, client_factory = make_httpx_client_mock(
-        [token_response, user_response]
-    )
+    client, client_factory = make_httpx_client_mock([token_response, user_response])
 
     monkeypatch.setattr(fb.httpx, "AsyncClient", client_factory)
 
@@ -83,9 +79,7 @@ async def test_fetch_identity_exchanges_code_and_returns_identity(monkeypatch):
     client_factory.assert_called_once_with(timeout=10.0)
 
     token_call = client.get.call_args_list[0]
-    assert token_call.args[0] == (
-        "https://graph.facebook.com/v21.0/oauth/access_token"
-    )
+    assert token_call.args[0] == ("https://graph.facebook.com/v21.0/oauth/access_token")
     assert token_call.kwargs["params"] == {
         "client_id": "client-id",
         "client_secret": "client-secret",
@@ -160,9 +154,7 @@ async def test_fetch_identity_handles_http_status_error(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_fetch_identity_handles_request_error(monkeypatch):
-    client, client_factory = make_httpx_client_mock(
-        [httpx.ConnectError("connection failed")]
-    )
+    client, client_factory = make_httpx_client_mock([httpx.ConnectError("connection failed")])
 
     monkeypatch.setattr(fb.httpx, "AsyncClient", client_factory)
 
@@ -188,9 +180,7 @@ async def test_fetch_identity_requires_facebook_id(monkeypatch):
         "email": "user@example.com",
     }
 
-    client, client_factory = make_httpx_client_mock(
-        [token_response, user_response]
-    )
+    client, client_factory = make_httpx_client_mock([token_response, user_response])
 
     monkeypatch.setattr(fb.httpx, "AsyncClient", client_factory)
 

@@ -57,17 +57,10 @@ async def test_facebook_login_stores_valid_app_redirect_uri(
     monkeypatch.setattr(
         facebook,
         "validate_app_redirect_uri",
-        MagicMock(
-            return_value=(
-                "https://localhost:8081/auth/oauth-callback"
-                "?provider=facebook"
-            )
-        ),
+        MagicMock(return_value=("https://localhost:8081/auth/oauth-callback?provider=facebook")),
     )
 
-    app_redirect_uri = (
-        "https://localhost:8081/auth/oauth-callback?provider=facebook"
-    )
+    app_redirect_uri = "https://localhost:8081/auth/oauth-callback?provider=facebook"
     request_mock.query_params = {
         "app_redirect_uri": app_redirect_uri,
     }
@@ -212,8 +205,7 @@ async def test_facebook_callback_returns_identity_without_app_redirect(
 
     assert response.status_code == 200
     assert response.body == (
-        b'{"provider":"facebook","id":"fb-123",'
-        b'"name":"Test User","email":"USER@example.com"}'
+        b'{"provider":"facebook","id":"fb-123","name":"Test User","email":"USER@example.com"}'
     )
 
     assert "facebook_oauth_state" not in request_mock.session
@@ -225,9 +217,7 @@ async def test_facebook_callback_redirects_with_ticket(
     monkeypatch,
     request_mock,
 ):
-    app_redirect_uri = (
-        "https://localhost:8081/auth/oauth-callback?provider=facebook"
-    )
+    app_redirect_uri = "https://localhost:8081/auth/oauth-callback?provider=facebook"
 
     request_mock.session["facebook_oauth_state"] = "expected-state"
     request_mock.session["facebook_app_redirect_uri"] = app_redirect_uri
@@ -259,8 +249,7 @@ async def test_facebook_callback_redirects_with_ticket(
         "add_ticket_to_redirect_uri",
         MagicMock(
             return_value=(
-                "https://localhost:8081/auth/oauth-callback"
-                "?provider=facebook&ticket=social-ticket"
+                "https://localhost:8081/auth/oauth-callback?provider=facebook&ticket=social-ticket"
             )
         ),
     )
@@ -269,8 +258,7 @@ async def test_facebook_callback_redirects_with_ticket(
 
     assert isinstance(response, RedirectResponse)
     assert response.headers["location"] == (
-        "https://localhost:8081/auth/oauth-callback"
-        "?provider=facebook&ticket=social-ticket"
+        "https://localhost:8081/auth/oauth-callback?provider=facebook&ticket=social-ticket"
     )
 
     facebook.create_social_auth_ticket.assert_awaited_once_with(

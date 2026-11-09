@@ -29,11 +29,10 @@ password_hash = PasswordHash.recommended()
 templates = Jinja2Templates(directory="templates")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/token")
 
+
 @router.get("/")
 async def login_page(request: Request):
     return templates.TemplateResponse(request=request, name="login.html", context={})
-
-
 
 
 async def get_user_service():

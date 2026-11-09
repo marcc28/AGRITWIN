@@ -104,7 +104,11 @@ export default function SocialLoginButtons({
         return;
       }
 
-      await setAuth(authResult.username, authResult.access_token, authResult.refresh_token);
+      await setAuth(
+        authResult.username,
+        authResult.access_token,
+        authResult.refresh_token,
+      );
       await routeAfterAuth();
     } catch (error) {
       console.error(`${provider} login error:`, error);
@@ -120,7 +124,11 @@ export default function SocialLoginButtons({
   };
 
   function providerLabel(provider: 'google' | 'x' | 'facebook') {
-    return provider === 'x' ? 'X' : provider === 'google' ? 'Google' : 'Facebook';
+    return provider === 'x'
+      ? 'X'
+      : provider === 'google'
+        ? 'Google'
+        : 'Facebook';
   }
 
   return (

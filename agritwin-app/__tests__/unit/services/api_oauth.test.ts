@@ -1,4 +1,3 @@
-
 const mockFetch = jest.fn();
 
 global.fetch = mockFetch as jest.Mock;
@@ -68,9 +67,9 @@ describe('api_oauth', () => {
         mockResponse({ detail: 'Invalid Google ticket' }, false),
       );
 
-      await expect(
-        exchangeGoogleLoginTicket('invalid-ticket'),
-      ).rejects.toThrow('Invalid Google ticket');
+      await expect(exchangeGoogleLoginTicket('invalid-ticket')).rejects.toThrow(
+        'Invalid Google ticket',
+      );
     });
 
     it('should use message when detail is not available', async () => {
@@ -78,35 +77,32 @@ describe('api_oauth', () => {
         mockResponse({ message: 'Google login failed' }, false),
       );
 
-      await expect(
-        exchangeGoogleLoginTicket('ticket'),
-      ).rejects.toThrow('Google login failed');
+      await expect(exchangeGoogleLoginTicket('ticket')).rejects.toThrow(
+        'Google login failed',
+      );
     });
 
     it('should use fallback error when no detail or message exists', async () => {
       mockFetch.mockResolvedValue(mockResponse({}, false));
 
-      await expect(
-        exchangeGoogleLoginTicket('ticket'),
-      ).rejects.toThrow('Google authentication failed');
+      await expect(exchangeGoogleLoginTicket('ticket')).rejects.toThrow(
+        'Google authentication failed',
+      );
     });
 
     it('should format validation errors from detail array', async () => {
       mockFetch.mockResolvedValue(
         mockResponse(
           {
-            detail: [
-              { msg: 'Field required' },
-              { msg: 'Invalid ticket' },
-            ],
+            detail: [{ msg: 'Field required' }, { msg: 'Invalid ticket' }],
           },
           false,
         ),
       );
 
-      await expect(
-        exchangeGoogleLoginTicket('ticket'),
-      ).rejects.toThrow('Field required, Invalid ticket');
+      await expect(exchangeGoogleLoginTicket('ticket')).rejects.toThrow(
+        'Field required, Invalid ticket',
+      );
     });
 
     it('should stringify validation items without msg', async () => {
@@ -119,9 +115,7 @@ describe('api_oauth', () => {
         ),
       );
 
-      await expect(
-        exchangeGoogleLoginTicket('ticket'),
-      ).rejects.toThrow(
+      await expect(exchangeGoogleLoginTicket('ticket')).rejects.toThrow(
         '{"type":"missing","loc":["body","ticket"]}',
       );
     });
@@ -173,17 +167,17 @@ describe('api_oauth', () => {
         mockResponse({ detail: 'Invalid ID token' }, false),
       );
 
-      await expect(
-        socialGoogleLogin('invalid-token'),
-      ).rejects.toThrow('Invalid ID token');
+      await expect(socialGoogleLogin('invalid-token')).rejects.toThrow(
+        'Invalid ID token',
+      );
     });
 
     it('should use fallback error message', async () => {
       mockFetch.mockResolvedValue(mockResponse({}, false));
 
-      await expect(
-        socialGoogleLogin('token'),
-      ).rejects.toThrow('Google authentication failed');
+      await expect(socialGoogleLogin('token')).rejects.toThrow(
+        'Google authentication failed',
+      );
     });
   });
 
@@ -225,12 +219,7 @@ describe('api_oauth', () => {
     it('should omit email when it is undefined', async () => {
       mockFetch.mockResolvedValue(mockResponse({ success: true }));
 
-      await completeSocialSignup(
-        'signup-token',
-        'testuser',
-        true,
-        false,
-      );
+      await completeSocialSignup('signup-token', 'testuser', true, false);
 
       expect(mockFetch).toHaveBeenCalledWith(
         `${API_URL}/api/v1/social/signup`,
@@ -248,13 +237,7 @@ describe('api_oauth', () => {
     it('should omit email when it is an empty string', async () => {
       mockFetch.mockResolvedValue(mockResponse({ success: true }));
 
-      await completeSocialSignup(
-        'signup-token',
-        'testuser',
-        true,
-        true,
-        '',
-      );
+      await completeSocialSignup('signup-token', 'testuser', true, true, '');
 
       const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body);
 
@@ -267,12 +250,7 @@ describe('api_oauth', () => {
       );
 
       await expect(
-        completeSocialSignup(
-          'signup-token',
-          'existinguser',
-          true,
-          true,
-        ),
+        completeSocialSignup('signup-token', 'existinguser', true, true),
       ).rejects.toThrow('Username already exists');
     });
 
@@ -280,12 +258,7 @@ describe('api_oauth', () => {
       mockFetch.mockResolvedValue(mockResponse({}, false));
 
       await expect(
-        completeSocialSignup(
-          'signup-token',
-          'testuser',
-          true,
-          true,
-        ),
+        completeSocialSignup('signup-token', 'testuser', true, true),
       ).rejects.toThrow('Could not complete social signup');
     });
   });
@@ -335,17 +308,17 @@ describe('api_oauth', () => {
         mockResponse({ detail: 'Invalid X ticket' }, false),
       );
 
-      await expect(
-        exchangeXLoginTicket('invalid-ticket'),
-      ).rejects.toThrow('Invalid X ticket');
+      await expect(exchangeXLoginTicket('invalid-ticket')).rejects.toThrow(
+        'Invalid X ticket',
+      );
     });
 
     it('should use fallback X error', async () => {
       mockFetch.mockResolvedValue(mockResponse({}, false));
 
-      await expect(
-        exchangeXLoginTicket('ticket'),
-      ).rejects.toThrow('X authentication failed');
+      await expect(exchangeXLoginTicket('ticket')).rejects.toThrow(
+        'X authentication failed',
+      );
     });
   });
 
@@ -402,9 +375,9 @@ describe('api_oauth', () => {
     it('should use fallback Facebook error', async () => {
       mockFetch.mockResolvedValue(mockResponse({}, false));
 
-      await expect(
-        exchangeFacebookLoginTicket('ticket'),
-      ).rejects.toThrow('Facebook authentication failed');
+      await expect(exchangeFacebookLoginTicket('ticket')).rejects.toThrow(
+        'Facebook authentication failed',
+      );
     });
   });
 
@@ -412,9 +385,9 @@ describe('api_oauth', () => {
     it('should propagate fetch network errors', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
-      await expect(
-        exchangeGoogleLoginTicket('ticket'),
-      ).rejects.toThrow('Network error');
+      await expect(exchangeGoogleLoginTicket('ticket')).rejects.toThrow(
+        'Network error',
+      );
     });
 
     it('should propagate JSON parsing errors', async () => {
@@ -423,9 +396,7 @@ describe('api_oauth', () => {
         json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
       });
 
-      await expect(
-        socialGoogleLogin('token'),
-      ).rejects.toThrow('Invalid JSON');
+      await expect(socialGoogleLogin('token')).rejects.toThrow('Invalid JSON');
     });
   });
 });

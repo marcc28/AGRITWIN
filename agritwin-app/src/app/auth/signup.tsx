@@ -379,9 +379,7 @@ export default function SignupScreen() {
             disabled={loading}
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {t('signup.logIn')}
-              </Text>
+              <Text style={styles.buttonText}>{t('signup.logIn')}</Text>
             </LinearGradient>
           </Pressable>
 

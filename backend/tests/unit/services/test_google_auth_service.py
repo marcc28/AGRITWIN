@@ -1,11 +1,8 @@
-
 from unittest.mock import AsyncMock, MagicMock
-
 from urllib.parse import parse_qs, urlsplit
 
 import httpx
 import pytest
-
 from fastapi import HTTPException
 
 from services import google_auth_service as google
@@ -85,6 +82,7 @@ def make_http_error():
 # AUTHORIZATION URL
 # =========================================================
 
+
 def test_authorization_url_contains_correct_parameters(
     monkeypatch,
     google_config,
@@ -99,9 +97,7 @@ def test_authorization_url_contains_correct_parameters(
     assert parsed.path == "/o/oauth2/v2/auth"
 
     assert params["client_id"] == ["google-client-id"]
-    assert params["redirect_uri"] == [
-        "https://backend.example.com/api/v1/callback"
-    ]
+    assert params["redirect_uri"] == ["https://backend.example.com/api/v1/callback"]
     assert params["response_type"] == ["code"]
     assert params["scope"] == ["openid email profile"]
     assert params["state"] == ["test-state"]
@@ -136,13 +132,10 @@ def test_authorization_url_fails_without_configuration(
 # EXCHANGE CODE
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_exchange_code_success(monkeypatch, google_config):
-    client = FakeAsyncClient(
-        responses=[
-            FakeResponse({"id_token": "google-id-token"})
-        ]
-    )
+    client = FakeAsyncClient(responses=[FakeResponse({"id_token": "google-id-token"})])
 
     monkeypatch.setattr(
         google.httpx,
@@ -150,9 +143,7 @@ async def test_exchange_code_success(monkeypatch, google_config):
         MagicMock(return_value=client),
     )
 
-    result = await google.GoogleAuthService.exchange_code(
-        "authorization-code"
-    )
+    result = await google.GoogleAuthService.exchange_code("authorization-code")
 
     assert result == "google-id-token"
 
@@ -165,9 +156,7 @@ async def test_exchange_code_success(monkeypatch, google_config):
         "code": "authorization-code",
         "client_id": "google-client-id",
         "client_secret": "google-client-secret",
-        "redirect_uri": (
-            "https://backend.example.com/api/v1/callback"
-        ),
+        "redirect_uri": ("https://backend.example.com/api/v1/callback"),
         "grant_type": "authorization_code",
     }
 
@@ -200,11 +189,7 @@ async def test_exchange_code_missing_id_token(
     monkeypatch,
     google_config,
 ):
-    client = FakeAsyncClient(
-        responses=[
-            FakeResponse({"access_token": "access-token"})
-        ]
-    )
+    client = FakeAsyncClient(responses=[FakeResponse({"access_token": "access-token"})])
 
     monkeypatch.setattr(
         google.httpx,
@@ -224,11 +209,7 @@ async def test_exchange_code_empty_id_token(
     monkeypatch,
     google_config,
 ):
-    client = FakeAsyncClient(
-        responses=[
-            FakeResponse({"id_token": ""})
-        ]
-    )
+    client = FakeAsyncClient(responses=[FakeResponse({"id_token": ""})])
 
     monkeypatch.setattr(
         google.httpx,
@@ -248,9 +229,7 @@ async def test_exchange_code_http_error(
     monkeypatch,
     google_config,
 ):
-    client = FakeAsyncClient(
-        responses=[make_http_error()]
-    )
+    client = FakeAsyncClient(responses=[make_http_error()])
 
     monkeypatch.setattr(
         google.httpx,
@@ -329,6 +308,7 @@ async def test_exchange_code_timeout(
 # IDENTITY FROM TOKEN
 # =========================================================
 
+
 def test_identity_from_token_success(
     monkeypatch,
     google_config,
@@ -349,9 +329,7 @@ def test_identity_from_token_success(
         verify,
     )
 
-    result = google.GoogleAuthService.identity_from_token(
-        "valid-id-token"
-    )
+    result = google.GoogleAuthService.identity_from_token("valid-id-token")
 
     assert result == {
         "sub": "google-user-123",
@@ -413,18 +391,14 @@ def test_identity_from_token_fails_without_allowed_client_ids(
         google.GoogleAuthService.identity_from_token("token")
 
     assert exc.value.status_code == 503
-    assert exc.value.detail == (
-        "Google sign-in is not configured on this server"
-    )
+    assert exc.value.detail == ("Google sign-in is not configured on this server")
 
 
 def test_identity_from_token_rejects_invalid_token(
     monkeypatch,
     google_config,
 ):
-    verify = MagicMock(
-        side_effect=ValueError("Invalid token")
-    )
+    verify = MagicMock(side_effect=ValueError("Invalid token"))
 
     monkeypatch.setattr(
         google.id_token,
@@ -479,9 +453,7 @@ def test_identity_from_token_rejects_incomplete_identity(
         google.GoogleAuthService.identity_from_token("token")
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == (
-        "Google account information is incomplete"
-    )
+    assert exc.value.detail == ("Google account information is incomplete")
 
 
 def test_identity_from_token_rejects_unverified_email(

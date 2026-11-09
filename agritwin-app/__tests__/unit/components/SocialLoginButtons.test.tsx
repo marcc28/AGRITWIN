@@ -22,8 +22,7 @@ import { routeAfterAuth } from '@/services/routeAfterAuth';
 // Configurar l'URL abans d'importar el component.
 process.env.EXPO_PUBLIC_API_URL = 'https://api.test.com';
 
-const SocialLoginButtons =
-  require('@/components/SocialLoginButtons').default;
+const SocialLoginButtons = require('@/components/SocialLoginButtons').default;
 
 jest.mock('expo-web-browser', () => ({
   maybeCompleteAuthSession: jest.fn(),
@@ -157,9 +156,15 @@ describe('SocialLoginButtons', () => {
   it('disables the social buttons when loading is true', () => {
     renderComponent(true);
 
-    expect(screen.getByTestId('google-button').props.accessibilityState.disabled).toBe(true);
-    expect(screen.getByTestId('facebook-button').props.accessibilityState.disabled).toBe(true);
-    expect(screen.getByTestId('x-button').props.accessibilityState.disabled).toBe(true);
+    expect(
+      screen.getByTestId('google-button').props.accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      screen.getByTestId('facebook-button').props.accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      screen.getByTestId('x-button').props.accessibilityState.disabled,
+    ).toBe(true);
   });
 
   it('does not launch OAuth when the buttons are disabled', () => {
@@ -201,12 +206,9 @@ describe('SocialLoginButtons', () => {
         redirectUri,
       );
 
-      expect(Linking.createURL).toHaveBeenCalledWith(
-        'auth/oauth-callback',
-        {
-          queryParams: { provider },
-        },
-      );
+      expect(Linking.createURL).toHaveBeenCalledWith('auth/oauth-callback', {
+        queryParams: { provider },
+      });
     },
   );
 
@@ -300,9 +302,7 @@ describe('SocialLoginButtons', () => {
     fireEvent.press(screen.getByTestId('google-button'));
 
     await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith(
-        'Google login ticket missing',
-      );
+      expect(onError).toHaveBeenCalledWith('Google login ticket missing');
       expect(onLoadingChange).toHaveBeenLastCalledWith(false);
     });
 
@@ -316,18 +316,14 @@ describe('SocialLoginButtons', () => {
   it('logs in successfully with Google', async () => {
     mockWebOAuthSuccess();
 
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      authResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(authResult);
 
     const { onLoadingChange, onError } = renderComponent();
 
     fireEvent.press(screen.getByTestId('google-button'));
 
     await waitFor(() => {
-      expect(exchangeGoogleLoginTicket).toHaveBeenCalledWith(
-        'ticket-123',
-      );
+      expect(exchangeGoogleLoginTicket).toHaveBeenCalledWith('ticket-123');
     });
 
     await waitFor(() => {
@@ -350,9 +346,7 @@ describe('SocialLoginButtons', () => {
       url: 'agritwin://auth/oauth-callback?ticket=facebook-ticket',
     });
 
-    (exchangeFacebookLoginTicket as jest.Mock).mockResolvedValue(
-      authResult,
-    );
+    (exchangeFacebookLoginTicket as jest.Mock).mockResolvedValue(authResult);
 
     renderComponent();
 
@@ -405,9 +399,7 @@ describe('SocialLoginButtons', () => {
   it('redirects to social signup when Google returns signup_token', async () => {
     mockWebOAuthSuccess();
 
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      signupResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(signupResult);
 
     renderComponent();
 
@@ -460,9 +452,7 @@ describe('SocialLoginButtons', () => {
       url: 'agritwin://auth/oauth-callback?ticket=facebook-ticket',
     });
 
-    (exchangeFacebookLoginTicket as jest.Mock).mockResolvedValue(
-      signupResult,
-    );
+    (exchangeFacebookLoginTicket as jest.Mock).mockResolvedValue(signupResult);
 
     renderComponent();
 
@@ -535,27 +525,21 @@ describe('SocialLoginButtons', () => {
   it('shows a default error when the rejection is not an Error', async () => {
     mockWebOAuthSuccess();
 
-    (exchangeGoogleLoginTicket as jest.Mock).mockRejectedValue(
-      'Unknown error',
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockRejectedValue('Unknown error');
 
     const { onError } = renderComponent();
 
     fireEvent.press(screen.getByTestId('google-button'));
 
     await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith(
-        'Google authentication failed',
-      );
+      expect(onError).toHaveBeenCalledWith('Google authentication failed');
     });
   });
 
   it('shows an error when setAuth fails', async () => {
     mockWebOAuthSuccess();
 
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      authResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(authResult);
 
     (setAuth as jest.Mock).mockRejectedValue(
       new Error('Could not save session'),
@@ -566,9 +550,7 @@ describe('SocialLoginButtons', () => {
     fireEvent.press(screen.getByTestId('google-button'));
 
     await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith(
-        'Could not save session',
-      );
+      expect(onError).toHaveBeenCalledWith('Could not save session');
     });
 
     expect(routeAfterAuth).not.toHaveBeenCalled();
@@ -577,9 +559,7 @@ describe('SocialLoginButtons', () => {
   it('shows an error when routeAfterAuth fails', async () => {
     mockWebOAuthSuccess();
 
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      authResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(authResult);
 
     (routeAfterAuth as jest.Mock).mockRejectedValue(
       new Error('Navigation failed'),

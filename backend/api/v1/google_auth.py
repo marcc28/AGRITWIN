@@ -94,7 +94,9 @@ async def complete_social_signup(body: SocialSignupRequest):
             raise HTTPException(status_code=409, detail="Social account already registered")
         email = data.get("email") or (str(body.email).strip().lower() if body.email else "")
         if not email:
-            raise HTTPException(status_code=422, detail="Email is required to complete this social signup")
+            raise HTTPException(
+                status_code=422, detail="Email is required to complete this social signup"
+            )
         user = await service.create_social_user(
             username=username,
             email=email,
@@ -161,7 +163,11 @@ async def google_callback(
             return templates.TemplateResponse(
                 request=request,
                 name="complete_google_signup.html",
-                context={"name": identity.get("name") or "", "email": identity["email"], "signup_token": signup_token},
+                context={
+                    "name": identity.get("name") or "",
+                    "email": identity["email"],
+                    "signup_token": signup_token,
+                },
             )
     access_token = create_access_token(
         {"sub": user.username, "type": "access"},

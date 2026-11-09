@@ -8,11 +8,9 @@ from fastapi import HTTPException, Request
 
 load_dotenv()
 
-X_CLIENT_ID = os.getenv("X_CLIENT_ID") 
-X_CLIENT_SECRET = os.getenv("X_SECRET_KEY_APP") 
-X_REDIRECT_URI = os.getenv(
-    "X_REDIRECT_URI"
-)
+X_CLIENT_ID = os.getenv("X_CLIENT_ID")
+X_CLIENT_SECRET = os.getenv("X_SECRET_KEY_APP")
+X_REDIRECT_URI = os.getenv("X_REDIRECT_URI")
 X_AUTH_URL = "https://x.com/i/oauth2/authorize"
 X_TOKEN_URL = "https://api.x.com/2/oauth2/token"
 X_API_BASE_URL = "https://api.x.com/2"
@@ -55,7 +53,9 @@ class XAuthService:
                 response = await client.post(X_TOKEN_URL, data=form, auth=auth)
                 response.raise_for_status()
         except httpx.HTTPStatusError as error:
-            raise HTTPException(status_code=502, detail="X rejected the OAuth token exchange") from error
+            raise HTTPException(
+                status_code=502, detail="X rejected the OAuth token exchange"
+            ) from error
         except httpx.RequestError as error:
             raise HTTPException(status_code=502, detail="Could not communicate with X") from error
         return XAuthService._prepare_token(response.json())
@@ -79,7 +79,9 @@ class XAuthService:
     async def refresh_access_token(token: dict) -> dict:
         refresh_token = token.get("refresh_token")
         if not refresh_token:
-            raise HTTPException(status_code=401, detail="X access token expired; reconnect your account")
+            raise HTTPException(
+                status_code=401, detail="X access token expired; reconnect your account"
+            )
         form = {"grant_type": "refresh_token", "refresh_token": refresh_token}
         auth = XAuthService._client_auth(form)
         try:
@@ -87,7 +89,9 @@ class XAuthService:
                 response = await client.post(X_TOKEN_URL, data=form, auth=auth)
                 response.raise_for_status()
         except httpx.HTTPStatusError as error:
-            raise HTTPException(status_code=401, detail="X token refresh failed; reconnect your account") from error
+            raise HTTPException(
+                status_code=401, detail="X token refresh failed; reconnect your account"
+            ) from error
         except httpx.RequestError as error:
             raise HTTPException(status_code=502, detail="Could not communicate with X") from error
         refreshed = XAuthService._prepare_token(response.json())
@@ -119,11 +123,16 @@ class XAuthService:
                 response.raise_for_status()
         except httpx.HTTPStatusError as error:
             status_code = 401 if error.response.status_code == 401 else 502
-            detail = "X access token is invalid; reconnect your account" if status_code == 401 else "X could not publish the post"
+            detail = (
+                "X access token is invalid; reconnect your account"
+                if status_code == 401
+                else "X could not publish the post"
+            )
             raise HTTPException(status_code=status_code, detail=detail) from error
         except httpx.RequestError as error:
             raise HTTPException(status_code=502, detail="Could not communicate with X") from error
         return response.json()
+
     @staticmethod
     async def get_user_identity(access_token: str) -> dict:
         try:
@@ -131,9 +140,7 @@ class XAuthService:
                 response = await client.get(
                     f"{X_API_BASE_URL}/users/me",
                     params={"user.fields": "name,username"},
-                    headers={
-                        "Authorization": f"Bearer {access_token}"
-                    },
+                    headers={"Authorization": f"Bearer {access_token}"},
                 )
                 response.raise_for_status()
 

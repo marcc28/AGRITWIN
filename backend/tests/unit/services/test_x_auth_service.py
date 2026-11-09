@@ -4,15 +4,14 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
-
 from fastapi import HTTPException
 
 from services import xauth_service as x
 
-
 # =========================================================
 # HELPERS
 # =========================================================
+
 
 def make_response(
     json_data=None,
@@ -99,6 +98,7 @@ def request_mock():
 # AUTHORIZATION URL
 # =========================================================
 
+
 def test_authorization_url_success(monkeypatch):
     monkeypatch.setattr(
         x,
@@ -127,13 +127,9 @@ def test_authorization_url_success(monkeypatch):
     assert params["response_type"] == ["code"]
     assert params["client_id"] == ["client-id"]
 
-    assert params["redirect_uri"] == [
-        "https://backend.example.com/api/v1/x/callback"
-    ]
+    assert params["redirect_uri"] == ["https://backend.example.com/api/v1/x/callback"]
 
-    assert params["scope"] == [
-        " ".join(x.X_SCOPES)
-    ]
+    assert params["scope"] == [" ".join(x.X_SCOPES)]
 
     assert params["state"] == ["test-state"]
     assert params["code_challenge"] == ["test-challenge"]
@@ -160,6 +156,7 @@ def test_authorization_url_without_client_id(monkeypatch):
 # =========================================================
 # CLIENT AUTH
 # =========================================================
+
 
 def test_client_auth_with_secret(monkeypatch):
     monkeypatch.setattr(
@@ -215,6 +212,7 @@ def test_client_auth_without_secret(monkeypatch):
 # PREPARE TOKEN
 # =========================================================
 
+
 def test_prepare_token_success():
     token = {
         "access_token": "access-token",
@@ -259,6 +257,7 @@ def test_prepare_token_without_access_token():
 # =========================================================
 # EXCHANGE CODE
 # =========================================================
+
 
 @pytest.mark.asyncio
 async def test_exchange_code_success(
@@ -357,9 +356,7 @@ async def test_exchange_code_http_error(monkeypatch):
         "client-id",
     )
 
-    post = AsyncMock(
-        side_effect=make_http_error(400)
-    )
+    post = AsyncMock(side_effect=make_http_error(400))
 
     make_async_client_mock(
         monkeypatch,
@@ -384,9 +381,7 @@ async def test_exchange_code_connection_error(monkeypatch):
         "client-id",
     )
 
-    post = AsyncMock(
-        side_effect=make_request_error()
-    )
+    post = AsyncMock(side_effect=make_request_error())
 
     make_async_client_mock(
         monkeypatch,
@@ -437,6 +432,7 @@ async def test_exchange_code_missing_access_token(monkeypatch):
 # =========================================================
 # REFRESH ACCESS TOKEN
 # =========================================================
+
 
 @pytest.mark.asyncio
 async def test_refresh_access_token_success(
@@ -530,9 +526,7 @@ async def test_refresh_access_token_without_refresh_token():
         )
 
     assert exc.value.status_code == 401
-    assert exc.value.detail == (
-        "X access token expired; reconnect your account"
-    )
+    assert exc.value.detail == ("X access token expired; reconnect your account")
 
 
 @pytest.mark.asyncio
@@ -543,9 +537,7 @@ async def test_refresh_access_token_http_error(monkeypatch):
         "client-id",
     )
 
-    post = AsyncMock(
-        side_effect=make_http_error(400)
-    )
+    post = AsyncMock(side_effect=make_http_error(400))
 
     make_async_client_mock(
         monkeypatch,
@@ -560,9 +552,7 @@ async def test_refresh_access_token_http_error(monkeypatch):
         )
 
     assert exc.value.status_code == 401
-    assert exc.value.detail == (
-        "X token refresh failed; reconnect your account"
-    )
+    assert exc.value.detail == ("X token refresh failed; reconnect your account")
 
 
 @pytest.mark.asyncio
@@ -573,9 +563,7 @@ async def test_refresh_access_token_connection_error(monkeypatch):
         "client-id",
     )
 
-    post = AsyncMock(
-        side_effect=make_request_error()
-    )
+    post = AsyncMock(side_effect=make_request_error())
 
     make_async_client_mock(
         monkeypatch,
@@ -597,6 +585,7 @@ async def test_refresh_access_token_connection_error(monkeypatch):
 # ACCESS TOKEN FOR REQUEST
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_access_token_for_request_success(
     request_mock,
@@ -609,9 +598,7 @@ async def test_access_token_for_request_success(
         }
     }
 
-    result = await x.XAuthService.access_token_for_request(
-        request_mock
-    )
+    result = await x.XAuthService.access_token_for_request(request_mock)
 
     assert result == "access-token"
 
@@ -621,9 +608,7 @@ async def test_access_token_for_request_without_token_id(
     request_mock,
 ):
     with pytest.raises(HTTPException) as exc:
-        await x.XAuthService.access_token_for_request(
-            request_mock
-        )
+        await x.XAuthService.access_token_for_request(request_mock)
 
     assert exc.value.status_code == 401
     assert exc.value.detail == "Connect your X account first"
@@ -638,9 +623,7 @@ async def test_access_token_for_request_unknown_token(
     request_mock.app.state.x_oauth_tokens = {}
 
     with pytest.raises(HTTPException) as exc:
-        await x.XAuthService.access_token_for_request(
-            request_mock
-        )
+        await x.XAuthService.access_token_for_request(request_mock)
 
     assert exc.value.status_code == 401
 
@@ -682,9 +665,7 @@ async def test_access_token_for_request_expired_token(
         refresh,
     )
 
-    result = await x.XAuthService.access_token_for_request(
-        request_mock
-    )
+    result = await x.XAuthService.access_token_for_request(request_mock)
 
     assert result == "new-access-token"
 
@@ -725,9 +706,7 @@ async def test_access_token_for_request_does_not_refresh_valid_token(
         MagicMock(return_value=200),
     )
 
-    result = await x.XAuthService.access_token_for_request(
-        request_mock
-    )
+    result = await x.XAuthService.access_token_for_request(request_mock)
 
     assert result == "access-token"
     refresh.assert_not_awaited()
@@ -736,6 +715,7 @@ async def test_access_token_for_request_does_not_refresh_valid_token(
 # =========================================================
 # CREATE POST
 # =========================================================
+
 
 @pytest.mark.asyncio
 async def test_create_post_success(monkeypatch):
@@ -780,9 +760,7 @@ async def test_create_post_success(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_create_post_unauthorized(monkeypatch):
-    post = AsyncMock(
-        side_effect=make_http_error(401)
-    )
+    post = AsyncMock(side_effect=make_http_error(401))
 
     make_async_client_mock(
         monkeypatch,
@@ -796,16 +774,12 @@ async def test_create_post_unauthorized(monkeypatch):
         )
 
     assert exc.value.status_code == 401
-    assert exc.value.detail == (
-        "X access token is invalid; reconnect your account"
-    )
+    assert exc.value.detail == ("X access token is invalid; reconnect your account")
 
 
 @pytest.mark.asyncio
 async def test_create_post_http_error(monkeypatch):
-    post = AsyncMock(
-        side_effect=make_http_error(500)
-    )
+    post = AsyncMock(side_effect=make_http_error(500))
 
     make_async_client_mock(
         monkeypatch,
@@ -824,9 +798,7 @@ async def test_create_post_http_error(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_create_post_connection_error(monkeypatch):
-    post = AsyncMock(
-        side_effect=make_request_error()
-    )
+    post = AsyncMock(side_effect=make_request_error())
 
     make_async_client_mock(
         monkeypatch,
@@ -847,6 +819,7 @@ async def test_create_post_connection_error(monkeypatch):
 # GET USER IDENTITY
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_get_user_identity_success(monkeypatch):
     response = make_response(
@@ -866,9 +839,7 @@ async def test_get_user_identity_success(monkeypatch):
         get=get,
     )
 
-    result = await x.XAuthService.get_user_identity(
-        "access-token"
-    )
+    result = await x.XAuthService.get_user_identity("access-token")
 
     assert result == {
         "id": "x-user-123",
@@ -906,9 +877,7 @@ async def test_get_user_identity_without_optional_fields(
         get=get,
     )
 
-    result = await x.XAuthService.get_user_identity(
-        "access-token"
-    )
+    result = await x.XAuthService.get_user_identity("access-token")
 
     assert result == {
         "id": "x-user-123",
@@ -919,9 +888,7 @@ async def test_get_user_identity_without_optional_fields(
 
 @pytest.mark.asyncio
 async def test_get_user_identity_http_error(monkeypatch):
-    get = AsyncMock(
-        side_effect=make_http_error(401)
-    )
+    get = AsyncMock(side_effect=make_http_error(401))
 
     make_async_client_mock(
         monkeypatch,
@@ -929,21 +896,15 @@ async def test_get_user_identity_http_error(monkeypatch):
     )
 
     with pytest.raises(HTTPException) as exc:
-        await x.XAuthService.get_user_identity(
-            "access-token"
-        )
+        await x.XAuthService.get_user_identity("access-token")
 
     assert exc.value.status_code == 502
-    assert exc.value.detail == (
-        "Could not retrieve X user identity"
-    )
+    assert exc.value.detail == ("Could not retrieve X user identity")
 
 
 @pytest.mark.asyncio
 async def test_get_user_identity_connection_error(monkeypatch):
-    get = AsyncMock(
-        side_effect=make_request_error()
-    )
+    get = AsyncMock(side_effect=make_request_error())
 
     make_async_client_mock(
         monkeypatch,
@@ -951,9 +912,7 @@ async def test_get_user_identity_connection_error(monkeypatch):
     )
 
     with pytest.raises(HTTPException) as exc:
-        await x.XAuthService.get_user_identity(
-            "access-token"
-        )
+        await x.XAuthService.get_user_identity("access-token")
 
     assert exc.value.status_code == 502
     assert exc.value.detail == "Could not communicate with X"
@@ -975,14 +934,10 @@ async def test_get_user_identity_without_data(monkeypatch):
     )
 
     with pytest.raises(HTTPException) as exc:
-        await x.XAuthService.get_user_identity(
-            "access-token"
-        )
+        await x.XAuthService.get_user_identity("access-token")
 
     assert exc.value.status_code == 502
-    assert exc.value.detail == (
-        "X did not return a valid user identity"
-    )
+    assert exc.value.detail == ("X did not return a valid user identity")
 
 
 @pytest.mark.asyncio
@@ -1004,11 +959,7 @@ async def test_get_user_identity_without_id(monkeypatch):
     )
 
     with pytest.raises(HTTPException) as exc:
-        await x.XAuthService.get_user_identity(
-            "access-token"
-        )
+        await x.XAuthService.get_user_identity("access-token")
 
     assert exc.value.status_code == 502
-    assert exc.value.detail == (
-        "X did not return a valid user identity"
-    )
+    assert exc.value.detail == ("X did not return a valid user identity")

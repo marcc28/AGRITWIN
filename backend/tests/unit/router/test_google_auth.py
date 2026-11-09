@@ -1,16 +1,14 @@
-
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import jwt
 import pytest
-
 from fastapi import HTTPException
 from fastapi.responses import RedirectResponse
 
 from api.v1 import google_auth as google
-from api.v1.auth import SECRET_KEY, ALGORITHM
+from api.v1.auth import ALGORITHM, SECRET_KEY
 
 
 @pytest.fixture
@@ -105,6 +103,7 @@ def mock_token_pair(monkeypatch):
 # SOCIAL GOOGLE LOGIN
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_social_google_login_existing_user(
     monkeypatch,
@@ -158,9 +157,7 @@ async def test_social_google_login_rejects_existing_email(
 
     service = MagicMock()
     service.get_user_by_auth_provider = AsyncMock(return_value=None)
-    service.get_user_by_email = AsyncMock(
-        return_value=SimpleNamespace(username="existing-user")
-    )
+    service.get_user_by_email = AsyncMock(return_value=SimpleNamespace(username="existing-user"))
 
     monkeypatch.setattr(
         google,
@@ -182,9 +179,7 @@ async def test_social_google_login_rejects_existing_email(
     assert exc.value.status_code == 409
     assert "already belongs" in exc.value.detail
 
-    service.get_user_by_email.assert_awaited_once_with(
-        "user@example.com"
-    )
+    service.get_user_by_email.assert_awaited_once_with("user@example.com")
 
 
 @pytest.mark.asyncio
@@ -257,6 +252,7 @@ async def test_social_google_login_identity_error(
 # COMPLETE SOCIAL SIGNUP
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_complete_social_signup_success(
     monkeypatch,
@@ -265,9 +261,7 @@ async def test_complete_social_signup_success(
 
     service = MagicMock()
     service.get_user_by_auth_provider = AsyncMock(return_value=None)
-    service.create_social_user = AsyncMock(
-        return_value=SimpleNamespace(username="new-user")
-    )
+    service.create_social_user = AsyncMock(return_value=SimpleNamespace(username="new-user"))
 
     monkeypatch.setattr(
         google,
@@ -419,9 +413,7 @@ async def test_complete_social_signup_uses_body_email_if_token_has_none(
 
     service = MagicMock()
     service.get_user_by_auth_provider = AsyncMock(return_value=None)
-    service.create_social_user = AsyncMock(
-        return_value=SimpleNamespace(username="new-user")
-    )
+    service.create_social_user = AsyncMock(return_value=SimpleNamespace(username="new-user"))
 
     monkeypatch.setattr(
         google,
@@ -441,9 +433,7 @@ async def test_complete_social_signup_uses_body_email_if_token_has_none(
 
     await google.complete_social_signup(body)
 
-    assert service.create_social_user.call_args.kwargs["email"] == (
-        "user@example.com"
-    )
+    assert service.create_social_user.call_args.kwargs["email"] == ("user@example.com")
 
 
 @pytest.mark.asyncio
@@ -473,14 +463,13 @@ async def test_complete_social_signup_requires_email(
         await google.complete_social_signup(body)
 
     assert exc.value.status_code == 422
-    assert exc.value.detail == (
-        "Email is required to complete this social signup"
-    )
+    assert exc.value.detail == ("Email is required to complete this social signup")
 
 
 # =========================================================
 # GOOGLE LOGIN - BROWSER OAUTH
 # =========================================================
+
 
 @pytest.mark.asyncio
 async def test_google_login_stores_state(
@@ -502,9 +491,7 @@ async def test_google_login_stores_state(
     response = await google.google_login(request_mock)
 
     assert isinstance(response, RedirectResponse)
-    assert response.headers["location"] == (
-        "https://accounts.google.com/oauth"
-    )
+    assert response.headers["location"] == ("https://accounts.google.com/oauth")
 
     assert request_mock.session["google_oauth_state"] == "oauth-state"
     assert "google_app_redirect_uri" not in request_mock.session
@@ -515,9 +502,7 @@ async def test_google_login_stores_app_redirect_uri(
     monkeypatch,
     request_mock,
 ):
-    app_uri = (
-        "https://localhost:8081/auth/oauth-callback?provider=google"
-    )
+    app_uri = "https://localhost:8081/auth/oauth-callback?provider=google"
 
     monkeypatch.setattr(
         google.secrets,
@@ -590,6 +575,7 @@ async def test_google_login_rejects_invalid_app_redirect_uri(
 # =========================================================
 # GOOGLE CALLBACK - VALIDATION
 # =========================================================
+
 
 @pytest.mark.asyncio
 async def test_google_callback_returns_provider_error(
@@ -687,15 +673,14 @@ async def test_google_callback_state_is_single_use(
 # GOOGLE CALLBACK - APP REDIRECT
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_google_callback_redirects_to_app_with_ticket(
     monkeypatch,
     request_mock,
     identity,
 ):
-    app_uri = (
-        "https://localhost:8081/auth/oauth-callback?provider=google"
-    )
+    app_uri = "https://localhost:8081/auth/oauth-callback?provider=google"
 
     request_mock.session.update(
         {
@@ -727,8 +712,7 @@ async def test_google_callback_redirects_to_app_with_ticket(
         "add_ticket_to_redirect_uri",
         MagicMock(
             return_value=(
-                "https://localhost:8081/auth/oauth-callback"
-                "?provider=google&ticket=social-ticket"
+                "https://localhost:8081/auth/oauth-callback?provider=google&ticket=social-ticket"
             )
         ),
     )
@@ -740,9 +724,7 @@ async def test_google_callback_redirects_to_app_with_ticket(
     )
 
     assert isinstance(response, RedirectResponse)
-    assert response.headers["location"].endswith(
-        "ticket=social-ticket"
-    )
+    assert response.headers["location"].endswith("ticket=social-ticket")
 
     google.create_social_auth_ticket.assert_awaited_once_with(
         "google",

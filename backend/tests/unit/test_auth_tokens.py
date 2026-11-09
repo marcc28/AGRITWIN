@@ -1,4 +1,3 @@
-
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
@@ -9,10 +8,10 @@ from fastapi import HTTPException
 
 from api.v1 import auth
 
-
 # ---------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------
+
 
 def make_db_mock(monkeypatch, result=None):
     """Crea una sessió asíncrona simulada."""
@@ -52,6 +51,7 @@ def make_user():
 # ---------------------------------------------------------------------
 # Access and refresh tokens
 # ---------------------------------------------------------------------
+
 
 def test_create_access_token_default_expiration():
     token = auth.create_access_token({"sub": "joan"})
@@ -100,6 +100,7 @@ def test_create_refresh_token():
 # Password verification
 # ---------------------------------------------------------------------
 
+
 def test_verify_password_correct(monkeypatch):
     verify = MagicMock(return_value=True)
     monkeypatch.setattr(auth.password_hash, "verify", verify)
@@ -122,6 +123,7 @@ def test_verify_password_incorrect(monkeypatch):
 # ---------------------------------------------------------------------
 # Authenticate user
 # ---------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_authenticate_user_success(monkeypatch):
@@ -191,6 +193,7 @@ async def test_authenticate_user_wrong_password(monkeypatch):
 # User service dependency
 # ---------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_get_user_service(monkeypatch):
     db = make_db_mock(monkeypatch)
@@ -212,6 +215,7 @@ async def test_get_user_service(monkeypatch):
 # ---------------------------------------------------------------------
 # Get current user
 # ---------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_get_current_user_success(monkeypatch):
@@ -270,6 +274,7 @@ async def test_get_current_user_user_not_found(monkeypatch):
 # ---------------------------------------------------------------------
 # Login endpoint
 # ---------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_login_for_access_token_success(monkeypatch):
@@ -331,6 +336,7 @@ async def test_login_for_access_token_invalid_credentials(monkeypatch):
 # Refresh token endpoint
 # ---------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_refresh_token_success(monkeypatch):
     monkeypatch.setattr(
@@ -384,6 +390,7 @@ async def test_refresh_token_without_username():
 # Profile serialization
 # ---------------------------------------------------------------------
 
+
 def test_me_from_row():
     user = make_user()
     row = make_profile_row()
@@ -401,6 +408,7 @@ def test_me_from_row():
 # ---------------------------------------------------------------------
 # Read profile
 # ---------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_read_me_success():
@@ -434,6 +442,7 @@ async def test_read_me_profile_not_found():
 # ---------------------------------------------------------------------
 # Update profile
 # ---------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_update_me_success(monkeypatch):
@@ -506,6 +515,7 @@ async def test_update_me_profile_not_found(monkeypatch):
 # Update email
 # ---------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_update_my_email_success(monkeypatch):
     user = make_user()
@@ -563,9 +573,7 @@ async def test_update_my_email_profile_not_found(monkeypatch):
     profile_result.one_or_none.return_value = None
 
     db = make_db_mock(monkeypatch)
-    db.execute = AsyncMock(
-        side_effect=[taken_result, update_result, profile_result]
-    )
+    db.execute = AsyncMock(side_effect=[taken_result, update_result, profile_result])
 
     body = SimpleNamespace(email="new@test.com")
 
@@ -580,6 +588,7 @@ async def test_update_my_email_profile_not_found(monkeypatch):
 # ---------------------------------------------------------------------
 # Update password
 # ---------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_update_my_password_success(monkeypatch):

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Platform } from 'react-native';
 import {
@@ -48,13 +47,7 @@ jest.mock('@/components/Alert', () => {
   const React = require('react');
   const { Text, View } = require('react-native');
 
-  return ({
-    title,
-    children,
-  }: {
-    title: string;
-    children: React.ReactNode;
-  }) =>
+  return ({ title, children }: { title: string; children: React.ReactNode }) =>
     React.createElement(
       View,
       null,
@@ -143,15 +136,11 @@ describe('SocialOAuthCallbackScreen', () => {
       ticket: 'ticket-123',
     });
 
-    (exchangeXLoginTicket as jest.Mock).mockReturnValue(
-      new Promise(() => {}),
-    );
+    (exchangeXLoginTicket as jest.Mock).mockReturnValue(new Promise(() => {}));
 
     render(<SocialOAuthCallbackScreen />);
 
-    expect(
-      screen.getByText('Finalitzant la sessió amb X...'),
-    ).toBeTruthy();
+    expect(screen.getByText('Finalitzant la sessió amb X...')).toBeTruthy();
   });
 
   // Missing parameters
@@ -164,9 +153,7 @@ describe('SocialOAuthCallbackScreen', () => {
     render(<SocialOAuthCallbackScreen />);
 
     expect(
-      screen.getByText(
-        'El retorn social no ha inclòs el tiquet de sessió.',
-      ),
+      screen.getByText('El retorn social no ha inclòs el tiquet de sessió.'),
     ).toBeTruthy();
 
     expect(exchangeGoogleLoginTicket).not.toHaveBeenCalled();
@@ -180,9 +167,7 @@ describe('SocialOAuthCallbackScreen', () => {
     render(<SocialOAuthCallbackScreen />);
 
     expect(
-      screen.getByText(
-        'El retorn social no ha inclòs el tiquet de sessió.',
-      ),
+      screen.getByText('El retorn social no ha inclòs el tiquet de sessió.'),
     ).toBeTruthy();
   });
 
@@ -192,9 +177,7 @@ describe('SocialOAuthCallbackScreen', () => {
     render(<SocialOAuthCallbackScreen />);
 
     expect(
-      screen.getByText(
-        'El retorn social no ha inclòs el tiquet de sessió.',
-      ),
+      screen.getByText('El retorn social no ha inclòs el tiquet de sessió.'),
     ).toBeTruthy();
   });
 
@@ -217,16 +200,12 @@ describe('SocialOAuthCallbackScreen', () => {
   // Successful login
 
   it('logs in successfully with Google', async () => {
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      googleResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(googleResult);
 
     render(<SocialOAuthCallbackScreen />);
 
     await waitFor(() => {
-      expect(exchangeGoogleLoginTicket).toHaveBeenCalledWith(
-        'ticket-123',
-      );
+      expect(exchangeGoogleLoginTicket).toHaveBeenCalledWith('ticket-123');
       expect(setAuth).toHaveBeenCalledWith(
         'joan',
         'access-token',
@@ -244,9 +223,7 @@ describe('SocialOAuthCallbackScreen', () => {
       ticket: 'facebook-ticket',
     });
 
-    (exchangeFacebookLoginTicket as jest.Mock).mockResolvedValue(
-      googleResult,
-    );
+    (exchangeFacebookLoginTicket as jest.Mock).mockResolvedValue(googleResult);
 
     render(<SocialOAuthCallbackScreen />);
 
@@ -269,9 +246,7 @@ describe('SocialOAuthCallbackScreen', () => {
       ticket: 'x-ticket',
     });
 
-    (exchangeXLoginTicket as jest.Mock).mockResolvedValue(
-      googleResult,
-    );
+    (exchangeXLoginTicket as jest.Mock).mockResolvedValue(googleResult);
 
     render(<SocialOAuthCallbackScreen />);
 
@@ -289,9 +264,7 @@ describe('SocialOAuthCallbackScreen', () => {
   // Social signup
 
   it('redirects to social signup when Google returns a signup token', async () => {
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      signupResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(signupResult);
 
     render(<SocialOAuthCallbackScreen />);
 
@@ -343,9 +316,7 @@ describe('SocialOAuthCallbackScreen', () => {
     render(<SocialOAuthCallbackScreen />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Proveïdor social no vàlid.'),
-      ).toBeTruthy();
+      expect(screen.getByText('Proveïdor social no vàlid.')).toBeTruthy();
     });
 
     expect(exchangeGoogleLoginTicket).not.toHaveBeenCalled();
@@ -372,23 +343,17 @@ describe('SocialOAuthCallbackScreen', () => {
   });
 
   it('shows a default error when the rejection is not an Error', async () => {
-    (exchangeGoogleLoginTicket as jest.Mock).mockRejectedValue(
-      'Unknown error',
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockRejectedValue('Unknown error');
 
     render(<SocialOAuthCallbackScreen />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('No s’ha pogut iniciar sessió.'),
-      ).toBeTruthy();
+      expect(screen.getByText('No s’ha pogut iniciar sessió.')).toBeTruthy();
     });
   });
 
   it('shows an error when setAuth fails', async () => {
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      googleResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(googleResult);
 
     (setAuth as jest.Mock).mockRejectedValue(
       new Error('Could not save session'),
@@ -397,18 +362,14 @@ describe('SocialOAuthCallbackScreen', () => {
     render(<SocialOAuthCallbackScreen />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Could not save session'),
-      ).toBeTruthy();
+      expect(screen.getByText('Could not save session')).toBeTruthy();
     });
 
     expect(routeAfterAuth).not.toHaveBeenCalled();
   });
 
   it('shows an error when routeAfterAuth fails', async () => {
-    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(
-      googleResult,
-    );
+    (exchangeGoogleLoginTicket as jest.Mock).mockResolvedValue(googleResult);
 
     // És essencial que setAuth no falli en aquest test.
     (setAuth as jest.Mock).mockResolvedValue(undefined);
@@ -421,9 +382,7 @@ describe('SocialOAuthCallbackScreen', () => {
 
     await waitFor(() => {
       expect(routeAfterAuth).toHaveBeenCalled();
-      expect(
-        screen.getByText('Navigation failed'),
-      ).toBeTruthy();
+      expect(screen.getByText('Navigation failed')).toBeTruthy();
     });
   });
 
@@ -458,9 +417,7 @@ describe('SocialOAuthCallbackScreen', () => {
 
     render(<SocialOAuthCallbackScreen />);
 
-    const loginButton = await screen.findByText(
-      'Torna a iniciar sessió',
-    );
+    const loginButton = await screen.findByText('Torna a iniciar sessió');
 
     fireEvent.press(loginButton);
 

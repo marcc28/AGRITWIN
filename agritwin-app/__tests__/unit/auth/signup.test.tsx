@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 import {
@@ -69,19 +68,19 @@ jest.mock('../../../assets/images/twitter.png', () => 'twitter.png');
 
 const mockedSignup = signup as jest.MockedFunction<typeof signup>;
 
-const mockedGetPrivacyPolicy =
-  getPrivacyPolicy as jest.MockedFunction<typeof getPrivacyPolicy>;
+const mockedGetPrivacyPolicy = getPrivacyPolicy as jest.MockedFunction<
+  typeof getPrivacyPolicy
+>;
 
-const mockedGetSecurityPolicy =
-  getSecurityPolicy as jest.MockedFunction<typeof getSecurityPolicy>;
+const mockedGetSecurityPolicy = getSecurityPolicy as jest.MockedFunction<
+  typeof getSecurityPolicy
+>;
 
 const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
 
-const getPrivacyCheckbox = () =>
-  screen.getByTestId('privacy-checkbox-press');
+const getPrivacyCheckbox = () => screen.getByTestId('privacy-checkbox-press');
 
-const getSecurityCheckbox = () =>
-  screen.getByTestId('security-checkbox-press');
+const getSecurityCheckbox = () => screen.getByTestId('security-checkbox-press');
 
 const setCheckbox = (
   checkbox: ReturnType<typeof screen.getByTestId>,
@@ -200,10 +199,7 @@ describe('SignupScreen', () => {
       render(<SignupScreen />);
 
       fireEvent.changeText(screen.getByTestId('signup-username'), 'testuser');
-      fireEvent.changeText(
-        screen.getByTestId('signup-email'),
-        'invalid-email',
-      );
+      fireEvent.changeText(screen.getByTestId('signup-email'), 'invalid-email');
       fireEvent.changeText(
         screen.getByTestId('signup-password'),
         'Password123',
@@ -307,9 +303,7 @@ describe('SignupScreen', () => {
 
   describe('signup errors', () => {
     it('shows the API error message when signup fails', async () => {
-      mockedSignup.mockRejectedValue(
-        new Error('Aquest usuari ja existeix'),
-      );
+      mockedSignup.mockRejectedValue(new Error('Aquest usuari ja existeix'));
 
       render(<SignupScreen />);
 
@@ -327,9 +321,7 @@ describe('SignupScreen', () => {
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
-      expect(
-        await screen.findByText('Aquest usuari ja existeix'),
-      ).toBeTruthy();
+      expect(await screen.findByText('Aquest usuari ja existeix')).toBeTruthy();
 
       expect(mockedRouterPush).not.toHaveBeenCalled();
     });

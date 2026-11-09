@@ -42,12 +42,15 @@ def token():
 # PKCE
 # =========================================================
 
+
 def test_generate_pkce():
     verifier, challenge = x._generate_pkce()
 
-    expected_challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode()).digest()
-    ).rstrip(b"=").decode("ascii")
+    expected_challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest())
+        .rstrip(b"=")
+        .decode("ascii")
+    )
 
     assert isinstance(verifier, str)
     assert isinstance(challenge, str)
@@ -68,6 +71,7 @@ def test_generate_pkce_returns_different_values():
 # X LOGIN
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_x_auth_start_stores_state_and_verifier(
     monkeypatch,
@@ -79,9 +83,7 @@ async def test_x_auth_start_stores_state_and_verifier(
         lambda size: "oauth-state" if size == 32 else "code-verifier",
     )
 
-    authorization_url = MagicMock(
-        return_value="https://x.com/i/oauth2/authorize"
-    )
+    authorization_url = MagicMock(return_value="https://x.com/i/oauth2/authorize")
 
     monkeypatch.setattr(
         x.XAuthService,
@@ -93,9 +95,7 @@ async def test_x_auth_start_stores_state_and_verifier(
 
     assert isinstance(response, RedirectResponse)
 
-    assert response.headers["location"] == (
-        "https://x.com/i/oauth2/authorize"
-    )
+    assert response.headers["location"] == ("https://x.com/i/oauth2/authorize")
 
     assert request_mock.session["x_oauth_state"] == "oauth-state"
     assert request_mock.session["x_code_verifier"] == "code-verifier"
@@ -116,9 +116,7 @@ async def test_x_auth_start_generates_pkce(
         lambda size: "oauth-state" if size == 32 else "code-verifier",
     )
 
-    generate_pkce = MagicMock(
-        return_value=("test-verifier", "test-challenge")
-    )
+    generate_pkce = MagicMock(return_value=("test-verifier", "test-challenge"))
 
     monkeypatch.setattr(
         x,
@@ -126,9 +124,7 @@ async def test_x_auth_start_generates_pkce(
         generate_pkce,
     )
 
-    authorization_url = MagicMock(
-        return_value="https://x.com/oauth"
-    )
+    authorization_url = MagicMock(return_value="https://x.com/oauth")
 
     monkeypatch.setattr(
         x.XAuthService,
@@ -153,9 +149,7 @@ async def test_x_auth_start_stores_app_redirect_uri(
     monkeypatch,
     request_mock,
 ):
-    app_uri = (
-        "https://localhost:8081/auth/oauth-callback?provider=x"
-    )
+    app_uri = "https://localhost:8081/auth/oauth-callback?provider=x"
 
     monkeypatch.setattr(
         x.secrets,
@@ -166,9 +160,7 @@ async def test_x_auth_start_stores_app_redirect_uri(
     monkeypatch.setattr(
         x,
         "_generate_pkce",
-        MagicMock(
-            return_value=("verifier", "challenge")
-        ),
+        MagicMock(return_value=("verifier", "challenge")),
     )
 
     monkeypatch.setattr(
@@ -209,9 +201,7 @@ async def test_x_auth_start_rejects_invalid_app_redirect_uri(
     monkeypatch.setattr(
         x,
         "_generate_pkce",
-        MagicMock(
-            return_value=("verifier", "challenge")
-        ),
+        MagicMock(return_value=("verifier", "challenge")),
     )
 
     monkeypatch.setattr(
@@ -247,6 +237,7 @@ async def test_x_auth_start_rejects_invalid_app_redirect_uri(
 # =========================================================
 # X CALLBACK - VALIDATION
 # =========================================================
+
 
 @pytest.mark.asyncio
 async def test_x_auth_callback_returns_provider_error(
@@ -386,6 +377,7 @@ async def test_x_auth_callback_state_is_single_use(
 # X CALLBACK - SUCCESS
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_x_auth_callback_success_without_app_redirect(
     monkeypatch,
@@ -444,9 +436,7 @@ async def test_x_auth_callback_redirects_to_app_with_ticket(
     token,
     identity,
 ):
-    app_uri = (
-        "https://localhost:8081/auth/oauth-callback?provider=x"
-    )
+    app_uri = "https://localhost:8081/auth/oauth-callback?provider=x"
 
     request_mock.session.update(
         {
@@ -490,8 +480,7 @@ async def test_x_auth_callback_redirects_to_app_with_ticket(
         "add_ticket_to_redirect_uri",
         MagicMock(
             return_value=(
-                "https://localhost:8081/auth/oauth-callback"
-                "?provider=x&ticket=social-ticket"
+                "https://localhost:8081/auth/oauth-callback?provider=x&ticket=social-ticket"
             )
         ),
     )
@@ -500,18 +489,14 @@ async def test_x_auth_callback_redirects_to_app_with_ticket(
 
     assert isinstance(response, RedirectResponse)
 
-    assert response.headers["location"].endswith(
-        "ticket=social-ticket"
-    )
+    assert response.headers["location"].endswith("ticket=social-ticket")
 
     x.XAuthService.exchange_code.assert_awaited_once_with(
         "auth-code",
         "test-verifier",
     )
 
-    x.XAuthService.get_user_identity.assert_awaited_once_with(
-        "x-access-token"
-    )
+    x.XAuthService.get_user_identity.assert_awaited_once_with("x-access-token")
 
     x.create_social_auth_ticket.assert_awaited_once_with(
         "x",
@@ -640,6 +625,7 @@ async def test_x_auth_callback_initializes_token_storage(
 # CREATE X POST
 # =========================================================
 
+
 @pytest.mark.asyncio
 async def test_create_x_post_success(
     monkeypatch,
@@ -675,9 +661,7 @@ async def test_create_x_post_success(
         }
     }
 
-    x.XAuthService.access_token_for_request.assert_awaited_once_with(
-        request_mock
-    )
+    x.XAuthService.access_token_for_request.assert_awaited_once_with(request_mock)
 
     x.XAuthService.create_post.assert_awaited_once_with(
         "access-token",
@@ -740,6 +724,7 @@ async def test_create_x_post_rejects_empty_text(
     assert exc.value.detail == "Post text cannot be empty"
 
     create_post.assert_not_awaited()
+
 
 @pytest.mark.asyncio
 async def test_create_x_post_access_token_error(

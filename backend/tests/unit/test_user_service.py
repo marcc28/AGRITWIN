@@ -134,6 +134,7 @@ async def test_list_users():
     users = [MagicMock(spec=User), MagicMock(spec=User)]
     db.execute.return_value = mock_result(scalars=users)
 
+
 @pytest.mark.asyncio
 async def test_get_user_by_auth_provider():
     db = MagicMock()

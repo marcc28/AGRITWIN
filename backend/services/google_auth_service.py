@@ -59,7 +59,9 @@ class GoogleAuthService:
                 )
                 response.raise_for_status()
         except httpx.HTTPError as error:
-            raise HTTPException(status_code=502, detail="Could not communicate with Google") from error
+            raise HTTPException(
+                status_code=502, detail="Could not communicate with Google"
+            ) from error
         token = response.json().get("id_token")
         if not token:
             raise HTTPException(status_code=400, detail="Missing Google ID token")
@@ -68,13 +70,13 @@ class GoogleAuthService:
     @staticmethod
     def identity_from_token(token: str) -> dict:
         if not GOOGLE_ALLOWED_CLIENT_IDS:
-            raise HTTPException(status_code=503, detail="Google sign-in is not configured on this server")
+            raise HTTPException(
+                status_code=503, detail="Google sign-in is not configured on this server"
+            )
         last_error = None
         for client_id in GOOGLE_ALLOWED_CLIENT_IDS:
             try:
-                identity = id_token.verify_oauth2_token(
-                    token, google_requests.Request(), client_id
-                )
+                identity = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
                 break
             except ValueError as error:
                 last_error = error

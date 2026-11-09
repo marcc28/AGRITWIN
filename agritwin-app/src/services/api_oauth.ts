@@ -33,7 +33,6 @@ export type XSignupRequired = {
   email: string;
 };
 
-
 export type XLoginResponse = XLoginSuccess | XSignupRequired;
 
 export type FacebookLoginSuccess = {
@@ -51,8 +50,7 @@ export type FacebookSignupRequired = {
 };
 
 export type FacebookLoginResponse =
-  | FacebookLoginSuccess
-  | FacebookSignupRequired;
+  FacebookLoginSuccess | FacebookSignupRequired;
 
 export async function exchangeGoogleLoginTicket(
   ticket: string,
@@ -140,23 +138,18 @@ export async function completeSocialSignup(
 export async function exchangeXLoginTicket(
   ticket: string,
 ): Promise<XLoginResponse> {
-  const response = await fetch(
-    `${API_URL}/api/v1/social/x/exchange`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ticket }),
+  const response = await fetch(`${API_URL}/api/v1/social/x/exchange`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
-  );
+    body: JSON.stringify({ ticket }),
+  });
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      errorDetail(data, 'X authentication failed'),
-    );
+    throw new Error(errorDetail(data, 'X authentication failed'));
   }
 
   return data as XLoginResponse;
@@ -165,23 +158,18 @@ export async function exchangeXLoginTicket(
 export async function exchangeFacebookLoginTicket(
   ticket: string,
 ): Promise<FacebookLoginResponse> {
-  const response = await fetch(
-    `${API_URL}/api/v1/social/facebook/exchange`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ticket }),
+  const response = await fetch(`${API_URL}/api/v1/social/facebook/exchange`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
-  );
+    body: JSON.stringify({ ticket }),
+  });
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(
-      errorDetail(data, 'Facebook authentication failed'),
-    );
+    throw new Error(errorDetail(data, 'Facebook authentication failed'));
   }
 
   return data as FacebookLoginResponse;

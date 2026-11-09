@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,10 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import Alert from '../../components/Alert';
-import {
-  getPrivacyPolicy,
-  getSecurityPolicy,
-} from '../../services/api';
+import { getPrivacyPolicy, getSecurityPolicy } from '../../services/api';
 import { completeSocialSignup } from '../../services/api_oauth';
 import { setAuth } from '../../services/auth';
 import { routeAfterAuth } from '../../services/routeAfterAuth';
@@ -59,9 +55,7 @@ export default function SocialSignupScreen() {
     setLegalContent('');
     setLegalVersion('');
 
-    setLegalTitle(
-      type === 'privacy' ? 'Privacy Notice' : 'Security Policy',
-    );
+    setLegalTitle(type === 'privacy' ? 'Privacy Notice' : 'Security Policy');
 
     try {
       const document =
@@ -110,7 +104,9 @@ export default function SocialSignupScreen() {
     }
 
     if (!email && !signupEmail.trim()) {
-      setErrorMessage('Introdueix el teu correu electrònic per completar el registre.');
+      setErrorMessage(
+        'Introdueix el teu correu electrònic per completar el registre.',
+      );
       return;
     }
 
@@ -135,11 +131,7 @@ export default function SocialSignupScreen() {
         signupEmail.trim() || undefined,
       );
 
-      await setAuth(
-        trimmedUsername,
-        result.access_token,
-        result.refresh_token,
-      );
+      await setAuth(trimmedUsername, result.access_token, result.refresh_token);
 
       await routeAfterAuth();
     } catch (error) {
@@ -254,9 +246,7 @@ export default function SocialSignupScreen() {
                   privacyAccepted && styles.checkboxChecked,
                 ]}
               >
-                {privacyAccepted && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
+                {privacyAccepted && <Text style={styles.checkmark}>✓</Text>}
               </View>
             </Pressable>
 
@@ -293,9 +283,7 @@ export default function SocialSignupScreen() {
                   securityAccepted && styles.checkboxChecked,
                 ]}
               >
-                {securityAccepted && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
+                {securityAccepted && <Text style={styles.checkmark}>✓</Text>}
               </View>
             </Pressable>
 
@@ -323,10 +311,7 @@ export default function SocialSignupScreen() {
             onPress={handleSignUp}
             disabled={loading}
           >
-            <LinearGradient
-              colors={Gradients.primary}
-              style={styles.button}
-            >
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>
                 {loading ? 'Creant compte...' : 'Sign Up'}
               </Text>
@@ -349,9 +334,7 @@ export default function SocialSignupScreen() {
 
             <View style={styles.modalHeader}>
               <View style={styles.modalTitleContainer}>
-                <Text style={styles.modalTitle}>
-                  {legalTitle}
-                </Text>
+                <Text style={styles.modalTitle}>{legalTitle}</Text>
 
                 {legalVersion !== '' && (
                   <Text style={styles.modalVersion}>
@@ -380,9 +363,7 @@ export default function SocialSignupScreen() {
               </View>
             ) : legalError !== '' ? (
               <View style={styles.modalError}>
-                <Text style={styles.modalErrorText}>
-                  {legalError}
-                </Text>
+                <Text style={styles.modalErrorText}>{legalError}</Text>
               </View>
             ) : (
               <ScrollView
@@ -390,21 +371,14 @@ export default function SocialSignupScreen() {
                 contentContainerStyle={styles.modalScrollContent}
                 showsVerticalScrollIndicator={true}
               >
-                <Text style={styles.legalDocumentText}>
-                  {legalContent}
-                </Text>
+                <Text style={styles.legalDocumentText}>{legalContent}</Text>
               </ScrollView>
             )}
 
             {/* Footer */}
 
-            <Pressable
-              style={styles.modalButton}
-              onPress={closeLegalDocument}
-            >
-              <Text style={styles.modalButtonText}>
-                Tancar
-              </Text>
+            <Pressable style={styles.modalButton} onPress={closeLegalDocument}>
+              <Text style={styles.modalButtonText}>Tancar</Text>
             </Pressable>
           </View>
         </View>

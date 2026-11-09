@@ -62,7 +62,11 @@ class FacebookAuthService:
                 status_code=502, detail="Facebook returned an authentication error"
             ) from error
         except httpx.RequestError as error:
-            raise HTTPException(status_code=502, detail="Could not communicate with Facebook") from error
+            raise HTTPException(
+                status_code=502, detail="Could not communicate with Facebook"
+            ) from error
         if not identity.get("id"):
-            raise HTTPException(status_code=502, detail="Facebook account information is incomplete")
+            raise HTTPException(
+                status_code=502, detail="Facebook account information is incomplete"
+            )
         return identity

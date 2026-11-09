@@ -1,18 +1,16 @@
-
-import jwt
-import pytest
-
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
+import jwt
+import pytest
 from fastapi import HTTPException
 
 from services import social_auth_service as social
 
-
 # ---------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------
+
 
 def make_db_mock(monkeypatch):
     """Creates a mocked async database session."""
@@ -38,9 +36,11 @@ def make_db_mock(monkeypatch):
 
     return db
 
+
 # ---------------------------------------------------------
 # validate_app_redirect_uri
 # ---------------------------------------------------------
+
 
 @pytest.mark.parametrize(
     "uri, provider",
@@ -173,22 +173,18 @@ def test_validate_public_expo_ip():
 # add_ticket_to_redirect_uri
 # ---------------------------------------------------------
 
+
 def test_add_ticket_to_redirect_uri():
     uri = "https://localhost:8081/auth/oauth-callback?provider=google"
     result = social.add_ticket_to_redirect_uri(uri, "test-ticket")
 
-    assert result.startswith(
-        "https://localhost:8081/auth/oauth-callback?"
-    )
+    assert result.startswith("https://localhost:8081/auth/oauth-callback?")
     assert "provider=google" in result
     assert "ticket=test-ticket" in result
 
 
 def test_add_ticket_preserves_existing_query_parameters():
-    uri = (
-        "https://localhost:8081/auth/oauth-callback"
-        "?provider=x&source=login"
-    )
+    uri = "https://localhost:8081/auth/oauth-callback?provider=x&source=login"
 
     result = social.add_ticket_to_redirect_uri(uri, "abc123")
 
@@ -202,10 +198,7 @@ def test_add_ticket_preserves_existing_query_parameters():
 
 
 def test_add_ticket_removes_fragment():
-    uri = (
-        "https://localhost:8081/auth/oauth-callback"
-        "?provider=google#old-fragment"
-    )
+    uri = "https://localhost:8081/auth/oauth-callback?provider=google#old-fragment"
 
     result = social.add_ticket_to_redirect_uri(uri, "ticket")
 
@@ -215,6 +208,7 @@ def test_add_ticket_removes_fragment():
 # ---------------------------------------------------------
 # create_social_auth_ticket
 # ---------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_social_auth_ticket(monkeypatch):
@@ -280,6 +274,7 @@ async def test_create_ticket_without_optional_identity_fields(monkeypatch):
 # consume_social_auth_ticket
 # ---------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_consume_valid_ticket(monkeypatch):
     db = make_db_mock(monkeypatch)
@@ -306,6 +301,7 @@ async def test_consume_valid_ticket(monkeypatch):
     db.execute.assert_awaited_once()
     db.commit.assert_awaited_once()
 
+
 @pytest.mark.asyncio
 async def test_consume_ticket_without_display_name(monkeypatch):
     db = make_db_mock(monkeypatch)
@@ -327,6 +323,7 @@ async def test_consume_ticket_without_display_name(monkeypatch):
     assert result["email"] is None
     assert result["name"] == ""
 
+
 @pytest.mark.asyncio
 async def test_consume_invalid_or_expired_ticket(monkeypatch):
     db = make_db_mock(monkeypatch)
@@ -343,9 +340,11 @@ async def test_consume_invalid_or_expired_ticket(monkeypatch):
     assert exc.value.detail == "Social login ticket is invalid or expired"
     db.commit.assert_awaited_once()
 
+
 # ---------------------------------------------------------
 # create_social_signup_token
 # ---------------------------------------------------------
+
 
 def test_create_social_signup_token():
     identity = {
@@ -408,6 +407,7 @@ def test_signup_token_without_optional_fields():
 # _token_pair
 # ---------------------------------------------------------
 
+
 def test_token_pair(monkeypatch):
     monkeypatch.setattr(
         social,
@@ -438,9 +438,10 @@ def test_token_pair(monkeypatch):
 # complete_social_login
 # ---------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_complete_login_existing_user(monkeypatch):
-    db = make_db_mock(monkeypatch)
+    make_db_mock(monkeypatch)
 
     user = SimpleNamespace(username="existing-user")
 

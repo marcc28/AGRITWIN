@@ -88,8 +88,7 @@ def test_field_crop_and_recommendation_constraints_are_present():
     assert crop_checks == {
         "chk_field_crop_status": "status IN ('planned', 'planted', 'harvested')",
         "chk_field_crop_dates": (
-            "expected_harvest_at IS NULL OR planted_at IS NULL "
-            "OR expected_harvest_at >= planted_at"
+            "expected_harvest_at IS NULL OR planted_at IS NULL OR expected_harvest_at >= planted_at"
         ),
     }
     assert recommendation_checks == {

@@ -19,10 +19,8 @@ import { routeAfterAuth } from '../../services/routeAfterAuth';
 import { Gradients } from '../../constants/theme';
 import SocialLoginButtons from '../../components/SocialLoginButtons';
 
-
 export default function LoginScreen() {
   const { t } = useTranslation();
-
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

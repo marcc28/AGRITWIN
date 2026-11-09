@@ -51,9 +51,11 @@ async def facebook_callback(request: Request):
             },
         )
         return RedirectResponse(add_ticket_to_redirect_uri(app_redirect_uri, ticket))
-    return JSONResponse({
-        "provider": "facebook",
-        "id": identity.get("id"),
-        "name": identity.get("name"),
-        "email": identity.get("email"),
-    })
+    return JSONResponse(
+        {
+            "provider": "facebook",
+            "id": identity.get("id"),
+            "name": identity.get("name"),
+            "email": identity.get("email"),
+        }
+    )

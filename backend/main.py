@@ -63,6 +63,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -96,6 +97,7 @@ app.include_router(
 
 app.include_router(crops_field.router, prefix="/api/v1/crops")
 app.include_router(crops.router, prefix="/api/v1")
+
 
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):

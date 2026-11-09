@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -21,7 +27,8 @@ export default function SocialOAuthCallbackScreen() {
   }>();
   const processedTicket = useRef<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
-  const label = provider === 'x' ? 'X' : provider === 'google' ? 'Google' : 'Facebook';
+  const label =
+    provider === 'x' ? 'X' : provider === 'google' ? 'Google' : 'Facebook';
 
   useEffect(() => {
     if (Platform.OS === 'web') {
@@ -61,11 +68,17 @@ export default function SocialOAuthCallbackScreen() {
           return;
         }
 
-        await setAuth(result.username, result.access_token, result.refresh_token);
+        await setAuth(
+          result.username,
+          result.access_token,
+          result.refresh_token,
+        );
         await routeAfterAuth();
       } catch (error) {
         setErrorMessage(
-          error instanceof Error ? error.message : 'No s’ha pogut iniciar sessió.',
+          error instanceof Error
+            ? error.message
+            : 'No s’ha pogut iniciar sessió.',
         );
       }
     }
@@ -74,7 +87,15 @@ export default function SocialOAuthCallbackScreen() {
   }, [provider, ticket]);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, padding: 24 }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 16,
+        padding: 24,
+      }}
+    >
       {errorMessage ? (
         <>
           <Alert variant="danger" title="Error">

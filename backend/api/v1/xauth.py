@@ -34,9 +34,7 @@ async def x_auth_start(request: Request, app_redirect_uri: str | None = None):
     request.session["x_oauth_state"] = state
     request.session["x_code_verifier"] = verifier
     if app_redirect_uri:
-        request.session["x_app_redirect_uri"] = validate_app_redirect_uri(
-            app_redirect_uri, "x"
-        )
+        request.session["x_app_redirect_uri"] = validate_app_redirect_uri(app_redirect_uri, "x")
     return RedirectResponse(XAuthService.authorization_url(state, challenge), status_code=302)
 
 
