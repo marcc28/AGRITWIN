@@ -133,3 +133,162 @@ async def test_list_users():
     db = MagicMock()
     users = [MagicMock(spec=User), MagicMock(spec=User)]
     db.execute.return_value = mock_result(scalars=users)
+
+@pytest.mark.asyncio
+async def test_get_user_by_auth_provider():
+    db = MagicMock()
+    user = MagicMock(spec=User)
+
+    db.execute = AsyncMock(return_value=mock_result(scalar=user))
+
+    service = UserService(db)
+
+    result = await service.get_user_by_auth_provider(
+        provider="facebook",
+        provider_user_id="facebook-123",
+    )
+
+    assert result == user
+    db.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_auth_provider_returns_none():
+    db = MagicMock()
+    db.execute = AsyncMock(return_value=mock_result())
+
+    service = UserService(db)
+
+    result = await service.get_user_by_auth_provider(
+        provider="google",
+        provider_user_id="google-123",
+    )
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_google_id(monkeypatch):
+    db = MagicMock()
+    service = UserService(db)
+
+    expected_user = MagicMock(spec=User)
+    get_user = AsyncMock(return_value=expected_user)
+
+    monkeypatch.setattr(service, "get_user_by_auth_provider", get_user)
+
+    result = await service.get_user_by_google_id("google-123")
+
+    assert result == expected_user
+    get_user.assert_awaited_once_with("google", "google-123")
+
+
+@pytest.mark.asyncio
+async def test_list_users_returns_users():
+    db = MagicMock()
+    users = [MagicMock(spec=User), MagicMock(spec=User)]
+
+    db.execute = AsyncMock(return_value=mock_result(scalars=users))
+
+    service = UserService(db)
+
+    result = await service.list_users(offset=5, limit=20)
+
+    assert result == users
+    db.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_list_users_returns_empty_list():
+    db = MagicMock()
+    db.execute = AsyncMock(return_value=mock_result())
+
+    service = UserService(db)
+
+    result = await service.list_users()
+
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_get_user_returns_user():
+    db = MagicMock()
+    user = MagicMock(spec=User)
+
+    db.execute = AsyncMock(return_value=mock_result(scalar=user))
+
+    service = UserService(db)
+
+    result = await service.get_user("joan")
+
+    assert result == user
+    db.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_user_returns_none():
+    db = MagicMock()
+    db.execute = AsyncMock(return_value=mock_result())
+
+    service = UserService(db)
+
+    result = await service.get_user("inexistent")
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_email():
+    db = MagicMock()
+    user = MagicMock(spec=User)
+
+    db.execute = AsyncMock(return_value=mock_result(scalar=user))
+
+    service = UserService(db)
+
+    result = await service.get_user_by_email("joan@test.com")
+
+    assert result == user
+    db.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_username():
+    db = MagicMock()
+    user = MagicMock(spec=User)
+
+    db.execute = AsyncMock(return_value=mock_result(scalar=user))
+
+    service = UserService(db)
+
+    result = await service.get_user_by_username("joan")
+
+    assert result == user
+    db.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_user_profile():
+    db = MagicMock()
+    profile = MagicMock()
+
+    db.execute = AsyncMock(return_value=mock_result(scalar=profile))
+
+    service = UserService(db)
+
+    result = await service.get_user_profile(profile.id)
+
+    assert result == profile
+    db.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_user_profile_returns_none():
+    db = MagicMock()
+    db.execute = AsyncMock(return_value=mock_result())
+
+    service = UserService(db)
+
+    result = await service.get_user_profile(None)
+
+    assert result is None
