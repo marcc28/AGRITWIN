@@ -31,7 +31,15 @@ def validate_app_redirect_uri(uri: str, provider: str) -> str:
     if not parts.scheme or parts.fragment or parts.username or parts.password:
         raise HTTPException(status_code=400, detail="Invalid app redirect URI")
     expected_path = "/auth/oauth-callback"
-    if not parts.path.endswith(expected_path) or parse_qs(parts.query).get("provider") != [provider]:
+    native_scheme_callback = (
+        parts.scheme == "agritwin"
+        and parts.netloc == "auth"
+        and parts.path == "/oauth-callback"
+    )
+    if (
+        not native_scheme_callback
+        and not parts.path.endswith(expected_path)
+    ) or parse_qs(parts.query).get("provider") != [provider]:
         raise HTTPException(status_code=400, detail="Invalid social login callback URI")
 
     if parts.scheme == "agritwin":

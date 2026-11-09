@@ -17,7 +17,12 @@ from api.v1.auth import (
 from db import AsyncSessionLocal
 from models.userProfile import SocialLoginRequest, SocialSignupRequest
 from services.google_auth_service import GoogleAuthService
-from services.social_auth_service import SOCIAL_PROVIDERS
+from services.social_auth_service import (
+    SOCIAL_PROVIDERS,
+    add_ticket_to_redirect_uri,
+    create_social_auth_ticket,
+    validate_app_redirect_uri,
+)
 from services.user_service import UserService
 
 router = APIRouter()
@@ -103,9 +108,13 @@ async def complete_social_signup(body: SocialSignupRequest):
 
 
 @router.get("/login")
-async def google_login(request: Request):
+async def google_login(request: Request, app_redirect_uri: str | None = None):
     state = secrets.token_urlsafe(32)
     request.session["google_oauth_state"] = state
+    if app_redirect_uri:
+        request.session["google_app_redirect_uri"] = validate_app_redirect_uri(
+            app_redirect_uri, "google"
+        )
     return RedirectResponse(GoogleAuthService.authorization_url(state))
 
 
@@ -124,6 +133,10 @@ async def google_callback(
     if not code:
         raise HTTPException(status_code=400, detail="Authorization code missing")
     identity = GoogleAuthService.identity_from_token(await GoogleAuthService.exchange_code(code))
+    app_redirect_uri = request.session.pop("google_app_redirect_uri", None)
+    if app_redirect_uri:
+        ticket = await create_social_auth_ticket("google", identity)
+        return RedirectResponse(add_ticket_to_redirect_uri(app_redirect_uri, ticket))
 
     async with AsyncSessionLocal() as db:
         service = UserService(db)

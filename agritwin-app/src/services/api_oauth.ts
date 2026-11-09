@@ -1,6 +1,3 @@
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // --------------------------------------------------
@@ -56,6 +53,21 @@ export type FacebookSignupRequired = {
 export type FacebookLoginResponse =
   | FacebookLoginSuccess
   | FacebookSignupRequired;
+
+export async function exchangeGoogleLoginTicket(
+  ticket: string,
+): Promise<XLoginResponse> {
+  const response = await fetch(`${API_URL}/api/v1/social/google/exchange`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ticket }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(errorDetail(data, 'Google authentication failed'));
+  }
+  return data as XLoginResponse;
+}
 function errorDetail(data: any, fallback: string): string {
   if (typeof data?.detail === 'string') {
     return data.detail;
@@ -101,6 +113,7 @@ export async function completeSocialSignup(
   username: string,
   privacyAccepted: boolean,
   securityAccepted: boolean,
+  email?: string,
 ) {
   const response = await fetch(`${API_URL}/api/v1/social/signup`, {
     method: 'POST',
@@ -112,6 +125,7 @@ export async function completeSocialSignup(
       username,
       privacy_terms_accepted: privacyAccepted,
       security_terms_accepted: securityAccepted,
+      ...(email ? { email } : {}),
     }),
   });
 

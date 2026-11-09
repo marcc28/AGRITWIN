@@ -11,7 +11,7 @@ load_dotenv()
 X_CLIENT_ID = os.getenv("X_CLIENT_ID") 
 X_CLIENT_SECRET = os.getenv("X_SECRET_KEY_APP") 
 X_REDIRECT_URI = os.getenv(
-    "X_REDIRECT_URI", "http://localhost:8000/api/v1/x/callback"
+    "X_REDIRECT_URI"
 )
 X_AUTH_URL = "https://x.com/i/oauth2/authorize"
 X_TOKEN_URL = "https://api.x.com/2/oauth2/token"
