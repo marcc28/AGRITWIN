@@ -4,9 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import { useTranslation } from 'react-i18next';
+
 import { Colors } from '@/constants/theme';
+import DeviceStatusDot from '@/components/DeviceStatusDot';
 import { clearAuth, getAuth } from '@/services/auth';
 import { isAuthError, type Field } from '@/services/api';
+import {
+  DEVICE_HEALTH_LABEL,
+  deviceHealthFromCounts,
+} from '@/services/deviceHealth';
 import {
   getCurrentField,
   setCurrentField,
@@ -23,6 +30,7 @@ export default function AppHeader() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [fields, setFields] = useState<Field[]>([]);
   const [currentId, setCurrentId] = useState<number | null>(null);
@@ -98,6 +106,21 @@ export default function AppHeader() {
       }
     }
 
+    const refreshTimer = setInterval(() => {
+      void getAuth()
+        .then((auth) => {
+          if (cancelled || !auth?.token) {
+            return;
+          }
+          return loadGardenPickerFields(true);
+        })
+        .catch((error) => {
+          if (!cancelled && isAuthError(error)) {
+            void clearAuth().then(() => router.replace('/auth/login'));
+          }
+        });
+    }, 20000);
+
     const unsubscribeField = subscribeCurrentField(() => {
       void applyStoredField();
     });
@@ -110,6 +133,7 @@ export default function AppHeader() {
 
     return () => {
       cancelled = true;
+      clearInterval(refreshTimer);
       unsubscribeField();
       unsubscribePicker();
       setGardenPicker({ open: false });
@@ -140,6 +164,14 @@ export default function AppHeader() {
   }
 
   const canSwitch = fields.length > 1;
+  const currentField = fields.find((field) => field.id === currentId);
+  const health =
+    currentField?.devices_online == null
+      ? null
+      : deviceHealthFromCounts(
+          currentField.device_count,
+          currentField.devices_online,
+        );
 
   return (
     <View
@@ -183,7 +215,7 @@ export default function AppHeader() {
             accessibilityLabel={gardenName}
             hitSlop={8}
             style={({ pressed }) => ({
-              maxWidth: 160,
+              maxWidth: 220,
               marginLeft: 8,
               flexDirection: 'row',
               alignItems: 'center',
@@ -194,6 +226,15 @@ export default function AppHeader() {
               opacity: pressed ? 0.6 : 1,
             })}
           >
+            {health ? (
+              <View
+                accessible
+                accessibilityLabel={t(DEVICE_HEALTH_LABEL[health])}
+                style={{ marginRight: 6 }}
+              >
+                <DeviceStatusDot health={health} />
+              </View>
+            ) : null}
             <Text
               numberOfLines={1}
               style={{
