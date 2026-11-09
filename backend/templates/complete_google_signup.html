@@ -1,0 +1,44 @@
+
+<h1>Completa el teu compte d'AgriTwin</h1>
+
+<p>Hola {{ name }}!</p>
+<p>Correu electrònic: {{ email }}</p>
+
+<form method="POST" action="/api/v1/complete-google-signup">
+
+    <input
+        type="hidden"
+        name="signup_token"
+        value="{{ signup_token }}"
+    >
+
+    <label for="username">Nom d'usuari</label>
+    <input
+        type="text"
+        id="username"
+        name="username"
+        required
+    >
+
+    <label>
+        <input
+            type="checkbox"
+            name="privacy_terms_accepted"
+            value="true"
+            required
+        >
+        Accepto els termes de privacitat
+    </label>
+
+    <label>
+        <input
+            type="checkbox"
+            name="security_terms_accepted"
+            value="true"
+            required
+        >
+        Accepto els termes de seguretat
+    </label>
+
+    <button type="submit">Crear compte</button>
+</form>
