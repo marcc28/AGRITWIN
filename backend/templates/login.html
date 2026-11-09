@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
             height: 100vh;
             margin: 0;
         }
+
         .container {
             background-color: white;
             border-radius: 10px;
@@ -24,10 +26,12 @@
             max-width: 400px;
             text-align: center;
         }
+
         h2 {
             margin-bottom: 25px;
             color: #333;
         }
+
         input[type="email"],
         input[type="password"] {
             width: 100%;
@@ -38,10 +42,12 @@
             transition: border-color 0.3s;
             box-sizing: border-box;
         }
+
         input:focus {
             border-color: #4285F4;
             outline: none;
         }
+
         button {
             width: 100%;
             padding: 12px;
@@ -55,41 +61,52 @@
             justify-content: center;
             transition: background-color 0.3s;
         }
+
         .google-login {
             background-color: #db4437;
             color: white;
         }
+
         .google-login:hover {
             background-color: #c13529;
         }
+
         .apple-login {
             background-color: #000;
             color: white;
             margin-top: 10px;
         }
+
         .apple-login:hover {
             background-color: #444;
         }
+
         .icon {
             margin-right: 10px;
         }
+
         .alternative-login {
             text-align: center;
             margin-top: 15px;
             font-size: 14px;
             color: #666;
         }
+
         .alternative-login span {
             margin: 0 5px;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>Login</h2>
         <form method="post" action="/api/v1/login">
-            <input type="email" placeholder="Email" required>
-            <input type="password" placeholder="Password" required>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Email" required />
+            
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Password" required />
             <button type="submit">Login</button>
         </form>
         <div class="alternative-login">
@@ -103,4 +120,5 @@
         </button>
     </div>
 </body>
+
 </html>

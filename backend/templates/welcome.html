@@ -1,6 +1,6 @@
- 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +19,7 @@
         .container {
             background-color: white;
             border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 30px;
             width: 90%;
             max-width: 500px;
@@ -54,6 +54,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>Welcome!</h2>
@@ -62,13 +63,11 @@
         <div class="message">Welcome, {{ name }}!</div>
 
         {% if access_token %}
-            <h3>Your AgriTwin Access Token</h3>
-
-            <textarea id="token" readonly>{{ access_token }}</textarea>
-
-            <button onclick="copyToken()">Copy token</button>
+        <h3>Your AgriTwin Access Token</h3><label for="token">Access Token</label>
+        <textarea id="token" name="token" readonly>{{ access_token }}</textarea>
+        <button onclick="copyToken()">Copy token</button>
         {% else %}
-            <p>No access token found.</p>
+        <p>No access token found.</p>
         {% endif %}
     </div>
 
@@ -81,4 +80,5 @@
         }
     </script>
 </body>
+
 </html>
