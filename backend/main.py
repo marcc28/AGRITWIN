@@ -14,12 +14,15 @@ from api.v1 import (
     crops,
     crops_field,
     dashboard,
+    fb_auth,
     field_recommendations,
     fields,
+    google_auth,
     legal,
     payments,
     user,
     weather,
+    xauth,
 )
 
 load_dotenv()
@@ -57,6 +60,9 @@ async def add_security_headers(request: Request, call_next):
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(legal.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(google_auth.router, prefix="/api/v1", tags=["google auth"])
+app.include_router(fb_auth.router, prefix="/api/v1", tags=["facebook auth"])
+app.include_router(xauth.router, prefix="/api/v1/x", tags=["x auth"])
 app.include_router(anunces.router, prefix="/api/v1")
 app.include_router(content_market.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
