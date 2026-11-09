@@ -1,44 +1,419 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f4f7f1">
+    <title>Completa el teu compte · AgriTwin</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #1d2b22;
+            background: #f4f7f1;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            --green: #287348;
+            --green-dark: #1d5937;
+            --muted: #69766d;
+            --line: #dce5dc;
+        }
 
-<h1>Completa el teu compte d'AgriTwin</h1>
+        * { box-sizing: border-box; }
 
-<p>Hola {{ name }}!</p>
-<p>Correu electrònic: {{ email }}</p>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 32px 18px;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(ellipse at 12% 8%, rgba(187, 218, 174, .42), transparent 34%),
+                radial-gradient(ellipse at 95% 92%, rgba(209, 226, 190, .45), transparent 32%),
+                #f4f7f1;
+        }
 
-<form method="POST" action="/api/v1/complete-google-signup">
+        .signup-card {
+            width: min(100%, 500px);
+            padding: clamp(28px, 6vw, 48px);
+            border: 1px solid rgba(220, 229, 220, .9);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, .96);
+            box-shadow: 0 24px 70px rgba(37, 67, 44, .11), 0 3px 12px rgba(37, 67, 44, .04);
+        }
 
-    <input
-        type="hidden"
-        name="signup_token"
-        value="{{ signup_token }}"
-    >
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 34px;
+            color: var(--green-dark);
+            font-size: 15px;
+            font-weight: 750;
+            letter-spacing: -.02em;
+        }
 
-    <label for="username">Nom d'usuari</label>
-    <input
-        type="text"
-        id="username"
-        name="username"
-        required
-    >
+        .brand-mark {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border-radius: 12px;
+            background: #e9f3e8;
+            color: var(--green);
+        }
 
-    <label>
-        <input
-            type="checkbox"
-            name="privacy_terms_accepted"
-            value="true"
-            required
-        >
-        Accepto els termes de privacitat
-    </label>
+        .brand-mark svg { width: 21px; height: 21px; }
 
-    <label>
-        <input
-            type="checkbox"
-            name="security_terms_accepted"
-            value="true"
-            required
-        >
-        Accepto els termes de seguretat
-    </label>
+        .eyebrow {
+            margin: 0 0 10px;
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 750;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
 
-    <button type="submit">Crear compte</button>
-</form>
+        h1 {
+            margin: 0;
+            color: #1e3024;
+            font-size: clamp(27px, 5vw, 34px);
+            line-height: 1.15;
+            letter-spacing: -.045em;
+        }
+
+        .intro {
+            margin: 14px 0 26px;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        .account-email {
+            display: block;
+            margin-top: 3px;
+            color: #344c3b;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+        }
+
+        form { display: grid; gap: 18px; }
+
+        .field-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34443a;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 50px;
+            padding: 0 15px;
+            border: 1px solid #cedacf;
+            border-radius: 11px;
+            outline: none;
+            background: #fff;
+            color: #1d2b22;
+            font: inherit;
+            transition: border-color .18s ease, box-shadow .18s ease;
+        }
+
+        .text-input::placeholder { color: #9aa69d; }
+
+        .text-input:focus {
+            border-color: #4a9667;
+            box-shadow: 0 0 0 4px rgba(74, 150, 103, .14);
+        }
+
+        .terms {
+            display: grid;
+            gap: 15px;
+            padding: 17px;
+            border: 1px solid #e4ebe3;
+            border-radius: 13px;
+            background: #f8faf7;
+        }
+
+        .term-item { display: grid; gap: 8px; }
+
+        .check-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            color: #536157;
+            font-size: 13px;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+
+        .document-button {
+            justify-self: start;
+            margin-left: 28px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--green-dark);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+        }
+
+        .document-button:hover { color: var(--green); }
+
+        .document-button:focus-visible, .dialog-close:focus-visible {
+            outline: 3px solid rgba(40, 115, 72, .35);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+
+        .policy-dialog {
+            width: min(720px, calc(100% - 28px));
+            max-width: 720px;
+            max-height: min(82vh, 850px);
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #dce5dc;
+            border-radius: 18px;
+            background: #fff;
+            color: #1d2b22;
+            box-shadow: 0 28px 90px rgba(16, 37, 23, .28);
+        }
+
+        .policy-dialog::backdrop { background: rgba(16, 31, 20, .55); }
+
+        .dialog-header {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e4ebe3;
+            background: rgba(255, 255, 255, .97);
+        }
+
+        .dialog-header h2 {
+            margin: 0;
+            color: #1e3024;
+            font-size: 20px;
+            letter-spacing: -.025em;
+        }
+
+        .dialog-close {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid #e1e9e0;
+            border-radius: 10px;
+            background: #f8faf7;
+            color: #435448;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .dialog-content {
+            max-height: calc(min(82vh, 850px) - 78px);
+            padding: 22px 24px 28px;
+            overflow: auto;
+        }
+
+        .policy-text {
+            margin: 0;
+            color: #46544a;
+            font: 14px/1.7 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .policy-status { color: var(--muted); font-size: 14px; }
+
+        .check-row input {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 auto;
+            margin: 1px 0 0;
+            accent-color: var(--green);
+            cursor: pointer;
+        }
+
+        .submit-button {
+            display: flex;
+            width: 100%;
+            min-height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            margin-top: 2px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--green);
+            color: white;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 7px 16px rgba(40, 115, 72, .2);
+            transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-1px);
+            background: var(--green-dark);
+            box-shadow: 0 10px 20px rgba(40, 115, 72, .24);
+        }
+
+        .submit-button:focus-visible, .check-row input:focus-visible {
+            outline: 3px solid rgba(40, 115, 72, .35);
+            outline-offset: 3px;
+        }
+
+        .secure-note {
+            margin: 20px 0 0;
+            color: #829087;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 18px 12px; }
+            .signup-card { border-radius: 19px; }
+            .brand { margin-bottom: 27px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body>
+    <main class="signup-card">
+        <div class="brand" aria-label="AgriTwin">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19.5 4.5C11.4 4.7 6 7.1 6 12.1c0 2.1 1.6 3.7 3.7 3.7 5.2 0 8.7-5.1 9.8-11.3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 20c2.4-4.8 6.3-7.6 11.2-9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span>AgriTwin</span>
+        </div>
+
+        <p class="eyebrow">Un últim pas</p>
+        <h1>Completa el teu compte</h1>
+        <p class="intro">
+            Hola, {{ name }}! Tria un nom d'usuari i confirma les condicions per començar.
+            <span class="account-email">{{ email }}</span>
+        </p>
+
+        <form method="POST" action="/api/v1/complete-google-signup">
+            <input type="hidden" name="signup_token" value="{{ signup_token }}">
+
+            <div>
+                <label class="field-label" for="username">Nom d'usuari</label>
+                <input
+                    class="text-input"
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Com t'agradaria que et diguéssim?"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="terms" aria-label="Condicions del compte">
+                <div class="term-item">
+                    <label class="check-row">
+                        <input type="checkbox" name="privacy_terms_accepted" value="true" required>
+                        <span>Accepto els termes de privacitat</span>
+                    </label>
+                    <button class="document-button" type="button" data-policy="privacy">Llegir la política de privacitat</button>
+                </div>
+                <div class="term-item">
+                    <label class="check-row">
+                        <input type="checkbox" name="security_terms_accepted" value="true" required>
+                        <span>Accepto els termes de seguretat</span>
+                    </label>
+                    <button class="document-button" type="button" data-policy="security">Llegir la política de seguretat</button>
+                </div>
+            </div>
+
+            <button class="submit-button" type="submit">
+                Crear compte
+                <span aria-hidden="true">→</span>
+            </button>
+        </form>
+
+        <p class="secure-note">El teu compte estarà a punt quan completis aquests camps.</p>
+    </main>
+
+    <dialog class="policy-dialog" id="policy-dialog" aria-labelledby="policy-title">
+        <div class="dialog-header">
+            <h2 id="policy-title">Document legal</h2>
+            <button class="dialog-close" type="button" aria-label="Tanca el diàleg">×</button>
+        </div>
+        <div class="dialog-content">
+            <p class="policy-status" id="policy-status" role="status">Carregant el document…</p>
+            <pre class="policy-text" id="policy-text" hidden></pre>
+        </div>
+    </dialog>
+
+    <script>
+        const policyDialog = document.getElementById("policy-dialog");
+        const policyTitle = document.getElementById("policy-title");
+        const policyStatus = document.getElementById("policy-status");
+        const policyText = document.getElementById("policy-text");
+        const policyButtons = document.querySelectorAll("[data-policy]");
+        const policyDocuments = {
+            privacy: { title: "Política de privacitat", url: "/api/v1/legal/privacy" },
+            security: { title: "Política de seguretat", url: "/api/v1/legal/security" },
+        };
+
+        policyButtons.forEach((button) => {
+            button.addEventListener("click", async () => {
+                const documentInfo = policyDocuments[button.dataset.policy];
+                if (!documentInfo) return;
+
+                policyTitle.textContent = documentInfo.title;
+                policyText.textContent = "";
+                policyText.hidden = true;
+                policyStatus.textContent = "Carregant el document…";
+                policyStatus.hidden = false;
+                policyDialog.showModal();
+
+                try {
+                    const response = await fetch(documentInfo.url, {
+                        headers: { Accept: "application/json" },
+                    });
+                    if (!response.ok) throw new Error("No s'ha pogut carregar el document.");
+                    const documentData = await response.json();
+                    if (typeof documentData.content !== "string") {
+                        throw new Error("El document rebut no té un format vàlid.");
+                    }
+                    policyText.textContent = documentData.content;
+                    policyText.hidden = false;
+                    policyStatus.hidden = true;
+                } catch (error) {
+                    policyStatus.textContent = error.message || "No s'ha pogut carregar el document. Torna-ho a provar.";
+                }
+            });
+        });
+
+        policyDialog.querySelector(".dialog-close").addEventListener("click", () => policyDialog.close());
+        policyDialog.addEventListener("click", (event) => {
+            if (event.target === policyDialog) policyDialog.close();
+        });
+    </script>
+</body>
+</html>
