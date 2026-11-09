@@ -62,3 +62,8 @@ class SocialSignupRequest(BaseModel):
     username: str = Field(min_length=1, max_length=255)
     privacy_terms_accepted: bool
     security_terms_accepted: bool
+    email: EmailStr | None = None
+
+
+class SocialTicketRequest(BaseModel):
+    ticket: str = Field(min_length=1, max_length=128)

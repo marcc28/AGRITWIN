@@ -124,3 +124,41 @@ class XAuthService:
         except httpx.RequestError as error:
             raise HTTPException(status_code=502, detail="Could not communicate with X") from error
         return response.json()
+    @staticmethod
+    async def get_user_identity(access_token: str) -> dict:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(
+                    f"{X_API_BASE_URL}/users/me",
+                    params={"user.fields": "name,username"},
+                    headers={
+                        "Authorization": f"Bearer {access_token}"
+                    },
+                )
+                response.raise_for_status()
+
+        except httpx.HTTPStatusError as error:
+            raise HTTPException(
+                status_code=502,
+                detail="Could not retrieve X user identity",
+            ) from error
+
+        except httpx.RequestError as error:
+            raise HTTPException(
+                status_code=502,
+                detail="Could not communicate with X",
+            ) from error
+
+        data = response.json().get("data")
+
+        if not data or not data.get("id"):
+            raise HTTPException(
+                status_code=502,
+                detail="X did not return a valid user identity",
+            )
+
+        return {
+            "id": data["id"],
+            "username": data.get("username", ""),
+            "name": data.get("name", ""),
+        }

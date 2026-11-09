@@ -20,12 +20,23 @@ from api.v1 import (
     google_auth,
     legal,
     payments,
+    social_auth,
     user,
     weather,
     xauth,
 )
 
 load_dotenv()
+
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:8081,http://127.0.0.1:8081,http://localhost:19006,"
+        "https://agritwin.com,https://www.agritwin.com",
+    ).split(",")
+    if origin.strip()
+]
 
 app = FastAPI(title="AgriTwin")
 
@@ -38,7 +49,7 @@ if not secret_key:
 app.add_middleware(SessionMiddleware, secret_key=secret_key)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,6 +74,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(google_auth.router, prefix="/api/v1", tags=["google auth"])
 app.include_router(fb_auth.router, prefix="/api/v1", tags=["facebook auth"])
 app.include_router(xauth.router, prefix="/api/v1/x", tags=["x auth"])
+app.include_router(social_auth.router, prefix="/api/v1", tags=["social auth"])
 app.include_router(anunces.router, prefix="/api/v1")
 app.include_router(content_market.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")

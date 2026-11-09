@@ -177,6 +177,26 @@ class UserAuthProvider(Base):
     )
 
 
+class SocialAuthTicket(Base):
+    """Short-lived, one-time handoff from an OAuth browser flow to the app."""
+
+    __tablename__ = "social_auth_tickets"
+    __table_args__ = (Index("idx_social_auth_tickets_expires_at", "expires_at"),)
+
+    ticket: Mapped[str] = mapped_column(String(128), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    provider_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255))
+    display_name: Mapped[str | None] = mapped_column(String(255))
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=datetime.utcnow,
+    )
+
+
 class Anunce(Base):
     __tablename__ = "anunces"
 

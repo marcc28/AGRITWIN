@@ -82,6 +82,20 @@ CREATE TABLE user_auth_providers (
     CONSTRAINT uq_provider_user
         UNIQUE (provider, provider_user_id)
 );
+
+-- Short-lived, one-time handoff tickets used by native Facebook and X login.
+CREATE TABLE IF NOT EXISTS social_auth_tickets (
+    ticket VARCHAR(128) PRIMARY KEY,
+    provider VARCHAR(50) NOT NULL,
+    provider_user_id VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    display_name VARCHAR(255),
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_social_auth_tickets_expires_at
+    ON social_auth_tickets (expires_at);
 -- ============================================================
 -- ANUNCES
 -- News / announcements feed
@@ -553,3 +567,18 @@ CREATE TABLE public.field_recommendations (
 CREATE INDEX idx_recommendations_field_generated
     ON public.field_recommendations(field_id, generated_at DESC);
 
+
+
+-- Apply once to existing deployments to support mobile OAuth handoff tickets.
+CREATE TABLE IF NOT EXISTS social_auth_tickets (
+    ticket VARCHAR(128) PRIMARY KEY,
+    provider VARCHAR(50) NOT NULL,
+    provider_user_id VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    display_name VARCHAR(255),
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_social_auth_tickets_expires_at
+    ON social_auth_tickets (expires_at);

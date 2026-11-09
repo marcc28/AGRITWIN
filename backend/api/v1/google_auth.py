@@ -17,6 +17,7 @@ from api.v1.auth import (
 from db import AsyncSessionLocal
 from models.userProfile import SocialLoginRequest, SocialSignupRequest
 from services.google_auth_service import GoogleAuthService
+from services.social_auth_service import SOCIAL_PROVIDERS
 from services.user_service import UserService
 
 router = APIRouter()
@@ -76,25 +77,29 @@ async def complete_social_signup(body: SocialSignupRequest):
         data = jwt.decode(body.signup_token, SECRET_KEY, algorithms=[ALGORITHM])
     except InvalidTokenError as error:
         raise HTTPException(status_code=401, detail="Signup token expired or invalid") from error
-    if data.get("purpose") != "social_signup" or data.get("provider") != "google":
+    provider = data.get("provider")
+    if data.get("purpose") != "social_signup" or provider not in SOCIAL_PROVIDERS:
         raise HTTPException(status_code=401, detail="Invalid signup token")
     username = body.username.strip()
     if not username:
         raise HTTPException(status_code=422, detail="Username cannot be empty")
     async with AsyncSessionLocal() as db:
         service = UserService(db)
-        if await service.get_user_by_auth_provider("google", data["provider_sub"]):
+        if await service.get_user_by_auth_provider(provider, data["provider_sub"]):
             raise HTTPException(status_code=409, detail="Social account already registered")
+        email = data.get("email") or (str(body.email).strip().lower() if body.email else "")
+        if not email:
+            raise HTTPException(status_code=422, detail="Email is required to complete this social signup")
         user = await service.create_social_user(
             username=username,
-            email=data["email"],
-            provider="google",
+            email=email,
+            provider=provider,
             provider_user_id=data["provider_sub"],
             privacy_terms_accepted=body.privacy_terms_accepted,
             security_terms_accepted=body.security_terms_accepted,
             display_name=data.get("name"),
         )
-    return _token_pair(user.username)
+    return {**_token_pair(user.username), "username": user.username}
 
 
 @router.get("/login")

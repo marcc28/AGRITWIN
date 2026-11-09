@@ -7,6 +7,11 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
+from services.social_auth_service import (
+    add_ticket_to_redirect_uri,
+    create_social_auth_ticket,
+    validate_app_redirect_uri,
+)
 from services.xauth_service import XAuthService
 
 router = APIRouter()
@@ -23,11 +28,15 @@ def _generate_pkce() -> tuple[str, str]:
 
 
 @router.get("/login")
-async def x_auth_start(request: Request):
+async def x_auth_start(request: Request, app_redirect_uri: str | None = None):
     state = secrets.token_urlsafe(32)
     verifier, challenge = _generate_pkce()
     request.session["x_oauth_state"] = state
     request.session["x_code_verifier"] = verifier
+    if app_redirect_uri:
+        request.session["x_app_redirect_uri"] = validate_app_redirect_uri(
+            app_redirect_uri, "x"
+        )
     return RedirectResponse(XAuthService.authorization_url(state, challenge), status_code=302)
 
 
@@ -53,6 +62,19 @@ async def x_auth_callback(request: Request):
     token_id = secrets.token_urlsafe(32)
     request.app.state.x_oauth_tokens[token_id] = token
     request.session["x_token_id"] = token_id
+    app_redirect_uri = request.session.pop("x_app_redirect_uri", None)
+    if app_redirect_uri:
+        identity = await XAuthService.get_user_identity(token["access_token"])
+        ticket = await create_social_auth_ticket(
+            "x",
+            {
+                "sub": identity["id"],
+                "email": None,
+                "name": identity.get("name") or identity.get("username") or "",
+            },
+        )
+        return RedirectResponse(add_ticket_to_redirect_uri(app_redirect_uri, ticket))
+
     return JSONResponse(
         {
             "success": True,
