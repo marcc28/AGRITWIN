@@ -123,10 +123,13 @@ def main() -> None:
                 events.sort()
         histories[issue["number"]] = events
 
+    # The ideal line starts from the committed scope. Issues are often created
+    # during sprint planning on the first day, so take the larger value between
+    # the day before the sprint and the end of the first day.
     day_before = START - timedelta(days=1)
-    initial = sum(
-        remaining_on(i, histories[i["number"]], day_before)
-        for i in leaf_issues
+    initial = max(
+        sum(remaining_on(i, histories[i["number"]], check_day) for i in leaf_issues)
+        for check_day in (day_before, START)
     )
     today = datetime.now(TZ).date()
     rows: list[dict] = []
