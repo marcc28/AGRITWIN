@@ -1,4 +1,4 @@
-name: Sprint 1 Burndown
+name: Sprint Burndown
 
 on:
   push:
@@ -15,15 +15,22 @@ on:
       timezone: 'Europe/Madrid'
 
   issues:
-    types: [created, in progress, awaiting, done]
+    types: [opened, closed, reopened, milestoned, demilestoned]
 
 permissions:
   contents: write
   issues: read
 
 concurrency:
-  group: sprint-1-burndown
+  group: sprint-burndown
   cancel-in-progress: false
+
+# Change only these values at the start of each sprint.
+env:
+  SPRINT_MILESTONE: 'Sprint 2'
+  SPRINT_SLUG: 'sprint-2'
+  SPRINT_START: '2026-10-28'
+  SPRINT_END: '2026-11-22'
 
 jobs:
   generate:
@@ -42,22 +49,15 @@ jobs:
       - name: Install dependencies
         run: pip install matplotlib requests
 
-
       - name: Generate burndown chart
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SPRINT_MILESTONE: 'Sprint 1'
-          SPRINT_START: '2026-10-06'
-          SPRINT_END: '2026-10-27'
           SPRINT_TIMEZONE: 'Europe/Madrid'
           BURNDOWN_OUTPUT: 'docs/burndown'
         run: |
           set -euo pipefail
 
-          echo "Checking Python script..."
-          tail -n 10 scripts/burndown.py
-
-          echo "Generating burndown..."
+          echo "Generating burndown for ${SPRINT_MILESTONE} (${SPRINT_START} -> ${SPRINT_END})..."
           mkdir -p docs/burndown
 
           python -u -c "import runpy; m = runpy.run_path('scripts/burndown.py', run_name='burndown_debug'); assert callable(m.get('main')), 'ERROR: main() not found'; m['main']()"
@@ -65,8 +65,8 @@ jobs:
           echo "Checking generated files..."
           ls -lah docs/burndown/
 
-          test -s docs/burndown/sprint-1-burndown.png
-          test -s docs/burndown/sprint-1-burndown.csv
+          test -s "docs/burndown/${SPRINT_SLUG}-burndown.png"
+          test -s "docs/burndown/${SPRINT_SLUG}-burndown.csv"
 
       - name: Commit the updated reports
         run: |
@@ -75,11 +75,11 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-          git add -f docs/burndown/sprint-1-burndown.png
-          git add -f docs/burndown/sprint-1-burndown.csv
+          git add -f "docs/burndown/${SPRINT_SLUG}-burndown.png"
+          git add -f "docs/burndown/${SPRINT_SLUG}-burndown.csv"
 
           if ! git diff --cached --quiet; then
-            git commit -m "docs: update Sprint 1 burndown"
+            git commit -m "docs: update ${SPRINT_MILESTONE} burndown"
             git push
           else
             echo "No changes to commit."
