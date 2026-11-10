@@ -14,6 +14,7 @@ from api.v1 import (
     crops,
     crops_field,
     dashboard,
+    diagnosis,
     fb_auth,
     field_recommendations,
     fields,
@@ -89,6 +90,7 @@ app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(fields.router, prefix="/api/v1")
 app.include_router(field_recommendations.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
+app.include_router(diagnosis.router, prefix="/api/v1")
 app.include_router(
     payments.router,
     prefix="/api/v1/payments",

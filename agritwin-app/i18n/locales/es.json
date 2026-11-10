@@ -14,7 +14,8 @@
     "market": "Mercado",
     "profile": "Perfil",
     "clover": "Trébol",
-    "calendar": "Calendario"
+    "calendar": "Calendario",
+    "diagnosis": "Diagnóstico"
   },
   "fieldCrops": {
     "title": "Mis cultivos",
@@ -359,6 +360,58 @@
       "low": "Baja",
       "medium": "Media",
       "high": "Alta"
+    }
+  },
+  "diagnosis": {
+    "title": "Diagnóstico de la planta con IA",
+    "subtitle": "Detecta plagas, enfermedades, riego, luz y cosecha.",
+    "placeholder": "Todavía no has elegido ninguna foto",
+    "previewError": "No se puede mostrar esta imagen",
+    "enlarge": "Ampliar la foto",
+    "close": "Cerrar",
+    "takePhoto": "Hacer foto",
+    "choosePhoto": "Galería",
+    "analyse": "Analizar",
+    "retry": "Reintentar",
+    "openSettings": "Abrir la configuración",
+    "loading": "Analizando la planta…",
+    "healthy": "Sana",
+    "problem": "Necesita atención",
+    "confidence": "Fiabilidad: {{value}} %",
+    "statusTitle": "Estado de la planta",
+    "waterLabel": "Agua",
+    "lightLabel": "Luz",
+    "harvestLabel": "Cosecha",
+    "water": {
+      "lack": "Le falta agua",
+      "ok": "Sin síntomas",
+      "excess": "Exceso de riego",
+      "unknown": "No se puede saber"
+    },
+    "light": {
+      "lack": "Le falta luz",
+      "ok": "Sin síntomas",
+      "excess": "Demasiado sol",
+      "unknown": "No se puede saber"
+    },
+    "harvest": {
+      "ready": "Lista para cosechar",
+      "not_ready": "Aún no está lista",
+      "no_fruit": "No hay ningún fruto",
+      "unknown": "No se puede saber"
+    },
+    "errors": {
+      "cameraDenied": "Hace falta el permiso de la cámara para hacer fotos. Vuelve a pulsar «Hacer foto» para aceptarlo.",
+      "cameraBlocked": "Para hacer fotos tienes que activar el permiso de la cámara en la configuración del móvil.",
+      "photosDenied": "Hace falta el permiso de acceso a las fotos. Vuelve a pulsar «Galería» para aceptarlo.",
+      "photosBlocked": "Para elegir fotos tienes que activar el acceso a las fotos en la configuración del móvil.",
+      "format": "La foto debe ser JPG o PNG.",
+      "tooLarge": "La foto es demasiado grande (máximo 5 MB).",
+      "noPlant": "No se ha encontrado ninguna planta en la foto. Prueba con otra.",
+      "notFound": "No se ha podido diagnosticar esta foto. Prueba con otra más cercana.",
+      "tooMany": "Has hecho demasiados análisis. Espera un minuto e inténtalo de nuevo.",
+      "unavailable": "El servicio de diagnóstico no está disponible. Inténtalo más tarde.",
+      "connection": "No se ha podido conectar. Comprueba la conexión e inténtalo de nuevo."
     }
   }
 }
