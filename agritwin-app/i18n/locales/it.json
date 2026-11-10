@@ -14,7 +14,8 @@
     "market": "Mercato",
     "profile": "Profilo",
     "clover": "Trifoglio",
-    "calendar": "Calendario"
+    "calendar": "Calendario",
+    "diagnosis": "Diagnosi"
   },
   "fieldCrops": {
     "title": "Le mie colture",
@@ -354,6 +355,58 @@
       "low": "Bassa",
       "medium": "Media",
       "high": "Alta"
+    }
+  },
+  "diagnosis": {
+    "title": "Diagnosi della pianta con IA",
+    "subtitle": "Rileva parassiti, malattie, acqua, luce e raccolto.",
+    "placeholder": "Non hai ancora scelto nessuna foto",
+    "previewError": "Impossibile mostrare questa immagine",
+    "enlarge": "Ingrandisci la foto",
+    "close": "Chiudi",
+    "takePhoto": "Scatta foto",
+    "choosePhoto": "Galleria",
+    "analyse": "Analizza",
+    "retry": "Riprova",
+    "openSettings": "Apri le impostazioni",
+    "loading": "Analisi della pianta in corso…",
+    "healthy": "Sana",
+    "problem": "Richiede attenzione",
+    "confidence": "Affidabilità: {{value}} %",
+    "statusTitle": "Stato della pianta",
+    "waterLabel": "Acqua",
+    "lightLabel": "Luce",
+    "harvestLabel": "Raccolto",
+    "water": {
+      "lack": "Le manca acqua",
+      "ok": "Nessun sintomo",
+      "excess": "Troppa acqua",
+      "unknown": "Non si può sapere"
+    },
+    "light": {
+      "lack": "Le manca luce",
+      "ok": "Nessun sintomo",
+      "excess": "Troppo sole",
+      "unknown": "Non si può sapere"
+    },
+    "harvest": {
+      "ready": "Pronta per il raccolto",
+      "not_ready": "Non è ancora pronta",
+      "no_fruit": "Nessun frutto visibile",
+      "unknown": "Non si può sapere"
+    },
+    "errors": {
+      "cameraDenied": "Serve il permesso della fotocamera per scattare foto. Premi di nuovo «Scatta foto» per consentirlo.",
+      "cameraBlocked": "Per scattare foto attiva il permesso della fotocamera nelle impostazioni del telefono.",
+      "photosDenied": "Serve l'accesso alle foto. Premi di nuovo «Galleria» per consentirlo.",
+      "photosBlocked": "Per scegliere le foto attiva l'accesso alle foto nelle impostazioni del telefono.",
+      "format": "La foto deve essere JPG o PNG.",
+      "tooLarge": "La foto è troppo grande (massimo 5 MB).",
+      "noPlant": "Nessuna pianta trovata nella foto. Prova con un'altra.",
+      "notFound": "Non è stato possibile diagnosticare questa foto. Prova con una più vicina.",
+      "tooMany": "Troppe analisi. Aspetta un minuto e riprova.",
+      "unavailable": "Il servizio di diagnosi non è disponibile. Riprova più tardi.",
+      "connection": "Impossibile connettersi. Controlla la connessione e riprova."
     }
   }
 }

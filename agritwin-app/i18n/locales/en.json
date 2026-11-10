@@ -14,7 +14,8 @@
     "market": "Market",
     "profile": "Profile",
     "clover": "Clover",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "diagnosis": "Diagnosis"
   },
   "fieldCrops": {
     "title": "My crops",
@@ -354,6 +355,58 @@
       "low": "Low",
       "medium": "Medium",
       "high": "High"
+    }
+  },
+  "diagnosis": {
+    "title": "Plant diagnosis with AI",
+    "subtitle": "Detects pests, diseases, water, light and harvest.",
+    "placeholder": "You haven't chosen a photo yet",
+    "previewError": "This image can't be shown",
+    "enlarge": "Enlarge photo",
+    "close": "Close",
+    "takePhoto": "Take photo",
+    "choosePhoto": "Gallery",
+    "analyse": "Analyse",
+    "retry": "Try again",
+    "openSettings": "Open settings",
+    "loading": "Analysing the plant…",
+    "healthy": "Healthy",
+    "problem": "Needs attention",
+    "confidence": "Confidence: {{value}} %",
+    "statusTitle": "Plant status",
+    "waterLabel": "Water",
+    "lightLabel": "Light",
+    "harvestLabel": "Harvest",
+    "water": {
+      "lack": "Needs water",
+      "ok": "No symptoms",
+      "excess": "Overwatered",
+      "unknown": "Can't tell"
+    },
+    "light": {
+      "lack": "Needs more light",
+      "ok": "No symptoms",
+      "excess": "Too much sun",
+      "unknown": "Can't tell"
+    },
+    "harvest": {
+      "ready": "Ready to harvest",
+      "not_ready": "Not ready yet",
+      "no_fruit": "No fruit visible",
+      "unknown": "Can't tell"
+    },
+    "errors": {
+      "cameraDenied": "Camera permission is needed to take photos. Tap “Take photo” again to allow it.",
+      "cameraBlocked": "To take photos, turn on the camera permission in your phone settings.",
+      "photosDenied": "Photo access is needed. Tap “Gallery” again to allow it.",
+      "photosBlocked": "To choose photos, turn on photo access in your phone settings.",
+      "format": "The photo must be JPG or PNG.",
+      "tooLarge": "The photo is too large (5 MB max).",
+      "noPlant": "No plant was found in the photo. Try another one.",
+      "notFound": "This photo couldn't be diagnosed. Try a closer one.",
+      "tooMany": "Too many analyses. Wait a minute and try again.",
+      "unavailable": "The diagnosis service is unavailable. Try again later.",
+      "connection": "Couldn't connect. Check your connection and try again."
     }
   }
 }
