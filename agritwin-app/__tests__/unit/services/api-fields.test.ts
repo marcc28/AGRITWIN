@@ -216,6 +216,66 @@ describe('fields api', () => {
     ]);
   });
 
+  it('maps devices_online when the fields list includes it', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: '3',
+          name: 'Hort',
+          location: null,
+          field_type: null,
+          soil_type: null,
+          size_m2: null,
+          device_count: '2',
+          devices_online: '1',
+        },
+      ],
+    }) as jest.Mock;
+
+    await expect(getFields()).resolves.toEqual([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 2,
+        devices_online: 1,
+      },
+    ]);
+  });
+
+  it('keeps devices_online omitted when the backend does not send it', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: 3,
+          name: 'Hort',
+          location: null,
+          field_type: null,
+          soil_type: null,
+          size_m2: null,
+          device_count: 0,
+        },
+      ],
+    }) as jest.Mock;
+
+    const fields = await getFields();
+    expect(fields[0]).toEqual({
+      id: 3,
+      name: 'Hort',
+      location: null,
+      field_type: null,
+      soil_type: null,
+      size_m2: null,
+      device_count: 0,
+    });
+    expect(fields[0]).not.toHaveProperty('devices_online');
+  });
+
   it('loads one field', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,

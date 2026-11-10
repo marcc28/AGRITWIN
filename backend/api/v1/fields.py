@@ -31,6 +31,7 @@ class FieldRead(BaseModel):
     device_count: int
     boundary: list[BoundaryPoint] | None = None
     excluded_zones: list[list[BoundaryPoint]] = PydanticField(default_factory=list)
+    devices_online: int = 0
 
 
 class FieldCreate(BaseModel):
@@ -82,6 +83,11 @@ SELECT_PREFIX = "SELECT "
 FIELD_NOT_FOUND = "Field not found"
 DEVICE_NOT_FOUND = "Device not found"
 DEVICE_CONFLICT = "This device is already registered"
+DEVICE_COUNTS = (
+    ", COUNT(devices.id) AS device_count, "
+    "COALESCE(SUM(CASE WHEN devices.battery_status IS TRUE THEN 1 ELSE 0 END), 0) "
+    "AS devices_online "
+)
 HTTP_400 = {400: {"description": "Invalid request"}}
 HTTP_404 = {404: {"description": "Not found"}}
 HTTP_409 = {409: {"description": "Conflict"}}
@@ -108,6 +114,7 @@ def _read_field(row) -> FieldRead:
         device_count=int(row.device_count),
         boundary=_read_boundary(getattr(row, "boundary", None)),
         excluded_zones=_read_boundary(getattr(row, "excluded_zones", None)) or [],
+        devices_online=int(getattr(row, "devices_online", 0) or 0),
     )
 
 
@@ -144,7 +151,7 @@ def _clean_size(size_m2: float | None) -> float | None:
 async def _load_field(session, field_id: int, user_id) -> FieldRead:
     read = await session.execute(
         text(
-            SELECT_PREFIX + FIELD_COLUMNS + ", COUNT(devices.id) AS device_count "
+            SELECT_PREFIX + FIELD_COLUMNS + DEVICE_COUNTS +
             "FROM fields "
             "LEFT JOIN devices ON devices.field_id = fields.id "
             "WHERE fields.id = :field_id AND "
@@ -191,7 +198,7 @@ async def list_fields(
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text(
-                SELECT_PREFIX + FIELD_COLUMNS + ", COUNT(devices.id) AS device_count "
+                SELECT_PREFIX + FIELD_COLUMNS + DEVICE_COUNTS +
                 "FROM fields "
                 "LEFT JOIN devices ON devices.field_id = fields.id "
                 "WHERE fields.user_id = :user_id "
@@ -295,6 +302,7 @@ async def get_field(
         device_count=len(devices),
         boundary=_read_boundary(getattr(row, "boundary", None)),
         excluded_zones=_read_boundary(getattr(row, "excluded_zones", None)) or [],
+        devices_online=sum(1 for device in devices if device.battery_status),
         devices=[
             FieldDeviceRead(
                 id=device.id,

@@ -14,28 +14,50 @@ from api.v1 import (
     crops,
     crops_field,
     dashboard,
+    fb_auth,
     field_recommendations,
     fields,
+    google_auth,
     legal,
     payments,
+    social_auth,
     user,
     weather,
+    xauth,
 )
 
 load_dotenv()
 
-app = FastAPI(title="AgriTwin")
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:8081,http://127.0.0.1:8081,http://localhost:19006,"
+        "https://agritwin.com,https://www.agritwin.com",
+    ).split(",")
+    if origin.strip()
+]
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = FastAPI(title="AgriTwin")
 
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("SECRET_KEY environment variable is not set")
 
-app.add_middleware(SessionMiddleware, secret_key=secret_key)
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=secret_key,
+    session_cookie="agritwin_session",
+    max_age=60 * 60 * 24 * 14,
+    same_site="lax",
+    https_only=(ENVIRONMENT == "production"),
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,6 +79,10 @@ async def add_security_headers(request: Request, call_next):
 app.include_router(user.router, prefix="/api/v1")
 app.include_router(legal.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(google_auth.router, prefix="/api/v1", tags=["google auth"])
+app.include_router(fb_auth.router, prefix="/api/v1", tags=["facebook auth"])
+app.include_router(xauth.router, prefix="/api/v1/x", tags=["x auth"])
+app.include_router(social_auth.router, prefix="/api/v1", tags=["social auth"])
 app.include_router(anunces.router, prefix="/api/v1")
 app.include_router(content_market.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
@@ -71,10 +97,6 @@ app.include_router(
 
 app.include_router(crops_field.router, prefix="/api/v1/crops")
 app.include_router(crops.router, prefix="/api/v1")
-app.include_router(
-    field_recommendations.router,
-    prefix="/api/v1",
-)
 
 
 @app.api_route("/ping", methods=["GET", "HEAD"])

@@ -22,6 +22,7 @@ import {
 } from '../../services/api';
 import { styles } from '../../styles/signup.styles';
 import { Gradients } from '@/constants/colors';
+import SocialLoginButtons from '@/components/SocialLoginButtons';
 
 export default function SignupScreen() {
   const { t } = useTranslation();
@@ -358,37 +359,14 @@ export default function SignupScreen() {
         </View>
 
         {/* Login social */}
-        <View style={styles.socialContainer}>
-          <Text style={styles.socialTitle}>O inicia sessió amb</Text>
-
-          <View style={styles.socialAccounts}>
-            {/* Google */}
-            <Pressable style={styles.socialButton} disabled={loading}>
-              <Image
-                source={require('../../../assets/images/google.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            {/* Instagram */}
-            <Pressable style={styles.socialButton} disabled={loading}>
-              <Image
-                source={require('../../../assets/images/instagram.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            {/* Facebook */}
-            <Pressable style={styles.socialButton} disabled={loading}>
-              <Image
-                source={require('../../../assets/images/twitter.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-          </View>
+        <View testID="social-login" style={styles.socialContainer}>
+          <SocialLoginButtons
+            styles={styles}
+            loading={loading}
+            onLoadingChange={setLoading}
+            onError={setErrorMessage}
+            title={t('login.socialLogin')}
+          />
         </View>
 
         {/* Botons */}
@@ -401,7 +379,7 @@ export default function SignupScreen() {
             disabled={loading}
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>Log In</Text>
+              <Text style={styles.buttonText}>{t('signup.logIn')}</Text>
             </LinearGradient>
           </Pressable>
 
@@ -414,7 +392,8 @@ export default function SignupScreen() {
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>
-                {loading ? 'Creant compte...' : 'Sign Up'}
+                <Text style={styles.buttonText}>{}</Text>
+                {loading ? t('signup.creatingAccount') : t('signup.signUp')}
               </Text>
             </LinearGradient>
           </Pressable>

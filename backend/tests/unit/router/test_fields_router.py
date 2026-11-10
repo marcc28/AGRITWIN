@@ -27,6 +27,7 @@ FIELD = SimpleNamespace(
     soil_type="loam",
     size_m2=40.0,
     device_count=2,
+    devices_online=2,
 )
 
 FIELD_JSON = {
@@ -41,6 +42,7 @@ FIELD_JSON = {
     "device_count": 2,
     "boundary": None,
     "excluded_zones": [],
+    "devices_online": 2,
 }
 
 
@@ -120,6 +122,67 @@ def test_list_fields():
     assert response.json() == [FIELD_JSON]
 
 
+def test_list_fields_counts_online_devices():
+    client = make_client()
+    mixed = SimpleNamespace(
+        id=5,
+        name="Camp mixt",
+        location=None,
+        lat=None,
+        lon=None,
+        field_type=None,
+        soil_type=None,
+        size_m2=None,
+        device_count=3,
+        devices_online=1,
+    )
+    offline = SimpleNamespace(
+        id=6,
+        name="Camp offline",
+        location=None,
+        lat=None,
+        lon=None,
+        field_type=None,
+        soil_type=None,
+        size_m2=None,
+        device_count=2,
+        devices_online=0,
+    )
+    session = FakeSession([FakeResult(rows=[mixed, offline])])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload[0]["device_count"] == 3
+    assert payload[0]["devices_online"] == 1
+    assert payload[1]["device_count"] == 2
+    assert payload[1]["devices_online"] == 0
+
+
+def test_list_fields_defaults_devices_online_when_missing():
+    client = make_client()
+    legacy = SimpleNamespace(
+        id=7,
+        name="Camp antic",
+        location=None,
+        lat=None,
+        lon=None,
+        field_type=None,
+        soil_type=None,
+        size_m2=None,
+        device_count=1,
+    )
+    session = FakeSession([FakeResult(rows=[legacy])])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields")
+
+    assert response.status_code == 200
+    assert response.json()[0]["devices_online"] == 0
+
+
 def test_list_fields_empty():
     client = make_client()
     session = FakeSession([FakeResult(rows=[])])
@@ -180,6 +243,7 @@ def test_get_field():
     assert response.status_code == 200
     assert response.json() == {
         **FIELD_JSON,
+        "devices_online": 1,
         "devices": [
             {
                 "id": "dev-1",
@@ -221,7 +285,49 @@ def test_get_field_without_devices():
 
     assert response.status_code == 200
     assert response.json()["device_count"] == 0
+    assert response.json()["devices_online"] == 0
     assert response.json()["devices"] == []
+
+
+def test_get_field_all_devices_online():
+    client = make_client()
+    field_row = SimpleNamespace(
+        id=3,
+        name="Hort de l'Ainhoa",
+        location="Andorra la Vella",
+        lat=42.5,
+        lon=1.5,
+        field_type="home_garden",
+        soil_type="loam",
+        size_m2=40.0,
+    )
+    devices = [
+        SimpleNamespace(
+            id="dev-1",
+            battery_status=True,
+            brand="ESP32",
+            serial_number="SN-1",
+        ),
+        SimpleNamespace(
+            id="dev-2",
+            battery_status=True,
+            brand="ESP32",
+            serial_number="SN-2",
+        ),
+    ]
+    session = FakeSession(
+        [
+            FakeResult(one=field_row),
+            FakeResult(rows=devices),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields/3")
+
+    assert response.status_code == 200
+    assert response.json()["device_count"] == 2
+    assert response.json()["devices_online"] == 2
 
 
 def test_get_field_not_found():

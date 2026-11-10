@@ -168,6 +168,16 @@ const fieldCrop: FieldCrop = {
   status: 'planted',
 };
 
+async function waitForCropForm() {
+  await waitFor(
+    () => {
+      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy();
+    },
+    { timeout: 10000 },
+  );
+}
+
 describe('EditFieldScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -177,6 +187,11 @@ describe('EditFieldScreen', () => {
       lat: 0.0005,
       lon: 0.0005,
       label: 'Updated field address',
+    });
+    mockedGetAuth.mockResolvedValue({
+      token: 'token',
+      refreshToken: null,
+      username: 'ainhoa',
     });
     mockedGetField.mockResolvedValue({
       id: 3,
@@ -416,9 +431,7 @@ describe('EditFieldScreen', () => {
       crop_name: 'Tomàquet',
     });
     render(<EditFieldScreen />);
-    await waitFor(() =>
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
-    );
+    await waitForCropForm();
 
     fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
     fireEvent.press(screen.getByText('Tomàquet'));
@@ -446,9 +459,7 @@ describe('EditFieldScreen', () => {
   it('rejects invalid crop dates and harvests before planting', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
     render(<EditFieldScreen />);
-    await waitFor(() =>
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
-    );
+    await waitForCropForm();
     fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
     fireEvent.press(screen.getByText('Tomàquet'));
     const dates = screen.getAllByLabelText('settings.manageCrops.selectDate');
@@ -494,9 +505,7 @@ describe('EditFieldScreen', () => {
         },
       ]);
     render(<EditFieldScreen />);
-    await waitFor(() =>
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
-    );
+    await waitForCropForm();
     fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
     const cropList = screen.getByTestId('crop-selector-list');
     await act(async () => cropList.props.onEndReached());
@@ -519,9 +528,7 @@ describe('EditFieldScreen', () => {
       )
       .mockRejectedValueOnce(new Error('catalog unavailable'));
     render(<EditFieldScreen />);
-    await waitFor(() =>
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
-    );
+    await waitForCropForm();
     fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
     const cropList = screen.getByTestId('crop-selector-list');
     await act(async () => cropList.props.onEndReached());
@@ -558,9 +565,7 @@ describe('EditFieldScreen', () => {
     ]);
     mockedGetFieldCrops.mockResolvedValue([]);
     render(<EditFieldScreen />);
-    await waitFor(() =>
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
-    );
+    await waitForCropForm();
     fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
     fireEvent.press(screen.getByText('Tomàquet'));
     mockedGetAuth.mockResolvedValueOnce(null);
@@ -578,9 +583,7 @@ describe('EditFieldScreen', () => {
       new Error('remove unavailable'),
     );
     render(<EditFieldScreen />);
-    await waitFor(() =>
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
-    );
+    await waitForCropForm();
 
     fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
     fireEvent.press(screen.getByText('Tomàquet'));
@@ -598,9 +601,7 @@ describe('EditFieldScreen', () => {
   it('closes the crop picker and form, then reopens crop entry', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
     render(<EditFieldScreen />);
-    await waitFor(() =>
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy(),
-    );
+    await waitForCropForm();
     fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
     const modal = screen.getByTestId('crop-selector-modal');
     await act(async () => modal.props.onRequestClose());

@@ -20,6 +20,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -48,12 +49,16 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
         server_default=func.current_timestamp(),
         default=datetime.utcnow,
+    )
+    auth_providers: Mapped[list["UserAuthProvider"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     profile: Mapped["UserProfile | None"] = relationship(
@@ -131,6 +136,65 @@ class UserConsent(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="consents")
+
+
+class UserAuthProvider(Base):
+    __tablename__ = "user_auth_providers"
+
+    id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+        server_default=text("gen_random_uuid()"),
+    )
+
+    user_id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    provider: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+
+    provider_user_id: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    user: Mapped["User"] = relationship(
+        back_populates="auth_providers",
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "provider",
+            "provider_user_id",
+            name="uq_provider_user",
+        ),
+    )
+
+
+class SocialAuthTicket(Base):
+    """Short-lived, one-time handoff from an OAuth browser flow to the app."""
+
+    __tablename__ = "social_auth_tickets"
+    __table_args__ = (Index("idx_social_auth_tickets_expires_at", "expires_at"),)
+
+    ticket: Mapped[str] = mapped_column(String(128), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    provider_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255))
+    display_name: Mapped[str | None] = mapped_column(String(255))
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
+        default=datetime.utcnow,
+    )
 
 
 class Anunce(Base):

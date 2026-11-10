@@ -316,6 +316,7 @@ export type Field = {
   boundary?: { lat: number; lon: number }[] | null;
   excluded_zones?: { lat: number; lon: number }[][];
   device_count: number;
+  devices_online?: number;
 };
 
 export type FieldPayload = {
@@ -417,6 +418,9 @@ export async function getFields(): Promise<Field[]> {
     ...field,
     id: Number(field.id),
     device_count: Number(field.device_count),
+    ...(field.devices_online == null
+      ? {}
+      : { devices_online: Number(field.devices_online) }),
   }));
 }
 

@@ -72,6 +72,9 @@ export default function EditFieldScreen() {
     addCrop?: string | string[];
   }>();
   const fieldId = parseId(params.id);
+  const addCropParam = Array.isArray(params.addCrop)
+    ? params.addCrop[0]
+    : params.addCrop;
 
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
@@ -105,7 +108,7 @@ export default function EditFieldScreen() {
   const [selectedCropName, setSelectedCropName] = useState('');
   const cropPageLoading = useRef(false);
   const [addingCrop, setAddingCrop] = useState(false);
-  const [showCropForm, setShowCropForm] = useState(params.addCrop === 'true');
+  const [showCropForm, setShowCropForm] = useState(addCropParam === 'true');
   const [plantedAt, setPlantedAt] = useState('');
   const [expectedHarvestAt, setExpectedHarvestAt] = useState('');
   const [cropNotes, setCropNotes] = useState('');

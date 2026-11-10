@@ -5,7 +5,11 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from api.v1.user import get_user_service, router
+from api.v1.user import (
+    get_user_profile_service,
+    get_user_service,
+    router,
+)
 
 
 @pytest.fixture
@@ -14,16 +18,30 @@ def mock_service():
 
 
 @pytest.fixture
-def client(mock_service):
+def mock_profile_service():
+    return AsyncMock()
+
+
+@pytest.fixture
+def client(mock_service, mock_profile_service):
     app = FastAPI()
     app.include_router(router)
 
     async def override_get_user_service():
         yield mock_service
 
-    app.dependency_overrides[get_user_service] = override_get_user_service
+    async def override_get_user_profile_service():
+        yield mock_profile_service
 
-    return TestClient(app)
+    app.dependency_overrides[get_user_service] = override_get_user_service
+    app.dependency_overrides[get_user_profile_service] = (
+        override_get_user_profile_service
+    )
+
+    try:
+        yield TestClient(app)
+    finally:
+        app.dependency_overrides.clear()
 
 
 def test_get_users(client, mock_service):
@@ -61,9 +79,9 @@ def test_get_users_with_pagination(client, mock_service):
     )
 
 
-def test_get_user_profiles(client, mock_service):
+def test_get_user_profiles(client, mock_profile_service):
     profile_id = uuid.uuid4()
-    mock_service.list_users_profile.return_value = [
+    mock_profile_service.list_users_profile.return_value = [
         {
             "id": profile_id,
             "name": "john",
@@ -89,17 +107,17 @@ def test_get_user_profiles(client, mock_service):
     assert response.json()[0]["irrigation_alerts_enabled"] is True
     assert response.json()[0]["theme"] == "system"
 
-    mock_service.list_users_profile.assert_awaited_once_with(
+    mock_profile_service.list_users_profile.assert_awaited_once_with(
         limit=10,
         offset=0,
         nickname=None,
     )
 
 
-def test_get_user_profile_success(client, mock_service):
+def test_get_user_profile_success(client, mock_profile_service):
     user_id = uuid.uuid4()
 
-    mock_service.get_user_profile.return_value = {
+    mock_profile_service.get_user_profile.return_value = {
         "id": user_id,
         "name": "john",
         "language": "ca",
@@ -122,18 +140,18 @@ def test_get_user_profile_success(client, mock_service):
     assert response.json()["irrigation_alerts_enabled"] is True
     assert response.json()["theme"] == "system"
 
-    mock_service.get_user_profile.assert_awaited_once_with(user_id)
+    mock_profile_service.get_user_profile.assert_awaited_once_with(user_id)
 
 
-def test_get_user_profiles_with_nickname(client, mock_service):
-    mock_service.list_users_profile.return_value = []
+def test_get_user_profiles_with_nickname(client, mock_profile_service):
+    mock_profile_service.list_users_profile.return_value = []
 
     response = client.get("/user_profile?nickname=john")
 
     assert response.status_code == 200
     assert response.json() == []
 
-    mock_service.list_users_profile.assert_awaited_once_with(
+    mock_profile_service.list_users_profile.assert_awaited_once_with(
         limit=10,
         offset=0,
         nickname="john",
@@ -265,18 +283,18 @@ def test_get_user_invalid_uuid(client, mock_service):
     mock_service.get_user.assert_not_awaited()
 
 
-def test_get_user_profile_not_found(client, mock_service):
+def test_get_user_profile_not_found(client, mock_profile_service):
     user_id = uuid.uuid4()
 
-    mock_service.get_user_profile.return_value = None
+    mock_profile_service.get_user_profile.return_value = None
 
     response = client.get(f"/user_profile/{user_id}")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Userprof not found"
+    assert response.json()["detail"] == "User profile not found"
 
-    mock_service.get_user_profile.assert_awaited_once_with(user_id)
-
+    mock_profile_service.get_user_profile.assert_awaited_once_with(user_id)
+    
 
 def test_update_user_success(client, mock_service):
     user_id = uuid.uuid4()

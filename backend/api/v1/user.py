@@ -7,6 +7,7 @@ from db import AsyncSessionLocal, Base, engine, init_db
 from models.user import UserCreate, UserRead
 from models.userProfile import UserProfileRead
 from services.user_service import UserService
+from services.userprofile_service import UserProfileService
 
 # Re-export explícit (per ruff i per importacions)
 __all__ = ["AsyncSessionLocal", "Base", "engine", "init_db"]
@@ -19,7 +20,10 @@ router = APIRouter()
 BASE_URL = "http://localhost:8000/profile_images/"
 UPLOAD_DIR = "app/profile_images/"
 
-
+async def get_user_profile_service() -> UserProfileService:
+    async with AsyncSessionLocal() as session:
+        yield UserProfileService(session=session)
+        
 async def get_user_service() -> UserService:
     async with AsyncSessionLocal() as session:
         yield UserService(session=session)
@@ -32,15 +36,21 @@ async def get_users(
     return await service.list_users(offset=offset, limit=limit)
 
 
-@router.get("/user_profile", response_model=list[UserProfileRead])
+@router.get(
+    "/user_profile",
+    response_model=list[UserProfileRead],
+)
 async def get_user_profiles(
     offset: int = 0,
     limit: int = 10,
     nickname: str | None = None,
-    service: UserService = Depends(get_user_service),
+    service: UserProfileService = Depends(get_user_profile_service),
 ):
-    return await service.list_users_profile(limit=limit, offset=offset, nickname=nickname)
-
+    return await service.list_users_profile(
+        limit=limit,
+        offset=offset,
+        nickname=nickname,
+    )
 
 @router.post("/users", response_model=UserRead)
 async def create_user(
@@ -83,11 +93,22 @@ async def get_user(user_id: uuid.UUID, service: UserService = Depends(get_user_s
     return user
 
 
-@router.get("/user_profile/{user_id}", response_model=UserProfileRead)
-async def get_user_profile(user_id: uuid.UUID, service: UserService = Depends(get_user_service)):
+@router.get(
+    "/user_profile/{user_id}",
+    response_model=UserProfileRead,
+)
+async def get_user_profile(
+    user_id: uuid.UUID,
+    service: UserProfileService = Depends(get_user_profile_service),
+):
     userprof = await service.get_user_profile(user_id)
+
     if not userprof:
-        raise HTTPException(status_code=404, detail="Userprof not found")
+        raise HTTPException(
+            status_code=404,
+            detail="User profile not found",
+        )
+
     return userprof
 
 
