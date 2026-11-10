@@ -48,7 +48,16 @@
           "enableGooglePay": false
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": [],
+          "neverForLocation": true,
+          "bluetoothAlwaysPermission": "AgriTwin uses Bluetooth to set up the sensors of your field."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

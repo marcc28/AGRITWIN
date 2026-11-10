@@ -360,5 +360,26 @@
       "medium": "Medium",
       "high": "High"
     }
+  },
+  "deviceSetup": {
+    "errors": {
+      "bluetooth_off": "Turn on Bluetooth and try again.",
+      "permission_denied": "Turn on Bluetooth and allow the app to use it.",
+      "scan_failed": "Could not search for boards. Try again.",
+      "invalid_input": "Enter the Wi-Fi name.",
+      "connection_failed": "Could not connect to the board. Move closer and try again.",
+      "connection_lost": "Connection to the board lost. Try again.",
+      "no_answer": "The board is not answering. Check that the LED blinks slowly and try again.",
+      "missing_data": "Incomplete data. Try again.",
+      "bad_field_id": "Invalid field. Open this screen again from the field.",
+      "wifi_not_found": "Network not found. Check the name and use the 2.4 GHz network.",
+      "wrong_password": "Wrong password.",
+      "wifi_timeout": "The router is not answering. Move the board closer and try again.",
+      "no_internet": "Wi-Fi connected but no Internet.",
+      "session_expired": "Your session has expired. Log in again and try again.",
+      "already_registered_elsewhere": "This board is already linked to another field.",
+      "registration_failed": "Board connected, but it could not be saved. Try again.",
+      "unknown": "Something went wrong. Try again."
+    }
   }
 }

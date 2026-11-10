@@ -356,5 +356,26 @@
       "medium": "Mitjana",
       "high": "Alta"
     }
+  },
+  "deviceSetup": {
+    "errors": {
+      "bluetooth_off": "Activa el Bluetooth i torna-ho a provar.",
+      "permission_denied": "Activa el Bluetooth i permet l'accés a l'app.",
+      "scan_failed": "No s'han pogut cercar plaques. Torna-ho a provar.",
+      "invalid_input": "Escriu el nom del WiFi.",
+      "connection_failed": "No s'ha pogut connectar amb la placa. Apropa't i torna-ho a provar.",
+      "connection_lost": "S'ha perdut la connexió amb la placa. Torna-ho a provar.",
+      "no_answer": "La placa no respon. Comprova que el LED parpelleja lentament i torna-ho a provar.",
+      "missing_data": "Dades incompletes. Torna-ho a provar.",
+      "bad_field_id": "Camp no vàlid. Torna a obrir la pantalla des del camp.",
+      "wifi_not_found": "Xarxa no trobada. Revisa el nom i fes servir la xarxa de 2,4 GHz.",
+      "wrong_password": "Contrasenya incorrecta.",
+      "wifi_timeout": "El router no respon. Apropa la placa i torna-ho a provar.",
+      "no_internet": "WiFi connectat però sense internet.",
+      "session_expired": "La sessió ha caducat. Torna a iniciar sessió i torna-ho a provar.",
+      "already_registered_elsewhere": "Aquesta placa ja està vinculada a un altre camp.",
+      "registration_failed": "Placa connectada, però no s'ha pogut desar. Torna-ho a provar.",
+      "unknown": "Alguna cosa ha anat malament. Torna-ho a provar."
+    }
   }
 }
