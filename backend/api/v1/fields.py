@@ -151,8 +151,7 @@ def _clean_size(size_m2: float | None) -> float | None:
 async def _load_field(session, field_id: int, user_id) -> FieldRead:
     read = await session.execute(
         text(
-            SELECT_PREFIX + FIELD_COLUMNS + DEVICE_COUNTS +
-            "FROM fields "
+            SELECT_PREFIX + FIELD_COLUMNS + DEVICE_COUNTS + "FROM fields "
             "LEFT JOIN devices ON devices.field_id = fields.id "
             "WHERE fields.id = :field_id AND "
             "fields.user_id = :user_id "
@@ -198,8 +197,7 @@ async def list_fields(
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text(
-                SELECT_PREFIX + FIELD_COLUMNS + DEVICE_COUNTS +
-                "FROM fields "
+                SELECT_PREFIX + FIELD_COLUMNS + DEVICE_COUNTS + "FROM fields "
                 "LEFT JOIN devices ON devices.field_id = fields.id "
                 "WHERE fields.user_id = :user_id "
                 "GROUP BY fields.id "

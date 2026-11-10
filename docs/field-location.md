@@ -270,7 +270,7 @@ tests/unit/router/test_weather_flow.py
 Backend tests use isolated fixtures and mocked external providers. The selected
 150 tests are not the complete repository backend suite. Existing dependency
 warnings about pytest-asyncio fixture scope and naive UTC datetime defaults were
-reported; these runs had no failing tests. No coverage percentage was collected.
+reported; these runs had no failing tests. No coverage percentage was collected in that initial run.
 The live provider and local HTTP checks above were separate from unit tests.
 
 Automated coverage includes geometry validation and known areas, unit conversions,
@@ -317,9 +317,11 @@ Before release, validate web and physical Android/iOS devices separately:
 
 ## Current rollout status
 
-Implementation is on the local `feature/151-field-geolocation` working tree,
-based on commit `d05cf30`. The current changes have not been committed, pushed,
-merged or deployed. Another person must approve the pull request before merging.
+Implementation is on `feature/151-field-geolocation`. The branch was updated with
+`dev` through commit `af4d719` before preparing the pull request. Conflicts were
+resolved while preserving online-device counts and the latest authentication
+fixtures. Another person must approve the pull request before merging. Opening
+the pull request does not deploy the feature or apply the database migration.
 
 The local preview uses SQLite with the geometry columns present. Local field
 labels were shortened to street/city. The production PostgreSQL migration is
@@ -334,5 +336,42 @@ router in `backend/main.py`.
 The web flow and local API persistence have been checked. Physical Android/iOS
 verification and PostgreSQL deployment verification remain pending. The area
 calculation is a spherical approximation, and the public map/geocoding services
-have the usage limits documented above. No coverage percentage was measured in
-these validation runs.
+have the usage limits documented above.
+
+## Pull request validation: 2026-11-10
+
+The integrated branch was checked before publication:
+
+| Check | Result |
+| --- | --- |
+| Complete backend pytest suite | 661 tests passed, including five new API/database integration cases |
+| Backend line coverage | 98.29% in the local coverage run |
+| Complete frontend Jest suite | 628 tests passed in 75 suites |
+| Frontend line coverage | 94.10% in the local coverage run |
+| TypeScript | Passed |
+| Frontend Prettier | Passed |
+| ESLint | Zero errors; 24 existing warnings outside the feature changes |
+| Ruff lint | Passed across the backend |
+| Ruff formatting | Feature Python files passed; three unrelated files already in dev need formatting |
+| Expo web export | Passed using a local API URL |
+| Security reporting unit tests | 11 tests passed |
+| Diff checks | No whitespace errors, private-key blocks or prohibited provider references in added lines |
+| npm audit comparison | Same 38 affected packages as dev: 6 high, 24 moderate and 8 low; none newly added |
+
+The additional integration tests use an isolated SQLite database and exercise
+actual SQL for create/read, geometry replacement, legacy updates, explicit
+geometry clearing, device counts and another owner's denied read/update. They
+replace authentication with test identities and do not contact external services.
+They do not establish PostgreSQL migration compatibility on the deployed server.
+
+No npm advisory was reported for Leaflet, react-native-webview or the two added
+type packages at the time of the comparison. Existing dependency alerts remain
+unresolved and should be tracked separately; this report does not describe the
+dependency tree as vulnerability-free. No backend dependency was added.
+
+Remote workflow results must be read for the submitted revision. Sonar analysis
+and the deployed security report run on pull requests; weekly CodeQL results may
+refer to an older commit. A passive scan of the published application does not
+validate this feature before deployment. Physical Android/iOS checks and applying
+and verifying the migration on the target PostgreSQL database remain release
+checks.
