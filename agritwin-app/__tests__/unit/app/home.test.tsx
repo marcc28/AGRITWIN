@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 
 import HomeScreen from '../../../src/app/app/home';
 import { useCurrentField } from '../../../src/hooks/use-current-field';
+import { useFieldDevices } from '../../../src/hooks/use-field-devices';
 import { useFieldWeather } from '../../../src/hooks/use-field-weather';
 import { useWeatherAlertsEnabled } from '../../../src/hooks/use-weather-alerts-enabled';
 import type { FieldWeather } from '../../../src/services/api';
@@ -48,6 +49,10 @@ jest.mock('../../../src/hooks/use-field-crops', () => ({
   })),
 }));
 
+jest.mock('../../../src/hooks/use-field-devices', () => ({
+  useFieldDevices: jest.fn(),
+}));
+
 jest.mock('../../../src/components/WeatherCard', () => ({
   WeatherCard: ({
     state,
@@ -82,7 +87,11 @@ const mockedUseWeatherAlertsEnabled =
   useWeatherAlertsEnabled as jest.MockedFunction<
     typeof useWeatherAlertsEnabled
   >;
+const mockedUseFieldDevices = useFieldDevices as jest.MockedFunction<
+  typeof useFieldDevices
+>;
 const retry = jest.fn();
+const retryDevices = jest.fn();
 
 function alert(type: string, message: string) {
   return {
@@ -107,6 +116,16 @@ describe('HomeScreen', () => {
     jest.clearAllMocks();
     mockedUseWeatherAlertsEnabled.mockReturnValue(true);
     mockedUseCurrentField.mockReturnValue({ id: 2, name: 'Tremp' });
+    mockedUseFieldDevices.mockReturnValue({
+      state: {
+        status: 'ready',
+        devices: [
+          { id: 'esp32_sim_01', battery_status: true },
+          { id: 'esp32_sim_02', battery_status: false },
+        ],
+      },
+      retry: retryDevices,
+    });
     mockedUseFieldWeather.mockReturnValue({
       state: { status: 'ready', weather: {} as never },
       retry,
@@ -123,6 +142,66 @@ describe('HomeScreen', () => {
     ).toBeTruthy();
 
     expect(screen.getByText('home.subtitle')).toBeTruthy();
+  });
+
+  it('says which field is active, under the welcome text', () => {
+    render(<HomeScreen />);
+
+    expect(screen.getByTestId('home-working-on')).toBeTruthy();
+    expect(screen.getByText('home.workingOn', { exact: false })).toBeTruthy();
+    expect(screen.getByText('Tremp')).toBeTruthy();
+  });
+
+  it('shows the devices of the active field with their status', () => {
+    render(<HomeScreen />);
+
+    expect(mockedUseFieldDevices).toHaveBeenCalledWith(2);
+    expect(screen.getByText('esp32_sim_01')).toBeTruthy();
+    expect(screen.getByText('esp32_sim_02')).toBeTruthy();
+    expect(screen.getByTestId('device-health-ok')).toBeTruthy();
+    expect(screen.getByTestId('device-health-down')).toBeTruthy();
+  });
+
+  it('opens the field from the devices card', () => {
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByTestId('field-devices-card'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/field-detail',
+      params: { id: '2' },
+    });
+  });
+
+  it('retries the devices', () => {
+    mockedUseFieldDevices.mockReturnValue({
+      state: { status: 'error' },
+      retry: retryDevices,
+    });
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByTestId('field-devices-retry'));
+
+    expect(retryDevices).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the field and its devices when there is no field', () => {
+    mockedUseCurrentField.mockReturnValue(null);
+    mockedUseFieldDevices.mockReturnValue({
+      state: { status: 'loading' },
+      retry: retryDevices,
+    });
+    mockedUseFieldWeather.mockReturnValue({
+      state: { status: 'no-field' },
+      retry,
+    });
+
+    render(<HomeScreen />);
+
+    expect(mockedUseFieldDevices).toHaveBeenCalledWith(null);
+    expect(screen.queryByTestId('home-working-on')).toBeNull();
+    expect(screen.queryByTestId('field-devices-card')).toBeNull();
+    expect(screen.queryByTestId('field-devices-loading')).toBeNull();
   });
 
   it('shows the weather of the chosen field', () => {
