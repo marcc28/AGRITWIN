@@ -47,6 +47,13 @@
           "publishableKey": "pk_test_51T8JyBFnYQkzHZlYk9fRD5eK4xVzsCSNB47AiTT2O3V8UWisBRC3DFGhFOjZqUL3sYB9RVm7nLGXCRZITyAJpQgD00xwr84UKT",
           "enableGooglePay": false
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow AgriTwin to access your photos to diagnose your plants.",
+          "cameraPermission": "Allow AgriTwin to use the camera to diagnose your plants."
+        }
       ]
     ],
     "experiments": {

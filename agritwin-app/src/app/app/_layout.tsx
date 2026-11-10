@@ -52,6 +52,15 @@ export default function Layout() {
               renderingMode="template"
             />
           </NativeTabs.Trigger>
+          <NativeTabs.Trigger name="diagnosis">
+            <NativeTabs.Trigger.Label>
+              {t('tabs.diagnosis')}
+            </NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon
+              src={require('@assets/images/tabIcons/diagnosis.png')}
+              renderingMode="template"
+            />
+          </NativeTabs.Trigger>
           <NativeTabs.Trigger name="clover">
             <NativeTabs.Trigger.Label>
               {t('tabs.clover')}

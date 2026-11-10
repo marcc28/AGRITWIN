@@ -14,7 +14,8 @@
     "market": "Mercat",
     "profile": "Perfil",
     "clover": "Trèvol",
-    "calendar": "Calendari"
+    "calendar": "Calendari",
+    "diagnosis": "Diagnòstic"
   },
   "fieldCrops": {
     "title": "Els meus cultius",
@@ -350,6 +351,58 @@
       "low": "Baixa",
       "medium": "Mitjana",
       "high": "Alta"
+    }
+  },
+  "diagnosis": {
+    "title": "Diagnòstic de la planta amb IA",
+    "subtitle": "Detecta plagues, malalties, reg, llum i collita.",
+    "placeholder": "Encara no has triat cap foto",
+    "previewError": "No es pot mostrar aquesta imatge",
+    "enlarge": "Amplia la foto",
+    "close": "Tancar",
+    "takePhoto": "Fer foto",
+    "choosePhoto": "Galeria",
+    "analyse": "Analitzar",
+    "retry": "Tornar-ho a provar",
+    "openSettings": "Obrir la configuració",
+    "loading": "Analitzant la planta…",
+    "healthy": "Sana",
+    "problem": "Necessita atenció",
+    "confidence": "Fiabilitat: {{value}} %",
+    "statusTitle": "Estat de la planta",
+    "waterLabel": "Aigua",
+    "lightLabel": "Llum",
+    "harvestLabel": "Collita",
+    "water": {
+      "lack": "Li falta aigua",
+      "ok": "Sense símptomes",
+      "excess": "Excés de reg",
+      "unknown": "No es pot saber"
+    },
+    "light": {
+      "lack": "Li falta llum",
+      "ok": "Sense símptomes",
+      "excess": "Massa sol",
+      "unknown": "No es pot saber"
+    },
+    "harvest": {
+      "ready": "A punt per collir",
+      "not_ready": "Encara no està a punt",
+      "no_fruit": "No hi ha cap fruit",
+      "unknown": "No es pot saber"
+    },
+    "errors": {
+      "cameraDenied": "Cal el permís de la càmera per fer fotos. Torna a prémer «Fer foto» per acceptar-lo.",
+      "cameraBlocked": "Per fer fotos has d'activar el permís de la càmera a la configuració del mòbil.",
+      "photosDenied": "Cal el permís d'accés a les fotos. Torna a prémer «Galeria» per acceptar-lo.",
+      "photosBlocked": "Per triar fotos has d'activar l'accés a les fotos a la configuració del mòbil.",
+      "format": "La foto ha de ser JPG o PNG.",
+      "tooLarge": "La foto és massa gran (màxim 5 MB).",
+      "noPlant": "No s'ha trobat cap planta a la foto. Prova amb una altra.",
+      "notFound": "No s'ha pogut diagnosticar aquesta foto. Prova amb una de més a prop.",
+      "tooMany": "Has fet massa anàlisis. Espera un minut i torna-ho a provar.",
+      "unavailable": "El servei de diagnòstic no està disponible. Torna-ho a provar més tard.",
+      "connection": "No s'ha pogut connectar. Comprova la connexió i torna-ho a provar."
     }
   }
 }
