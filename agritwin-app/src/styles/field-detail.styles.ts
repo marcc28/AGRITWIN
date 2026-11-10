@@ -25,8 +25,6 @@ export const styles = StyleSheet.create({
   container: {
     width: '100%',
     maxWidth: 360,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 
   backRow: {
@@ -51,6 +49,7 @@ export const styles = StyleSheet.create({
   },
 
   heroCard: {
+    width: '100%',
     backgroundColor: Colors.light.surface,
     borderRadius: 24,
     overflow: 'hidden',
@@ -99,8 +98,6 @@ export const styles = StyleSheet.create({
 
   card: {
     width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginTop: 14,
     backgroundColor: Colors.light.surface,
     borderRadius: 24,
@@ -160,6 +157,22 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.light.text,
+  },
+
+  addDeviceButton: {
+    marginTop: 12,
+    height: 44,
+    borderRadius: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.light.primary,
+  },
+
+  addDeviceText: {
+    fontWeight: '700',
+    color: Colors.light.surface,
   },
 
   cropRow: {
