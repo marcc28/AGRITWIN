@@ -219,6 +219,8 @@ class Field(Base):
     field_type: Mapped[str | None] = mapped_column(String(50))
     soil_type: Mapped[str | None] = mapped_column(String(50))
     size_m2: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    boundary: Mapped[list[dict] | None] = mapped_column(JSONType)
+    excluded_zones: Mapped[list[list[dict]] | None] = mapped_column(JSONType)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -250,6 +252,8 @@ class Field(Base):
             "field_type": self.field_type,
             "soil_type": self.soil_type,
             "size_m2": float(self.size_m2) if self.size_m2 is not None else None,
+            "boundary": self.boundary,
+            "excluded_zones": self.excluded_zones or [],
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 

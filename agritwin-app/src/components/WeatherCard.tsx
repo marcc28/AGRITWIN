@@ -73,8 +73,10 @@ export function WeatherCard({ state, onPress, onRetry }: Readonly<Props>) {
       style={[styles.card, weatherStyles.card]}
     >
       <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.cardTitle}>{title}</Text>
+        <View style={weatherStyles.locationHeader}>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {title}
+          </Text>
           <Text style={styles.cardSubtitle}>{t('weather.subtitle')}</Text>
         </View>
         <Ionicons

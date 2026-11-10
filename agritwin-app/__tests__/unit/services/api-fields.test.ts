@@ -4,6 +4,7 @@ import {
   createField,
   deleteDevice,
   geocodeLocation,
+  reverseGeocodeLocation,
   getField,
   getFields,
   getMe,
@@ -469,6 +470,77 @@ describe('fields api', () => {
     ).rejects.toThrow('This device is already registered');
     await expect(deleteDevice(3, 'd1')).rejects.toThrow(
       'This device is already registered',
+    );
+  });
+});
+
+describe('boundary-capable field API', () => {
+  beforeEach(() =>
+    mockedGetAuth.mockResolvedValue({
+      token: 'token',
+      refreshToken: null,
+      username: 'owner',
+    }),
+  );
+  const payload = {
+    name: 'Field',
+    location: 'Field road',
+    field_type: 'open_field',
+    soil_type: 'loam',
+    size_m2: 1,
+    boundary: [
+      { lat: 0, lon: 0 },
+      { lat: 0, lon: 0.001 },
+      { lat: 0.001, lon: 0.001 },
+    ],
+  };
+  it('does not create a field if the backend would discard its boundary', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        components: {
+          schemas: { FieldCreate: { properties: { name: {} } } },
+        },
+      }),
+    });
+    await expect(createField(payload)).rejects.toThrow(
+      'backend must be updated',
+    );
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+  it('sends the boundary after verifying the backend schema', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          components: {
+            schemas: { FieldCreate: { properties: { boundary: {} } } },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 1, ...payload }),
+      });
+    await createField(payload);
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      'http://localhost:8000/api/v1/fields',
+      expect.objectContaining({ body: JSON.stringify(payload) }),
+    );
+  });
+  it('reverse geocodes the selected coordinates through the authenticated API', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ lat: 41, lon: 2, label: 'Field road' }),
+    });
+    await expect(reverseGeocodeLocation(41, 2)).resolves.toHaveProperty(
+      'label',
+      'Field road',
+    );
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/reverse-geocode?lat=41&lon=2',
+      expect.objectContaining({ headers: { Authorization: 'Bearer token' } }),
     );
   });
 });

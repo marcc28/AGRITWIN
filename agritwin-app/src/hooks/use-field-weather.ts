@@ -24,6 +24,9 @@ const NO_LOCATION_ERRORS = new Set([
 
 function stateForError(error: unknown): FieldWeatherState {
   if (error instanceof WeatherRequestError && error.status === 404) {
+    if (error.message === 'Not Found') {
+      return { status: 'error' };
+    }
     return NO_LOCATION_ERRORS.has(error.message)
       ? { status: 'no-location' }
       : { status: 'no-data' };
