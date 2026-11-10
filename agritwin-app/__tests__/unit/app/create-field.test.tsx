@@ -238,55 +238,11 @@ describe('CreateFieldScreen', () => {
     });
   });
 
-  it('can switch back to configure later', () => {
+  it('does not ask for devices when creating a garden', async () => {
     render(<CreateFieldScreen />);
-    fireEvent.press(screen.getByText('settings.createField.addNow'));
-    fireEvent.press(screen.getByText('settings.createField.configureLater'));
-    expect(screen.getByText('settings.createField.arduinosHint')).toBeTruthy();
-  });
+    expect(screen.queryByText('settings.createField.arduinos')).toBeNull();
+    expect(screen.queryByText('settings.createField.addNow')).toBeNull();
 
-  it('rejects an incomplete Arduino', () => {
-    render(<CreateFieldScreen />);
-    fireEvent.press(screen.getByText('settings.createField.addNow'));
-    fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.deviceIdPlaceholder'),
-      'esp32_sim_01',
-    );
-    fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
-      'Hort nou',
-    );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
-    expect(
-      screen.getByText('settings.createField.errors.deviceIdRequired'),
-    ).toBeTruthy();
-  });
-
-  it('links an Arduino when creating the garden', async () => {
-    mockedCreateDevice.mockResolvedValue({
-      id: 'esp32_sim_01',
-      battery_status: false,
-      brand: 'ESP32',
-      serial_number: 'SN-1',
-    });
-    render(<CreateFieldScreen />);
-    fireEvent.press(screen.getByText('settings.createField.addNow'));
-    fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.deviceIdPlaceholder'),
-      'esp32_sim_01',
-    );
-    fireEvent.changeText(
-      screen.getByPlaceholderText(
-        'settings.createField.deviceBrandPlaceholder',
-      ),
-      'ESP32',
-    );
-    fireEvent.changeText(
-      screen.getByPlaceholderText(
-        'settings.createField.deviceSerialPlaceholder',
-      ),
-      'SN-1',
-    );
     fireEvent.changeText(
       screen.getByPlaceholderText('settings.createField.namePlaceholder'),
       'Hort nou',
@@ -294,11 +250,9 @@ describe('CreateFieldScreen', () => {
     fireEvent.press(screen.getByText('settings.createField.submitNext'));
 
     await waitFor(() => {
-      expect(mockedCreateDevice).toHaveBeenCalledWith(
-        8,
-        expect.objectContaining({ id: 'esp32_sim_01', brand: 'ESP32' }),
-      );
+      expect(mockedCreateField).toHaveBeenCalled();
     });
+    expect(mockedCreateDevice).not.toHaveBeenCalled();
   });
 
   it('shows a generic geocode error', async () => {

@@ -260,23 +260,16 @@ describe('EditFieldScreen', () => {
     expect(screen.getByText('settings.errors.sizeNumber')).toBeTruthy();
   });
 
-  it('rejects an incomplete new Arduino', async () => {
+  it('shows the linked devices and does not offer to add new ones', async () => {
     render(<EditFieldScreen />);
     await waitFor(() => {
-      expect(screen.getByText('settings.createField.addAnother')).toBeTruthy();
+      expect(screen.getByText('dev-1')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.createField.addAnother'));
-    const ids = screen.getAllByPlaceholderText(
-      'settings.createField.deviceIdPlaceholder',
-    );
-    fireEvent.changeText(ids[ids.length - 1], 'esp32_sim_09');
-    fireEvent.press(screen.getByText('settings.accept'));
-    expect(
-      screen.getByText('settings.createField.errors.deviceIdRequired'),
-    ).toBeTruthy();
+    expect(screen.getByText('ESP32 · SN-1')).toBeTruthy();
+    expect(screen.queryByText('settings.createField.addAnother')).toBeNull();
   });
 
-  it('updates existing devices and creates a new one', async () => {
+  it('saves the garden without touching its devices', async () => {
     mockedUpdateField.mockResolvedValue({
       id: 3,
       name: 'Hort',
@@ -284,47 +277,38 @@ describe('EditFieldScreen', () => {
       field_type: 'home_garden',
       soil_type: 'loam',
       size_m2: 40,
-      device_count: 2,
-    });
-    mockedCreateDevice.mockResolvedValue({
-      id: 'esp32_sim_09',
-      battery_status: false,
-      brand: 'ESP32',
-      serial_number: 'SN-9',
+      device_count: 1,
     });
 
     render(<EditFieldScreen />);
     await waitFor(() => {
-      expect(screen.getByText('settings.createField.addAnother')).toBeTruthy();
+      expect(screen.getByText('dev-1')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.fieldTypes.open_field'));
-    fireEvent.press(screen.getByText('settings.soilTypes.sandy'));
-    fireEvent.press(screen.getByText('settings.createField.addAnother'));
-    const ids = screen.getAllByPlaceholderText(
-      'settings.createField.deviceIdPlaceholder',
-    );
-    const brands = screen.getAllByPlaceholderText(
-      'settings.createField.deviceBrandPlaceholder',
-    );
-    const serials = screen.getAllByPlaceholderText(
-      'settings.createField.deviceSerialPlaceholder',
-    );
-    fireEvent.changeText(ids[ids.length - 1], 'esp32_sim_09');
-    fireEvent.changeText(brands[brands.length - 1], 'ESP32');
-    fireEvent.changeText(serials[serials.length - 1], 'SN-9');
     fireEvent.press(screen.getByText('settings.accept'));
 
     await waitFor(() => {
-      expect(mockedUpdateDevice).toHaveBeenCalledWith(
-        3,
-        'dev-1',
-        expect.objectContaining({ brand: 'ESP32', serial_number: 'SN-1' }),
-      );
-      expect(mockedCreateDevice).toHaveBeenCalledWith(
-        3,
-        expect.objectContaining({ id: 'esp32_sim_09' }),
-      );
+      expect(mockedUpdateField).toHaveBeenCalled();
     });
+    expect(mockedUpdateDevice).not.toHaveBeenCalled();
+    expect(mockedCreateDevice).not.toHaveBeenCalled();
+  });
+
+  it('hides the device section when the garden has no devices', async () => {
+    mockedGetField.mockResolvedValue({
+      id: 3,
+      name: 'Hort',
+      location: 'Andorra',
+      field_type: 'home_garden',
+      soil_type: 'loam',
+      size_m2: 40,
+      device_count: 0,
+      devices: [],
+    });
+    render(<EditFieldScreen />);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+    });
+    expect(screen.queryByText('settings.createField.arduinos')).toBeNull();
   });
 
   it('removes an existing Arduino', async () => {
