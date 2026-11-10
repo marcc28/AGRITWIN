@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "El teu hort,",
     "titleSecond": "cada dia millor.",
-    "subtitle": "Tasques, temps i cultius adaptats al teu hort."
+    "subtitle": "Tasques, temps i cultius adaptats al teu hort.",
+    "workingOn": "Treballarem al camp",
+    "devices": {
+      "title": "Dispositius",
+      "none": "Cap",
+      "error": "No s'han pogut carregar els dispositius",
+      "retry": "Reintentar"
+    }
   },
   "tabs": {
     "home": "Inici",

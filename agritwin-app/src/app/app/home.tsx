@@ -6,12 +6,14 @@ import { useTranslation } from 'react-i18next';
 import { WeatherAlertBanner } from '@/components/WeatherAlerts';
 import { WeatherCard } from '@/components/WeatherCard';
 import { FieldCropsCard } from '@/components/FieldCropsCard';
+import { FieldDevicesCard } from '@/components/FieldDevicesCard';
 
 import { WeatherAlert } from '@/services/api';
 import { activeAlerts } from '@/constants/weather';
 import { useCurrentField } from '@/hooks/use-current-field';
 import { useFieldWeather } from '@/hooks/use-field-weather';
 import { useFieldCrops } from '@/hooks/use-field-crops';
+import { useFieldDevices } from '@/hooks/use-field-devices';
 import { getSeenAlerts, markAlertSeen } from '@/services/seenWeatherAlerts';
 import { createAddCropHandler } from '@/services/fieldCropNavigation';
 import { useWeatherAlertsEnabled } from '@/hooks/use-weather-alerts-enabled';
@@ -39,6 +41,8 @@ export default function HomeScreen() {
     };
   }, []);
 
+  const devices = useFieldDevices(field ? field.id : null);
+
   const crops = useFieldCrops(field ? Number(field.id) : null);
   const openAddCrop = createAddCropHandler(field, router.push);
 
@@ -52,6 +56,15 @@ export default function HomeScreen() {
       month: 'long',
     })
     .toUpperCase();
+
+  function openField() {
+    if (field) {
+      router.push({
+        pathname: '/field-detail',
+        params: { id: String(field.id) },
+      });
+    }
+  }
 
   function openWeather() {
     if (field) {
@@ -112,6 +125,21 @@ export default function HomeScreen() {
           </Text>
 
           <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+
+          {field ? (
+            <>
+              <Text testID="home-working-on" style={styles.workingOn}>
+                {t('home.workingOn')}{' '}
+                <Text style={styles.workingOnName}>{field.name}</Text>
+              </Text>
+
+              <FieldDevicesCard
+                state={devices.state}
+                onPress={openField}
+                onRetry={devices.retry}
+              />
+            </>
+          ) : null}
 
           <WeatherCard state={weather} onPress={openWeather} onRetry={retry} />
         </View>

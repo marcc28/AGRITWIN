@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "Your garden,",
     "titleSecond": "growing better every day.",
-    "subtitle": "Tasks, weather and crops tailored to your garden."
+    "subtitle": "Tasks, weather and crops tailored to your garden.",
+    "workingOn": "We will work on the field",
+    "devices": {
+      "title": "Devices",
+      "none": "None",
+      "error": "Could not load the devices",
+      "retry": "Try again"
+    }
   },
   "tabs": {
     "home": "Home",
@@ -288,10 +295,6 @@
     "errors": {
       "loadFailed": "Could not load market data"
     }
-  },
-  "home": {
-    "title": "Your garden,\nbetter every day.",
-    "subtitle": "Tasks, weather and crops adapted to your garden."
   },
   "weather": {
     "subtitle": "Weather forecast",
