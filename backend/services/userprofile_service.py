@@ -1,93 +1,39 @@
-from uuid import uuid4
 
-from fastapi import HTTPException
-from pwdlib import PasswordHash
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.schema import User, UserProfile
-
-password_hash = PasswordHash.recommended()
+from db.schema import UserProfile
 
 
-class UserService:
+class UserProfileService:
     def __init__(self, session: AsyncSession):
         self._db = session
 
-    async def list_users(
+    async def list_users_profile(
         self,
         offset: int = 0,
         limit: int = 10,
-    ) -> list[User]:
-        result = await self._db.execute(select(User).offset(offset).limit(limit))
+        nickname: str | None = None,
+    ) -> list[UserProfile]:
+
+        query = select(UserProfile)
+        if nickname:
+            query = query.where(UserProfile.name.ilike(f"%{nickname}%"))
+        query = query.offset(offset).limit(limit)
+
+        result = await self._db.execute(query)
 
         return list(result.scalars().all())
 
-    async def get_user(
+    async def get_user_profile(
         self,
-        username: str,
-    ) -> User | None:
-        result = await self._db.execute(select(User).where(User.username == username))
+        user_id: UUID,
+    ) -> UserProfile | None:
 
-        return result.scalar_one_or_none()
-
-    async def get_user_by_email(
-        self,
-        email: str,
-    ) -> User | None:
-        result = await self._db.execute(select(User).where(User.email == email))
-
-        return result.scalar_one_or_none()
-
-    async def get_user_by_username(
-        self,
-        username: str,
-    ) -> User | None:
-        result = await self._db.execute(select(User).where(User.username == username))
-
-        return result.scalar_one_or_none()
-
-    async def create_user(
-        self,
-        username: str,
-        email: str,
-        password: str,
-    ) -> User:
-        existing_user = await self.get_user_by_email(email)
-
-        if existing_user:
-            raise HTTPException(
-                status_code=409,
-                detail="Email already registered",
-            )
-
-        existing_username = await self.get_user_by_username(username)
-
-        if existing_username:
-            raise HTTPException(
-                status_code=409,
-                detail="Username already registered",
-            )
-        user_id = uuid4()
-        user = User(
-            id=user_id,
-            username=username,
-            email=email,
-            password_hash=password_hash.hash(password),
+        result = await self._db.execute(
+            select(UserProfile).where(UserProfile.id == user_id)
         )
 
-        self._db.add(user)
-
-        await self._db.flush()
-
-        profile = UserProfile(
-            id=user_id,
-            name=user.username,
-        )
-
-        self._db.add(profile)
-
-        await self._db.commit()
-        await self._db.refresh(user)
-
-        return user
+        return result.scalar_one_or_none()
