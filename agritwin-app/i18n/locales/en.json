@@ -226,25 +226,15 @@
       "coordsHint": "Look up the location to save latitude and longitude.",
       "coords": "Coordinates: {{lat}}, {{lon}}",
       "arduinos": "Arduinos",
-      "arduinosHint": "You can link them now or leave it for later. We only ask what you can see on the device.",
-      "configureLater": "Configure later",
-      "addNow": "Add now",
-      "addAnother": "Add another Arduino",
       "removeDevice": "Remove",
-      "saveDevices": "Save devices",
       "deviceId": "Device ID",
-      "deviceIdPlaceholder": "e.g. esp32_sim_01",
       "deviceBrand": "Brand",
-      "deviceBrandPlaceholder": "e.g. ESP32",
       "deviceSerial": "Serial number",
-      "deviceSerialPlaceholder": "The one on the label",
-      "linkLater": "Link Arduinos →",
       "submitFirst": "Create my first garden",
       "submitNext": "Create garden",
       "errors": {
         "locationRequired": "Enter a location to geocode it",
         "locationNotFound": "This location was not found",
-        "deviceIdRequired": "Each Arduino needs ID, brand and serial number",
         "deviceSaveFailed": "Could not save the devices",
         "createFailed": "Could not create the field"
       }
@@ -271,6 +261,102 @@
         "addFailed": "Error adding the crop",
         "removeFailed": "Error removing the crop"
       }
+    }
+  },
+  "addDevice": {
+    "button": "Add device",
+    "back": "Back to the field",
+    "eyebrow": "ADD DEVICE",
+    "title": "Connect your AgriTwin board",
+    "scan": {
+      "title": "Find your board",
+      "instructions": "Turn the board on. The blue LED blinks slowly.",
+      "searching": "Searching for boards…",
+      "found": "Boards found",
+      "tapHint": "Tap yours to continue.",
+      "searchAgain": "Search again"
+    },
+    "noBoards": {
+      "title": "We could not find any board",
+      "instructions": "Check that the board is on and close to your phone.",
+      "tip": "If the LED stays on, hold the BOOT button on the board for 5 seconds and try again.",
+      "retry": "Try again"
+    },
+    "wifi": {
+      "title": "Connect the board to Wi-Fi",
+      "board": "Board: {{name}}",
+      "ssid": "Wi-Fi name",
+      "ssidPlaceholder": "The name of your network",
+      "password": "Password",
+      "passwordPlaceholder": "Your Wi-Fi password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "hint24": "Use a 2.4 GHz network. The board does not work with 5 GHz networks.",
+      "privacy": "We do not save your Wi-Fi name or password.",
+      "connect": "Connect"
+    },
+    "progress": {
+      "connectingBoard": "Connecting to the board…",
+      "connecting": "Connecting…",
+      "connectingHint": "It can take about 20 seconds. Keep the app open and stay close to the board.",
+      "saving": "Saving the board…"
+    },
+    "success": {
+      "title": "Board connected",
+      "hint": "Your board is now linked to this field and will start sending data.",
+      "alreadyLinked": "This board was already linked to this field.",
+      "done": "Back to the field"
+    },
+    "error": {
+      "retry": "Try again",
+      "back": "Back to the field",
+      "openSettings": "Open settings",
+      "groups": {
+        "wifi": {
+          "title": "Could not connect to Wi-Fi",
+          "hint": "Check the Wi-Fi name and the password. Remember that the board only works with 2.4 GHz networks."
+        },
+        "timeout": {
+          "title": "Time ran out",
+          "hint": "Move the board closer to the router and your phone, and try again."
+        },
+        "noInternet": {
+          "title": "Wi-Fi connected, but no internet",
+          "hint": "Check the internet connection of your router and try again."
+        },
+        "bluetoothOff": {
+          "title": "Bluetooth is off",
+          "hint": "Turn on Bluetooth on your phone and try again."
+        },
+        "permission": {
+          "title": "Bluetooth permission is missing",
+          "hint": "Allow AgriTwin to use Bluetooth in your phone settings and try again."
+        },
+        "link": {
+          "title": "Could not talk to the board",
+          "hint": "Move closer to the board, check that the LED blinks slowly and try again."
+        },
+        "alreadyRegistered": {
+          "title": "This board is already in another field",
+          "hint": "A board can only be linked to one field. Remove it from the other field before adding it here."
+        },
+        "sessionExpired": {
+          "title": "Your session has expired",
+          "hint": "Log in again and add the board again."
+        },
+        "saveFailed": {
+          "title": "Board connected, but not saved",
+          "hint": "The board connected to Wi-Fi, but we could not save it. Try again."
+        },
+        "generic": {
+          "title": "Something went wrong",
+          "hint": "Try again. If it keeps failing, restart the board."
+        }
+      }
+    },
+    "web": {
+      "title": "Only available on your phone",
+      "hint": "To add a board you need the AgriTwin app on your phone, because it uses Bluetooth."
     }
   },
   "languages": {

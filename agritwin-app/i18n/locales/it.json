@@ -226,25 +226,15 @@
       "coordsHint": "Cerca la posizione per salvare latitudine e longitudine.",
       "coords": "Coordinate: {{lat}}, {{lon}}",
       "arduinos": "Arduino",
-      "arduinosHint": "Puoi collegarli ora o lasciarlo a dopo. Chiediamo solo ciò che vedi sul dispositivo.",
-      "configureLater": "Configura dopo",
-      "addNow": "Aggiungi ora",
-      "addAnother": "Aggiungi un altro Arduino",
       "removeDevice": "Rimuovi",
-      "saveDevices": "Salva dispositivi",
       "deviceId": "ID del dispositivo",
-      "deviceIdPlaceholder": "es. esp32_sim_01",
       "deviceBrand": "Marca",
-      "deviceBrandPlaceholder": "es. ESP32",
       "deviceSerial": "Numero di serie",
-      "deviceSerialPlaceholder": "Quello sull’etichetta",
-      "linkLater": "Collega Arduino →",
       "submitFirst": "Crea il mio primo giardino",
       "submitNext": "Crea giardino",
       "errors": {
         "locationRequired": "Inserisci una posizione per geolocalizzarla",
         "locationNotFound": "Posizione non trovata",
-        "deviceIdRequired": "Ogni Arduino ha bisogno di ID, marca e numero di serie",
         "deviceSaveFailed": "Impossibile salvare i dispositivi",
         "createFailed": "Impossibile creare il campo"
       }
@@ -271,6 +261,102 @@
         "addFailed": "Errore durante l’aggiunta della coltura",
         "removeFailed": "Errore durante la rimozione della coltura"
       }
+    }
+  },
+  "addDevice": {
+    "button": "Aggiungi dispositivo",
+    "back": "Torna al campo",
+    "eyebrow": "AGGIUNGI DISPOSITIVO",
+    "title": "Collega la tua scheda AgriTwin",
+    "scan": {
+      "title": "Cerca la tua scheda",
+      "instructions": "Accendi la scheda. Il LED blu lampeggia lentamente.",
+      "searching": "Ricerca delle schede…",
+      "found": "Schede trovate",
+      "tapHint": "Tocca la tua per continuare.",
+      "searchAgain": "Cerca di nuovo"
+    },
+    "noBoards": {
+      "title": "Non abbiamo trovato nessuna scheda",
+      "instructions": "Controlla che la scheda sia accesa e vicina al telefono.",
+      "tip": "Se il LED è fisso, tieni premuto il pulsante BOOT della scheda per 5 secondi e riprova.",
+      "retry": "Riprova"
+    },
+    "wifi": {
+      "title": "Collega la scheda al Wi-Fi",
+      "board": "Scheda: {{name}}",
+      "ssid": "Nome del Wi-Fi",
+      "ssidPlaceholder": "Il nome della tua rete",
+      "password": "Password",
+      "passwordPlaceholder": "La password del tuo Wi-Fi",
+      "showPassword": "Mostra password",
+      "hidePassword": "Nascondi password",
+      "hint24": "Usa una rete a 2,4 GHz. La scheda non funziona con reti a 5 GHz.",
+      "privacy": "Non salviamo il nome né la password del tuo Wi-Fi.",
+      "connect": "Collega"
+    },
+    "progress": {
+      "connectingBoard": "Connessione alla scheda…",
+      "connecting": "Connessione…",
+      "connectingHint": "Può richiedere circa 20 secondi. Tieni l'app aperta e resta vicino alla scheda.",
+      "saving": "Salvataggio della scheda…"
+    },
+    "success": {
+      "title": "Scheda collegata",
+      "hint": "La tua scheda è ora collegata a questo campo e inizierà a inviare dati.",
+      "alreadyLinked": "Questa scheda era già collegata a questo campo.",
+      "done": "Torna al campo"
+    },
+    "error": {
+      "retry": "Riprova",
+      "back": "Torna al campo",
+      "openSettings": "Apri impostazioni",
+      "groups": {
+        "wifi": {
+          "title": "Impossibile connettersi al Wi-Fi",
+          "hint": "Controlla il nome del Wi-Fi e la password. Ricorda che la scheda funziona solo con reti a 2,4 GHz."
+        },
+        "timeout": {
+          "title": "Tempo scaduto",
+          "hint": "Avvicina la scheda al router e al telefono e riprova."
+        },
+        "noInternet": {
+          "title": "Wi-Fi connesso, ma senza internet",
+          "hint": "Controlla la connessione a internet del router e riprova."
+        },
+        "bluetoothOff": {
+          "title": "Il Bluetooth è spento",
+          "hint": "Attiva il Bluetooth del telefono e riprova."
+        },
+        "permission": {
+          "title": "Manca il permesso Bluetooth",
+          "hint": "Consenti ad AgriTwin di usare il Bluetooth nelle impostazioni del telefono e riprova."
+        },
+        "link": {
+          "title": "Impossibile comunicare con la scheda",
+          "hint": "Avvicinati alla scheda, controlla che il LED lampeggi lentamente e riprova."
+        },
+        "alreadyRegistered": {
+          "title": "Questa scheda è già in un altro campo",
+          "hint": "Una scheda può essere collegata a un solo campo. Rimuovila dall'altro campo prima di aggiungerla qui."
+        },
+        "sessionExpired": {
+          "title": "La sessione è scaduta",
+          "hint": "Accedi di nuovo e aggiungi di nuovo la scheda."
+        },
+        "saveFailed": {
+          "title": "Scheda collegata, ma non salvata",
+          "hint": "La scheda si è collegata al Wi-Fi, ma non siamo riusciti a salvarla. Riprova."
+        },
+        "generic": {
+          "title": "Qualcosa è andato storto",
+          "hint": "Riprova. Se continua a fallire, riavvia la scheda."
+        }
+      }
+    },
+    "web": {
+      "title": "Disponibile solo sul telefono",
+      "hint": "Per aggiungere una scheda serve l'app AgriTwin sul telefono, perché usa il Bluetooth."
     }
   },
   "languages": {
