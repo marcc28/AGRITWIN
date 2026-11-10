@@ -20,7 +20,18 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
-function field(id: number, name: string): Field {
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+function field(
+  id: number,
+  name: string,
+  devicesOnline?: number,
+  deviceCount = 0,
+): Field {
   return {
     id,
     name,
@@ -28,7 +39,8 @@ function field(id: number, name: string): Field {
     field_type: null,
     soil_type: null,
     size_m2: null,
-    device_count: 0,
+    device_count: deviceCount,
+    ...(devicesOnline == null ? {} : { devices_online: devicesOnline }),
   };
 }
 
@@ -51,6 +63,43 @@ describe('GardenPickerOverlay', () => {
   it('hides the selector when only one garden exists', () => {
     setGardenPicker({ open: true, fields: [field(1, 'Hort')], currentId: 1 });
     expect(render(<GardenPickerOverlay />).toJSON()).toBeNull();
+  });
+
+  it('shows an Arduino dot on each garden from the cached list', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort', 2, 2), field(2, 'Camp', 0, 1)],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+
+    expect(screen.getByTestId('device-health-ok')).toBeTruthy();
+    expect(screen.getByTestId('device-health-down')).toBeTruthy();
+  });
+
+  it('shows an orange Arduino dot when only some boards are online', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort', 1, 2), field(2, 'Camp', 2, 2)],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+
+    expect(screen.getByTestId('device-health-partial')).toBeTruthy();
+    expect(screen.getByLabelText('settings.deviceHealth.partial')).toBeTruthy();
+  });
+
+  it('hides the Arduino dot when devices_online is missing from cache', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort'), field(2, 'Camp')],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+
+    expect(screen.queryByTestId('device-health-ok')).toBeNull();
+    expect(screen.queryByTestId('device-health-partial')).toBeNull();
+    expect(screen.queryByTestId('device-health-down')).toBeNull();
   });
 
   it('lists gardens and selects one', async () => {

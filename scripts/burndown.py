@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import csv
 import os
+import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -122,10 +123,13 @@ def main() -> None:
                 events.sort()
         histories[issue["number"]] = events
 
+    # The ideal line starts from the committed scope. Issues are often created
+    # during sprint planning on the first day, so take the larger value between
+    # the day before the sprint and the end of the first day.
     day_before = START - timedelta(days=1)
-    initial = sum(
-        remaining_on(i, histories[i["number"]], day_before)
-        for i in leaf_issues
+    initial = max(
+        sum(remaining_on(i, histories[i["number"]], check_day) for i in leaf_issues)
+        for check_day in (day_before, START)
     )
     today = datetime.now(TZ).date()
     rows: list[dict] = []
@@ -142,8 +146,11 @@ def main() -> None:
 
     OUTPUT.mkdir(parents=True, exist_ok=True)
     print(f"Writing PNG and CSV to {OUTPUT.resolve()}", flush=True)
-    png = OUTPUT / "sprint-1-burndown.png"
-    csv_path = OUTPUT / "sprint-1-burndown.csv"
+    # File names follow the milestone, e.g. "Sprint 2" -> sprint-2-burndown.png,
+    # so each sprint keeps its own chart instead of overwriting the previous one.
+    slug = re.sub(r"[^a-z0-9]+", "-", MILESTONE.casefold()).strip("-") or "sprint"
+    png = OUTPUT / f"{slug}-burndown.png"
+    csv_path = OUTPUT / f"{slug}-burndown.csv"
     with csv_path.open("w", newline="", encoding="utf-8") as fp:
         writer = csv.DictWriter(fp, fieldnames=["date", "ideal", "remaining"])
         writer.writeheader()

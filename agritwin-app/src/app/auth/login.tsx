@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import { Image, Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  Image,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +17,7 @@ import { login } from '../../services/api';
 import { setAuth } from '../../services/auth';
 import { routeAfterAuth } from '../../services/routeAfterAuth';
 import { Gradients } from '../../constants/theme';
+import SocialLoginButtons from '../../components/SocialLoginButtons';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -18,7 +26,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
   async function handleLogin() {
     setErrorMessage('');
 
@@ -123,45 +130,13 @@ export default function LoginScreen() {
         />
 
         <View testID="social-login" style={styles.socialContainer}>
-          <Text style={styles.socialTitle}>{t('login.socialLogin')}</Text>
-
-          <View style={styles.socialAccounts}>
-            <Pressable
-              testID="google-button"
-              style={styles.socialButton}
-              disabled={loading}
-            >
-              <Image
-                source={require('../../../assets/images/google.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            <Pressable
-              testID="instagram-button"
-              style={styles.socialButton}
-              disabled={loading}
-            >
-              <Image
-                source={require('../../../assets/images/instagram.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            <Pressable
-              testID="twitter-button"
-              style={styles.socialButton}
-              disabled={loading}
-            >
-              <Image
-                source={require('../../../assets/images/twitter.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-          </View>
+          <SocialLoginButtons
+            styles={styles}
+            loading={loading}
+            onLoadingChange={setLoading}
+            onError={setErrorMessage}
+            title={t('login.socialLogin')}
+          />
         </View>
 
         <View style={styles.buttonsContainer}>

@@ -11,6 +11,7 @@ from sqlalchemy.orm import aliased
 from db.schema import Crop, Field, FieldCrop, FieldRecommendation
 from prompts.field_recommendation_prompt import build_recommendation_prompt
 
+
 def _read_env_setting(name: str) -> str:
     """Read a configuration value without surrounding whitespace."""
     return os.getenv(name, "").strip()

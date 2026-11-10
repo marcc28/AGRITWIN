@@ -133,6 +133,11 @@
     "size": "Mida (m²)",
     "loading": "Carregant…",
     "saving": "Guardant…",
+    "deviceHealth": {
+      "ok": "Tots els Arduino funcionen",
+      "partial": "Algun Arduino no funciona",
+      "down": "Cap Arduino funciona"
+    },
     "fieldDetail": {
       "back": "Els meus jardins",
       "eyebrow": "INFORMACIÓ DEL CAMP",

@@ -133,6 +133,11 @@
     "size": "Size (m²)",
     "loading": "Loading…",
     "saving": "Saving…",
+    "deviceHealth": {
+      "ok": "All Arduino boards are working",
+      "partial": "Some Arduino boards are not working",
+      "down": "No Arduino board is working"
+    },
     "fieldDetail": {
       "back": "My gardens",
       "eyebrow": "FIELD INFORMATION",

@@ -70,7 +70,6 @@ jest.mock('../../../assets/images/instagram.png', () => 'instagram.png');
 jest.mock('../../../assets/images/twitter.png', () => 'twitter.png');
 
 const mockedLogin = login as jest.MockedFunction<typeof login>;
-
 const mockedSetAuth = setAuth as jest.MockedFunction<typeof setAuth>;
 
 const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
@@ -79,9 +78,17 @@ const mockedRouterReplace = router.replace as jest.MockedFunction<
   typeof router.replace
 >;
 
+const mockedRouteAfterAuth = routeAfterAuth as jest.MockedFunction<
+  typeof routeAfterAuth
+>;
+
 describe('LoginScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockedLogin.mockReset();
+    mockedSetAuth.mockReset();
+    mockedRouteAfterAuth.mockReset();
   });
 
   describe('rendering', () => {
@@ -96,9 +103,13 @@ describe('LoginScreen', () => {
 
       expect(screen.getByTestId('social-login')).toBeTruthy();
 
+      // Els proveïdors socials implementats actualment.
       expect(screen.getByTestId('google-button')).toBeTruthy();
-      expect(screen.getByTestId('instagram-button')).toBeTruthy();
-      expect(screen.getByTestId('twitter-button')).toBeTruthy();
+      expect(screen.getByTestId('facebook-button')).toBeTruthy();
+      expect(screen.getByTestId('x-button')).toBeTruthy();
+
+      expect(screen.queryByTestId('instagram-button')).toBeNull();
+      expect(screen.queryByTestId('twitter-button')).toBeNull();
 
       expect(screen.getByTestId('signup-button')).toBeTruthy();
       expect(screen.getByTestId('login-button')).toBeTruthy();
@@ -112,7 +123,6 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       expect(await screen.findByTestId('login-error')).toBeTruthy();
-
       expect(mockedLogin).not.toHaveBeenCalled();
     });
 
@@ -124,7 +134,6 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       expect(await screen.findByTestId('login-error')).toBeTruthy();
-
       expect(mockedLogin).not.toHaveBeenCalled();
     });
 
@@ -136,7 +145,6 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       expect(await screen.findByTestId('login-error')).toBeTruthy();
-
       expect(mockedLogin).not.toHaveBeenCalled();
     });
   });
@@ -205,7 +213,7 @@ describe('LoginScreen', () => {
       } as never);
 
       mockedSetAuth.mockResolvedValue(undefined);
-      (routeAfterAuth as jest.Mock).mockResolvedValue(undefined);
+      mockedRouteAfterAuth.mockResolvedValue(undefined);
 
       render(<LoginScreen />);
 
@@ -216,7 +224,7 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       await waitFor(() => {
-        expect(routeAfterAuth).toHaveBeenCalled();
+        expect(mockedRouteAfterAuth).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -237,7 +245,6 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       expect(await screen.findByTestId('login-error')).toBeTruthy();
-
       expect(screen.getByText('Contrasenya incorrecta')).toBeTruthy();
 
       expect(mockedRouterReplace).not.toHaveBeenCalled();
@@ -255,7 +262,6 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       expect(await screen.findByTestId('login-error')).toBeTruthy();
-
       expect(mockedLogin).toHaveBeenCalled();
     });
   });

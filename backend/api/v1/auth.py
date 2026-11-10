@@ -4,7 +4,7 @@ from typing import Annotated
 
 import jwt
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jwt.exceptions import InvalidTokenError
@@ -21,18 +21,18 @@ load_dotenv()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 SECRET_KEY = os.getenv("SECRET_KEY")
-
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY no està configurada al .env")
 
-
-templates = Jinja2Templates(directory="app/templates")
-
 router = APIRouter()
-
 password_hash = PasswordHash.recommended()
-
+templates = Jinja2Templates(directory="templates")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/token")
+
+
+@router.get("/")
+async def login_page(request: Request):
+    return templates.TemplateResponse(request=request, name="login.html", context={})
 
 
 async def get_user_service():
@@ -60,6 +60,9 @@ async def authenticate_user(
         user = await service.get_user_by_username(username)
 
         if not user:
+            return False
+
+        if not user.password_hash:
             return False
 
         if not verify_password(
