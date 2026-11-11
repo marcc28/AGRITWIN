@@ -9,7 +9,9 @@ namespace {
 
 constexpr const char* kNamespace = "agritwin";
 constexpr const char* kKeySsid = "ssid";
-constexpr const char* kKeyPassword = "pass";
+// Name of the NVS entry holding the Wi-Fi pre-shared key (PSK). It is a key
+// name, not a secret. Keep "pass": boards already set up stored it there.
+constexpr const char* kKeyWifiPsk = "pass";
 constexpr const char* kKeyField = "field";
 
 String buildSerial() {
@@ -29,7 +31,7 @@ bool loadSettings(DeviceSettings& out) {
   // core does not log a "NOT_FOUND" error.
   prefs.begin(kNamespace, false);
   out.wifiSsid = prefs.getString(kKeySsid, "");
-  out.wifiPassword = prefs.getString(kKeyPassword, "");
+  out.wifiPassword = prefs.getString(kKeyWifiPsk, "");
   out.fieldId = prefs.getLong(kKeyField, 0);
   prefs.end();
   return out.wifiSsid.length() > 0 && out.fieldId > 0;
@@ -39,7 +41,7 @@ void saveSettings(const DeviceSettings& settings) {
   Preferences prefs;
   prefs.begin(kNamespace, false);
   prefs.putString(kKeySsid, settings.wifiSsid);
-  prefs.putString(kKeyPassword, settings.wifiPassword);
+  prefs.putString(kKeyWifiPsk, settings.wifiPassword);
   prefs.putLong(kKeyField, settings.fieldId);
   prefs.end();
 }

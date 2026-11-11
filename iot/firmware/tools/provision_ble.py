@@ -23,7 +23,7 @@ from bleak import BleakClient, BleakScanner
 SERVICE_UUID = "422285f2-0000-4631-a335-64b1ab75567c"
 CHAR_INFO = "422285f2-0001-4631-a335-64b1ab75567c"
 CHAR_SSID = "422285f2-0002-4631-a335-64b1ab75567c"
-CHAR_PASSWORD = "422285f2-0003-4631-a335-64b1ab75567c"
+CHAR_WIFI_PSK = "422285f2-0003-4631-a335-64b1ab75567c"  # Wi-Fi pre-shared key
 CHAR_FIELD = "422285f2-0004-4631-a335-64b1ab75567c"
 CHAR_COMMAND = "422285f2-0005-4631-a335-64b1ab75567c"
 CHAR_STATUS = "422285f2-0006-4631-a335-64b1ab75567c"
@@ -78,7 +78,7 @@ async def provision(ssid: str, password: str, field_id: int, scan_timeout: float
 
         await client.start_notify(CHAR_STATUS, on_status)
         await client.write_gatt_char(CHAR_SSID, ssid.encode("utf-8"), response=True)
-        await client.write_gatt_char(CHAR_PASSWORD, password.encode("utf-8"), response=True)
+        await client.write_gatt_char(CHAR_WIFI_PSK, password.encode("utf-8"), response=True)
         await client.write_gatt_char(CHAR_FIELD, str(field_id).encode("utf-8"), response=True)
         await client.write_gatt_char(CHAR_COMMAND, b"connect", response=True)
         print("[BLE] settings sent, waiting for the board to test the Wi-Fi ...")
