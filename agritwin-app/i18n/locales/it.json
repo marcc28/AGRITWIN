@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "Il tuo orto,",
     "titleSecond": "ogni giorno migliore.",
-    "subtitle": "Attività, meteo e colture per il tuo orto."
+    "subtitle": "Attività, meteo e colture per il tuo orto.",
+    "workingOn": "Lavoreremo nel campo",
+    "devices": {
+      "title": "Dispositivi",
+      "none": "Nessuno",
+      "error": "Impossibile caricare i dispositivi",
+      "retry": "Riprova"
+    }
   },
   "tabs": {
     "home": "Home",
@@ -351,10 +358,6 @@
     "errors": {
       "loadFailed": "Non è stato possibile caricare i dati del mercato"
     }
-  },
-  "home": {
-    "title": "Il tuo orto,\nogni giorno migliore.",
-    "subtitle": "Attività, meteo e colture adattati al tuo orto."
   },
   "weather": {
     "subtitle": "Previsioni meteo",

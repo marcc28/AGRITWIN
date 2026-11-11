@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "Tu huerto,",
     "titleSecond": "cada día mejor.",
-    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto."
+    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto.",
+    "workingOn": "Trabajaremos en el campo",
+    "devices": {
+      "title": "Dispositivos",
+      "none": "Ninguno",
+      "error": "No se han podido cargar los dispositivos",
+      "retry": "Reintentar"
+    }
   },
   "tabs": {
     "home": "Inicio",
@@ -351,10 +358,6 @@
     "errors": {
       "loadFailed": "No se han podido cargar los datos del mercado"
     }
-  },
-  "home": {
-    "title": "Tu huerto,\ncada día mejor.",
-    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto."
   },
   "weather": {
     "subtitle": "Previsión del tiempo",

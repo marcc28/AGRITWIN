@@ -26,4 +26,12 @@ describe('DeviceStatusDot', () => {
       }),
     );
   });
+
+  it('can be drawn bigger', () => {
+    render(<DeviceStatusDot health="ok" size={12} />);
+
+    expect(screen.getByTestId('device-health-ok').props.style).toEqual(
+      expect.objectContaining({ width: 12, height: 12, borderRadius: 6 }),
+    );
+  });
 });
