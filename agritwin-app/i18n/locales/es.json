@@ -234,25 +234,15 @@
       "coordsHint": "Escribe una dirección o selecciona un punto en el mapa.",
       "coords": "Coordenadas: {{lat}}, {{lon}}",
       "arduinos": "Arduinos",
-      "arduinosHint": "Puedes enlazarlos ahora o dejarlo para después. Solo pedimos lo que ves en el dispositivo.",
-      "configureLater": "Configurar después",
-      "addNow": "Añadir ahora",
-      "addAnother": "Añadir otro Arduino",
       "removeDevice": "Quitar",
-      "saveDevices": "Guardar dispositivos",
       "deviceId": "ID del dispositivo",
-      "deviceIdPlaceholder": "p. ej. esp32_sim_01",
       "deviceBrand": "Marca",
-      "deviceBrandPlaceholder": "p. ej. ESP32",
       "deviceSerial": "Número de serie",
-      "deviceSerialPlaceholder": "El que pone en la etiqueta",
-      "linkLater": "Enlazar Arduinos →",
       "submitFirst": "Crear mi primer jardín",
       "submitNext": "Crear jardín",
       "errors": {
         "locationRequired": "Introduce una ubicación para geolocalizarla",
         "locationNotFound": "No se ha encontrado esta ubicación",
-        "deviceIdRequired": "Cada Arduino necesita ID, marca y número de serie",
         "deviceSaveFailed": "No se han podido guardar los dispositivos",
         "createFailed": "No se ha podido crear el campo",
         "addressUnavailable": "No se ha encontrado una dirección cercana. Se conservan las coordenadas; puedes escribir la dirección manualmente."
@@ -342,6 +332,102 @@
         "addFailed": "Error al añadir el cultivo",
         "removeFailed": "Error al eliminar el cultivo"
       }
+    }
+  },
+  "addDevice": {
+    "button": "Añadir dispositivo",
+    "back": "Volver al campo",
+    "eyebrow": "AÑADIR DISPOSITIVO",
+    "title": "Conecta tu placa AgriTwin",
+    "scan": {
+      "title": "Busca tu placa",
+      "instructions": "Enciende la placa. El LED azul parpadea despacio.",
+      "searching": "Buscando placas…",
+      "found": "Placas encontradas",
+      "tapHint": "Toca la tuya para continuar.",
+      "searchAgain": "Buscar de nuevo"
+    },
+    "noBoards": {
+      "title": "No hemos encontrado ninguna placa",
+      "instructions": "Comprueba que la placa está encendida y cerca del móvil.",
+      "tip": "Si el LED está fijo, mantén pulsado el botón BOOT de la placa durante 5 segundos y vuelve a intentarlo.",
+      "retry": "Reintentar"
+    },
+    "wifi": {
+      "title": "Conecta la placa al WiFi",
+      "board": "Placa: {{name}}",
+      "ssid": "Nombre del WiFi",
+      "ssidPlaceholder": "El nombre de tu red",
+      "password": "Contraseña",
+      "passwordPlaceholder": "La contraseña de tu WiFi",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "hint24": "Usa una red de 2,4 GHz. La placa no funciona con redes de 5 GHz.",
+      "privacy": "No guardamos el nombre ni la contraseña de tu WiFi.",
+      "connect": "Conectar"
+    },
+    "progress": {
+      "connectingBoard": "Conectando con la placa…",
+      "connecting": "Conectando…",
+      "connectingHint": "Puede tardar unos 20 segundos. Mantén la app abierta y cerca de la placa.",
+      "saving": "Guardando la placa…"
+    },
+    "success": {
+      "title": "Placa conectada",
+      "hint": "Tu placa ya está enlazada con este campo y empezará a enviar datos.",
+      "alreadyLinked": "Esta placa ya estaba enlazada con este campo.",
+      "done": "Volver al campo"
+    },
+    "error": {
+      "retry": "Reintentar",
+      "back": "Volver al campo",
+      "openSettings": "Abrir ajustes",
+      "groups": {
+        "wifi": {
+          "title": "No se ha podido conectar al WiFi",
+          "hint": "Revisa el nombre del WiFi y la contraseña. Recuerda que la placa solo funciona con redes de 2,4 GHz."
+        },
+        "timeout": {
+          "title": "Se ha agotado el tiempo",
+          "hint": "Acerca la placa al router y al móvil e inténtalo de nuevo."
+        },
+        "noInternet": {
+          "title": "WiFi conectado, pero sin internet",
+          "hint": "Revisa la conexión a internet de tu router y vuelve a intentarlo."
+        },
+        "bluetoothOff": {
+          "title": "El Bluetooth está apagado",
+          "hint": "Activa el Bluetooth del móvil y vuelve a intentarlo."
+        },
+        "permission": {
+          "title": "Falta el permiso de Bluetooth",
+          "hint": "Permite que AgriTwin use el Bluetooth en los ajustes del móvil y vuelve a intentarlo."
+        },
+        "link": {
+          "title": "No se ha podido hablar con la placa",
+          "hint": "Acércate a la placa, comprueba que el LED parpadea despacio e inténtalo de nuevo."
+        },
+        "alreadyRegistered": {
+          "title": "Esta placa ya está en otro campo",
+          "hint": "Una placa solo puede estar enlazada con un campo. Quítala del otro campo antes de añadirla aquí."
+        },
+        "sessionExpired": {
+          "title": "La sesión ha caducado",
+          "hint": "Inicia sesión de nuevo y vuelve a añadir la placa."
+        },
+        "saveFailed": {
+          "title": "Placa conectada, pero sin guardar",
+          "hint": "La placa se ha conectado al WiFi, pero no hemos podido guardarla. Inténtalo de nuevo."
+        },
+        "generic": {
+          "title": "Algo ha ido mal",
+          "hint": "Inténtalo de nuevo. Si sigue fallando, reinicia la placa."
+        }
+      }
+    },
+    "web": {
+      "title": "Solo disponible en el móvil",
+      "hint": "Para añadir una placa necesitas la app de AgriTwin en tu móvil, porque usa el Bluetooth."
     }
   },
   "languages": {

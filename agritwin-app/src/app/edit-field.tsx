@@ -15,21 +15,14 @@ import { useTranslation } from 'react-i18next';
 
 import { defaultPhotoIndex } from '../constants/gardenPhotos';
 import {
-  createDevice,
   deleteDevice,
   getField,
   isAuthError,
-  updateDevice,
   updateField,
   reverseGeocodeLocation,
   type FieldDevice,
 } from '../services/api';
-import {
-  DeviceDraftFields,
-  filledDevices,
-  hasIncompleteDevices,
-  type DeviceDraft,
-} from '../components/DeviceDraftFields';
+import { ExistingDevicesList } from '../components/ExistingDevicesList';
 import { clearAuth, getAuth } from '../services/auth';
 import { getCurrentField, setCurrentField } from '../services/currentField';
 import { getFieldPhotoIndex, setFieldPhotoIndex } from '../services/fieldPhoto';
@@ -95,8 +88,6 @@ export default function EditFieldScreen() {
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [existingDevices, setExistingDevices] = useState<FieldDevice[]>([]);
-  const [deviceDrafts, setDeviceDrafts] = useState<DeviceDraft[]>([]);
-
   const [existingCrops, setExistingCrops] = useState<FieldCrop[]>([]);
   const [selectedCropId, setSelectedCropId] = useState('');
   const [availableCrops, setAvailableCrops] = useState<Crop[]>([]);
@@ -288,12 +279,6 @@ export default function EditFieldScreen() {
       return;
     }
 
-    const devices = filledDevices(deviceDrafts);
-    if (hasIncompleteDevices(deviceDrafts, existingDevices)) {
-      setErrorMessage(t('settings.createField.errors.deviceIdRequired'));
-      return;
-    }
-
     try {
       setSaving(true);
       setErrorMessage('');
@@ -310,15 +295,6 @@ export default function EditFieldScreen() {
             : {}),
       });
       await setFieldPhotoIndex(fieldId, photoIndex);
-      await Promise.all(
-        existingDevices.map((device) =>
-          updateDevice(fieldId, device.id, {
-            brand: (device.brand ?? '').trim(),
-            serial_number: (device.serial_number ?? '').trim(),
-          }),
-        ),
-      );
-      await Promise.all(devices.map((device) => createDevice(fieldId, device)));
       const current = await getCurrentField();
       if (current?.id === fieldId) {
         await setCurrentField({ id: fieldId, name: trimmedName });
@@ -595,22 +571,20 @@ export default function EditFieldScreen() {
                   </Text>
                 ) : null}
 
-                <Text style={styles.label}>
-                  {t('settings.createField.arduinos')}
-                </Text>
-                <DeviceDraftFields
-                  mode="manage"
-                  later={false}
-                  onLaterChange={() => undefined}
-                  drafts={deviceDrafts}
-                  onChange={setDeviceDrafts}
-                  existing={existingDevices}
-                  onExistingChange={setExistingDevices}
-                  onRemoveExisting={(deviceId) => {
-                    void handleRemoveDevice(deviceId);
-                  }}
-                  disabled={saving}
-                />
+                {existingDevices.length > 0 ? (
+                  <>
+                    <Text style={styles.label}>
+                      {t('settings.createField.arduinos')}
+                    </Text>
+                    <ExistingDevicesList
+                      devices={existingDevices}
+                      disabled={saving}
+                      onRemove={(deviceId) => {
+                        void handleRemoveDevice(deviceId);
+                      }}
+                    />
+                  </>
+                ) : null}
               </>
             )}
             {!loading && (

@@ -7,19 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { defaultPhotoIndex } from '../constants/gardenPhotos';
 import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
 import {
-  createDevice,
   createField,
   geocodeLocation,
   reverseGeocodeLocation,
   isAuthError,
 } from '../services/api';
-import {
-  DeviceDraftFields,
-  emptyDeviceDraft,
-  filledDevices,
-  hasIncompleteDevices,
-  type DeviceDraft,
-} from '../components/DeviceDraftFields';
 import { FieldOptionChips } from '../components/FieldOptionChips';
 import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
 import { OptionChip } from '../components/OptionChip';
@@ -86,9 +78,6 @@ export default function CreateFieldScreen() {
   const [locating, setLocating] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [later, setLater] = useState(true);
-  const [deviceDrafts, setDeviceDrafts] = useState<DeviceDraft[]>([]);
-
   async function handleLocate() {
     const query = location.trim();
     if (!query) {
@@ -175,12 +164,6 @@ export default function CreateFieldScreen() {
       return;
     }
 
-    const devices = later ? [] : filledDevices(deviceDrafts);
-    if (!later && hasIncompleteDevices(deviceDrafts)) {
-      setErrorMessage(t('settings.createField.errors.deviceIdRequired'));
-      return;
-    }
-
     try {
       setSaving(true);
       setErrorMessage('');
@@ -196,9 +179,6 @@ export default function CreateFieldScreen() {
       });
       await setFieldPhotoIndex(created.id, photoIndex);
       await setCurrentField({ id: created.id, name: created.name });
-      await Promise.all(
-        devices.map((device) => createDevice(created.id, device)),
-      );
       if (fromProfile) {
         router.replace({
           pathname: '/field-detail',
@@ -452,26 +432,6 @@ export default function CreateFieldScreen() {
                 />
               ))}
             </View>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              {t('settings.createField.arduinos')}
-            </Text>
-            <DeviceDraftFields
-              later={later}
-              onLaterChange={(value) => {
-                setLater(value);
-                if (value) {
-                  setDeviceDrafts([]);
-                } else if (deviceDrafts.length === 0) {
-                  setDeviceDrafts([emptyDeviceDraft()]);
-                }
-              }}
-              drafts={deviceDrafts}
-              onChange={setDeviceDrafts}
-              disabled={saving}
-            />
           </View>
 
           <Pressable

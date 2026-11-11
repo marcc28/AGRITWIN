@@ -329,6 +329,20 @@ describe('FieldDetailScreen', () => {
     });
   });
 
+  it('opens the add device screen for this field', async () => {
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('add-device-button')).toBeTruthy();
+    });
+    expect(screen.getByText('addDevice.button')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('add-device-button'));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/add-device',
+      params: { id: '3' },
+    });
+  });
+
   it('opens the edit page', async () => {
     render(<FieldDetailScreen />);
 
