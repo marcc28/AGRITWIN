@@ -68,6 +68,7 @@ function WebTabButton({
         />
       </View>
       <Text
+        numberOfLines={1}
         style={[
           styles.label,
           compactLandscape ? styles.labelCompact : null,
@@ -121,6 +122,13 @@ export default function WebLayout() {
                 icon={require('@assets/images/tabIcons/edit_calendar.png')}
               />
             </TabTrigger>
+            <TabTrigger name="diagnosis" href="/app/diagnosis" asChild>
+              <WebTabButton
+                name="diagnosis"
+                label={t('tabs.diagnosis')}
+                icon={require('@assets/images/tabIcons/diagnosis.png')}
+              />
+            </TabTrigger>
             <TabTrigger name="clover" href="/app/clover" asChild>
               <WebTabButton
                 name="clover"
@@ -167,7 +175,7 @@ const styles = StyleSheet.create({
   tabList: {
     alignSelf: 'center',
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 420,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -182,6 +190,8 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,

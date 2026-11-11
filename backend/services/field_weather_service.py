@@ -70,6 +70,7 @@ class FieldWeatherService:
         if field is None or (username is not None and not await self._owns(username, field_id)):
             raise WeatherDataError("Field not found")
 
+        field_location = field.location
         lang = normalize_lang(lang or await self._profile_language(field.id))
         now = _utc_now_without_timezone()
         row = await self._db.get(WeatherCache, field_id)
@@ -82,6 +83,8 @@ class FieldWeatherService:
             result.alerts = detect_alerts(result)
             await self._save(field.id, row, result, now)
 
+        if field_location:
+            result.location.name = field_location
         return result.model_copy(update={"daily": result.daily[:days]})
 
     async def _owns(self, username: str, field_id: int) -> bool:

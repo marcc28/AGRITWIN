@@ -12,12 +12,51 @@ import {
   createDevice,
   createField,
   geocodeLocation,
+  reverseGeocodeLocation,
 } from '../../../src/services/api';
 import { clearAuth } from '../../../src/services/auth';
 import { router } from 'expo-router';
 
 const mockUseLocalSearchParams = jest.fn();
 const mockIsAuthError = jest.fn((_error?: unknown) => false);
+
+jest.mock('../../../src/components/field-location/MapCanvas', () => {
+  const { Pressable, Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return function MockMap({
+    onSelect,
+    boundary,
+    onBoundaryChange,
+  }: {
+    onSelect: (point: { lat: number; lon: number }) => void;
+    boundary?: { lat: number; lon: number }[];
+    onBoundaryChange?: (points: { lat: number; lon: number }[]) => void;
+  }) {
+    if (onBoundaryChange)
+      return (
+        <Pressable
+          onPress={() =>
+            onBoundaryChange([
+              ...(boundary ?? []),
+              [
+                { lat: 0, lon: 0 },
+                { lat: 0, lon: 0.001 },
+                { lat: 0.001, lon: 0.001 },
+                { lat: 0.001, lon: 0 },
+              ][boundary?.length ?? 0],
+            ])
+          }
+        >
+          <Text>Add test corner</Text>
+        </Pressable>
+      );
+    return (
+      <Pressable onPress={() => onSelect({ lat: 42.5, lon: 1.5 })}>
+        <Text>Select test point</Text>
+      </Pressable>
+    );
+  };
+});
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -37,6 +76,7 @@ jest.mock('../../../src/services/api', () => ({
   createField: jest.fn(),
   createDevice: jest.fn(),
   geocodeLocation: jest.fn(),
+  reverseGeocodeLocation: jest.fn(),
   isAuthError: (error?: unknown) => mockIsAuthError(error),
 }));
 
@@ -78,6 +118,9 @@ describe('CreateFieldScreen', () => {
     mockUseLocalSearchParams.mockReturnValue({ from: 'profile' });
     mockIsAuthError.mockReturnValue(false);
     mockedCreateField.mockResolvedValue(created);
+    jest
+      .mocked(reverseGeocodeLocation)
+      .mockResolvedValue({ lat: 42.5, lon: 1.5, label: 'Field address' });
   });
 
   it('creates a garden from the profile form', async () => {
@@ -161,10 +204,100 @@ describe('CreateFieldScreen', () => {
 
   it('asks for a location before geocoding', () => {
     render(<CreateFieldScreen />);
-    fireEvent.press(screen.getByText('locate-outline'));
+    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
     expect(
       screen.getByText('settings.createField.errors.locationRequired'),
     ).toBeTruthy();
+  });
+
+  it('creates a field with a confirmed map point', async () => {
+    render(<CreateFieldScreen />);
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'Hort nou',
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      'Old address',
+    );
+    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    expect(screen.getByText('settings.createField.map.confirm')).toBeDisabled();
+    fireEvent.press(screen.getByText('Select test point'));
+    fireEvent.press(screen.getByText('settings.createField.map.confirm'));
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('Field address')).toBeTruthy(),
+    );
+    expect(screen.queryByText('settings.createField.map.title')).toBeNull();
+    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    await waitFor(() =>
+      expect(mockedCreateField).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lat: 42.5,
+          lon: 1.5,
+          location: 'Field address',
+        }),
+      ),
+    );
+    expect(mockedGeocode).not.toHaveBeenCalled();
+  });
+
+  it('discards an unconfirmed point and keeps the manual address', async () => {
+    render(<CreateFieldScreen />);
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'Hort nou',
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      'Andorra',
+    );
+    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(screen.getByText('Select test point'));
+    fireEvent.press(screen.getByText('settings.createField.map.cancel'));
+    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    expect(screen.getByText('settings.createField.map.confirm')).toBeDisabled();
+    fireEvent.press(screen.getByText('settings.createField.map.cancel'));
+    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    await waitFor(() =>
+      expect(mockedCreateField).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lat: null,
+          lon: null,
+          location: 'Andorra',
+        }),
+      ),
+    );
+  });
+
+  it('reopens the saved point and clears it after editing the address', async () => {
+    render(<CreateFieldScreen />);
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'Hort nou',
+    );
+    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(screen.getByText('Select test point'));
+    fireEvent.press(screen.getByText('settings.createField.map.confirm'));
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('Field address')).toBeTruthy(),
+    );
+    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    expect(screen.getByText('settings.createField.map.confirm')).toBeEnabled();
+    fireEvent.press(screen.getByText('settings.createField.map.cancel'));
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      'La Massana',
+    );
+    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    await waitFor(() =>
+      expect(mockedCreateField).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lat: null,
+          lon: null,
+          location: 'La Massana',
+        }),
+      ),
+    );
   });
 
   it('geocodes a location', async () => {
@@ -178,7 +311,7 @@ describe('CreateFieldScreen', () => {
       screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('locate-outline'));
+    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
 
     await waitFor(() => {
       expect(mockedGeocode).toHaveBeenCalledWith('Andorra');
@@ -197,7 +330,7 @@ describe('CreateFieldScreen', () => {
       screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('locate-outline'));
+    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
     await waitFor(() => {
       expect(screen.getByText(/settings.createField.coords/)).toBeTruthy();
     });
@@ -215,7 +348,7 @@ describe('CreateFieldScreen', () => {
       screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
       'xxxx',
     );
-    fireEvent.press(screen.getByText('locate-outline'));
+    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
 
     await waitFor(() => {
       expect(screen.getByText('not found')).toBeTruthy();
@@ -230,7 +363,7 @@ describe('CreateFieldScreen', () => {
       screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('locate-outline'));
+    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
 
     await waitFor(() => {
       expect(clearAuth).toHaveBeenCalled();
@@ -262,7 +395,7 @@ describe('CreateFieldScreen', () => {
       screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('locate-outline'));
+    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
 
     await waitFor(() => {
       expect(
@@ -331,5 +464,79 @@ describe('CreateFieldScreen', () => {
       expect(clearAuth).toHaveBeenCalled();
       expect(router.replace).toHaveBeenCalledWith('/auth/login');
     });
+  });
+});
+
+describe('Field area and boundaries', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseLocalSearchParams.mockReturnValue({ from: 'profile' });
+    mockIsAuthError.mockReturnValue(false);
+    mockedCreateField.mockResolvedValue(created);
+    jest
+      .mocked(reverseGeocodeLocation)
+      .mockResolvedValue({ lat: 0.0005, lon: 0.0005, label: 'Field road' });
+  });
+  it('shows the boundary option only for supported field types', () => {
+    render(<CreateFieldScreen />);
+    expect(screen.queryByText('settings.createField.boundary.draw')).toBeNull();
+    for (const type of ['open_field', 'greenhouse', 'orchard']) {
+      fireEvent.press(screen.getByText(`settings.fieldTypes.${type}`));
+      expect(
+        screen.getByText('settings.createField.boundary.draw'),
+      ).toBeTruthy();
+    }
+  });
+  it('converts manually entered hectares to square metres', async () => {
+    render(<CreateFieldScreen />);
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'New field',
+    );
+    fireEvent.press(screen.getByText('settings.createField.areaUnits.ha'));
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      '2,5',
+    );
+    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    await waitFor(() =>
+      expect(mockedCreateField).toHaveBeenCalledWith(
+        expect.objectContaining({ size_m2: 25000 }),
+      ),
+    );
+  });
+  it('calculates a boundary area, fills its address and submits its corners', async () => {
+    render(<CreateFieldScreen />);
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'New field',
+    );
+    fireEvent.press(screen.getByText('settings.fieldTypes.open_field'));
+    fireEvent.press(screen.getByText('settings.createField.boundary.draw'));
+    expect(
+      screen.getByText('settings.createField.boundary.confirm'),
+    ).toBeDisabled();
+    for (let i = 0; i < 4; i++)
+      fireEvent.press(screen.getByText('Add test corner'));
+    fireEvent.press(screen.getByText('settings.createField.boundary.confirm'));
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('Field road')).toBeTruthy(),
+    );
+    expect(
+      screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+    ).toHaveProp('editable', false);
+    fireEvent.press(screen.getByText('settings.createField.areaUnits.ha'));
+    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    await waitFor(() =>
+      expect(mockedCreateField).toHaveBeenCalledWith(
+        expect.objectContaining({
+          size_m2: 12364.35,
+          location: 'Field road',
+          boundary: expect.arrayContaining([{ lat: 0, lon: 0 }]),
+          lat: expect.closeTo(0.0005, 8),
+          lon: expect.closeTo(0.0005, 8),
+        }),
+      ),
+    );
   });
 });

@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "Il tuo orto,",
     "titleSecond": "ogni giorno migliore.",
-    "subtitle": "Attività, meteo e colture per il tuo orto."
+    "subtitle": "Attività, meteo e colture per il tuo orto.",
+    "workingOn": "Lavoreremo nel campo",
+    "devices": {
+      "title": "Dispositivi",
+      "none": "Nessuno",
+      "error": "Impossibile caricare i dispositivi",
+      "retry": "Riprova"
+    }
   },
   "tabs": {
     "home": "Home",
@@ -14,7 +21,8 @@
     "market": "Mercato",
     "profile": "Profilo",
     "clover": "Trifoglio",
-    "calendar": "Calendario"
+    "calendar": "Calendario",
+    "diagnosis": "Diagnosi"
   },
   "fieldCrops": {
     "title": "Le mie colture",
@@ -223,7 +231,7 @@
       "namePlaceholder": "Dai un nome al giardino",
       "locationPlaceholder": "Città, paese o indirizzo",
       "sizePlaceholder": "es. 20",
-      "coordsHint": "Cerca la posizione per salvare latitudine e longitudine.",
+      "coordsHint": "Inserisci un indirizzo o seleziona un punto sulla mappa.",
       "coords": "Coordinate: {{lat}}, {{lon}}",
       "arduinos": "Arduino",
       "removeDevice": "Rimuovi",
@@ -236,8 +244,71 @@
         "locationRequired": "Inserisci una posizione per geolocalizzarla",
         "locationNotFound": "Posizione non trovata",
         "deviceSaveFailed": "Impossibile salvare i dispositivi",
-        "createFailed": "Impossibile creare il campo"
-      }
+        "createFailed": "Impossibile creare il campo",
+        "addressUnavailable": "Nessun indirizzo vicino trovato. Le coordinate sono conservate; puoi inserire l’indirizzo manualmente."
+      },
+      "lookupAddress": "Cerca indirizzo",
+      "lookingUp": "Ricerca indirizzo…",
+      "map": {
+        "open": "Seleziona la posizione sulla mappa",
+        "title": "Scegli la posizione del campo",
+        "hint": "Tocca o fai clic sulla mappa per selezionare un punto. Ingrandisci per posizionarlo con precisione.",
+        "noPoint": "Nessun punto selezionato.",
+        "selectedPoint": "Posizione selezionata del campo",
+        "cancel": "Annulla",
+        "confirm": "Usa questa posizione",
+        "loading": "Caricamento della mappa…",
+        "loadError": "Impossibile caricare la mappa. Controlla la connessione o inserisci l’indirizzo manualmente."
+      },
+      "areaLabel": "Superficie",
+      "areaUnitLabel": "Unità di superficie",
+      "automaticArea": "Superficie calcolata dai confini. Cambia unità o rimuovi i confini per inserirla manualmente.",
+      "areaUnits": {
+        "m2": "m²",
+        "ha": "ha",
+        "acre": "acres",
+        "km2": "km²",
+        "ft2": "ft²"
+      },
+      "boundary": {
+        "section": "Confini del campo",
+        "optional": "Facoltativo: segna gli angoli per calcolare la superficie.",
+        "draw": "Seleziona gli angoli",
+        "edit": "Modifica confini",
+        "remove": "Rimuovi i confini e inserisci la superficie manualmente",
+        "title": "Delinea il tuo campo",
+        "hint": "Segna gli angoli in ordine. Poi aggiungi zone escluse per edifici o parti da non conteggiare.",
+        "corners": "{{count}} angoli selezionati",
+        "minimum": "Ogni contorno richiede almeno tre angoli.",
+        "undo": "Annulla punto",
+        "clear": "Ricomincia",
+        "confirm": "Usa questo campo",
+        "errors": {
+          "tooFew": "Seleziona almeno tre angoli.",
+          "tooMany": "Sono consentiti al massimo 200 angoli.",
+          "invalid": "Coordinate non valide.",
+          "duplicate": "Non ripetere un angolo.",
+          "crossing": "I lati non possono incrociarsi o toccarsi.",
+          "empty": "Il contorno deve racchiudere una superficie.",
+          "tooLarge": "La superficie massima è di 10.000 ettari.",
+          "outside": "Le zone escluse devono restare completamente dentro il campo senza toccarne il confine.",
+          "overlap": "Le zone escluse non possono sovrapporsi o toccarsi.",
+          "tooManyZones": "Massimo 20 zone escluse e 1.000 angoli in totale."
+        },
+        "outer": "Confine esterno",
+        "exclusion": "Esclusione {{number}}",
+        "addExclusion": "Aggiungi zona esclusa",
+        "removeExclusion": "Rimuovi questa esclusione",
+        "view": "Vedi il campo sulla mappa",
+        "viewTitle": "Superficie del campo",
+        "viewHint": "Il verde delimita il campo. Il rosso indica le zone escluse dalla superficie utile.",
+        "close": "Chiudi",
+        "redraw": "Ridisegna il campo",
+        "replaceHint": "Confermare un nuovo contorno sostituisce quello attuale. Annullare conserva il confine precedente.",
+        "noBoundary": "Non è stato ancora disegnato un confine. Una superficie numerica non descrive la forma del campo.",
+        "areaSummary": "Totale: {{gross}} {{unit}} · Esclusa: {{excluded}} {{unit}} · Utile: {{net}} {{unit}}"
+      },
+      "netAreaLabel": "Superficie utile"
     },
     "manageCrops": {
       "title": "Colture",
@@ -374,10 +445,6 @@
       "loadFailed": "Non è stato possibile caricare i dati del mercato"
     }
   },
-  "home": {
-    "title": "Il tuo orto,\nogni giorno migliore.",
-    "subtitle": "Attività, meteo e colture adattati al tuo orto."
-  },
   "weather": {
     "subtitle": "Previsioni meteo",
     "myField": "Il mio campo",
@@ -445,6 +512,58 @@
       "low": "Bassa",
       "medium": "Media",
       "high": "Alta"
+    }
+  },
+  "diagnosis": {
+    "title": "Diagnosi della pianta con IA",
+    "subtitle": "Rileva parassiti, malattie, acqua, luce e raccolto.",
+    "placeholder": "Non hai ancora scelto nessuna foto",
+    "previewError": "Impossibile mostrare questa immagine",
+    "enlarge": "Ingrandisci la foto",
+    "close": "Chiudi",
+    "takePhoto": "Scatta foto",
+    "choosePhoto": "Galleria",
+    "analyse": "Analizza",
+    "retry": "Riprova",
+    "openSettings": "Apri le impostazioni",
+    "loading": "Analisi della pianta in corso…",
+    "healthy": "Sana",
+    "problem": "Richiede attenzione",
+    "confidence": "Affidabilità: {{value}} %",
+    "statusTitle": "Stato della pianta",
+    "waterLabel": "Acqua",
+    "lightLabel": "Luce",
+    "harvestLabel": "Raccolto",
+    "water": {
+      "lack": "Le manca acqua",
+      "ok": "Nessun sintomo",
+      "excess": "Troppa acqua",
+      "unknown": "Non si può sapere"
+    },
+    "light": {
+      "lack": "Le manca luce",
+      "ok": "Nessun sintomo",
+      "excess": "Troppo sole",
+      "unknown": "Non si può sapere"
+    },
+    "harvest": {
+      "ready": "Pronta per il raccolto",
+      "not_ready": "Non è ancora pronta",
+      "no_fruit": "Nessun frutto visibile",
+      "unknown": "Non si può sapere"
+    },
+    "errors": {
+      "cameraDenied": "Serve il permesso della fotocamera per scattare foto. Premi di nuovo «Scatta foto» per consentirlo.",
+      "cameraBlocked": "Per scattare foto attiva il permesso della fotocamera nelle impostazioni del telefono.",
+      "photosDenied": "Serve l'accesso alle foto. Premi di nuovo «Galleria» per consentirlo.",
+      "photosBlocked": "Per scegliere le foto attiva l'accesso alle foto nelle impostazioni del telefono.",
+      "format": "La foto deve essere JPG o PNG.",
+      "tooLarge": "La foto è troppo grande (massimo 5 MB).",
+      "noPlant": "Nessuna pianta trovata nella foto. Prova con un'altra.",
+      "notFound": "Non è stato possibile diagnosticare questa foto. Prova con una più vicina.",
+      "tooMany": "Troppe analisi. Aspetta un minuto e riprova.",
+      "unavailable": "Il servizio di diagnosi non è disponibile. Riprova più tardi.",
+      "connection": "Impossibile connettersi. Controlla la connessione e riprova."
     }
   }
 }

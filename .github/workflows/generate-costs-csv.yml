@@ -81,4 +81,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/costes.csv reports/costes.xlsx
           git commit -m "chore: update project costs [skip ci]"
-          git push
+          # dev may have moved while the job was running: rebase and retry.
+          for attempt in 1 2 3; do
+            git pull --rebase --quiet origin "$(git branch --show-current)" && git push && exit 0
+            echo "Push attempt $attempt failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "Could not push after 3 attempts" >&2
+          exit 1

@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "Your garden,",
     "titleSecond": "growing better every day.",
-    "subtitle": "Tasks, weather and crops tailored to your garden."
+    "subtitle": "Tasks, weather and crops tailored to your garden.",
+    "workingOn": "We will work on the field",
+    "devices": {
+      "title": "Devices",
+      "none": "None",
+      "error": "Could not load the devices",
+      "retry": "Try again"
+    }
   },
   "tabs": {
     "home": "Home",
@@ -14,7 +21,8 @@
     "market": "Market",
     "profile": "Profile",
     "clover": "Clover",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "diagnosis": "Diagnosis"
   },
   "fieldCrops": {
     "title": "My crops",
@@ -223,7 +231,7 @@
       "namePlaceholder": "Give your garden a name",
       "locationPlaceholder": "City, town or address",
       "sizePlaceholder": "e.g. 20",
-      "coordsHint": "Look up the location to save latitude and longitude.",
+      "coordsHint": "Enter an address or select a point on the map.",
       "coords": "Coordinates: {{lat}}, {{lon}}",
       "arduinos": "Arduinos",
       "removeDevice": "Remove",
@@ -236,8 +244,71 @@
         "locationRequired": "Enter a location to geocode it",
         "locationNotFound": "This location was not found",
         "deviceSaveFailed": "Could not save the devices",
-        "createFailed": "Could not create the field"
-      }
+        "createFailed": "Could not create the field",
+        "addressUnavailable": "No nearby address was found. Coordinates are retained; you can enter the address manually."
+      },
+      "lookupAddress": "Find address",
+      "lookingUp": "Finding address…",
+      "map": {
+        "open": "Select location on the map",
+        "title": "Choose the field location",
+        "hint": "Tap or click the map to select a point. Zoom in to place it precisely.",
+        "noPoint": "No point selected yet.",
+        "selectedPoint": "Selected field location",
+        "cancel": "Cancel",
+        "confirm": "Use this location",
+        "loading": "Loading map…",
+        "loadError": "The map could not load. Check your connection or enter the address manually."
+      },
+      "areaLabel": "Area",
+      "areaUnitLabel": "Area unit",
+      "automaticArea": "Calculated from the boundary. Change the unit or remove the boundary to enter the area manually.",
+      "areaUnits": {
+        "m2": "m²",
+        "ha": "ha",
+        "acre": "acres",
+        "km2": "km²",
+        "ft2": "ft²"
+      },
+      "boundary": {
+        "section": "Field boundary",
+        "optional": "Optional: mark the corners to calculate the area.",
+        "draw": "Select field corners",
+        "edit": "Edit boundary",
+        "remove": "Remove boundary and enter area manually",
+        "title": "Draw your field",
+        "hint": "Mark corners in order. Then add excluded zones for buildings or other areas you do not want to count.",
+        "corners": "{{count}} corners selected",
+        "minimum": "Each outline needs at least three corners.",
+        "undo": "Undo point",
+        "clear": "Start again",
+        "confirm": "Use this field",
+        "errors": {
+          "tooFew": "Select at least three corners.",
+          "tooMany": "A maximum of 200 corners is supported.",
+          "invalid": "Invalid coordinates.",
+          "duplicate": "Do not repeat a corner.",
+          "crossing": "Boundary edges must not cross or touch.",
+          "empty": "The boundary must enclose an area.",
+          "tooLarge": "The maximum area is 10,000 hectares.",
+          "outside": "Excluded zones must stay strictly inside the field without touching its boundary.",
+          "overlap": "Excluded zones must not overlap or touch.",
+          "tooManyZones": "Maximum 20 excluded zones and 1,000 corners in total."
+        },
+        "outer": "Outer boundary",
+        "exclusion": "Exclusion {{number}}",
+        "addExclusion": "Add excluded zone",
+        "removeExclusion": "Remove this exclusion",
+        "view": "View field on map",
+        "viewTitle": "Field area",
+        "viewHint": "Green outlines the field. Red marks areas excluded from its usable area.",
+        "close": "Close",
+        "redraw": "Redraw field",
+        "replaceHint": "Confirming a new outline replaces the current one. Cancel keeps the previous boundary.",
+        "noBoundary": "No boundary has been drawn yet. A numeric area alone cannot locate the field outline.",
+        "areaSummary": "Total: {{gross}} {{unit}} · Excluded: {{excluded}} {{unit}} · Usable: {{net}} {{unit}}"
+      },
+      "netAreaLabel": "Usable area"
     },
     "manageCrops": {
       "title": "Crops",
@@ -374,10 +445,6 @@
       "loadFailed": "Could not load market data"
     }
   },
-  "home": {
-    "title": "Your garden,\nbetter every day.",
-    "subtitle": "Tasks, weather and crops adapted to your garden."
-  },
   "weather": {
     "subtitle": "Weather forecast",
     "myField": "My field",
@@ -445,6 +512,58 @@
       "low": "Low",
       "medium": "Medium",
       "high": "High"
+    }
+  },
+  "diagnosis": {
+    "title": "Plant diagnosis with AI",
+    "subtitle": "Detects pests, diseases, water, light and harvest.",
+    "placeholder": "You haven't chosen a photo yet",
+    "previewError": "This image can't be shown",
+    "enlarge": "Enlarge photo",
+    "close": "Close",
+    "takePhoto": "Take photo",
+    "choosePhoto": "Gallery",
+    "analyse": "Analyse",
+    "retry": "Try again",
+    "openSettings": "Open settings",
+    "loading": "Analysing the plant…",
+    "healthy": "Healthy",
+    "problem": "Needs attention",
+    "confidence": "Confidence: {{value}} %",
+    "statusTitle": "Plant status",
+    "waterLabel": "Water",
+    "lightLabel": "Light",
+    "harvestLabel": "Harvest",
+    "water": {
+      "lack": "Needs water",
+      "ok": "No symptoms",
+      "excess": "Overwatered",
+      "unknown": "Can't tell"
+    },
+    "light": {
+      "lack": "Needs more light",
+      "ok": "No symptoms",
+      "excess": "Too much sun",
+      "unknown": "Can't tell"
+    },
+    "harvest": {
+      "ready": "Ready to harvest",
+      "not_ready": "Not ready yet",
+      "no_fruit": "No fruit visible",
+      "unknown": "Can't tell"
+    },
+    "errors": {
+      "cameraDenied": "Camera permission is needed to take photos. Tap “Take photo” again to allow it.",
+      "cameraBlocked": "To take photos, turn on the camera permission in your phone settings.",
+      "photosDenied": "Photo access is needed. Tap “Gallery” again to allow it.",
+      "photosBlocked": "To choose photos, turn on photo access in your phone settings.",
+      "format": "The photo must be JPG or PNG.",
+      "tooLarge": "The photo is too large (5 MB max).",
+      "noPlant": "No plant was found in the photo. Try another one.",
+      "notFound": "This photo couldn't be diagnosed. Try a closer one.",
+      "tooMany": "Too many analyses. Wait a minute and try again.",
+      "unavailable": "The diagnosis service is unavailable. Try again later.",
+      "connection": "Couldn't connect. Check your connection and try again."
     }
   }
 }

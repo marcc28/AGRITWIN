@@ -29,5 +29,7 @@ def test_field_to_dict_serializes_optional_values_and_size():
         "field_type": None,
         "soil_type": None,
         "size_m2": 12.5,
+        "boundary": None,
+        "excluded_zones": [],
         "created_at": None,
     }
