@@ -7,6 +7,7 @@
 #include "config.h"
 #include "sensors.h"
 #include "status_led.h"
+#include "wifi_diag.h"
 
 namespace {
 
@@ -20,6 +21,7 @@ DeviceSettings activeSettings;
 String topic;
 uint32_t lastMqttAttempt = 0;
 uint32_t lastPublish = 0;
+uint32_t lastWifiAttempt = 0;
 bool wasWifiConnected = false;
 
 bool clockIsSynced() { return time(nullptr) >= kMinValidEpoch; }
@@ -90,9 +92,11 @@ void telemetryBegin(const DeviceSettings& settings) {
 
   Serial.printf("[WIFI] connecting to \"%s\"\n", settings.wifiSsid.c_str());
   setLedMode(LedMode::Connecting);
+  wifiDiagBegin();
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
   WiFi.begin(settings.wifiSsid.c_str(), settings.wifiPassword.c_str());
+  lastWifiAttempt = millis();
 
   // UTC time for the "timestamp" field (the backend stores UTC).
   configTime(0, 0, NTP_SERVER_1, NTP_SERVER_2);
@@ -110,12 +114,23 @@ void telemetryLoop() {
       Serial.printf("[WIFI] connected, IP %s\n", WiFi.localIP().toString().c_str());
     } else {
       // The router may just be rebooting: the saved settings are kept and
-      // the ESP32 keeps retrying on its own (setAutoReconnect).
+      // a new attempt starts every WIFI_RETRY_INTERVAL_MS (see below).
       Serial.println("[WIFI] connection lost, retrying...");
       setLedMode(LedMode::Connecting);
     }
   }
   if (!wifiConnected) {
+    // The network may be missing at boot or come back later (e.g. a phone
+    // hotspot): do not rely only on auto-reconnect, start a new attempt.
+    if (millis() - lastWifiAttempt >= WIFI_RETRY_INTERVAL_MS &&
+        !wifiAssociatedWithoutIp()) {
+      lastWifiAttempt = millis();
+      Serial.printf("[WIFI] retrying \"%s\"...\n",
+                    activeSettings.wifiSsid.c_str());
+      WiFi.disconnect();
+      WiFi.begin(activeSettings.wifiSsid.c_str(),
+                 activeSettings.wifiPassword.c_str());
+    }
     return;
   }
 

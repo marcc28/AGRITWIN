@@ -9,6 +9,7 @@
 #include "config.h"
 #include "settings.h"
 #include "status_led.h"
+#include "wifi_diag.h"
 
 namespace {
 
@@ -22,8 +23,6 @@ volatile bool connectRequested = false;
 
 NimBLECharacteristic* statusChar = nullptr;
 
-// Last Wi-Fi disconnect reason, filled by the Wi-Fi event handler.
-volatile uint8_t lastWifiReason = 0;
 
 void setStatus(const char* status) {
   Serial.printf("[SETUP] status -> %s\n", status);
@@ -91,20 +90,32 @@ std::string buildInfoJson() {
   return std::string(buffer);
 }
 
-void onWifiDisconnected(arduino_event_id_t event, arduino_event_info_t info) {
-  lastWifiReason = info.wifi_sta_disconnected.reason;
-}
-
-// Tries the Wi-Fi received from the app. Returns nullptr on success or the
-// error status to send back.
+// Tries the Wi-Fi received from the app for up to WIFI_TEST_TIMEOUT_MS,
+// starting a new attempt every WIFI_ATTEMPT_MS (phone hotspots often need
+// more than one). Returns nullptr on success or the error status to send.
 const char* testWifi(const String& ssid, const String& password) {
-  lastWifiReason = 0;
+  wifiResetLastReason();
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid.c_str(), password.c_str());
 
   const uint32_t start = millis();
+  uint32_t attemptStart = 0;
+  int attempt = 0;
   while (WiFi.status() != WL_CONNECTED &&
          millis() - start < WIFI_TEST_TIMEOUT_MS) {
+    // A new attempt only if the previous one is not still waiting for an IP.
+    if ((attempt == 0 || millis() - attemptStart >= WIFI_ATTEMPT_MS) &&
+        !wifiAssociatedWithoutIp()) {
+      attempt++;
+      attemptStart = millis();
+      Serial.printf("[SETUP] Wi-Fi attempt %d to \"%s\"\n", attempt,
+                    ssid.c_str());
+      WiFi.disconnect();
+      WiFi.begin(ssid.c_str(), password.c_str());
+    }
+    // A wrong password will not get better with more attempts.
+    if (wifiReasonIsWrongPassword(wifiLastRealReason())) {
+      break;
+    }
     ledLoop();
     delay(100);
   }
@@ -114,21 +125,20 @@ const char* testWifi(const String& ssid, const String& password) {
     return nullptr;
   }
 
-  const uint8_t reason = lastWifiReason;
+  const uint8_t reason = wifiLastRealReason();
+  const bool waitingForIp = wifiAssociatedWithoutIp();
   WiFi.disconnect(true);
-  Serial.printf("[SETUP] Wi-Fi failed, reason %u\n", reason);
+  Serial.printf("[SETUP] Wi-Fi failed after %d attempts, reason %u (%s)%s\n",
+                attempt, reason, wifiReasonName(reason),
+                waitingForIp ? ", associated but no IP from the router" : "");
 
-  switch (reason) {
-    case WIFI_REASON_NO_AP_FOUND:
-      return "error:wifi_not_found";
-    case WIFI_REASON_AUTH_FAIL:
-    case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
-    case WIFI_REASON_HANDSHAKE_TIMEOUT:
-    case WIFI_REASON_AUTH_EXPIRE:
-      return "error:wrong_password";
-    default:
-      return "error:wifi_timeout";
+  if (wifiReasonIsNotFound(reason)) {
+    return "error:wifi_not_found";
   }
+  if (wifiReasonIsWrongPassword(reason)) {
+    return "error:wrong_password";
+  }
+  return "error:wifi_timeout";
 }
 
 // Wi-Fi connected is not enough: checks that the MQTT broker is reachable.
@@ -187,7 +197,7 @@ void handleConnectCommand() {
 
 void provisioningBegin() {
   setLedMode(LedMode::Setup);
-  WiFi.onEvent(onWifiDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+  wifiDiagBegin();
 
   // Short name visible in the app: AgriTwin-E5F6 (last 4 MAC digits).
   const String serial = deviceSerial();

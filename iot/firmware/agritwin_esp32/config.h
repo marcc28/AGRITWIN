@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 // Firmware identity
 // ---------------------------------------------------------------------------
-#define FIRMWARE_VERSION "0.1.0"
+#define FIRMWARE_VERSION "0.1.1"
 #define DEVICE_MODEL "AgriTwin Soil Node"
 // Prefix of the device id. The id is "esp32_" + the 12 hex digits of the MAC,
 // e.g. esp32_A1B2C3D4E5F6. It is the primary key of the 'devices' table.
@@ -70,6 +70,8 @@ constexpr uint16_t MQTT_BROKER_PORT = 1883;
 // The backend marks a board offline after 15 s without data, so keep 5 s.
 constexpr uint32_t TELEMETRY_INTERVAL_MS = 5000;
 constexpr uint32_t MQTT_RETRY_INTERVAL_MS = 5000;
+// In normal mode, a new Wi-Fi attempt while the network is missing.
+constexpr uint32_t WIFI_RETRY_INTERVAL_MS = 10000;
 
 #define NTP_SERVER_1 "pool.ntp.org"
 #define NTP_SERVER_2 "time.google.com"
@@ -86,5 +88,9 @@ constexpr uint32_t MQTT_RETRY_INTERVAL_MS = 5000;
 #define BLE_CHAR_COMMAND_UUID  "422285f2-0005-4631-a335-64b1ab75567c"  // write
 #define BLE_CHAR_STATUS_UUID   "422285f2-0006-4631-a335-64b1ab75567c"  // read + notify
 
-// How long the board waits for the Wi-Fi connection during setup.
-constexpr uint32_t WIFI_TEST_TIMEOUT_MS = 20000;
+// How long the board tries the Wi-Fi during setup, with a new attempt every
+// WIFI_ATTEMPT_MS (phone hotspots often need more than one attempt).
+// Keep WIFI_TEST_TIMEOUT_MS + 5 s (Internet test) below the 40 s the app and
+// tools/provision_ble.py wait for the answer.
+constexpr uint32_t WIFI_TEST_TIMEOUT_MS = 30000;
+constexpr uint32_t WIFI_ATTEMPT_MS = 10000;

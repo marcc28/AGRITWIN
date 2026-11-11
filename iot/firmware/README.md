@@ -19,6 +19,7 @@ iot/firmware/
 │   ├── sensors.h / .cpp      reads AHT (air), BH1750 (light), soil sensor
 │   ├── telemetry.h / .cpp    Wi-Fi, exact time (NTP), MQTT publishing
 │   ├── provisioning.h / .cpp first setup over Bluetooth
+│   ├── wifi_diag.h / .cpp    Wi-Fi events and disconnect reasons on the Serial Monitor
 │   └── status_led.h          blue LED patterns
 └── tools/
     └── provision_ble.py      Mac script: does the Bluetooth setup instead of
@@ -52,8 +53,8 @@ of two modes.
   the MAC address).
 - It waits for the app (or `provision_ble.py`) to send the Wi-Fi name, the
   password and the field id.
-- When it receives the `connect` command it **tests** the Wi-Fi and the
-  Internet connection:
+- When it receives the `connect` command it **tests** the Wi-Fi (up to 30 s,
+  a new attempt every 10 s) and the Internet connection:
   - if it works → it saves everything and reboots in normal mode;
   - if it fails → it answers with an error and keeps waiting.
 - Every 5 seconds it prints the sensor readings on the Serial Monitor: useful
@@ -65,8 +66,9 @@ of two modes.
   to the MQTT broker.
 - Every 5 seconds it reads the sensors and publishes the data on
   `agritwin/sensors/field_<field_id>`.
-- If the Wi-Fi drops (router switched off) it retries on its own, without
-  losing the settings.
+- If the Wi-Fi is missing at boot or drops later (router switched off, phone
+  hotspot asleep) it starts a new attempt every 10 seconds, without losing the
+  settings.
 - Bluetooth stays off, also after a power cycle.
 
 ### First setup flow
@@ -104,7 +106,7 @@ in the future app screen.
 | `connected` | Wi-Fi and Internet OK, settings saved, the board reboots |
 | `error:missing_data` | Wi-Fi name or field id missing |
 | `error:bad_field_id` | the field id is not a positive number |
-| `error:wifi_not_found` | network not found (the ESP32 only sees **2.4 GHz**) |
+| `error:wifi_not_found` | network not found (the ESP32 only sees **2.4 GHz**, see section 10) |
 | `error:wrong_password` | wrong password |
 | `error:wifi_timeout` | the router did not answer in time |
 | `error:no_internet` | Wi-Fi OK but the MQTT broker is not reachable |
@@ -277,7 +279,7 @@ After the upload the board is new, so it starts in setup mode. The Serial
 Monitor must show:
 
 ```text
-=== AgriTwin node esp32_A1B2C3D4E5F6 | fw 0.1.0 ===
+=== AgriTwin node esp32_A1B2C3D4E5F6 | fw 0.1.1 ===
 [BOOT] no Wi-Fi saved -> Bluetooth setup mode
 [SETUP] Bluetooth setup mode, advertising as AgriTwin-E5F6
 [SETUP] device id: esp32_A1B2C3D4E5F6
@@ -323,11 +325,11 @@ problem is in the board or in the app.
 5. The Wi-Fi must be **2.4 GHz**. Many routers have two networks (e.g.
    `HomeWiFi` and `HomeWiFi_5G`): use the one without `5G`.
 
-### 7.2 Install the Bluetooth library (only once)
+### 7.2 The Bluetooth library
 
-```bash
-pip3 install bleak --break-system-packages
-```
+The script needs `bleak`. With `uv run --with bleak` (below) `uv` downloads it
+in a temporary environment, so nothing has to be installed and the backend
+environment stays clean.
 
 ### 7.3 Run the script
 
@@ -335,7 +337,7 @@ In a **second** terminal:
 
 ```bash
 cd ~/path/to/AGRITWIN/iot/firmware/tools
-python3 provision_ble.py --ssid "WiFiName" --password "WiFiPassword" --field 1
+uv run --no-project --with bleak python provision_ble.py --ssid "WiFiName" --password "WiFiPassword" --field 1
 ```
 
 | Option | Required | Meaning |
@@ -358,7 +360,7 @@ In the script terminal:
 [SCAN] looking for AgriTwin boards for 8s ...
   [0] AgriTwin-E5F6  (3F2A9C1B-....)
 [BLE] connecting to AgriTwin-E5F6 ...
-[BLE] device id: esp32_A1B2C3D4E5F6  firmware: 0.1.0
+[BLE] device id: esp32_A1B2C3D4E5F6  firmware: 0.1.1
 [BLE] settings sent, waiting for the board to test the Wi-Fi ...
 [BOARD] connecting
 [BOARD] connected
@@ -390,8 +392,19 @@ In the subscriber terminal:
 [DEVICE-STATUS] esp32_A1B2C3D4E5F6 -> ONLINE
 ```
 
+In the Serial Monitor, while the board tests the Wi-Fi during the setup:
+
+```text
+[SETUP] status -> connecting
+[SETUP] Wi-Fi attempt 1 to "WiFiName"
+[WIFI] associated with the access point, waiting for IP...
+[WIFI] got IP 172.20.10.2
+[SETUP] Wi-Fi OK, IP 172.20.10.2
+[SETUP] status -> connected
+```
+
 If an error appears, the board stays in setup mode: fix the value and run the
-script again.
+script again. The `[WIFI] disconnected, reason …` lines tell why (section 10).
 
 ### 7.5 (Optional) See the MQTT messages without the backend
 
@@ -443,9 +456,26 @@ After every change increase `FIRMWARE_VERSION` in `config.h` and upload again.
 | Soil always 0% or 100% | wrong calibration | repeat section 8 |
 | Soil `--` | AOUT disconnected or on the wrong pin | check the wire on GPIO 34 |
 | The script does not find the board | board already configured or Bluetooth permission denied | reset with BOOT 5 s; check the permission (7.3) |
-| `error:wifi_not_found` | 5 GHz network or too far | use the 2.4 GHz network, move the board closer |
+| `error:wifi_not_found` | 5 GHz network, wrong name or too far | use the 2.4 GHz network, check the exact name, move the board closer |
+| `error:wifi_not_found` with an **iPhone hotspot** | "Maximize Compatibility" is off, so the hotspot uses 5 GHz | iPhone: **Settings → Personal Hotspot → Maximize Compatibility ON**, switch "Allow Others to Join" off and on, keep that screen open while the board connects |
+| The board finds the hotspot only sometimes | phone hotspots hide themselves when the phone is locked or nobody is connected | keep the hotspot screen open; for demos prefer a router or an Android hotspot set to 2.4 GHz |
 | `error:no_internet` | the Wi-Fi blocks port 1883 (university/company networks) | try the phone hotspot |
 | Data sent but `[DATABASE-ERROR]` in the subscriber | board not registered in `devices` | register it from the app (7.1, point 2) |
+| University networks (e.g. eduroam) | they need a personal username and password (WPA2-Enterprise) | not supported: use a router or a phone hotspot |
+
+### Wi-Fi disconnect reasons
+
+The firmware prints `[WIFI] disconnected, reason N (NAME)` on the Serial
+Monitor. The most common ones:
+
+| Reason | Meaning |
+|---|---|
+| 8, 36 | the board closed the attempt itself before a new one: ignore |
+| 201, 210, 211 | network not found or not compatible (5 GHz, WPA3 only, wrong name) |
+| 15, 202, 204 | wrong password |
+| 200 | signal lost (board too far) |
+| 212 | signal too weak |
+| `associated … waiting for IP` with no `got IP` | the network accepted the board but did not give it an address |
 
 ---
 
