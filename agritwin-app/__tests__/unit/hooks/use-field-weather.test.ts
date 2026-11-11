@@ -94,6 +94,21 @@ describe('useFieldWeather', () => {
     });
   });
 
+  it('allows retrying when the weather route is missing, then loads the forecast', async () => {
+    mockedGetFieldWeather
+      .mockRejectedValueOnce(new WeatherRequestError('Not Found', 404))
+      .mockResolvedValueOnce(weather);
+
+    const { result } = renderHook(() => useFieldWeather(1, 'ca'));
+    await waitFor(() =>
+      expect(result.current.state).toEqual({ status: 'error' }),
+    );
+    act(() => result.current.retry());
+    await waitFor(() =>
+      expect(result.current.state).toEqual({ status: 'ready', weather }),
+    );
+  });
+
   it('fails when the api is not available', async () => {
     mockedGetFieldWeather.mockRejectedValue(
       new WeatherRequestError('Weather service unavailable', 503),

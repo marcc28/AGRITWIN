@@ -21,6 +21,7 @@ import {
   isAuthError,
   updateDevice,
   updateField,
+  reverseGeocodeLocation,
   type FieldDevice,
 } from '../services/api';
 import {
@@ -38,6 +39,19 @@ import { parseId } from '../utils/parseId';
 import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
 import { FieldOptionChips } from '../components/FieldOptionChips';
 import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
+import { OptionChip } from '../components/OptionChip';
+import { FieldBoundaryPicker } from '../components/FieldBoundaryPicker';
+import type { MapPoint } from '../components/field-location/types';
+import {
+  AREA_UNITS,
+  BORDER_FIELD_TYPES,
+  MAX_FIELD_AREA,
+  parseArea,
+  displayArea,
+  fieldGeometry,
+  type AreaUnit,
+} from '../utils/fieldGeometry';
+import { styles as areaStyles } from '../styles/create-field.styles';
 import { DateField } from '../components/DateField';
 
 import {
@@ -66,7 +80,16 @@ export default function EditFieldScreen() {
   const [location, setLocation] = useState('');
   const [fieldType, setFieldType] = useState<string>(FIELD_TYPES[0]);
   const [soilType, setSoilType] = useState<string>(SOIL_TYPES[0]);
-  const [sizeM2, setSizeM2] = useState('');
+  const [sizeValue, setSizeValue] = useState('');
+  const [areaUnit, setAreaUnit] = useState<AreaUnit>('m2');
+  const [boundary, setBoundary] = useState<MapPoint[] | null>(null);
+  const [excludedZones, setExcludedZones] = useState<MapPoint[][]>([]);
+  const [boundaryChanged, setBoundaryChanged] = useState(false);
+  const [point, setPoint] = useState<MapPoint | null>(null);
+  const [geometryPicker, setGeometryPicker] = useState<
+    'view' | 'edit' | 'redraw' | null
+  >(null);
+  const [locating, setLocating] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(defaultPhotoIndex(fieldId));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -105,7 +128,16 @@ export default function EditFieldScreen() {
         setLocation(field.location ?? '');
         setFieldType(field.field_type ?? FIELD_TYPES[0]);
         setSoilType(field.soil_type ?? SOIL_TYPES[0]);
-        setSizeM2(field.size_m2 != null ? String(field.size_m2) : '');
+        setSizeValue(field.size_m2 != null ? String(field.size_m2) : '');
+        setBoundary(field.boundary ?? null);
+        setExcludedZones(field.excluded_zones ?? []);
+        setAreaUnit('m2');
+        setBoundaryChanged(false);
+        setPoint(
+          field.lat != null && field.lon != null
+            ? { lat: field.lat, lon: field.lon }
+            : null,
+        );
         setExistingDevices(field.devices);
         setPhotoIndex(await getFieldPhotoIndex(fieldId));
         const auth = await getAuth();
@@ -191,7 +223,51 @@ export default function EditFieldScreen() {
     }
   }
 
+  function changeAreaUnit(unit: AreaUnit) {
+    const m2 = boundary
+      ? fieldGeometry(boundary, excludedZones).areaM2
+      : parseArea(sizeValue, areaUnit);
+    if (m2 !== null && Number.isFinite(m2)) setSizeValue(displayArea(m2, unit));
+    setAreaUnit(unit);
+  }
+  function removeBoundary() {
+    setBoundary(null);
+    setExcludedZones([]);
+    setBoundaryChanged(true);
+    setSizeValue('');
+  }
+  async function applyGeometry(points: MapPoint[], zones: MapPoint[][]) {
+    const geometry = fieldGeometry(points, zones);
+    setGeometryPicker(null);
+    setBoundary(points);
+    setExcludedZones(zones);
+    setBoundaryChanged(true);
+    setSizeValue(displayArea(geometry.areaM2, areaUnit));
+    setPoint(geometry.center);
+    setLocating(true);
+    setLocation('');
+    setErrorMessage('');
+    try {
+      const found = await reverseGeocodeLocation(
+        geometry.center.lat,
+        geometry.center.lon,
+      );
+      if (!found.label?.trim()) throw new Error('Address unavailable');
+      setLocation(found.label.slice(0, 255));
+    } catch (error) {
+      if (isAuthError(error)) {
+        await clearAuth();
+        router.replace('/auth/login');
+        return;
+      }
+      setErrorMessage(t('settings.createField.errors.addressUnavailable'));
+    } finally {
+      setLocating(false);
+    }
+  }
+
   async function handleAccept() {
+    if (locating) return;
     const trimmedName = name.trim();
 
     if (!trimmedName) {
@@ -199,8 +275,15 @@ export default function EditFieldScreen() {
       return;
     }
 
-    const parsedSize = sizeM2.trim() === '' ? null : Number(sizeM2);
-    if (parsedSize != null && !Number.isFinite(parsedSize)) {
+    const parsedSize = boundary
+      ? fieldGeometry(boundary, excludedZones).areaM2
+      : parseArea(sizeValue, areaUnit);
+    if (
+      parsedSize != null &&
+      (!Number.isFinite(parsedSize) ||
+        parsedSize < 0.01 ||
+        parsedSize > MAX_FIELD_AREA)
+    ) {
       setErrorMessage(t('settings.errors.sizeNumber'));
       return;
     }
@@ -220,6 +303,11 @@ export default function EditFieldScreen() {
         field_type: fieldType || null,
         soil_type: soilType || null,
         size_m2: parsedSize,
+        ...(boundary
+          ? { boundary, excluded_zones: excludedZones }
+          : boundaryChanged
+            ? { boundary: null, excluded_zones: [] }
+            : {}),
       });
       await setFieldPhotoIndex(fieldId, photoIndex);
       await Promise.all(
@@ -386,19 +474,126 @@ export default function EditFieldScreen() {
                 <FieldOptionChips
                   fieldType={fieldType}
                   soilType={soilType}
-                  onFieldType={setFieldType}
+                  onFieldType={(value) => {
+                    setFieldType(value);
+                    if (!BORDER_FIELD_TYPES.includes(value) && boundary)
+                      removeBoundary();
+                  }}
                   onSoilType={setSoilType}
-                  disabled={saving}
-                />
-
-                <Text style={styles.label}>{t('settings.size')}</Text>
+                  disabled={saving || locating}
+                >
+                  {BORDER_FIELD_TYPES.includes(fieldType) ? (
+                    <View style={areaStyles.boundarySection}>
+                      <Text style={areaStyles.boundaryTitle}>
+                        {t('settings.createField.boundary.section')}
+                      </Text>
+                      {boundary ? (
+                        <>
+                          <Pressable
+                            accessibilityRole="button"
+                            disabled={saving || locating}
+                            onPress={() => setGeometryPicker('view')}
+                            style={areaStyles.boundaryButton}
+                          >
+                            <Text style={areaStyles.boundaryTitle}>
+                              {t('settings.createField.boundary.view')}
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            accessibilityRole="button"
+                            disabled={saving || locating}
+                            onPress={() => setGeometryPicker('edit')}
+                            style={areaStyles.boundaryButton}
+                          >
+                            <Text style={areaStyles.boundaryTitle}>
+                              {t('settings.createField.boundary.edit')}
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            accessibilityRole="button"
+                            disabled={saving || locating}
+                            onPress={() => setGeometryPicker('redraw')}
+                          >
+                            <Text style={areaStyles.lookupText}>
+                              {t('settings.createField.boundary.redraw')}
+                            </Text>
+                          </Pressable>
+                          <Text style={areaStyles.coordsHint}>
+                            {t('settings.createField.boundary.replaceHint')}
+                          </Text>
+                          <Pressable
+                            accessibilityRole="button"
+                            disabled={saving || locating}
+                            onPress={removeBoundary}
+                          >
+                            <Text style={areaStyles.lookupText}>
+                              {t('settings.createField.boundary.remove')}
+                            </Text>
+                          </Pressable>
+                        </>
+                      ) : (
+                        <>
+                          <Text style={areaStyles.coordsHint}>
+                            {t('settings.createField.boundary.noBoundary')}
+                          </Text>
+                          <Pressable
+                            accessibilityRole="button"
+                            disabled={saving || locating}
+                            onPress={() => setGeometryPicker('redraw')}
+                            style={areaStyles.boundaryButton}
+                          >
+                            <Text style={areaStyles.boundaryTitle}>
+                              {t('settings.createField.boundary.draw')}
+                            </Text>
+                          </Pressable>
+                        </>
+                      )}
+                    </View>
+                  ) : null}
+                </FieldOptionChips>
+                <Text style={styles.label}>
+                  {t(
+                    `settings.createField.${excludedZones.length ? 'netAreaLabel' : 'areaLabel'}`,
+                  )}
+                </Text>
                 <TextInput
                   style={styles.input}
-                  value={sizeM2}
-                  onChangeText={setSizeM2}
-                  keyboardType="numeric"
-                  editable={!saving}
+                  value={sizeValue}
+                  onChangeText={setSizeValue}
+                  keyboardType="decimal-pad"
+                  accessibilityLabel={t(
+                    `settings.createField.${excludedZones.length ? 'netAreaLabel' : 'areaLabel'}`,
+                  )}
+                  editable={!saving && !locating && !boundary}
                 />
+                <Text style={areaStyles.coordsHint}>
+                  {t(
+                    `settings.createField.${boundary ? 'automaticArea' : 'areaUnitLabel'}`,
+                  )}
+                </Text>
+                <View style={areaStyles.chipRow}>
+                  {(Object.keys(AREA_UNITS) as AreaUnit[]).map((unit) => (
+                    <OptionChip
+                      key={unit}
+                      label={t(`settings.createField.areaUnits.${unit}`)}
+                      selected={areaUnit === unit}
+                      onPress={() => changeAreaUnit(unit)}
+                      disabled={saving || locating}
+                      style={areaStyles.chip}
+                      selectedStyle={areaStyles.chipSelected}
+                      textStyle={areaStyles.chipText}
+                      selectedTextStyle={areaStyles.chipTextSelected}
+                    />
+                  ))}
+                </View>
+                {point ? (
+                  <Text style={areaStyles.coords}>
+                    {t('settings.createField.coords', {
+                      lat: point.lat.toFixed(6),
+                      lon: point.lon.toFixed(6),
+                    })}
+                  </Text>
+                ) : null}
 
                 <Text style={styles.label}>
                   {t('settings.createField.arduinos')}
@@ -664,7 +859,7 @@ export default function EditFieldScreen() {
               <Pressable
                 style={[styles.button, styles.acceptButton]}
                 onPress={() => void handleAccept()}
-                disabled={saving || loading}
+                disabled={saving || loading || locating}
               >
                 <Text style={styles.acceptText}>
                   {saving ? t('settings.saving') : t('settings.accept')}
@@ -674,6 +869,21 @@ export default function EditFieldScreen() {
           </View>
         </View>
       </ScrollView>
+      {geometryPicker ? (
+        <FieldBoundaryPicker
+          initialPoint={point}
+          initialBoundary={geometryPicker === 'redraw' ? [] : (boundary ?? [])}
+          initialExcludedZones={
+            geometryPicker === 'redraw' ? [] : excludedZones
+          }
+          unit={areaUnit}
+          readOnly={geometryPicker === 'view'}
+          onCancel={() => setGeometryPicker(null)}
+          onConfirm={(points, zones) => {
+            void applyGeometry(points, zones);
+          }}
+        />
+      ) : null}
     </View>
   );
 }

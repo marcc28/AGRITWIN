@@ -6,6 +6,10 @@ const BOX_RADIUS = 12;
 const CREAM = '#F4F2EB';
 
 export const weatherStyles = StyleSheet.create({
+  locationHeader: {
+    flex: 1,
+    minWidth: 0,
+  },
   /* ---------- Tarjeta de la home ---------- */
   card: {
     marginTop: 24,

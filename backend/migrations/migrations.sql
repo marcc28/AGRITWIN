@@ -142,6 +142,8 @@ CREATE TABLE fields (
     field_type VARCHAR(50),
     soil_type VARCHAR(50),
     size_m2 NUMERIC(10, 2),
+    boundary JSONB,
+    excluded_zones JSONB,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_fields_user

@@ -313,6 +313,8 @@ export type Field = {
   field_type: string | null;
   soil_type: string | null;
   size_m2: number | null;
+  boundary?: { lat: number; lon: number }[] | null;
+  excluded_zones?: { lat: number; lon: number }[][];
   device_count: number;
   devices_online?: number;
 };
@@ -325,6 +327,8 @@ export type FieldPayload = {
   field_type: string | null;
   soil_type: string | null;
   size_m2: number | null;
+  boundary?: { lat: number; lon: number }[] | null;
+  excluded_zones?: { lat: number; lon: number }[][];
 };
 
 export type GeoLocation = {
@@ -515,6 +519,12 @@ export async function createField(payload: FieldPayload): Promise<Field> {
     throw new Error('Not authenticated');
   }
 
+  if (payload.boundary)
+    await requireGeometrySupport(
+      'FieldCreate',
+      !!payload.excluded_zones?.length,
+    );
+
   const response = await fetch(`${API_URL}/api/v1/fields`, {
     method: 'POST',
     headers: {
@@ -567,6 +577,12 @@ export async function updateField(
   if (!auth?.token) {
     throw new Error('Not authenticated');
   }
+
+  if ('boundary' in payload)
+    await requireGeometrySupport(
+      'FieldUpdate',
+      !!payload.excluded_zones?.length,
+    );
 
   const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
     method: 'PUT',
@@ -706,4 +722,35 @@ export async function getFieldWeather(
   }
 
   return data as FieldWeather;
+}
+
+export async function reverseGeocodeLocation(
+  lat: number,
+  lon: number,
+): Promise<GeoLocation> {
+  const auth = await getAuth();
+  if (!auth?.token) throw new Error('Not authenticated');
+  const response = await fetch(
+    `${API_URL}/api/v1/reverse-geocode?lat=${lat}&lon=${lon}`,
+    { headers: { Authorization: `Bearer ${auth.token}` } },
+  );
+  const data = await response.json();
+  if (!response.ok)
+    throw new Error(errorDetail(data, 'Address not found for this location'));
+  return data as GeoLocation;
+}
+
+async function requireGeometrySupport(model: string, exclusions: boolean) {
+  const specification = await fetch(`${API_URL}/openapi.json`);
+  const schema = await specification.json();
+  const properties = schema?.components?.schemas?.[model]?.properties;
+  if (
+    !specification.ok ||
+    !properties?.boundary ||
+    (exclusions && !properties.excluded_zones)
+  ) {
+    throw new Error(
+      'The backend must be updated before saving field boundaries',
+    );
+  }
 }

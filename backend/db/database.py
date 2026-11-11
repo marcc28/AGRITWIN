@@ -49,7 +49,7 @@ else:
     engine = create_async_engine(
         url,
         pool_pre_ping=True,
-        connect_args={"statement_cache_size": 0},
+        connect_args={} if url.get_backend_name() == "sqlite" else {"statement_cache_size": 0},
     )
 
 AsyncSessionLocal = sessionmaker(
