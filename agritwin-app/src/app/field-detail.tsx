@@ -135,6 +135,13 @@ export default function FieldDetailScreen() {
     });
   }
 
+  function goToAddDevice() {
+    router.push({
+      pathname: '/add-device',
+      params: { id: String(fieldId) },
+    });
+  }
+
   function goToData() {
     router.push({
       pathname: '/field-data',
@@ -247,6 +254,17 @@ export default function FieldDetailScreen() {
                     </Pressable>
                   ))
                 )}
+                <Pressable
+                  testID="add-device-button"
+                  style={styles.addDeviceButton}
+                  onPress={goToAddDevice}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="add" size={18} color={Colors.light.surface} />
+                  <Text style={styles.addDeviceText}>
+                    {t('addDevice.button')}
+                  </Text>
+                </Pressable>
               </View>
 
               <View style={styles.card}>

@@ -4,7 +4,7 @@ import {
   BLE_CHAR_COMMAND_UUID,
   BLE_CHAR_FIELD_UUID,
   BLE_CHAR_INFO_UUID,
-  BLE_CHAR_PASSWORD_UUID,
+  BLE_CHAR_WIFI_PSK_UUID,
   BLE_CHAR_SSID_UUID,
   BLE_CHAR_STATUS_UUID,
   BLE_MTU,
@@ -295,7 +295,7 @@ describe('bleProvisioning', () => {
 
       expect(writtenValues(fake)).toEqual([
         [BLE_CHAR_SSID_UUID, 'Casa Pérez'],
-        [BLE_CHAR_PASSWORD_UUID, 'secret-123'],
+        [BLE_CHAR_WIFI_PSK_UUID, 'secret-123'],
         [BLE_CHAR_FIELD_UUID, '3'],
         [BLE_CHAR_COMMAND_UUID, 'connect'],
       ]);

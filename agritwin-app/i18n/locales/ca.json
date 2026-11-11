@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "El teu hort,",
     "titleSecond": "cada dia millor.",
-    "subtitle": "Tasques, temps i cultius adaptats al teu hort."
+    "subtitle": "Tasques, temps i cultius adaptats al teu hort.",
+    "workingOn": "Treballarem al camp",
+    "devices": {
+      "title": "Dispositius",
+      "none": "Cap",
+      "error": "No s'han pogut carregar els dispositius",
+      "retry": "Reintentar"
+    }
   },
   "tabs": {
     "home": "Inici",
@@ -14,7 +21,8 @@
     "market": "Mercat",
     "profile": "Perfil",
     "clover": "Trèvol",
-    "calendar": "Calendari"
+    "calendar": "Calendari",
+    "diagnosis": "Diagnòstic"
   },
   "fieldCrops": {
     "title": "Els meus cultius",
@@ -223,31 +231,84 @@
       "namePlaceholder": "Posa un nom al jardí",
       "locationPlaceholder": "Ciutat, poble o adreça",
       "sizePlaceholder": "p. ex. 20",
-      "coordsHint": "Cerca la ubicació per guardar latitud i longitud.",
+      "coordsHint": "Escriu una adreça o selecciona un punt al mapa.",
       "coords": "Coordenades: {{lat}}, {{lon}}",
       "arduinos": "Arduinos",
-      "arduinosHint": "Pots enllaçar-los ara o deixar-ho per després. Només et demanem el que veus al dispositiu.",
-      "configureLater": "Configurar després",
-      "addNow": "Afegir ara",
-      "addAnother": "Afegir un altre Arduino",
       "removeDevice": "Treure",
-      "saveDevices": "Desar dispositius",
       "deviceId": "ID del dispositiu",
-      "deviceIdPlaceholder": "p. ex. esp32_sim_01",
       "deviceBrand": "Marca",
-      "deviceBrandPlaceholder": "p. ex. ESP32",
       "deviceSerial": "Número de sèrie",
-      "deviceSerialPlaceholder": "El que posa a l’etiqueta",
-      "linkLater": "Enllaçar Arduinos →",
       "submitFirst": "Crear el meu primer jardí",
       "submitNext": "Crear jardí",
       "errors": {
         "locationRequired": "Introdueix una ubicació per geolocalitzar-la",
         "locationNotFound": "No s’ha trobat aquesta ubicació",
-        "deviceIdRequired": "Cada Arduino necessita ID, marca i número de sèrie",
         "deviceSaveFailed": "No s’han pogut guardar els dispositius",
-        "createFailed": "No s’ha pogut crear el camp"
-      }
+        "createFailed": "No s’ha pogut crear el camp",
+        "addressUnavailable": "No s’ha trobat cap adreça propera. Les coordenades s’han conservat; pots escriure l’adreça manualment."
+      },
+      "lookupAddress": "Cerca l’adreça",
+      "lookingUp": "Cercant l’adreça…",
+      "map": {
+        "open": "Selecciona la ubicació al mapa",
+        "title": "Tria la ubicació del camp",
+        "hint": "Toca o fes clic al mapa per seleccionar un punt. Apropa el mapa per situar-lo amb precisió.",
+        "noPoint": "Encara no has seleccionat cap punt.",
+        "selectedPoint": "Ubicació seleccionada del camp",
+        "cancel": "Cancel·la",
+        "confirm": "Utilitza aquesta ubicació",
+        "loading": "Carregant el mapa…",
+        "loadError": "No s’ha pogut carregar el mapa. Comprova la connexió o escriu l’adreça manualment."
+      },
+      "areaLabel": "Superfície",
+      "areaUnitLabel": "Unitat de superfície",
+      "automaticArea": "Superfície calculada a partir dels límits. Canvia la unitat o elimina els límits per introduir-la a mà.",
+      "areaUnits": {
+        "m2": "m²",
+        "ha": "ha",
+        "acre": "acres",
+        "km2": "km²",
+        "ft2": "ft²"
+      },
+      "boundary": {
+        "section": "Límits del camp",
+        "optional": "Opcional: marca les cantonades per calcular la superfície.",
+        "draw": "Selecciona les cantonades",
+        "edit": "Edita els límits",
+        "remove": "Elimina els límits i introdueix la superfície a mà",
+        "title": "Delimita el teu camp",
+        "hint": "Marca les cantonades en ordre. Després afegeix zones excloses per a casetes o altres parts que no vulguis comptar.",
+        "corners": "{{count}} cantonades seleccionades",
+        "minimum": "Cada contorn necessita almenys tres cantonades.",
+        "undo": "Desfés el punt",
+        "clear": "Comença de nou",
+        "confirm": "Utilitza aquest camp",
+        "errors": {
+          "tooFew": "Selecciona almenys tres cantonades.",
+          "tooMany": "El màxim és de 200 cantonades.",
+          "invalid": "Les coordenades no són vàlides.",
+          "duplicate": "No repeteixis una cantonada.",
+          "crossing": "Les línies no es poden creuar ni tocar.",
+          "empty": "El contorn ha de delimitar una superfície.",
+          "tooLarge": "La superfície màxima és de 10.000 hectàrees.",
+          "outside": "La zona exclosa ha de quedar completament dins del camp, sense tocar-ne el límit.",
+          "overlap": "Les zones excloses no es poden solapar ni tocar.",
+          "tooManyZones": "Màxim 20 zones excloses i 1.000 cantonades en total."
+        },
+        "outer": "Límit exterior",
+        "exclusion": "Exclusió {{number}}",
+        "addExclusion": "Afegeix una zona exclosa",
+        "removeExclusion": "Elimina aquesta exclusió",
+        "view": "Veure el camp al mapa",
+        "viewTitle": "Superfície del camp",
+        "viewHint": "El verd delimita el camp. El vermell indica les zones que no es compten.",
+        "close": "Tanca",
+        "redraw": "Torna a dibuixar el camp",
+        "replaceHint": "En confirmar un contorn nou, substituirà l’actual. Cancel·lar conserva els límits anteriors.",
+        "noBoundary": "Encara no hi ha cap contorn dibuixat. Una superfície numèrica no permet saber quina forma té el camp.",
+        "areaSummary": "Total: {{gross}} {{unit}} · Exclosa: {{excluded}} {{unit}} · Útil: {{net}} {{unit}}"
+      },
+      "netAreaLabel": "Superfície útil"
     },
     "manageCrops": {
       "title": "Cultius",
@@ -271,6 +332,102 @@
         "addFailed": "Error afegint el cultiu",
         "removeFailed": "Error eliminant el cultiu"
       }
+    }
+  },
+  "addDevice": {
+    "button": "Afegir dispositiu",
+    "back": "Tornar al camp",
+    "eyebrow": "AFEGIR DISPOSITIU",
+    "title": "Connecta la teva placa AgriTwin",
+    "scan": {
+      "title": "Cerca la teva placa",
+      "instructions": "Encén la placa. El LED blau parpelleja lentament.",
+      "searching": "Cercant plaques…",
+      "found": "Plaques trobades",
+      "tapHint": "Toca la teva per continuar.",
+      "searchAgain": "Cercar de nou"
+    },
+    "noBoards": {
+      "title": "No hem trobat cap placa",
+      "instructions": "Comprova que la placa està encesa i a prop del mòbil.",
+      "tip": "Si el LED està fix, mantén premut el botó BOOT de la placa durant 5 segons i torna-ho a provar.",
+      "retry": "Reintentar"
+    },
+    "wifi": {
+      "title": "Connecta la placa al WiFi",
+      "board": "Placa: {{name}}",
+      "ssid": "Nom del WiFi",
+      "ssidPlaceholder": "El nom de la teva xarxa",
+      "password": "Contrasenya",
+      "passwordPlaceholder": "La contrasenya del teu WiFi",
+      "showPassword": "Mostrar contrasenya",
+      "hidePassword": "Amagar contrasenya",
+      "hint24": "Fes servir una xarxa de 2,4 GHz. La placa no funciona amb xarxes de 5 GHz.",
+      "privacy": "No guardem el nom ni la contrasenya del teu WiFi.",
+      "connect": "Connectar"
+    },
+    "progress": {
+      "connectingBoard": "Connectant amb la placa…",
+      "connecting": "Connectant…",
+      "connectingHint": "Pot tardar uns 20 segons. Mantén l'app oberta i a prop de la placa.",
+      "saving": "Desant la placa…"
+    },
+    "success": {
+      "title": "Placa connectada",
+      "hint": "La teva placa ja està enllaçada amb aquest camp i començarà a enviar dades.",
+      "alreadyLinked": "Aquesta placa ja estava enllaçada amb aquest camp.",
+      "done": "Tornar al camp"
+    },
+    "error": {
+      "retry": "Reintentar",
+      "back": "Tornar al camp",
+      "openSettings": "Obrir ajustos",
+      "groups": {
+        "wifi": {
+          "title": "No s'ha pogut connectar al WiFi",
+          "hint": "Revisa el nom del WiFi i la contrasenya. Recorda que la placa només funciona amb xarxes de 2,4 GHz."
+        },
+        "timeout": {
+          "title": "S'ha esgotat el temps",
+          "hint": "Apropa la placa al router i al mòbil i torna-ho a provar."
+        },
+        "noInternet": {
+          "title": "WiFi connectat, però sense internet",
+          "hint": "Revisa la connexió a internet del router i torna-ho a provar."
+        },
+        "bluetoothOff": {
+          "title": "El Bluetooth està apagat",
+          "hint": "Activa el Bluetooth del mòbil i torna-ho a provar."
+        },
+        "permission": {
+          "title": "Falta el permís de Bluetooth",
+          "hint": "Permet que AgriTwin faci servir el Bluetooth als ajustos del mòbil i torna-ho a provar."
+        },
+        "link": {
+          "title": "No s'ha pogut parlar amb la placa",
+          "hint": "Apropa't a la placa, comprova que el LED parpelleja lentament i torna-ho a provar."
+        },
+        "alreadyRegistered": {
+          "title": "Aquesta placa ja és en un altre camp",
+          "hint": "Una placa només pot estar enllaçada amb un camp. Treu-la de l'altre camp abans d'afegir-la aquí."
+        },
+        "sessionExpired": {
+          "title": "La sessió ha caducat",
+          "hint": "Inicia la sessió de nou i torna a afegir la placa."
+        },
+        "saveFailed": {
+          "title": "Placa connectada, però sense desar",
+          "hint": "La placa s'ha connectat al WiFi, però no hem pogut desar-la. Torna-ho a provar."
+        },
+        "generic": {
+          "title": "Alguna cosa ha anat malament",
+          "hint": "Torna-ho a provar. Si continua fallant, reinicia la placa."
+        }
+      }
+    },
+    "web": {
+      "title": "Només disponible al mòbil",
+      "hint": "Per afegir una placa necessites l'app d'AgriTwin al mòbil, perquè fa servir el Bluetooth."
     }
   },
   "languages": {
@@ -355,6 +512,58 @@
       "low": "Baixa",
       "medium": "Mitjana",
       "high": "Alta"
+    }
+  },
+  "diagnosis": {
+    "title": "Diagnòstic de la planta amb IA",
+    "subtitle": "Detecta plagues, malalties, reg, llum i collita.",
+    "placeholder": "Encara no has triat cap foto",
+    "previewError": "No es pot mostrar aquesta imatge",
+    "enlarge": "Amplia la foto",
+    "close": "Tancar",
+    "takePhoto": "Fer foto",
+    "choosePhoto": "Galeria",
+    "analyse": "Analitzar",
+    "retry": "Tornar-ho a provar",
+    "openSettings": "Obrir la configuració",
+    "loading": "Analitzant la planta…",
+    "healthy": "Sana",
+    "problem": "Necessita atenció",
+    "confidence": "Fiabilitat: {{value}} %",
+    "statusTitle": "Estat de la planta",
+    "waterLabel": "Aigua",
+    "lightLabel": "Llum",
+    "harvestLabel": "Collita",
+    "water": {
+      "lack": "Li falta aigua",
+      "ok": "Sense símptomes",
+      "excess": "Excés de reg",
+      "unknown": "No es pot saber"
+    },
+    "light": {
+      "lack": "Li falta llum",
+      "ok": "Sense símptomes",
+      "excess": "Massa sol",
+      "unknown": "No es pot saber"
+    },
+    "harvest": {
+      "ready": "A punt per collir",
+      "not_ready": "Encara no està a punt",
+      "no_fruit": "No hi ha cap fruit",
+      "unknown": "No es pot saber"
+    },
+    "errors": {
+      "cameraDenied": "Cal el permís de la càmera per fer fotos. Torna a prémer «Fer foto» per acceptar-lo.",
+      "cameraBlocked": "Per fer fotos has d'activar el permís de la càmera a la configuració del mòbil.",
+      "photosDenied": "Cal el permís d'accés a les fotos. Torna a prémer «Galeria» per acceptar-lo.",
+      "photosBlocked": "Per triar fotos has d'activar l'accés a les fotos a la configuració del mòbil.",
+      "format": "La foto ha de ser JPG o PNG.",
+      "tooLarge": "La foto és massa gran (màxim 5 MB).",
+      "noPlant": "No s'ha trobat cap planta a la foto. Prova amb una altra.",
+      "notFound": "No s'ha pogut diagnosticar aquesta foto. Prova amb una de més a prop.",
+      "tooMany": "Has fet massa anàlisis. Espera un minut i torna-ho a provar.",
+      "unavailable": "El servei de diagnòstic no està disponible. Torna-ho a provar més tard.",
+      "connection": "No s'ha pogut connectar. Comprova la connexió i torna-ho a provar."
     }
   },
   "deviceSetup": {

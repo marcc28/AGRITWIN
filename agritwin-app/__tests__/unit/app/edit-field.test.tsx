@@ -15,6 +15,7 @@ import {
   getField,
   updateDevice,
   updateField,
+  reverseGeocodeLocation,
 } from '../../../src/services/api';
 import { clearAuth, getAuth } from '../../../src/services/auth';
 import {
@@ -36,6 +37,40 @@ const mockUseLocalSearchParams = jest.fn(
 );
 const mockIsAuthError = jest.fn((_error?: unknown) => false);
 
+jest.mock('../../../src/components/field-location/MapCanvas', () => {
+  const { View, Text, Pressable } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return function MockMap({
+    boundary = [],
+    onBoundaryChange,
+    readOnly,
+  }: {
+    boundary?: { lat: number; lon: number }[];
+    onBoundaryChange?: (p: { lat: number; lon: number }[]) => void;
+    readOnly?: boolean;
+  }) {
+    const ring = [
+      { lat: 0, lon: 0 },
+      { lat: 0, lon: 0.001 },
+      { lat: 0.001, lon: 0.001 },
+      { lat: 0.001, lon: 0 },
+    ];
+    return (
+      <View>
+        <Text>Stored boundary: {boundary.length}</Text>
+        <Pressable
+          disabled={readOnly}
+          onPress={() =>
+            onBoundaryChange?.([...boundary, ring[boundary.length % 4]])
+          }
+        >
+          <Text>Add boundary corner</Text>
+        </Pressable>
+      </View>
+    );
+  };
+});
+
 jest.mock('expo-router', () => ({
   router: {
     replace: jest.fn(),
@@ -45,6 +80,7 @@ jest.mock('expo-router', () => ({
 
 jest.mock('../../../src/services/api', () => ({
   getField: jest.fn(),
+  reverseGeocodeLocation: jest.fn(),
   updateField: jest.fn(),
   createDevice: jest.fn(),
   updateDevice: jest.fn(),
@@ -147,6 +183,11 @@ describe('EditFieldScreen', () => {
     jest.clearAllMocks();
     mockUseLocalSearchParams.mockReturnValue({ id: '3' });
     mockIsAuthError.mockReturnValue(false);
+    jest.mocked(reverseGeocodeLocation).mockResolvedValue({
+      lat: 0.0005,
+      lon: 0.0005,
+      label: 'Updated field address',
+    });
     mockedGetAuth.mockResolvedValue({
       token: 'token',
       refreshToken: null,
@@ -260,23 +301,16 @@ describe('EditFieldScreen', () => {
     expect(screen.getByText('settings.errors.sizeNumber')).toBeTruthy();
   });
 
-  it('rejects an incomplete new Arduino', async () => {
+  it('shows the linked devices and does not offer to add new ones', async () => {
     render(<EditFieldScreen />);
     await waitFor(() => {
-      expect(screen.getByText('settings.createField.addAnother')).toBeTruthy();
+      expect(screen.getByText('dev-1')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.createField.addAnother'));
-    const ids = screen.getAllByPlaceholderText(
-      'settings.createField.deviceIdPlaceholder',
-    );
-    fireEvent.changeText(ids[ids.length - 1], 'esp32_sim_09');
-    fireEvent.press(screen.getByText('settings.accept'));
-    expect(
-      screen.getByText('settings.createField.errors.deviceIdRequired'),
-    ).toBeTruthy();
+    expect(screen.getByText('ESP32 · SN-1')).toBeTruthy();
+    expect(screen.queryByText('settings.createField.addAnother')).toBeNull();
   });
 
-  it('updates existing devices and creates a new one', async () => {
+  it('saves the garden without touching its devices', async () => {
     mockedUpdateField.mockResolvedValue({
       id: 3,
       name: 'Hort',
@@ -284,47 +318,38 @@ describe('EditFieldScreen', () => {
       field_type: 'home_garden',
       soil_type: 'loam',
       size_m2: 40,
-      device_count: 2,
-    });
-    mockedCreateDevice.mockResolvedValue({
-      id: 'esp32_sim_09',
-      battery_status: false,
-      brand: 'ESP32',
-      serial_number: 'SN-9',
+      device_count: 1,
     });
 
     render(<EditFieldScreen />);
     await waitFor(() => {
-      expect(screen.getByText('settings.createField.addAnother')).toBeTruthy();
+      expect(screen.getByText('dev-1')).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.fieldTypes.open_field'));
-    fireEvent.press(screen.getByText('settings.soilTypes.sandy'));
-    fireEvent.press(screen.getByText('settings.createField.addAnother'));
-    const ids = screen.getAllByPlaceholderText(
-      'settings.createField.deviceIdPlaceholder',
-    );
-    const brands = screen.getAllByPlaceholderText(
-      'settings.createField.deviceBrandPlaceholder',
-    );
-    const serials = screen.getAllByPlaceholderText(
-      'settings.createField.deviceSerialPlaceholder',
-    );
-    fireEvent.changeText(ids[ids.length - 1], 'esp32_sim_09');
-    fireEvent.changeText(brands[brands.length - 1], 'ESP32');
-    fireEvent.changeText(serials[serials.length - 1], 'SN-9');
     fireEvent.press(screen.getByText('settings.accept'));
 
     await waitFor(() => {
-      expect(mockedUpdateDevice).toHaveBeenCalledWith(
-        3,
-        'dev-1',
-        expect.objectContaining({ brand: 'ESP32', serial_number: 'SN-1' }),
-      );
-      expect(mockedCreateDevice).toHaveBeenCalledWith(
-        3,
-        expect.objectContaining({ id: 'esp32_sim_09' }),
-      );
+      expect(mockedUpdateField).toHaveBeenCalled();
     });
+    expect(mockedUpdateDevice).not.toHaveBeenCalled();
+    expect(mockedCreateDevice).not.toHaveBeenCalled();
+  });
+
+  it('hides the device section when the garden has no devices', async () => {
+    mockedGetField.mockResolvedValue({
+      id: 3,
+      name: 'Hort',
+      location: 'Andorra',
+      field_type: 'home_garden',
+      soil_type: 'loam',
+      size_m2: 40,
+      device_count: 0,
+      devices: [],
+    });
+    render(<EditFieldScreen />);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+    });
+    expect(screen.queryByText('settings.createField.arduinos')).toBeNull();
   });
 
   it('removes an existing Arduino', async () => {
@@ -610,5 +635,124 @@ describe('EditFieldScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('missing garden')).toBeTruthy();
     });
+  });
+});
+
+describe('Editing field geometry', () => {
+  const border = [
+    { lat: 0, lon: 0 },
+    { lat: 0, lon: 0.001 },
+    { lat: 0.001, lon: 0.001 },
+    { lat: 0.001, lon: 0 },
+  ];
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseLocalSearchParams.mockReturnValue({ id: '3' });
+    mockIsAuthError.mockReturnValue(false);
+    mockedGetField.mockResolvedValue({
+      id: 3,
+      name: 'Field',
+      location: 'Field road',
+      field_type: 'open_field',
+      soil_type: 'loam',
+      size_m2: 12364.35,
+      boundary: border,
+      excluded_zones: [],
+      devices: [],
+      device_count: 0,
+    });
+    mockedGetFieldCrops.mockResolvedValue([]);
+    mockedGetCrops.mockResolvedValue([]);
+    jest.mocked(reverseGeocodeLocation).mockResolvedValue({
+      lat: 0.0005,
+      lon: 0.0005,
+      label: 'Updated field address',
+    });
+    mockedUpdateField.mockResolvedValue({
+      id: 3,
+      name: 'Field',
+      location: 'Field road',
+      field_type: 'open_field',
+      soil_type: 'loam',
+      size_m2: 12364.35,
+      device_count: 0,
+    });
+  });
+  it('changes display units and saves the canonical area with its boundary', async () => {
+    render(<EditFieldScreen />);
+    await screen.findByDisplayValue('12364.35');
+    fireEvent.press(screen.getByText('settings.createField.areaUnits.ha'));
+    expect(screen.getByDisplayValue('1.236435')).toHaveProp('editable', false);
+    fireEvent.press(screen.getByText('settings.accept'));
+    await waitFor(() =>
+      expect(mockedUpdateField).toHaveBeenCalledWith(
+        3,
+        expect.objectContaining({
+          size_m2: 12364.35,
+          boundary: border,
+          excluded_zones: [],
+        }),
+      ),
+    );
+  });
+  it('displays the stored boundary without permitting edits in view mode', async () => {
+    render(<EditFieldScreen />);
+    await screen.findByDisplayValue('Field');
+    fireEvent.press(screen.getByText('settings.createField.boundary.view'));
+    expect(screen.getByText('Stored boundary: 4')).toBeTruthy();
+    expect(
+      screen.queryByText('settings.createField.boundary.confirm'),
+    ).toBeNull();
+    fireEvent.press(screen.getByText('settings.createField.boundary.close'));
+    expect(mockedUpdateField).not.toHaveBeenCalled();
+  });
+  it('can cancel a redraw without losing the saved area', async () => {
+    render(<EditFieldScreen />);
+    await screen.findByDisplayValue('12364.35');
+    fireEvent.press(screen.getByText('settings.createField.boundary.redraw'));
+    expect(screen.getByText('Stored boundary: 0')).toBeTruthy();
+    fireEvent.press(screen.getByText('Add boundary corner'));
+    fireEvent.press(screen.getByText('settings.createField.map.cancel'));
+    expect(screen.getByDisplayValue('12364.35')).toBeTruthy();
+    expect(mockedUpdateField).not.toHaveBeenCalled();
+  });
+  it('removes the old area when switching to manual entry', async () => {
+    render(<EditFieldScreen />);
+    await screen.findByDisplayValue('12364.35');
+    fireEvent.press(screen.getByText('settings.createField.boundary.remove'));
+    const area = screen.getByLabelText('settings.createField.areaLabel');
+    expect(area).toHaveProp('editable', true);
+    expect(area).toHaveProp('value', '');
+    fireEvent.changeText(area, '25');
+    fireEvent.press(screen.getByText('settings.accept'));
+    await waitFor(() =>
+      expect(mockedUpdateField).toHaveBeenCalledWith(
+        3,
+        expect.objectContaining({
+          size_m2: 25,
+          boundary: null,
+          excluded_zones: [],
+        }),
+      ),
+    );
+  });
+  it('replaces a boundary only after a valid outline is confirmed', async () => {
+    render(<EditFieldScreen />);
+    await screen.findByDisplayValue('12364.35');
+    fireEvent.press(screen.getByText('settings.createField.boundary.redraw'));
+    for (let i = 0; i < 3; i++)
+      fireEvent.press(screen.getByText('Add boundary corner'));
+    fireEvent.press(screen.getByText('settings.createField.boundary.confirm'));
+    await screen.findByDisplayValue('Updated field address');
+    fireEvent.press(screen.getByText('settings.accept'));
+    await waitFor(() =>
+      expect(mockedUpdateField).toHaveBeenCalledWith(
+        3,
+        expect.objectContaining({
+          boundary: border.slice(0, 3),
+          size_m2: 6182.17,
+        }),
+      ),
+    );
   });
 });

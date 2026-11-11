@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -11,12 +12,14 @@ export function FieldOptionChips({
   onFieldType,
   onSoilType,
   disabled,
+  children,
 }: Readonly<{
   fieldType: string;
   soilType: string;
   onFieldType: (value: string) => void;
   onSoilType: (value: string) => void;
   disabled: boolean;
+  children?: ReactNode;
 }>) {
   const { t } = useTranslation();
 
@@ -39,6 +42,7 @@ export function FieldOptionChips({
         ))}
       </View>
 
+      {children}
       <Text style={styles.label}>{t('settings.soil')}</Text>
       <View style={styles.chipRow}>
         {SOIL_TYPES.map((type) => (

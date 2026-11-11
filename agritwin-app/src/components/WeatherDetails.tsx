@@ -82,7 +82,7 @@ export function WeatherDetails({ weather }: Readonly<Props>) {
     >
       <View testID="weather-details" style={styles.pageCard}>
         <View style={styles.modalHeader}>
-          <View>
+          <View style={weatherStyles.locationHeader}>
             <Text style={styles.modalTitle}>{title}</Text>
             <Text style={styles.cardSubtitle}>{t('weather.subtitle')}</Text>
           </View>

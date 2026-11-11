@@ -48,6 +48,13 @@
           "enableGooglePay": false
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow AgriTwin to access your photos to diagnose your plants.",
+          "cameraPermission": "Allow AgriTwin to use the camera to diagnose your plants."
+        }
+      ],
       "expo-web-browser",
       [
         "react-native-ble-plx",

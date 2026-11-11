@@ -6,7 +6,14 @@
   "home": {
     "titleFirst": "Tu huerto,",
     "titleSecond": "cada día mejor.",
-    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto."
+    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto.",
+    "workingOn": "Trabajaremos en el campo",
+    "devices": {
+      "title": "Dispositivos",
+      "none": "Ninguno",
+      "error": "No se han podido cargar los dispositivos",
+      "retry": "Reintentar"
+    }
   },
   "tabs": {
     "home": "Inicio",
@@ -14,7 +21,8 @@
     "market": "Mercado",
     "profile": "Perfil",
     "clover": "Trébol",
-    "calendar": "Calendario"
+    "calendar": "Calendario",
+    "diagnosis": "Diagnóstico"
   },
   "fieldCrops": {
     "title": "Mis cultivos",
@@ -223,31 +231,84 @@
       "namePlaceholder": "Pon un nombre al jardín",
       "locationPlaceholder": "Ciudad, pueblo o dirección",
       "sizePlaceholder": "p. ej. 20",
-      "coordsHint": "Busca la ubicación para guardar latitud y longitud.",
+      "coordsHint": "Escribe una dirección o selecciona un punto en el mapa.",
       "coords": "Coordenadas: {{lat}}, {{lon}}",
       "arduinos": "Arduinos",
-      "arduinosHint": "Puedes enlazarlos ahora o dejarlo para después. Solo pedimos lo que ves en el dispositivo.",
-      "configureLater": "Configurar después",
-      "addNow": "Añadir ahora",
-      "addAnother": "Añadir otro Arduino",
       "removeDevice": "Quitar",
-      "saveDevices": "Guardar dispositivos",
       "deviceId": "ID del dispositivo",
-      "deviceIdPlaceholder": "p. ej. esp32_sim_01",
       "deviceBrand": "Marca",
-      "deviceBrandPlaceholder": "p. ej. ESP32",
       "deviceSerial": "Número de serie",
-      "deviceSerialPlaceholder": "El que pone en la etiqueta",
-      "linkLater": "Enlazar Arduinos →",
       "submitFirst": "Crear mi primer jardín",
       "submitNext": "Crear jardín",
       "errors": {
         "locationRequired": "Introduce una ubicación para geolocalizarla",
         "locationNotFound": "No se ha encontrado esta ubicación",
-        "deviceIdRequired": "Cada Arduino necesita ID, marca y número de serie",
         "deviceSaveFailed": "No se han podido guardar los dispositivos",
-        "createFailed": "No se ha podido crear el campo"
-      }
+        "createFailed": "No se ha podido crear el campo",
+        "addressUnavailable": "No se ha encontrado una dirección cercana. Se conservan las coordenadas; puedes escribir la dirección manualmente."
+      },
+      "lookupAddress": "Buscar dirección",
+      "lookingUp": "Buscando dirección…",
+      "map": {
+        "open": "Seleccionar ubicación en el mapa",
+        "title": "Elige la ubicación del campo",
+        "hint": "Toca o haz clic en el mapa para seleccionar un punto. Acerca el mapa para situarlo con precisión.",
+        "noPoint": "Todavía no has seleccionado un punto.",
+        "selectedPoint": "Ubicación seleccionada del campo",
+        "cancel": "Cancelar",
+        "confirm": "Usar esta ubicación",
+        "loading": "Cargando mapa…",
+        "loadError": "No se ha podido cargar el mapa. Comprueba la conexión o escribe la dirección manualmente."
+      },
+      "areaLabel": "Superficie",
+      "areaUnitLabel": "Unidad de superficie",
+      "automaticArea": "Superficie calculada a partir de los límites. Cambia la unidad o elimina los límites para introducirla a mano.",
+      "areaUnits": {
+        "m2": "m²",
+        "ha": "ha",
+        "acre": "acres",
+        "km2": "km²",
+        "ft2": "ft²"
+      },
+      "boundary": {
+        "section": "Límites del campo",
+        "optional": "Opcional: marca las esquinas para calcular la superficie.",
+        "draw": "Selecciona las esquinas",
+        "edit": "Edita los límites",
+        "remove": "Elimina los límites e introduce la superficie a mano",
+        "title": "Delimita tu campo",
+        "hint": "Marca las esquinas en orden. Después añade zonas excluidas para casetas u otras partes que no quieras contar.",
+        "corners": "{{count}} esquinas seleccionadas",
+        "minimum": "Cada contorno necesita al menos tres esquinas.",
+        "undo": "Deshacer punto",
+        "clear": "Empezar de nuevo",
+        "confirm": "Usar este campo",
+        "errors": {
+          "tooFew": "Selecciona al menos tres esquinas.",
+          "tooMany": "El máximo es de 200 esquinas.",
+          "invalid": "Las coordenadas no son válidas.",
+          "duplicate": "No repitas una esquina.",
+          "crossing": "Las líneas no pueden cruzarse ni tocarse.",
+          "empty": "El contorno debe delimitar una superficie.",
+          "tooLarge": "La superficie máxima es de 10.000 hectáreas.",
+          "outside": "La zona excluida debe quedar completamente dentro del campo sin tocar su límite.",
+          "overlap": "Las zonas excluidas no pueden solaparse ni tocarse.",
+          "tooManyZones": "Máximo 20 zonas excluidas y 1.000 esquinas en total."
+        },
+        "outer": "Límite exterior",
+        "exclusion": "Exclusión {{number}}",
+        "addExclusion": "Añadir una zona excluida",
+        "removeExclusion": "Eliminar esta exclusión",
+        "view": "Ver el campo en el mapa",
+        "viewTitle": "Superficie del campo",
+        "viewHint": "El verde delimita el campo. El rojo indica las zonas que no se cuentan.",
+        "close": "Cerrar",
+        "redraw": "Volver a dibujar el campo",
+        "replaceHint": "Al confirmar un contorno nuevo, sustituirá al actual. Cancelar conserva los límites anteriores.",
+        "noBoundary": "Todavía no hay un contorno dibujado. Una superficie numérica no permite conocer la forma del campo.",
+        "areaSummary": "Total: {{gross}} {{unit}} · Excluida: {{excluded}} {{unit}} · Útil: {{net}} {{unit}}"
+      },
+      "netAreaLabel": "Superficie útil"
     },
     "manageCrops": {
       "title": "Cultivos",
@@ -273,6 +334,102 @@
       }
     }
   },
+  "addDevice": {
+    "button": "Añadir dispositivo",
+    "back": "Volver al campo",
+    "eyebrow": "AÑADIR DISPOSITIVO",
+    "title": "Conecta tu placa AgriTwin",
+    "scan": {
+      "title": "Busca tu placa",
+      "instructions": "Enciende la placa. El LED azul parpadea despacio.",
+      "searching": "Buscando placas…",
+      "found": "Placas encontradas",
+      "tapHint": "Toca la tuya para continuar.",
+      "searchAgain": "Buscar de nuevo"
+    },
+    "noBoards": {
+      "title": "No hemos encontrado ninguna placa",
+      "instructions": "Comprueba que la placa está encendida y cerca del móvil.",
+      "tip": "Si el LED está fijo, mantén pulsado el botón BOOT de la placa durante 5 segundos y vuelve a intentarlo.",
+      "retry": "Reintentar"
+    },
+    "wifi": {
+      "title": "Conecta la placa al WiFi",
+      "board": "Placa: {{name}}",
+      "ssid": "Nombre del WiFi",
+      "ssidPlaceholder": "El nombre de tu red",
+      "password": "Contraseña",
+      "passwordPlaceholder": "La contraseña de tu WiFi",
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "hint24": "Usa una red de 2,4 GHz. La placa no funciona con redes de 5 GHz.",
+      "privacy": "No guardamos el nombre ni la contraseña de tu WiFi.",
+      "connect": "Conectar"
+    },
+    "progress": {
+      "connectingBoard": "Conectando con la placa…",
+      "connecting": "Conectando…",
+      "connectingHint": "Puede tardar unos 20 segundos. Mantén la app abierta y cerca de la placa.",
+      "saving": "Guardando la placa…"
+    },
+    "success": {
+      "title": "Placa conectada",
+      "hint": "Tu placa ya está enlazada con este campo y empezará a enviar datos.",
+      "alreadyLinked": "Esta placa ya estaba enlazada con este campo.",
+      "done": "Volver al campo"
+    },
+    "error": {
+      "retry": "Reintentar",
+      "back": "Volver al campo",
+      "openSettings": "Abrir ajustes",
+      "groups": {
+        "wifi": {
+          "title": "No se ha podido conectar al WiFi",
+          "hint": "Revisa el nombre del WiFi y la contraseña. Recuerda que la placa solo funciona con redes de 2,4 GHz."
+        },
+        "timeout": {
+          "title": "Se ha agotado el tiempo",
+          "hint": "Acerca la placa al router y al móvil e inténtalo de nuevo."
+        },
+        "noInternet": {
+          "title": "WiFi conectado, pero sin internet",
+          "hint": "Revisa la conexión a internet de tu router y vuelve a intentarlo."
+        },
+        "bluetoothOff": {
+          "title": "El Bluetooth está apagado",
+          "hint": "Activa el Bluetooth del móvil y vuelve a intentarlo."
+        },
+        "permission": {
+          "title": "Falta el permiso de Bluetooth",
+          "hint": "Permite que AgriTwin use el Bluetooth en los ajustes del móvil y vuelve a intentarlo."
+        },
+        "link": {
+          "title": "No se ha podido hablar con la placa",
+          "hint": "Acércate a la placa, comprueba que el LED parpadea despacio e inténtalo de nuevo."
+        },
+        "alreadyRegistered": {
+          "title": "Esta placa ya está en otro campo",
+          "hint": "Una placa solo puede estar enlazada con un campo. Quítala del otro campo antes de añadirla aquí."
+        },
+        "sessionExpired": {
+          "title": "La sesión ha caducado",
+          "hint": "Inicia sesión de nuevo y vuelve a añadir la placa."
+        },
+        "saveFailed": {
+          "title": "Placa conectada, pero sin guardar",
+          "hint": "La placa se ha conectado al WiFi, pero no hemos podido guardarla. Inténtalo de nuevo."
+        },
+        "generic": {
+          "title": "Algo ha ido mal",
+          "hint": "Inténtalo de nuevo. Si sigue fallando, reinicia la placa."
+        }
+      }
+    },
+    "web": {
+      "title": "Solo disponible en el móvil",
+      "hint": "Para añadir una placa necesitas la app de AgriTwin en tu móvil, porque usa el Bluetooth."
+    }
+  },
   "languages": {
     "catalan": "Catalán",
     "spanish": "Español",
@@ -287,10 +444,6 @@
     "errors": {
       "loadFailed": "No se han podido cargar los datos del mercado"
     }
-  },
-  "home": {
-    "title": "Tu huerto,\ncada día mejor.",
-    "subtitle": "Tareas, tiempo y cultivos adaptados a tu huerto."
   },
   "weather": {
     "subtitle": "Previsión del tiempo",
@@ -359,6 +512,58 @@
       "low": "Baja",
       "medium": "Media",
       "high": "Alta"
+    }
+  },
+  "diagnosis": {
+    "title": "Diagnóstico de la planta con IA",
+    "subtitle": "Detecta plagas, enfermedades, riego, luz y cosecha.",
+    "placeholder": "Todavía no has elegido ninguna foto",
+    "previewError": "No se puede mostrar esta imagen",
+    "enlarge": "Ampliar la foto",
+    "close": "Cerrar",
+    "takePhoto": "Hacer foto",
+    "choosePhoto": "Galería",
+    "analyse": "Analizar",
+    "retry": "Reintentar",
+    "openSettings": "Abrir la configuración",
+    "loading": "Analizando la planta…",
+    "healthy": "Sana",
+    "problem": "Necesita atención",
+    "confidence": "Fiabilidad: {{value}} %",
+    "statusTitle": "Estado de la planta",
+    "waterLabel": "Agua",
+    "lightLabel": "Luz",
+    "harvestLabel": "Cosecha",
+    "water": {
+      "lack": "Le falta agua",
+      "ok": "Sin síntomas",
+      "excess": "Exceso de riego",
+      "unknown": "No se puede saber"
+    },
+    "light": {
+      "lack": "Le falta luz",
+      "ok": "Sin síntomas",
+      "excess": "Demasiado sol",
+      "unknown": "No se puede saber"
+    },
+    "harvest": {
+      "ready": "Lista para cosechar",
+      "not_ready": "Aún no está lista",
+      "no_fruit": "No hay ningún fruto",
+      "unknown": "No se puede saber"
+    },
+    "errors": {
+      "cameraDenied": "Hace falta el permiso de la cámara para hacer fotos. Vuelve a pulsar «Hacer foto» para aceptarlo.",
+      "cameraBlocked": "Para hacer fotos tienes que activar el permiso de la cámara en la configuración del móvil.",
+      "photosDenied": "Hace falta el permiso de acceso a las fotos. Vuelve a pulsar «Galería» para aceptarlo.",
+      "photosBlocked": "Para elegir fotos tienes que activar el acceso a las fotos en la configuración del móvil.",
+      "format": "La foto debe ser JPG o PNG.",
+      "tooLarge": "La foto es demasiado grande (máximo 5 MB).",
+      "noPlant": "No se ha encontrado ninguna planta en la foto. Prueba con otra.",
+      "notFound": "No se ha podido diagnosticar esta foto. Prueba con otra más cercana.",
+      "tooMany": "Has hecho demasiados análisis. Espera un minuto e inténtalo de nuevo.",
+      "unavailable": "El servicio de diagnóstico no está disponible. Inténtalo más tarde.",
+      "connection": "No se ha podido conectar. Comprueba la conexión e inténtalo de nuevo."
     }
   },
   "deviceSetup": {

@@ -118,6 +118,21 @@ async def test_second_request_uses_weather_cache(sessions):
     assert len(second.daily) == 1
 
 
+async def test_cached_weather_uses_the_current_field_address(sessions):
+    calls = []
+    first = await forecast(sessions, recorder(calls))
+    async with sessions() as session:
+        field = await session.get(Field, 1)
+        field.location = "Carrer Major, Lleida"
+        await session.commit()
+
+    second = await forecast(sessions, recorder(calls))
+    assert second.location.name == "Carrer Major, Lleida"
+    assert second.current == first.current
+    assert second.fetched_at == first.fetched_at
+    assert len(calls) == 2
+
+
 async def test_expired_cache_is_refreshed(sessions):
     calls = []
     await forecast(sessions, recorder(calls))

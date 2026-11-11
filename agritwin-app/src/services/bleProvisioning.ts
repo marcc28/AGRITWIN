@@ -19,7 +19,8 @@ import { base64ToText, textToBase64 } from './bleEncoding';
 export const BLE_SERVICE_UUID = '422285f2-0000-4631-a335-64b1ab75567c';
 export const BLE_CHAR_INFO_UUID = '422285f2-0001-4631-a335-64b1ab75567c';
 export const BLE_CHAR_SSID_UUID = '422285f2-0002-4631-a335-64b1ab75567c';
-export const BLE_CHAR_PASSWORD_UUID = '422285f2-0003-4631-a335-64b1ab75567c';
+// Wi-Fi pre-shared key (the Wi-Fi password) is written here.
+export const BLE_CHAR_WIFI_PSK_UUID = '422285f2-0003-4631-a335-64b1ab75567c';
 export const BLE_CHAR_FIELD_UUID = '422285f2-0004-4631-a335-64b1ab75567c';
 export const BLE_CHAR_COMMAND_UUID = '422285f2-0005-4631-a335-64b1ab75567c';
 export const BLE_CHAR_STATUS_UUID = '422285f2-0006-4631-a335-64b1ab75567c';
@@ -376,7 +377,7 @@ export function sendWifiSettings(
       await writeText(
         manager,
         boardId,
-        BLE_CHAR_PASSWORD_UUID,
+        BLE_CHAR_WIFI_PSK_UUID,
         settings.password,
       );
       await writeText(
