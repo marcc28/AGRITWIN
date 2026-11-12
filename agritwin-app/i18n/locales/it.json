@@ -565,5 +565,26 @@
       "unavailable": "Il servizio di diagnosi non è disponibile. Riprova più tardi.",
       "connection": "Impossibile connettersi. Controlla la connessione e riprova."
     }
+  },
+  "deviceSetup": {
+    "errors": {
+      "bluetooth_off": "Attiva il Bluetooth e riprova.",
+      "permission_denied": "Attiva il Bluetooth e consenti l'accesso all'app.",
+      "scan_failed": "Non è stato possibile cercare le schede. Riprova.",
+      "invalid_input": "Scrivi il nome del Wi-Fi.",
+      "connection_failed": "Non è stato possibile collegarsi alla scheda. Avvicinati e riprova.",
+      "connection_lost": "Collegamento con la scheda perso. Riprova.",
+      "no_answer": "La scheda non risponde. Controlla che il LED lampeggi lentamente e riprova.",
+      "missing_data": "Dati incompleti. Riprova.",
+      "bad_field_id": "Campo non valido. Riapri la schermata dal campo.",
+      "wifi_not_found": "Rete non trovata. Controlla il nome e usa la rete a 2,4 GHz.",
+      "wrong_password": "Password errata.",
+      "wifi_timeout": "Il router non risponde. Avvicina la scheda e riprova.",
+      "no_internet": "Wi-Fi collegato ma senza internet.",
+      "session_expired": "Sessione scaduta. Accedi di nuovo e riprova.",
+      "already_registered_elsewhere": "Questa scheda è già collegata a un altro campo.",
+      "registration_failed": "Scheda collegata, ma non è stato possibile salvarla. Riprova.",
+      "unknown": "Qualcosa è andato storto. Riprova."
+    }
   }
 }

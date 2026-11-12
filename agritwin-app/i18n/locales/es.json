@@ -565,5 +565,26 @@
       "unavailable": "El servicio de diagnóstico no está disponible. Inténtalo más tarde.",
       "connection": "No se ha podido conectar. Comprueba la conexión e inténtalo de nuevo."
     }
+  },
+  "deviceSetup": {
+    "errors": {
+      "bluetooth_off": "Activa el Bluetooth e inténtalo de nuevo.",
+      "permission_denied": "Activa el Bluetooth y permite el acceso a la app.",
+      "scan_failed": "No se han podido buscar placas. Inténtalo de nuevo.",
+      "invalid_input": "Escribe el nombre del WiFi.",
+      "connection_failed": "No se ha podido conectar con la placa. Acércate e inténtalo de nuevo.",
+      "connection_lost": "Se ha perdido la conexión con la placa. Inténtalo de nuevo.",
+      "no_answer": "La placa no responde. Comprueba que el LED parpadea despacio e inténtalo de nuevo.",
+      "missing_data": "Datos incompletos. Inténtalo de nuevo.",
+      "bad_field_id": "Campo no válido. Vuelve a abrir la pantalla desde el campo.",
+      "wifi_not_found": "Red no encontrada. Revisa el nombre y usa la red de 2,4 GHz.",
+      "wrong_password": "Contraseña incorrecta.",
+      "wifi_timeout": "El router no responde. Acerca la placa e inténtalo de nuevo.",
+      "no_internet": "WiFi conectado pero sin internet.",
+      "session_expired": "La sesión ha caducado. Inicia sesión de nuevo e inténtalo otra vez.",
+      "already_registered_elsewhere": "Esta placa ya está vinculada a otro campo.",
+      "registration_failed": "Placa conectada, pero no se ha podido guardar. Inténtalo de nuevo.",
+      "unknown": "Algo ha ido mal. Inténtalo de nuevo."
+    }
   }
 }

@@ -2,6 +2,7 @@
   "expo": {
     "name": "AgriTwin",
     "slug": "AgriTwin",
+    "owner": "flaviaserret04s-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
@@ -55,7 +56,16 @@
           "cameraPermission": "Allow AgriTwin to use the camera to diagnose your plants."
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": [],
+          "neverForLocation": true,
+          "bluetoothAlwaysPermission": "AgriTwin uses Bluetooth to set up the sensors of your field."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
