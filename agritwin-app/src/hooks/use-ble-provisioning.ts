@@ -93,6 +93,10 @@ export function useBleProvisioning(fieldId: number) {
   const boardRef = useRef<BleBoard | null>(null);
   const infoRef = useRef<BoardInfo | null>(null);
   const finished = useRef(false);
+  // Id of the scan whose results may still change the screen. The user can
+  // tap a board before the scan ends: the scan keeps running until its
+  // timeout, and its late result must not bring back the board list.
+  const activeScan = useRef(0);
 
   const update = useCallback((patch: Partial<DeviceSetupState>) => {
     if (mounted.current) {
@@ -116,6 +120,9 @@ export function useBleProvisioning(fieldId: number) {
   /** Screen 1: asks permissions, checks Bluetooth and searches for boards. */
   const startScan = useCallback(async () => {
     const manager = getBleManager();
+    activeScan.current += 1;
+    const scanId = activeScan.current;
+    const isCurrentScan = () => scanId === activeScan.current;
     update({
       ...CLEAR_ERROR,
       step: 'scanning',
@@ -127,13 +134,15 @@ export function useBleProvisioning(fieldId: number) {
     });
     try {
       if (!(await requestBlePermissions())) {
-        fail('scan', toProvisioningError(null, 'permission_denied'));
+        if (isCurrentScan()) {
+          fail('scan', toProvisioningError(null, 'permission_denied'));
+        }
         return;
       }
       await ensureBluetoothOn(manager);
       const boards = await scanForBoards(manager, {
         onBoardFound: (board) => {
-          if (mounted.current) {
+          if (mounted.current && isCurrentScan()) {
             setState((current) => ({
               ...current,
               boards: [
@@ -144,9 +153,14 @@ export function useBleProvisioning(fieldId: number) {
           }
         },
       });
+      if (!isCurrentScan()) {
+        return;
+      }
       update({ step: boards.length > 0 ? 'boardList' : 'noBoards', boards });
     } catch (error) {
-      fail('scan', error);
+      if (isCurrentScan()) {
+        fail('scan', error);
+      }
     }
   }, [fail, update]);
 
@@ -154,6 +168,8 @@ export function useBleProvisioning(fieldId: number) {
   const selectBoard = useCallback(
     async (board: BleBoard) => {
       const manager = getBleManager();
+      // The scan is over for the user: ignore whatever it reports later.
+      activeScan.current += 1;
       await stopScan(manager);
       boardRef.current = board;
       update({ ...CLEAR_ERROR, step: 'connecting', selectedBoard: board });
@@ -233,6 +249,7 @@ export function useBleProvisioning(fieldId: number) {
   /** Starts again from scratch (e.g. "Add another device"). */
   const reset = useCallback(async () => {
     const manager = getBleManager();
+    activeScan.current += 1;
     await stopScan(manager);
     if (boardRef.current) {
       await disconnectBoard(manager, boardRef.current.id);

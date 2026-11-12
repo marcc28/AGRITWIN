@@ -147,6 +147,25 @@ describe('useBleProvisioning', () => {
     expect(result.current.step).toBe('noBoards');
   });
 
+  it('stays on the Wi-Fi form when a board is tapped before the scan ends', async () => {
+    const { result } = renderSetup();
+    await act(async () => {
+      void result.current.startScan();
+    });
+    await flush();
+    act(() => fake.emitDevice({ id: BOARD.id, localName: BOARD.name }));
+
+    // The user taps the board while the scan is still running.
+    await selectBoard(result);
+    expect(result.current.step).toBe('wifiForm');
+
+    // The scan timeout fires later: it must not bring back the board list.
+    act(() => fake.emitDevice({ id: 'BB:02', localName: 'AgriTwin-0000' }));
+    await flush(SCAN_TIMEOUT_MS);
+    expect(result.current.step).toBe('wifiForm');
+    expect(result.current.boards).toEqual([BOARD]);
+  });
+
   it('fails with permission_denied and retries the scan', async () => {
     mockedPermissions.mockResolvedValueOnce(false);
     const { result } = renderSetup();
