@@ -2,6 +2,7 @@
   "expo": {
     "name": "AgriTwin",
     "slug": "AgriTwin",
+    "owner": "flaviaserret04s-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
