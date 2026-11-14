@@ -35,8 +35,39 @@ export const Colors = {
     successBackground: '#E2EEE4',
     successBorder: '#B5CFB7',
     successText: '#46614F',
-    link:'#27834D',
+
+    link: '#27834D',
     overlay: 'rgba(0, 0, 0, 0.5)',
+
+    // Loading screen - colors de la paleta AGRITWIN
+    // Loading screen - paleta original
+    loadingSky: '#B7E0D0',
+    loadingSun: '#FFE18A',
+    loadingStar: '#FFFFFF',
+
+    loadingField: '#638C3D',
+    loadingFieldHighlight: '#88A94F',
+    loadingFieldLines: '#E8D89A',
+
+    farmerHat: '#C58B45',
+    farmerHatDark: '#A96D35',
+    farmerSkin: '#F0B27A',
+    farmerFace: '#3B241B',
+    farmerMoustache: '#4A2B20',
+
+    farmerClothes: '#5B7F3B',
+    farmerOveralls: '#8CAE56',
+    farmerOverallsDetail: '#D7E5A5',
+    farmerArms: '#6F9347',
+
+    farmerPants: '#815632',
+    farmerShoes: '#3B291E',
+
+    rakeWood: '#70472A',
+    rakeMetal: '#D9E0DB',
+
+    loadingProgressTrack: 'rgba(255,255,255,0.58)',
+    loadingProgress: '#46614F',
   },
 
   dark: {
@@ -68,6 +99,34 @@ export const Colors = {
     successText: '#B5CFB7',
 
     overlay: 'rgba(0, 0, 0, 0.7)',
+
+    // Loading screen - colors de la paleta AGRITWIN
+    loadingSky: '#1E2822',
+    loadingSun: '#BC9F8B',
+    loadingStar: '#F5F5F0',
+
+    loadingField: '#1E2822',
+    loadingFieldHighlight: '#354238',
+    loadingFieldLines: '#46534A',
+
+    farmerHat: '#BC9F8B',
+    farmerHatDark: '#69736C',
+    farmerSkin: '#BC9F8B',
+    farmerFace: '#29332C',
+
+    farmerClothes: '#46614F',
+    farmerOveralls: '#8FB59A',
+    farmerOverallsDetail: '#B5CFB7',
+    farmerArms: '#8FB59A',
+
+    farmerPants: '#354238',
+    farmerShoes: '#121812',
+
+    rakeWood: '#929C95',
+    rakeMetal: '#C5CDC7',
+
+    loadingProgressTrack: '#354238',
+    loadingProgress: '#8FB59A',
   },
 } as const;
 

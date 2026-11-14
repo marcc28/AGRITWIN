@@ -17,14 +17,12 @@ import { Colors } from '@/constants/theme';
 import { getMarketStyles } from '../../styles/market.styles';
 import {
   getcontentfeed,
-  getnews,
   searchMarketProducts,
-  searchNews,
   getAnuncesCount,
   getMarketProductsCount,
 } from '@/services/api_market';
 
-type Tab = 'prices' | 'news';
+type Tab = 'prices';
 
 type Product = {
   id: string | number;
@@ -33,16 +31,6 @@ type Product = {
   price: number;
   price_per_kg: number;
   left_units: number;
-  image_url?: string | null;
-  url_image?: string | null;
-};
-
-type News = {
-  id: string | number;
-  title: string;
-  subtile: string;
-  agent: string;
-  content: string;
   image_url?: string | null;
   url_image?: string | null;
 };
@@ -176,24 +164,17 @@ export default function MarketScreen() {
 
   const [tab, setTab] = useState<Tab>('prices');
   const [products, setProducts] = useState<Product[]>([]);
-  const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingPage, setLoadingPage] = useState(false);
   const [pageLoadError, setPageLoadError] = useState('');
   const [page, setPage] = useState(0);
   const [productsTotal, setProductsTotal] = useState(0);
-  const [newsTotal, setNewsTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
-
-  const currentItems = tab === 'prices' ? products : news;
+  const [currentItems, setCurrentItems] = useState<Product[]>([]);
   const isSearching = Boolean(searchQuery.trim());
-  const currentTotal = isSearching
-    ? currentItems.length
-    : tab === 'prices'
-      ? productsTotal
-      : newsTotal;
+  const currentTotal = isSearching ? currentItems.length : productsTotal;
   const totalPages = Math.ceil(currentTotal / PAGE_SIZE);
 
   const visibleProducts = products.slice(
@@ -201,13 +182,10 @@ export default function MarketScreen() {
     (page + 1) * PAGE_SIZE,
   );
 
-  const visibleNews = news.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-
   const canGoBack = page > 0;
   const canGoForward = page + 1 < totalPages;
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [allNews, setAllNews] = useState<News[]>([]);
   const [hoverPreview, setHoverPreview] = useState<{
     title: string;
     imageUrl: string;
@@ -246,19 +224,17 @@ export default function MarketScreen() {
           getAnuncesCount(),
         ]);
 
-        const [productsData, newsData] = await Promise.all([
+        const [productsData] = await Promise.all([
           getcontentfeed(0, PAGE_SIZE),
-          getnews(0, PAGE_SIZE),
         ]);
 
         if (active) {
           setProductsTotal(productsCount);
-          setNewsTotal(newsCount);
           setAllProducts(productsData);
-          setAllNews(newsData);
+
+          setCurrentItems(productsData);
 
           setProducts(productsData);
-          setNews(newsData);
         }
       } catch (error) {
         console.error('Error carregant les dades del mercat:', error);
@@ -281,12 +257,16 @@ export default function MarketScreen() {
 
     const query = searchQuery.trim();
     let active = true;
+
     setSearchError('');
 
+    // Si la cerca està buida, recuperem els productes originals
     if (!query) {
       setSearching(false);
       setProducts(allProducts);
-      setNews(allNews);
+      setCurrentItems(allProducts);
+      setPage(0);
+
       return () => {
         active = false;
       };
@@ -296,18 +276,25 @@ export default function MarketScreen() {
       setSearching(true);
 
       try {
-        if (tab === 'prices') {
-          const results = await searchMarketProducts(query);
-          if (active) setProducts(results);
-        } else {
-          const results = await searchNews(query);
-          if (active) setNews(results);
+        const results = await searchMarketProducts(query);
+
+        if (active) {
+          setProducts(results);
+          setCurrentItems(results);
+          setPage(0);
         }
       } catch (error) {
         console.error('Error en la cerca:', error);
-        if (active) setSearchError('Error en realitzar la cerca.');
+
+        if (active) {
+          setSearchError('Error en realitzar la cerca.');
+          setProducts([]);
+          setCurrentItems([]);
+        }
       } finally {
-        if (active) setSearching(false);
+        if (active) {
+          setSearching(false);
+        }
       }
     }, 350);
 
@@ -315,7 +302,7 @@ export default function MarketScreen() {
       active = false;
       clearTimeout(timeout);
     };
-  }, [searchQuery, tab, loading, allProducts, allNews]);
+  }, [searchQuery, tab, loading, allProducts]);
 
   useEffect(() => {
     setPage(0);
@@ -337,23 +324,16 @@ export default function MarketScreen() {
 
     const nextPage = page + 1;
     const nextOffset = nextPage * PAGE_SIZE;
-    const loadedItems = tab === 'prices' ? allProducts : allNews;
+    const loadedItems = allProducts;
 
     if (!isSearching && loadedItems.length < nextOffset + 1) {
       setLoadingPage(true);
       setPageLoadError('');
       try {
-        const batch =
-          tab === 'prices'
-            ? await getcontentfeed(nextOffset, PAGE_SIZE)
-            : await getnews(nextOffset, PAGE_SIZE);
-        if (tab === 'prices') {
-          setAllProducts((previous) => [...previous, ...batch]);
-          setProducts((previous) => [...previous, ...batch]);
-        } else {
-          setAllNews((previous) => [...previous, ...batch]);
-          setNews((previous) => [...previous, ...batch]);
-        }
+        const batch = await getcontentfeed(nextOffset, PAGE_SIZE);
+        setAllProducts((previous) => [...previous, ...batch]);
+        setProducts((previous) => [...previous, ...batch]);
+        setCurrentItems((previous) => [...previous, ...batch]);
       } catch (error) {
         console.error('Error carregant més dades del mercat:', error);
         setPageLoadError(
@@ -414,36 +394,6 @@ export default function MarketScreen() {
           </Pressable>
         )}
       </View>
-      <View style={styles.trackWrap}>
-        <View style={styles.track}>
-          {(['prices', 'news'] as Tab[]).map((key) => {
-            const active = tab === key;
-
-            return (
-              <Pressable
-                key={key}
-                testID={`market-tab-${key}`}
-                onPress={() => changeTab(key)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                style={[
-                  styles.segment,
-                  active ? styles.segmentOn : styles.segmentOff,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    { color: active ? '#fff' : colors.text },
-                  ]}
-                >
-                  {t(`market.${key}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
 
       <ScrollView
         style={styles.scroll}
@@ -458,128 +408,78 @@ export default function MarketScreen() {
           <Text style={styles.statusText}>Cercant...</Text>
         ) : searchError ? (
           <Text style={styles.statusText}>{searchError}</Text>
-        ) : tab === 'prices' ? (
-          visibleProducts.length > 0 ? (
-            visibleProducts.map((product) => (
-              <MarketImagePreview
-                key={product.id}
-                title={product.product}
-                imageUrl={product.image_url ?? product.url_image}
-                styles={styles}
-                testID={`product-item-${product.id}`}
-                accessibilityLabel={`Veure producte ${product.product}`}
-                onHover={(pageX, pageY) =>
-                  showImagePreview(
-                    product.product,
-                    product.image_url ?? product.url_image,
-                    pageX,
-                    pageY,
-                  )
-                }
-                onHoverOut={() => setHoverPreview(null)}
-                onPress={() => openProduct(product.id)}
-              >
-                <View style={styles.priceTop}>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      testID={`product-name-${product.id}`}
-                      style={styles.productName}
-                    >
-                      {product.product}
-                    </Text>
-
-                    <Text
-                      testID={`product-technical-name-${product.id}`}
-                      style={styles.detail}
-                    >
-                      {product.tecnical_name}
-                    </Text>
-                  </View>
-
-                  <View style={styles.priceMain}>
-                    <Text
-                      testID={`product-price-${product.id}`}
-                      style={styles.priceValue}
-                    >
-                      {Number(product.price).toFixed(2)} €
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.priceBottom}>
-                  <Text
-                    testID={`product-price-kg-${product.id}`}
-                    style={styles.smallInfo}
-                  >
-                    {Number(product.price_per_kg).toFixed(2)} €/kg
-                  </Text>
-
-                  <Text
-                    testID={`product-units-${product.id}`}
-                    style={styles.smallInfo}
-                  >
-                    {Number(product.left_units).toFixed(2)} {t('market.units')}
-                  </Text>
-
-                  <HeartbeatBuyButton
-                    product={product}
-                    label={t('market.buy')}
-                    styles={styles}
-                  />
-                </View>
-              </MarketImagePreview>
-            ))
-          ) : (
-            <Text style={styles.statusText}>No hi ha productes.</Text>
-          )
-        ) : visibleNews.length > 0 ? (
-          visibleNews.map((item) => (
+        ) : visibleProducts.length > 0 ? (
+          visibleProducts.map((product) => (
             <MarketImagePreview
-              key={item.id}
-              title={item.title}
-              imageUrl={item.image_url ?? item.url_image}
+              key={product.id}
+              title={product.product}
+              imageUrl={product.image_url ?? product.url_image}
               styles={styles}
-              testID={`news-item-${item.id}`}
-              accessibilityLabel={`Llegir noticia: ${item.title}`}
-              pressedOpacity={0.75}
+              testID={`product-item-${product.id}`}
+              accessibilityLabel={`Veure producte ${product.product}`}
               onHover={(pageX, pageY) =>
                 showImagePreview(
-                  item.title,
-                  item.image_url ?? item.url_image,
+                  product.product,
+                  product.image_url ?? product.url_image,
                   pageX,
                   pageY,
                 )
               }
               onHoverOut={() => setHoverPreview(null)}
-              onPress={() =>
-                router.push({
-                  pathname: '/news/[id]',
-                  params: { id: String(item.id) },
-                })
-              }
+              onPress={() => openProduct(product.id)}
             >
-              <View style={styles.chip}>
-                <Text
-                  testID={`news-subtitle-${item.id}`}
-                  style={styles.chipText}
-                >
-                  {item.subtile}
-                </Text>
+              <View style={styles.priceTop}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    testID={`product-name-${product.id}`}
+                    style={styles.productName}
+                  >
+                    {product.product}
+                  </Text>
+
+                  <Text
+                    testID={`product-technical-name-${product.id}`}
+                    style={styles.detail}
+                  >
+                    {product.tecnical_name}
+                  </Text>
+                </View>
+
+                <View style={styles.priceMain}>
+                  <Text
+                    testID={`product-price-${product.id}`}
+                    style={styles.priceValue}
+                  >
+                    {Number(product.price).toFixed(2)} €
+                  </Text>
+                </View>
               </View>
 
-              <Text testID={`news-title-${item.id}`} style={styles.newsTitle}>
-                {item.title}
-              </Text>
+              <View style={styles.priceBottom}>
+                <Text
+                  testID={`product-price-kg-${product.id}`}
+                  style={styles.smallInfo}
+                >
+                  {Number(product.price_per_kg).toFixed(2)} €/kg
+                </Text>
 
-              <Text testID={`news-content-${item.id}`} style={styles.newsBody}>
-                {item.content}
-              </Text>
+                <Text
+                  testID={`product-units-${product.id}`}
+                  style={styles.smallInfo}
+                >
+                  {Number(product.left_units).toFixed(2)} {t('market.units')}
+                </Text>
 
-              <Text style={styles.source}>{item.agent}</Text>
+                <HeartbeatBuyButton
+                  product={product}
+                  label={t('market.buy')}
+                  styles={styles}
+                />
+              </View>
             </MarketImagePreview>
           ))
         ) : (
-          <Text style={styles.statusText}>No hi ha notícies.</Text>
+          <Text style={styles.statusText}>No hi ha productes.</Text>
         )}
       </ScrollView>
 
