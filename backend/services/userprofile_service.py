@@ -1,4 +1,3 @@
-
 from uuid import UUID
 
 from sqlalchemy import select
@@ -32,8 +31,6 @@ class UserProfileService:
         user_id: UUID,
     ) -> UserProfile | None:
 
-        result = await self._db.execute(
-            select(UserProfile).where(UserProfile.id == user_id)
-        )
+        result = await self._db.execute(select(UserProfile).where(UserProfile.id == user_id))
 
         return result.scalar_one_or_none()

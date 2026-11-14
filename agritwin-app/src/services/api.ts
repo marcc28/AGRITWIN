@@ -755,24 +755,20 @@ async function requireGeometrySupport(model: string, exclusions: boolean) {
   }
 }
 
-
 // --------------------------------------------------
 // FORGOT PASSWORD
 // --------------------------------------------------
 
 export async function forgotPassword(email: string): Promise<void> {
-  const response = await fetch(
-    `${API_URL}/api/v1/password/forget-password`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email.trim().toLowerCase(),
-      }),
+  const response = await fetch(`${API_URL}/api/v1/password/forget-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
-  );
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+    }),
+  });
 
   const data = await response.json().catch(() => ({}));
 

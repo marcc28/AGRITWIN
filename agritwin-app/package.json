@@ -12,7 +12,7 @@
     "dotenv": "^18.0.5",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~55.0.1",
-    "expo": "^55.0.31",
+    "expo": "~55.0.32",
     "expo-auth-session": "~55.0.19",
     "expo-constants": "~55.0.17",
     "expo-crypto": "~55.0.19",

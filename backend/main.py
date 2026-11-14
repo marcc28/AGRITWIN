@@ -108,6 +108,7 @@ app.include_router(
     forgot_password.page_router,
 )
 
+
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):
     return JSONResponse(content=None, status_code=200)

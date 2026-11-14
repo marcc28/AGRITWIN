@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Animated } from 'react-native';
 import { render, cleanup } from '@testing-library/react-native';
@@ -47,9 +46,7 @@ describe('AgritwinLoadingScreen', () => {
   });
 
   it('renders the AgriTwin title', () => {
-    const screen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const screen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     expect(screen.getByText('AgriTwin')).toBeTruthy();
   });
@@ -59,61 +56,43 @@ describe('AgritwinLoadingScreen', () => {
       <AgritwinLoadingScreen label="Preparant aplicació..." />,
     );
 
-    expect(
-      screen.getByText('Preparant aplicació...'),
-    ).toBeTruthy();
+    expect(screen.getByText('Preparant aplicació...')).toBeTruthy();
   });
 
   it('updates the displayed label when the prop changes', () => {
-    const screen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const screen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     expect(screen.getByText('Carregant...')).toBeTruthy();
 
-    screen.rerender(
-      <AgritwinLoadingScreen label="Connectant..." />,
-    );
+    screen.rerender(<AgritwinLoadingScreen label="Connectant..." />);
 
     expect(screen.getByText('Connectant...')).toBeTruthy();
     expect(screen.queryByText('Carregant...')).toBeNull();
   });
 
   it('renders the background gradient', () => {
-    const screen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const screen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     expect(screen.getByTestId('loading-gradient')).toBeTruthy();
   });
 
   it('provides the correct accessibility label on the screen', () => {
-    const screen = render(
-      <AgritwinLoadingScreen label="Carregant dades..." />,
-    );
+    const screen = render(<AgritwinLoadingScreen label="Carregant dades..." />);
 
-    expect(
-      screen.getByLabelText('AgriTwin. Carregant dades...'),
-    ).toBeTruthy();
+    expect(screen.getByLabelText('AgriTwin. Carregant dades...')).toBeTruthy();
   });
 
   it('renders an accessible progress bar', () => {
-    const screen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const screen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     const progressBar = screen.getByRole('progressbar');
 
     expect(progressBar).toBeTruthy();
-    expect(progressBar.props.accessibilityLabel).toBe(
-      'AgriTwin. Carregant...',
-    );
+    expect(progressBar.props.accessibilityLabel).toBe('AgriTwin. Carregant...');
   });
 
   it('starts five looping animations', () => {
-    render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    render(<AgritwinLoadingScreen label="Carregant..." />);
 
     // Una animació de progrés + quatre estrelles.
     expect(loopSpy).toHaveBeenCalledTimes(5);
@@ -126,9 +105,7 @@ describe('AgritwinLoadingScreen', () => {
   });
 
   it('stops all animations when the component unmounts', () => {
-    const screen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const screen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     expect(animationMocks).toHaveLength(5);
 
@@ -140,23 +117,17 @@ describe('AgritwinLoadingScreen', () => {
   });
 
   it('does not restart animations when the label changes', () => {
-    const screen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const screen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     expect(loopSpy).toHaveBeenCalledTimes(5);
 
-    screen.rerender(
-      <AgritwinLoadingScreen label="Connectant..." />,
-    );
+    screen.rerender(<AgritwinLoadingScreen label="Connectant..." />);
 
     expect(loopSpy).toHaveBeenCalledTimes(5);
   });
 
   it('restarts animations after being mounted again', () => {
-    const firstScreen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const firstScreen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     expect(loopSpy).toHaveBeenCalledTimes(5);
 
@@ -166,9 +137,7 @@ describe('AgritwinLoadingScreen', () => {
       expect(animation.stop).toHaveBeenCalledTimes(1);
     });
 
-    const secondScreen = render(
-      <AgritwinLoadingScreen label="Carregant..." />,
-    );
+    const secondScreen = render(<AgritwinLoadingScreen label="Carregant..." />);
 
     expect(loopSpy).toHaveBeenCalledTimes(10);
 

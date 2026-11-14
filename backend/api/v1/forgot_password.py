@@ -1,13 +1,11 @@
-
 import logging
 import os
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
 import jwt
-
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -28,7 +26,6 @@ from models.password import (
 )
 from services.password_service import PasswordService
 
-
 # =====================================================
 # CONFIGURATION
 # =====================================================
@@ -46,9 +43,7 @@ ALGORITHM = "HS256"
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY no està configurada")
 
-RESET_TOKEN_EXPIRE_MINUTES = int(
-    os.getenv("FORGET_PASSWORD_LINK_EXPIRE_MINUTES", "15")
-)
+RESET_TOKEN_EXPIRE_MINUTES = int(os.getenv("FORGET_PASSWORD_LINK_EXPIRE_MINUTES", "15"))
 
 APP_HOST = os.getenv("APP_HOST")
 FORGET_PASSWORD_URL = os.getenv("FORGET_PASSWORD_URL")
@@ -61,25 +56,20 @@ BREVO_SENDER_NAME = os.getenv(
 )
 
 if not APP_HOST or not FORGET_PASSWORD_URL:
-    raise RuntimeError(
-        "APP_HOST i FORGET_PASSWORD_URL han d'estar configurats"
-    )
+    raise RuntimeError("APP_HOST i FORGET_PASSWORD_URL han d'estar configurats")
 
 if not BREVO_API_KEY or not BREVO_SENDER_EMAIL:
-    raise RuntimeError(
-        "BREVO_API_KEY i BREVO_SENDER_EMAIL han d'estar configurats"
-    )
+    raise RuntimeError("BREVO_API_KEY i BREVO_SENDER_EMAIL han d'estar configurats")
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
-TEMPLATES = Jinja2Templates(
-    directory=str(BASE_DIR / "templates")
-)
+TEMPLATES = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 # =====================================================
 # DATABASE
 # =====================================================
+
 
 async def get_db_session():
     async with AsyncSessionLocal() as session:
@@ -90,16 +80,15 @@ async def get_db_session():
 # JWT PASSWORD RESET
 # =====================================================
 
+
 def create_reset_password_token(email: str) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     payload = {
         "sub": email,
         "jti": str(uuid.uuid4()),
         "iat": now,
-        "exp": now + timedelta(
-            minutes=RESET_TOKEN_EXPIRE_MINUTES
-        ),
+        "exp": now + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES),
         "purpose": "password_reset",
     }
 
@@ -139,7 +128,7 @@ def decode_reset_password_token(token: str) -> dict | None:
             "jti": jti,
             "expires_at": datetime.fromtimestamp(
                 exp,
-                tz=timezone.utc,
+                tz=UTC,
             ),
         }
 
@@ -151,6 +140,7 @@ def decode_reset_password_token(token: str) -> dict | None:
 # BREVO HTTP EMAIL SERVICE
 # =====================================================
 
+
 async def send_password_reset_email(
     recipient: str,
     reset_link: str,
@@ -161,9 +151,7 @@ async def send_password_reset_email(
 
     try:
         # Renderitzar la plantilla HTML existent.
-        template = TEMPLATES.env.get_template(
-            "mail/password_reset.html"
-        )
+        template = TEMPLATES.env.get_template("mail/password_reset.html")
 
         html_content = template.render(
             company_name=BREVO_SENDER_NAME,
@@ -191,10 +179,7 @@ async def send_password_reset_email(
             "content-type": "application/json",
         }
 
-        async with httpx.AsyncClient(
-            timeout=20.0
-        ) as client:
-
+        async with httpx.AsyncClient(timeout=20.0) as client:
             response = await client.post(
                 "https://api.brevo.com/v3/smtp/email",
                 headers=headers,
@@ -233,6 +218,7 @@ async def send_password_reset_email(
 # FORGET PASSWORD
 # =====================================================
 
+
 @router.post("/forget-password")
 async def forget_password(
     request: ForgetPasswordRequest,
@@ -242,21 +228,13 @@ async def forget_password(
 
     service = PasswordService(db)
 
-    user = await service.get_user_by_email(
-        str(request.email)
-    )
+    user = await service.get_user_by_email(str(request.email))
 
     # No revelar si el correu està registrat.
     if user is not None:
+        token = create_reset_password_token(user.email)
 
-        token = create_reset_password_token(
-            user.email
-        )
-
-        reset_link = (
-            f"{APP_HOST.rstrip('/')}/"
-            f"{FORGET_PASSWORD_URL.strip('/')}/{token}"
-        )
+        reset_link = f"{APP_HOST.rstrip('/')}/{FORGET_PASSWORD_URL.strip('/')}/{token}"
 
         # Enviar el correu en segon pla mitjançant Brevo.
         background_tasks.add_task(
@@ -268,16 +246,14 @@ async def forget_password(
     return {
         "success": True,
         "status_code": status.HTTP_200_OK,
-        "message": (
-            "If the email is registered, "
-            "password reset instructions will be sent."
-        ),
+        "message": ("If the email is registered, password reset instructions will be sent."),
     }
 
 
 # =====================================================
 # RESET PASSWORD
 # =====================================================
+
 
 @router.post(
     "/reset-password",
@@ -288,9 +264,7 @@ async def reset_password(
     db: AsyncSession = Depends(get_db_session),
 ):
 
-    payload = decode_reset_password_token(
-        request.secret_token
-    )
+    payload = decode_reset_password_token(request.secret_token)
 
     if payload is None:
         raise HTTPException(
@@ -354,6 +328,7 @@ async def reset_password(
 # RESET PASSWORD HTML PAGE
 # =====================================================
 
+
 @page_router.get(
     "/reset-password/{token}",
     name="reset_password_page",
@@ -372,8 +347,7 @@ async def reset_password_page(
             context={
                 "token": "",
                 "error": (
-                    "L'enllaç és invàlid o ha caducat. "
-                    "Sol·licita un nou correu de recuperació."
+                    "L'enllaç és invàlid o ha caducat. Sol·licita un nou correu de recuperació."
                 ),
             },
             status_code=400,

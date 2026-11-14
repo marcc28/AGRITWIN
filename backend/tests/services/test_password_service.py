@@ -1,5 +1,4 @@
-
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -7,10 +6,10 @@ import pytest
 import services.password_service as password_service_module
 from services.password_service import PasswordService
 
-
 # =====================================================
 # HELPERS
 # =====================================================
+
 
 def mock_result(scalar=None):
     result = MagicMock()
@@ -45,12 +44,13 @@ def service(db):
 
 @pytest.fixture
 def valid_expiration():
-    return datetime.now(timezone.utc) + timedelta(minutes=15)
+    return datetime.now(UTC) + timedelta(minutes=15)
 
 
 # =====================================================
 # GET USER BY EMAIL
 # =====================================================
+
 
 @pytest.mark.asyncio
 async def test_get_user_by_email_returns_user(db, service):
@@ -92,6 +92,7 @@ async def test_get_user_by_email_database_error(db, service):
 # UPDATE PASSWORD - SUCCESS
 # =====================================================
 
+
 @pytest.mark.asyncio
 async def test_update_password_success(
     db,
@@ -125,9 +126,7 @@ async def test_update_password_success(
     assert result == "updated"
     assert user.password_hash == "new-hashed-password"
 
-    service.get_user_by_email.assert_awaited_once_with(
-        "joan@test.com"
-    )
+    service.get_user_by_email.assert_awaited_once_with("joan@test.com")
 
     db.execute.assert_awaited_once()
     db.commit.assert_awaited_once()
@@ -137,9 +136,7 @@ async def test_update_password_success(
         "new-password-123",
         "old-hashed-password",
     )
-    hash_mock.hash.assert_called_once_with(
-        "new-password-123"
-    )
+    hash_mock.hash.assert_called_once_with("new-password-123")
 
 
 @pytest.mark.asyncio
@@ -182,6 +179,7 @@ async def test_update_password_success_without_existing_hash(
 # UPDATE PASSWORD - VALIDATION
 # =====================================================
 
+
 @pytest.mark.asyncio
 async def test_update_password_user_not_found(
     db,
@@ -199,9 +197,7 @@ async def test_update_password_user_not_found(
 
     assert result == "not_found"
 
-    service.get_user_by_email.assert_awaited_once_with(
-        "unknown@test.com"
-    )
+    service.get_user_by_email.assert_awaited_once_with("unknown@test.com")
 
     db.execute.assert_not_awaited()
     db.commit.assert_not_awaited()
@@ -293,15 +289,14 @@ async def test_update_password_token_already_used(
 # UPDATE PASSWORD - DATABASE ERRORS
 # =====================================================
 
+
 @pytest.mark.asyncio
 async def test_update_password_error_while_getting_user(
     db,
     service,
     valid_expiration,
 ):
-    service.get_user_by_email = AsyncMock(
-        side_effect=RuntimeError("User query failed")
-    )
+    service.get_user_by_email = AsyncMock(side_effect=RuntimeError("User query failed"))
 
     with pytest.raises(RuntimeError, match="User query failed"):
         await service.update_password(

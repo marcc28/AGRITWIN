@@ -16,9 +16,7 @@ class PasswordService:
         self._db = session
 
     async def get_user_by_email(self, email: str) -> User | None:
-        result = await self._db.execute(
-            select(User).where(User.email == email)
-        )
+        result = await self._db.execute(select(User).where(User.email == email))
 
         return result.scalar_one_or_none()
 
@@ -38,12 +36,9 @@ class PasswordService:
                 return "not_found"
 
             # Evitar reutilitzar la contrasenya actual.
-            if (
-                user.password_hash
-                and password_hash.verify(
-                    new_password,
-                    user.password_hash,
-                )
+            if user.password_hash and password_hash.verify(
+                new_password,
+                user.password_hash,
             ):
                 return "same_password"
 
@@ -57,9 +52,7 @@ class PasswordService:
                     user_id=user.id,
                     expires_at=expires_at,
                 )
-                .on_conflict_do_nothing(
-                    index_elements=["jti"]
-                )
+                .on_conflict_do_nothing(index_elements=["jti"])
                 .returning(UsedPasswordResetToken.id)
             )
 

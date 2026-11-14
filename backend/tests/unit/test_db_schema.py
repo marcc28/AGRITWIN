@@ -29,8 +29,9 @@ def test_schema_registers_all_expected_tables():
         "crops",
         "field_crops",
         "field_recommendations",
-        "used_password_reset_tokens",  
+        "used_password_reset_tokens",
     }
+
 
 def test_social_auth_ticket_schema_supports_expiring_one_time_tickets():
     table = SocialAuthTicket.__table__
@@ -113,6 +114,7 @@ def test_auth_provider_uniqueness_prevents_duplicate_external_accounts():
     }
 
     assert ("provider", "provider_user_id") in unique_columns
+
 
 def test_used_password_reset_token_schema():
     table = UsedPasswordResetToken.__table__

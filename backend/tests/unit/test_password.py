@@ -1,6 +1,5 @@
-
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import httpx
@@ -28,6 +27,7 @@ from models.password import (
 # HELPERS
 # =====================================================
 
+
 @pytest.fixture
 def db():
     return MagicMock()
@@ -54,7 +54,7 @@ def create_token(
     expires_delta=15,
     jti="test-jti",
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     payload = {
         "sub": email,
@@ -87,10 +87,9 @@ def reset_request(
 # JWT TOKEN TESTS
 # =====================================================
 
+
 def test_create_reset_password_token():
-    token = password_routes.create_reset_password_token(
-        "joan@test.com"
-    )
+    token = password_routes.create_reset_password_token("joan@test.com")
 
     payload = password_routes.decode_reset_password_token(token)
 
@@ -99,16 +98,12 @@ def test_create_reset_password_token():
     assert isinstance(payload["jti"], str)
     assert payload["jti"]
     assert isinstance(payload["expires_at"], datetime)
-    assert payload["expires_at"].tzinfo == timezone.utc
+    assert payload["expires_at"].tzinfo == UTC
 
 
 def test_create_reset_password_token_generates_unique_jti():
-    token1 = password_routes.create_reset_password_token(
-        "joan@test.com"
-    )
-    token2 = password_routes.create_reset_password_token(
-        "joan@test.com"
-    )
+    token1 = password_routes.create_reset_password_token("joan@test.com")
+    token2 = password_routes.create_reset_password_token("joan@test.com")
 
     payload1 = password_routes.decode_reset_password_token(token1)
     payload2 = password_routes.decode_reset_password_token(token2)
@@ -117,9 +112,7 @@ def test_create_reset_password_token_generates_unique_jti():
 
 
 def test_decode_reset_password_token_invalid():
-    result = password_routes.decode_reset_password_token(
-        "invalid-token"
-    )
+    result = password_routes.decode_reset_password_token("invalid-token")
 
     assert result is None
 
@@ -145,9 +138,8 @@ def test_decode_reset_password_token_wrong_secret():
         {
             "sub": "joan@test.com",
             "jti": "test-jti",
-            "iat": datetime.now(timezone.utc),
-            "exp": datetime.now(timezone.utc)
-            + timedelta(minutes=15),
+            "iat": datetime.now(UTC),
+            "exp": datetime.now(UTC) + timedelta(minutes=15),
             "purpose": "password_reset",
         },
         "another-secret",
@@ -162,6 +154,7 @@ def test_decode_reset_password_token_wrong_secret():
 # =====================================================
 # FORGET PASSWORD TESTS
 # =====================================================
+
 
 @pytest.mark.asyncio
 async def test_forget_password_existing_user(
@@ -183,9 +176,7 @@ async def test_forget_password_existing_user(
 
     background_tasks = BackgroundTasks()
 
-    request = ForgetPasswordRequest(
-        email="joan@test.com"
-    )
+    request = ForgetPasswordRequest(email="joan@test.com")
 
     result = await password_routes.forget_password(
         request=request,
@@ -196,13 +187,9 @@ async def test_forget_password_existing_user(
     assert result["success"] is True
     assert result["status_code"] == 200
 
-    service.get_user_by_email.assert_awaited_once_with(
-        "joan@test.com"
-    )
+    service.get_user_by_email.assert_awaited_once_with("joan@test.com")
 
-    create_token_mock.assert_called_once_with(
-        "joan@test.com"
-    )
+    create_token_mock.assert_called_once_with("joan@test.com")
 
     assert len(background_tasks.tasks) == 1
 
@@ -210,9 +197,7 @@ async def test_forget_password_existing_user(
 
     assert task.func == password_routes.send_password_reset_email
     assert task.args[0] == "joan@test.com"
-    assert task.args[1].endswith(
-        "/reset-password/generated-token"
-    )
+    assert task.args[1].endswith("/reset-password/generated-token")
 
 
 @pytest.mark.asyncio
@@ -232,9 +217,7 @@ async def test_forget_password_nonexistent_user(
 
     background_tasks = BackgroundTasks()
 
-    request = ForgetPasswordRequest(
-        email="unknown@test.com"
-    )
+    request = ForgetPasswordRequest(email="unknown@test.com")
 
     result = await password_routes.forget_password(
         request=request,
@@ -245,9 +228,7 @@ async def test_forget_password_nonexistent_user(
     assert result["success"] is True
     assert result["status_code"] == 200
 
-    service.get_user_by_email.assert_awaited_once_with(
-        "unknown@test.com"
-    )
+    service.get_user_by_email.assert_awaited_once_with("unknown@test.com")
 
     create_token_mock.assert_not_called()
     assert len(background_tasks.tasks) == 0
@@ -266,12 +247,8 @@ async def test_forget_password_does_not_reveal_user_existence(
         None,
     ]
 
-    request_existing = ForgetPasswordRequest(
-        email="joan@test.com"
-    )
-    request_missing = ForgetPasswordRequest(
-        email="unknown@test.com"
-    )
+    request_existing = ForgetPasswordRequest(email="joan@test.com")
+    request_missing = ForgetPasswordRequest(email="unknown@test.com")
 
     result_existing = await password_routes.forget_password(
         request_existing,
@@ -291,6 +268,7 @@ async def test_forget_password_does_not_reveal_user_existence(
 # =====================================================
 # RESET PASSWORD TESTS
 # =====================================================
+
 
 @pytest.mark.asyncio
 async def test_reset_password_success(db, service):
@@ -430,9 +408,7 @@ async def test_reset_password_same_password(db, service):
         )
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == (
-        "New password cannot be the same as the current password"
-    )
+    assert exc.value.detail == ("New password cannot be the same as the current password")
 
 
 @pytest.mark.asyncio
@@ -475,13 +451,12 @@ async def test_reset_password_unexpected_service_result(db, service):
 # BREVO EMAIL TESTS
 # =====================================================
 
+
 @pytest.mark.asyncio
 async def test_send_password_reset_email_success(monkeypatch):
     response = MagicMock()
     response.raise_for_status = MagicMock()
-    response.json.return_value = {
-        "messageId": "test-message-123"
-    }
+    response.json.return_value = {"messageId": "test-message-123"}
 
     post_mock = AsyncMock(return_value=response)
 
@@ -528,9 +503,7 @@ async def test_send_password_reset_email_success(monkeypatch):
     payload = args.kwargs["json"]
 
     assert payload["to"][0]["email"] == "joan@test.com"
-    assert payload["sender"]["email"] == (
-        password_routes.BREVO_SENDER_EMAIL
-    )
+    assert payload["sender"]["email"] == (password_routes.BREVO_SENDER_EMAIL)
     assert payload["htmlContent"] == "<html>Reset password</html>"
 
 
@@ -586,15 +559,14 @@ async def test_send_password_reset_email_http_error(monkeypatch):
 # RESET PASSWORD HTML PAGE TESTS
 # =====================================================
 
+
 @pytest.mark.asyncio
 async def test_reset_password_page_valid_token(monkeypatch):
     token = create_token()
 
     template_response = MagicMock()
 
-    template_response_mock = MagicMock(
-        return_value=template_response
-    )
+    template_response_mock = MagicMock(return_value=template_response)
 
     monkeypatch.setattr(
         password_routes.TEMPLATES,
@@ -622,9 +594,7 @@ async def test_reset_password_page_valid_token(monkeypatch):
 async def test_reset_password_page_invalid_token(monkeypatch):
     template_response = MagicMock()
 
-    template_response_mock = MagicMock(
-        return_value=template_response
-    )
+    template_response_mock = MagicMock(return_value=template_response)
 
     monkeypatch.setattr(
         password_routes.TEMPLATES,
