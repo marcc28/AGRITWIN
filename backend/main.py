@@ -18,6 +18,7 @@ from api.v1 import (
     fb_auth,
     field_recommendations,
     fields,
+    forgot_password,
     google_auth,
     legal,
     payments,
@@ -99,7 +100,13 @@ app.include_router(
 
 app.include_router(crops_field.router, prefix="/api/v1/crops")
 app.include_router(crops.router, prefix="/api/v1")
+app.include_router(forgot_password.router, prefix="/api/v1")
 
+
+# Pàgina HTML de recuperació
+app.include_router(
+    forgot_password.page_router,
+)
 
 @app.api_route("/ping", methods=["GET", "HEAD"])
 def ping(request: Request):
