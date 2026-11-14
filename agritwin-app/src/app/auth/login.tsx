@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   Pressable,
@@ -129,7 +130,7 @@ export default function LoginScreen() {
           editable={!loading}
         />
 
-        <View style={styles.buttonsContainer}>
+        <View style={styles.loginButtonContainer}>
           <Pressable
             testID="login-button"
             style={styles.buttonWrapper}
@@ -137,9 +138,11 @@ export default function LoginScreen() {
             disabled={loading}
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {loading ? t('login.loggingIn') : t('login.logIn')}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>{t('login.logIn')}</Text>
+              )}
             </LinearGradient>
           </Pressable>
         </View>
@@ -152,17 +155,23 @@ export default function LoginScreen() {
             title={t('login.socialLogin')}
           />
         </View>
+        {/* FORGOT PASSWORD */}
+        <Pressable
+          testID="forgot-password-link"
+          onPress={() => router.push('/auth/forgot-password')}
+          disabled={loading}
+        >
+          <Text style={styles.linkText}>Has oblidat la contrasenya?</Text>
+        </Pressable>
+        <View style={styles.signUpTextContainer}>
+          <Text style={styles.signUpNormalText}>{t('login.noAccount')} </Text>
 
-        <View style={styles.buttonsContainer}>
           <Pressable
             testID="signup-button"
-            style={styles.buttonWrapper}
             onPress={handleSignUp}
             disabled={loading}
           >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>{t('login.signUp')}</Text>
-            </LinearGradient>
+            <Text style={styles.signUpLinkText}>{t('login.signUp')}</Text>
           </Pressable>
         </View>
       </View>

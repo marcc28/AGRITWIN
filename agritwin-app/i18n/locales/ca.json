@@ -53,7 +53,8 @@
       "username": "Introdueix el nom d'usuari",
       "password": "Introdueix la contrasenya",
       "invalidCredentials": "Contrasenya incorrecta. Fes sign up si no tens compte."
-    }
+    },
+    "noAccount": "Encara no tens compte?"
   },
   "signup": {
     "title": "Crear compte",
@@ -67,6 +68,7 @@
     "logIn": "Iniciar sessió",
     "signUp": "Crear compte",
     "creatingAccount": "Creant compte...",
+    "alreadyHaveAccount": "Ja tens un compte?",
     "success": "El compte s'ha creat correctament",
     "errors": {
       "requiredFields": "Omple tots els camps",
@@ -585,6 +587,21 @@
       "already_registered_elsewhere": "Aquesta placa ja està vinculada a un altre camp.",
       "registration_failed": "Placa connectada, però no s'ha pogut desar. Torna-ho a provar.",
       "unknown": "Alguna cosa ha anat malament. Torna-ho a provar."
+    }
+  },
+  "forgotPassword": {
+    "title": "Recuperar contrasenya",
+    "subtitle": "Introdueix el teu correu electrònic i t'enviarem un enllaç per restablir la contrasenya.",
+    "email": "Correu electrònic",
+    "send": "Enviar correu de recuperació",
+    "sending": "Enviant...",
+    "back": "Tornar al login",
+    "successTitle": "Correu enviat",
+    "success": "Si el correu està registrat, rebràs un enllaç per recuperar la contrasenya.",
+    "errors": {
+      "required": "Introdueix el teu correu electrònic.",
+      "invalidEmail": "Introdueix un correu electrònic vàlid.",
+      "sendFailed": "No s'ha pogut enviar el correu de recuperació."
     }
   }
 }

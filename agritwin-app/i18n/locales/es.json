@@ -53,7 +53,8 @@
       "username": "Introduce el nombre de usuario",
       "password": "Introduce la contraseña",
       "invalidCredentials": "Contraseña incorrecta. Regístrate si no tienes una cuenta."
-    }
+    },
+    "noAccount": "¿No tienes una cuenta?"
   },
   "signup": {
     "title": "Crear cuenta",
@@ -67,6 +68,7 @@
     "logIn": "Iniciar sesión",
     "signUp": "Crear cuenta",
     "creatingAccount": "Creando cuenta...",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
     "success": "La cuenta se ha creado correctamente",
     "errors": {
       "requiredFields": "Rellena todos los campos",
@@ -585,6 +587,21 @@
       "already_registered_elsewhere": "Esta placa ya está vinculada a otro campo.",
       "registration_failed": "Placa conectada, pero no se ha podido guardar. Inténtalo de nuevo.",
       "unknown": "Algo ha ido mal. Inténtalo de nuevo."
+    }
+  },
+  "forgotPassword": {
+    "title": "Recuperar contraseña",
+    "subtitle": "Introduce tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
+    "email": "Correo electrónico",
+    "send": "Enviar correo de recuperación",
+    "sending": "Enviando...",
+    "back": "Volver al inicio de sesión",
+    "successTitle": "Correo enviado",
+    "success": "Si el correo está registrado, recibirás un enlace para recuperar tu contraseña.",
+    "errors": {
+      "required": "Introduce tu correo electrónico.",
+      "invalidEmail": "Introduce un correo electrónico válido.",
+      "sendFailed": "No se ha podido enviar el correo de recuperación."
     }
   }
 }

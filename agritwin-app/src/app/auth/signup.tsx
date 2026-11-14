@@ -356,32 +356,8 @@ export default function SignupScreen() {
             </Text>
           </View>
         </View>
-        {/* Login social */}
-        <View testID="social-login" style={styles.socialContainer}>
-          <SocialLoginButtons
-            styles={styles}
-            loading={loading}
-            onLoadingChange={setLoading}
-            onError={setErrorMessage}
-            title={t('login.socialLogin')}
-          />
-        </View>
-
-        {/* Botons */}
+        {/* Botó principal Sign Up */}
         <View style={styles.buttonsContainer}>
-          {/* Login */}
-          <Pressable
-            testID="login-button"
-            style={styles.buttonWrapper}
-            onPress={handleLogIn}
-            disabled={loading}
-          >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>{t('signup.logIn')}</Text>
-            </LinearGradient>
-          </Pressable>
-
-          {/* Sign Up */}
           <Pressable
             testID="signup-button"
             style={styles.buttonWrapper}
@@ -389,76 +365,105 @@ export default function SignupScreen() {
             disabled={loading}
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {loading ? t('signup.creatingAccount') : t('signup.signUp')}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>{t('signup.signUp')}</Text>
+              )}
             </LinearGradient>
           </Pressable>
         </View>
-      </View>
 
-      {/* =====================================================
+        {/* Login social */}
+        <SocialLoginButtons
+          styles={styles}
+          loading={loading}
+          onLoadingChange={setLoading}
+          onError={setErrorMessage}
+          title={t('login.socialLogin')}
+        />
+
+        {/* Enllaç per iniciar sessió */}
+        <View style={styles.signUpTextContainer}>
+          <Text style={styles.signUpNormalText}>
+            {t('signup.alreadyHaveAccount')}{' '}
+          </Text>
+
+          <Pressable
+            testID="login-button"
+            onPress={handleLogIn}
+            disabled={loading}
+          >
+            <Text style={styles.signUpLinkText}>{t('signup.logIn')}</Text>
+          </Pressable>
+        </View>
+
+        {/* =====================================================
           LEGAL MODAL
           ===================================================== */}
 
-      <Modal
-        visible={legalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeLegalDocument}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <View style={styles.modalTitleContainer}>
-                <Text style={styles.modalTitle}>{legalTitle}</Text>
+        <Modal
+          visible={legalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={closeLegalDocument}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <View style={styles.modalTitleContainer}>
+                  <Text style={styles.modalTitle}>{legalTitle}</Text>
 
-                {legalVersion !== '' && (
-                  <Text style={styles.modalVersion}>
-                    Version {legalVersion}
-                  </Text>
-                )}
+                  {legalVersion !== '' && (
+                    <Text style={styles.modalVersion}>
+                      Version {legalVersion}
+                    </Text>
+                  )}
+                </View>
+
+                <Pressable
+                  onPress={closeLegalDocument}
+                  style={styles.modalCloseButton}
+                >
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </Pressable>
               </View>
 
+              {/* Contingut */}
+              {legalLoading ? (
+                <View style={styles.modalLoading}>
+                  <ActivityIndicator size="large" />
+
+                  <Text style={styles.modalLoadingText}>
+                    Carregant document...
+                  </Text>
+                </View>
+              ) : legalError !== '' ? (
+                <View style={styles.modalError}>
+                  <Text style={styles.modalErrorText}>{legalError}</Text>
+                </View>
+              ) : (
+                <ScrollView
+                  style={styles.modalScroll}
+                  contentContainerStyle={styles.modalScrollContent}
+                  showsVerticalScrollIndicator={true}
+                >
+                  <Text style={styles.legalDocumentText}>{legalContent}</Text>
+                </ScrollView>
+              )}
+
+              {/* Footer */}
               <Pressable
+                style={styles.modalButton}
                 onPress={closeLegalDocument}
-                style={styles.modalCloseButton}
               >
-                <Text style={styles.modalCloseText}>✕</Text>
+                <Text style={styles.modalButtonText}>Tancar</Text>
               </Pressable>
             </View>
-
-            {/* Contingut */}
-            {legalLoading ? (
-              <View style={styles.modalLoading}>
-                <ActivityIndicator size="large" />
-
-                <Text style={styles.modalLoadingText}>
-                  Carregant document...
-                </Text>
-              </View>
-            ) : legalError !== '' ? (
-              <View style={styles.modalError}>
-                <Text style={styles.modalErrorText}>{legalError}</Text>
-              </View>
-            ) : (
-              <ScrollView
-                style={styles.modalScroll}
-                contentContainerStyle={styles.modalScrollContent}
-                showsVerticalScrollIndicator={true}
-              >
-                <Text style={styles.legalDocumentText}>{legalContent}</Text>
-              </ScrollView>
-            )}
-
-            {/* Footer */}
-            <Pressable style={styles.modalButton} onPress={closeLegalDocument}>
-              <Text style={styles.modalButtonText}>Tancar</Text>
-            </Pressable>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </View>
     </View>
   );
 }

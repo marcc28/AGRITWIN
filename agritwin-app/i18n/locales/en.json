@@ -53,7 +53,8 @@
       "username": "Enter your username",
       "password": "Enter your password",
       "invalidCredentials": "Incorrect password. Sign up if you don't have an account."
-    }
+    },
+    "noAccount": "Don't have an account?"
   },
   "signup": {
     "title": "Create account",
@@ -68,6 +69,7 @@
     "signUp": "Create account",
     "creatingAccount": "Creating account...",
     "success": "Account created successfully",
+    "alreadyHaveAccount": "Already have an account?",
     "errors": {
       "requiredFields": "Fill in all fields",
       "invalidEmail": "Invalid email format",
@@ -585,6 +587,21 @@
       "already_registered_elsewhere": "This board is already linked to another field.",
       "registration_failed": "Board connected, but it could not be saved. Try again.",
       "unknown": "Something went wrong. Try again."
+    }
+  },
+  "forgotPassword": {
+    "title": "Recover password",
+    "subtitle": "Enter your email address and we will send you a link to reset your password.",
+    "email": "Email address",
+    "send": "Send recovery email",
+    "sending": "Sending...",
+    "back": "Back to login",
+    "successTitle": "Email sent",
+    "success": "If the email is registered, you will receive a password recovery link.",
+    "errors": {
+      "required": "Please enter your email address.",
+      "invalidEmail": "Please enter a valid email address.",
+      "sendFailed": "Could not send the recovery email."
     }
   }
 }

@@ -35,7 +35,7 @@ export const Colors = {
     successBackground: '#E2EEE4',
     successBorder: '#B5CFB7',
     successText: '#46614F',
-
+    link:'#27834D',
     overlay: 'rgba(0, 0, 0, 0.5)',
   },
 
