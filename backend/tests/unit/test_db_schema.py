@@ -9,6 +9,7 @@ from db.schema import (
     FieldRecommendation,
     JSONType,
     SocialAuthTicket,
+    UsedPasswordResetToken,
 )
 
 
@@ -28,8 +29,8 @@ def test_schema_registers_all_expected_tables():
         "crops",
         "field_crops",
         "field_recommendations",
+        "used_password_reset_tokens",  
     }
-
 
 def test_social_auth_ticket_schema_supports_expiring_one_time_tickets():
     table = SocialAuthTicket.__table__
@@ -112,3 +113,26 @@ def test_auth_provider_uniqueness_prevents_duplicate_external_accounts():
     }
 
     assert ("provider", "provider_user_id") in unique_columns
+
+def test_used_password_reset_token_schema():
+    table = UsedPasswordResetToken.__table__
+
+    assert table.name == "used_password_reset_tokens"
+
+    assert table.c.id.primary_key
+    assert table.c.id.autoincrement is True
+
+    assert table.c.jti.type.length == 36
+    assert table.c.jti.nullable is False
+    assert table.c.jti.unique is True
+
+    assert table.c.user_id.nullable is False
+    assert table.c.user_id.foreign_keys
+
+    foreign_key = next(iter(table.c.user_id.foreign_keys))
+    assert foreign_key.target_fullname == "users.id"
+    assert foreign_key.ondelete == "CASCADE"
+
+    assert table.c.expires_at.nullable is False
+    assert table.c.created_at.nullable is False
+    assert table.c.created_at.server_default is not None
