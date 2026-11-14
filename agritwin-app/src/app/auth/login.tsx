@@ -19,6 +19,7 @@ import { setAuth } from '../../services/auth';
 import { routeAfterAuth } from '../../services/routeAfterAuth';
 import { Gradients } from '../../constants/theme';
 import SocialLoginButtons from '../../components/SocialLoginButtons';
+import AgritwinLoadingScreen from '../../components/AgritwinLoadingScreen';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   async function handleLogin() {
     setErrorMessage('');
@@ -50,6 +52,7 @@ export default function LoginScreen() {
 
     try {
       setLoading(true);
+      setLoginLoading(true);
 
       const data = await login(trimmedUsername, trimmedPassword);
 
@@ -65,6 +68,7 @@ export default function LoginScreen() {
       setErrorMessage(message);
     } finally {
       setLoading(false);
+      setLoginLoading(false);
     }
   }
 
@@ -86,6 +90,10 @@ export default function LoginScreen() {
     if (errorMessage) {
       setErrorMessage('');
     }
+  }
+
+  if (loginLoading) {
+    return <AgritwinLoadingScreen label={t('login.loggingIn')} />;
   }
 
   return (
