@@ -24,7 +24,7 @@ SPRINT 1,Implement Multilanguage on APP,4,flaviaserret04,4,100%,60,60,60,0,,,,,,
 SPRINT 1,Implement SignUp System,13,flaviaserret04,13,100%,195,195,195,0,,,,,,,,
 SPRINT 1,MockUp Figma,15,marcc28,16,100%,225,240,225,-15,,,,,,,,
 SPRINT 1,Risk Analysis,7,marcc28,7,100%,105,105,105,0,,,,,,,,
-SPRINT 2,Add a device to a field,22,Tigre44 & ainhoaaf,22,50%,330,330,165,0,,,,,,,,
+SPRINT 2,Add a device to a field,22,Tigre44 & ainhoaaf,22,75%,330,330,247.5,0,,,,,,,,
 SPRINT 2,AI crop recommendation,11,flaviaserret04,11,100%,165,165,165,0,,,,,,,,
 SPRINT 2,Crop recommendation on the profile page,0,flaviaserret04,0,0%,0,0,0,0,,,,,,,,
 SPRINT 2,Field location on a map,13,marcc28,13,100%,195,195,195,0,,,,,,,,
@@ -42,4 +42,4 @@ SPRINT 2,"Security of the data, the broker and the API",17,marcc28,0,0%,255,0,0,
 SPRINT 2,Task list for the current garden,25,ainhoaaf,0,0%,375,0,0,375,,,,,,,,
 SPRINT 2,Weather alerts for the current garden,9,atnic15,7.5,100%,135,112.5,135,22.5,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,189.4,,144.5,,2841,2167.5,1890,673.5,10168,0.871972,0.665259,-277.5,-951,11660.920635,9493.420635,-1492.920635
+SPRINT 2,TOTAL SPRINT 2,189.4,,144.5,,2841,2167.5,1972.5,673.5,10168,0.910035,0.694298,-195,-868.5,11173.201521,9005.701521,-1005.201521
