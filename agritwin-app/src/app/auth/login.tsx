@@ -129,6 +129,20 @@ export default function LoginScreen() {
           editable={!loading}
         />
 
+        <View style={styles.buttonsContainer}>
+          <Pressable
+            testID="login-button"
+            style={styles.buttonWrapper}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
+              <Text style={styles.buttonText}>
+                {loading ? t('login.loggingIn') : t('login.logIn')}
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        </View>
         <View testID="social-login" style={styles.socialContainer}>
           <SocialLoginButtons
             styles={styles}
@@ -148,19 +162,6 @@ export default function LoginScreen() {
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>{t('login.signUp')}</Text>
-            </LinearGradient>
-          </Pressable>
-
-          <Pressable
-            testID="login-button"
-            style={styles.buttonWrapper}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {loading ? t('login.loggingIn') : t('login.logIn')}
-              </Text>
             </LinearGradient>
           </Pressable>
         </View>

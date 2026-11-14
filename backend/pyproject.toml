@@ -30,7 +30,7 @@ dependencies = [
     "mangum>=0.22.0",
     "stripe>=16.0.1",
     "google-genai>=2.33.0",
-    "fastapi-mail>=1.6.8",
+    "resend>=2.53.2",
 ]
 
 [dependency-groups]

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -357,7 +356,6 @@ export default function SignupScreen() {
             </Text>
           </View>
         </View>
-
         {/* Login social */}
         <View testID="social-login" style={styles.socialContainer}>
           <SocialLoginButtons
@@ -392,7 +390,6 @@ export default function SignupScreen() {
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
               <Text style={styles.buttonText}>
-                <Text style={styles.buttonText}>{}</Text>
                 {loading ? t('signup.creatingAccount') : t('signup.signUp')}
               </Text>
             </LinearGradient>
