@@ -42,7 +42,7 @@ export default function AgritwinLoadingScreen({ label }: { label: string }) {
   });
 
   return (
-    <View style={styles.screen} accessibilityLabel={`AgriTwin. ${label}`}>
+    <View style={styles.screen}>
       <LinearGradient
         colors={['#72C6E8', '#B7E0D0', '#E8C879']}
         locations={[0, 0.58, 1]}
@@ -98,6 +98,7 @@ export default function AgritwinLoadingScreen({ label }: { label: string }) {
         </Text>
         <View
           style={styles.progressTrack}
+          accessible
           accessibilityRole="progressbar"
           accessibilityLabel={`AgriTwin. ${label}`}
         >

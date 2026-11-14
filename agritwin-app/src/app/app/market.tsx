@@ -265,7 +265,6 @@ export default function MarketScreen() {
       setSearching(false);
       setProducts(allProducts);
       setCurrentItems(allProducts);
-      setPage(0);
 
       return () => {
         active = false;

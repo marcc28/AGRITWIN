@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import CalendarScreen from '@/app/app/calendar';
+import CloverScreen from '@/app/app/clover';
 
 jest.mock('expo-image', () => ({ Image: () => null }));
 jest.mock('expo-symbols', () => ({ SymbolView: () => null }));
