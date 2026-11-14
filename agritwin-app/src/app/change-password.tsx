@@ -72,6 +72,7 @@ function PasswordField({
   showLabel,
   disabled,
   hint,
+  testID,
 }: Readonly<{
   label: string;
   value: string;
@@ -83,6 +84,7 @@ function PasswordField({
   showLabel: string;
   disabled: boolean;
   hint?: string;
+  testID: string;
 }>) {
   return (
     <>
@@ -100,9 +102,11 @@ function PasswordField({
           editable={!disabled}
         />
         <Pressable
-          style={styles.eyeButton}
+          testID={testID}
           onPress={onToggle}
+          accessibilityRole="button"
           accessibilityLabel={shown ? hideLabel : showLabel}
+          disabled={disabled}
         >
           <Ionicons
             name={shown ? 'eye-off-outline' : 'eye-outline'}
@@ -219,6 +223,7 @@ export default function ChangePasswordScreen() {
 
               <View style={styles.card}>
                 <PasswordField
+                  testID="current-password-toggle"
                   label={t('settings.passwordScreen.current')}
                   value={currentPassword}
                   onChange={setCurrentPassword}
@@ -230,6 +235,7 @@ export default function ChangePasswordScreen() {
                   disabled={saving}
                 />
                 <PasswordField
+                  testID="new-password-toggle"
                   label={t('settings.passwordScreen.new')}
                   value={newPassword}
                   onChange={setNewPassword}
@@ -242,6 +248,7 @@ export default function ChangePasswordScreen() {
                   hint={t('settings.passwordScreen.hint')}
                 />
                 <PasswordField
+                  testID="confirm-password-toggle"
                   label={t('settings.passwordScreen.confirm')}
                   value={newPasswordConf}
                   onChange={setNewPasswordConf}
@@ -258,14 +265,11 @@ export default function ChangePasswordScreen() {
                 ) : null}
 
                 <Pressable
-                  style={[
-                    styles.saveButton,
-                    saving ? styles.saveButtonDisabled : null,
-                  ]}
-                  onPress={() => void handleSave()}
+                  testID="change-password-save-button"
+                  onPress={handleSave}
                   disabled={saving}
                 >
-                  <Text style={styles.saveText}>
+                  <Text>
                     {saving
                       ? t('settings.passwordScreen.saving')
                       : t('settings.passwordScreen.save')}

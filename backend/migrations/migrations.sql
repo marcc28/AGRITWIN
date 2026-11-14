@@ -584,3 +584,20 @@ CREATE TABLE IF NOT EXISTS social_auth_tickets (
 
 CREATE INDEX IF NOT EXISTS idx_social_auth_tickets_expires_at
     ON social_auth_tickets (expires_at);
+
+
+CREATE TABLE used_password_reset_tokens (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    jti VARCHAR(36) NOT NULL UNIQUE,
+    user_id UUID NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_used_password_reset_tokens_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_used_password_reset_tokens_expires_at
+ON used_password_reset_tokens(expires_at);

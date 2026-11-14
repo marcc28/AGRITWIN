@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
   },
 
   socialContainer: {
-    marginTop: 25,
+    marginTop: 8,
   },
 
   socialTitle: {
@@ -119,7 +119,7 @@ export const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 20,
+    marginTop: -15,
   },
 
   buttonWrapper: {
@@ -289,5 +289,22 @@ export const styles = StyleSheet.create({
     color: Colors.light.surface,
     fontSize: 16,
     fontWeight: '600',
+  },
+  signUpTextContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+  },
+
+  signUpNormalText: {
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+  },
+
+  signUpLinkText: {
+    color: Colors.light.link,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

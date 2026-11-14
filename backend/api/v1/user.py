@@ -20,10 +20,12 @@ router = APIRouter()
 BASE_URL = "http://localhost:8000/profile_images/"
 UPLOAD_DIR = "app/profile_images/"
 
+
 async def get_user_profile_service() -> UserProfileService:
     async with AsyncSessionLocal() as session:
         yield UserProfileService(session=session)
-        
+
+
 async def get_user_service() -> UserService:
     async with AsyncSessionLocal() as session:
         yield UserService(session=session)
@@ -51,6 +53,7 @@ async def get_user_profiles(
         offset=offset,
         nickname=nickname,
     )
+
 
 @router.post("/users", response_model=UserRead)
 async def create_user(

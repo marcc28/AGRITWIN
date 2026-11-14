@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   Pressable,
@@ -18,6 +19,7 @@ import { setAuth } from '../../services/auth';
 import { routeAfterAuth } from '../../services/routeAfterAuth';
 import { Gradients } from '../../constants/theme';
 import SocialLoginButtons from '../../components/SocialLoginButtons';
+import AgritwinLoadingScreen from '../../components/AgritwinLoadingScreen';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -25,6 +27,7 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   async function handleLogin() {
     setErrorMessage('');
@@ -49,6 +52,7 @@ export default function LoginScreen() {
 
     try {
       setLoading(true);
+      setLoginLoading(true);
 
       const data = await login(trimmedUsername, trimmedPassword);
 
@@ -64,6 +68,7 @@ export default function LoginScreen() {
       setErrorMessage(message);
     } finally {
       setLoading(false);
+      setLoginLoading(false);
     }
   }
 
@@ -85,6 +90,10 @@ export default function LoginScreen() {
     if (errorMessage) {
       setErrorMessage('');
     }
+  }
+
+  if (loginLoading) {
+    return <AgritwinLoadingScreen label={t('login.loggingIn')} />;
   }
 
   return (
@@ -129,6 +138,22 @@ export default function LoginScreen() {
           editable={!loading}
         />
 
+        <View style={styles.loginButtonContainer}>
+          <Pressable
+            testID="login-button"
+            style={styles.buttonWrapper}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <LinearGradient colors={Gradients.primary} style={styles.button}>
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>{t('login.logIn')}</Text>
+              )}
+            </LinearGradient>
+          </Pressable>
+        </View>
         <View testID="social-login" style={styles.socialContainer}>
           <SocialLoginButtons
             styles={styles}
@@ -138,30 +163,23 @@ export default function LoginScreen() {
             title={t('login.socialLogin')}
           />
         </View>
+        {/* FORGOT PASSWORD */}
+        <Pressable
+          testID="forgot-password-link"
+          onPress={() => router.push('/auth/forgot-password')}
+          disabled={loading}
+        >
+          <Text style={styles.linkText}>Has oblidat la contrasenya?</Text>
+        </Pressable>
+        <View style={styles.signUpTextContainer}>
+          <Text style={styles.signUpNormalText}>{t('login.noAccount')} </Text>
 
-        <View style={styles.buttonsContainer}>
           <Pressable
             testID="signup-button"
-            style={styles.buttonWrapper}
             onPress={handleSignUp}
             disabled={loading}
           >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>{t('login.signUp')}</Text>
-            </LinearGradient>
-          </Pressable>
-
-          <Pressable
-            testID="login-button"
-            style={styles.buttonWrapper}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {loading ? t('login.loggingIn') : t('login.logIn')}
-              </Text>
-            </LinearGradient>
+            <Text style={styles.signUpLinkText}>{t('login.signUp')}</Text>
           </Pressable>
         </View>
       </View>

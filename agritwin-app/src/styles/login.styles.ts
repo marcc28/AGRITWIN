@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
   },
-  socialContainer: { marginTop: 25 },
+  socialContainer: { marginTop: 8 },
   socialTitle: {
     textAlign: 'center',
     fontSize: 11,
@@ -114,4 +114,47 @@ export const styles = StyleSheet.create({
   },
   successText: { color: Colors.light.successText, fontSize: 14 },
   socialIcon: { width: 24, height: 24 },
+  linkText: {
+    color: Colors.light.link,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'right',
+    marginVertical: 8,
+    marginTop: 25,
+  },
+  signUpButton: {
+    height: 55,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.light.surfaceSecondary,
+  },
+  loginButtonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 35,
+  },
+
+  signUpButtonText: {
+    color: Colors.light.text,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  signUpTextContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+  },
+
+  signUpNormalText: {
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+  },
+
+  signUpLinkText: {
+    color: Colors.light.link,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
 });

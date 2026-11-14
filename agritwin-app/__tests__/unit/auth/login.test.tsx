@@ -40,16 +40,59 @@ jest.mock('../../../src/services/auth', () => ({
   setAuth: jest.fn(),
 }));
 
-jest.mock('expo-linear-gradient', () => ({
-  LinearGradient: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock('expo-linear-gradient', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  return {
+    LinearGradient: ({ children, ...props }: any) =>
+      React.createElement(View, props, children),
+  };
+});
+
+// Aïllem el component de càrrega per poder comprovar-ne la visualització.
+jest.mock('../../../src/components/AgritwinLoadingScreen', () => {
+  const React = require('react');
+  const { View, Text } = require('react-native');
+
+  return function MockAgritwinLoadingScreen({ label }: { label: string }) {
+    return (
+      <View testID="loading-screen">
+        <Text>{label}</Text>
+      </View>
+    );
+  };
+});
+
+// Aïllem els botons socials.
+jest.mock('../../../src/components/SocialLoginButtons', () => {
+  const React = require('react');
+  const { View, Pressable, Text } = require('react-native');
+
+  return function MockSocialLoginButtons() {
+    return (
+      <View>
+        <Pressable testID="google-button">
+          <Text>Google</Text>
+        </Pressable>
+
+        <Pressable testID="facebook-button">
+          <Text>Facebook</Text>
+        </Pressable>
+
+        <Pressable testID="x-button">
+          <Text>X</Text>
+        </Pressable>
+      </View>
+    );
+  };
+});
 
 jest.mock('../../../src/components/Alert', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
-  const { View, Text } =
-    jest.requireActual<typeof import('react-native')>('react-native');
+  const React = require('react');
+  const { View, Text } = require('react-native');
 
-  return function Alert({
+  return function MockAlert({
     title,
     children,
   }: {
@@ -74,13 +117,14 @@ const mockedSetAuth = setAuth as jest.MockedFunction<typeof setAuth>;
 
 const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
 
-const mockedRouterReplace = router.replace as jest.MockedFunction<
-  typeof router.replace
->;
-
 const mockedRouteAfterAuth = routeAfterAuth as jest.MockedFunction<
   typeof routeAfterAuth
 >;
+
+const successfulLoginResponse = {
+  access_token: 'access-token',
+  refresh_token: 'refresh-token',
+};
 
 describe('LoginScreen', () => {
   beforeEach(() => {
@@ -89,6 +133,9 @@ describe('LoginScreen', () => {
     mockedLogin.mockReset();
     mockedSetAuth.mockReset();
     mockedRouteAfterAuth.mockReset();
+
+    mockedSetAuth.mockResolvedValue(undefined);
+    mockedRouteAfterAuth.mockResolvedValue(undefined);
   });
 
   describe('rendering', () => {
@@ -103,16 +150,28 @@ describe('LoginScreen', () => {
 
       expect(screen.getByTestId('social-login')).toBeTruthy();
 
-      // Els proveïdors socials implementats actualment.
       expect(screen.getByTestId('google-button')).toBeTruthy();
       expect(screen.getByTestId('facebook-button')).toBeTruthy();
       expect(screen.getByTestId('x-button')).toBeTruthy();
 
-      expect(screen.queryByTestId('instagram-button')).toBeNull();
-      expect(screen.queryByTestId('twitter-button')).toBeNull();
-
       expect(screen.getByTestId('signup-button')).toBeTruthy();
       expect(screen.getByTestId('login-button')).toBeTruthy();
+
+      expect(screen.getByTestId('forgot-password-link')).toBeTruthy();
+    });
+
+    it('does not display the loading screen initially', () => {
+      render(<LoginScreen />);
+
+      expect(screen.queryByTestId('loading-screen')).toBeNull();
+    });
+
+    it('uses secure text entry for the password', () => {
+      render(<LoginScreen />);
+
+      expect(screen.getByTestId('password-input').props.secureTextEntry).toBe(
+        true,
+      );
     });
   });
 
@@ -150,14 +209,11 @@ describe('LoginScreen', () => {
   });
 
   describe('successful login', () => {
-    it('calls login with the correct data', async () => {
-      mockedLogin.mockResolvedValue({
-        access_token: 'access-token',
-        refresh_token: 'refresh-token',
-      } as never);
+    beforeEach(() => {
+      mockedLogin.mockResolvedValue(successfulLoginResponse as never);
+    });
 
-      mockedSetAuth.mockResolvedValue(undefined);
-
+    it('calls login with trimmed username and password', async () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(
@@ -173,19 +229,18 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       await waitFor(() => {
-        expect(mockedLogin).toHaveBeenCalledTimes(1);
+        expect(mockedLogin).toHaveBeenCalledWith('testuser', 'Password123');
       });
-
-      expect(mockedLogin).toHaveBeenCalledWith('testuser', 'Password123');
     });
 
-    it('saves authentication data after successful login', async () => {
-      mockedLogin.mockResolvedValue({
-        access_token: 'access-token',
-        refresh_token: 'refresh-token',
-      } as never);
+    it('shows the loading screen during authentication', async () => {
+      let resolveLogin!: (value: typeof successfulLoginResponse) => void;
 
-      mockedSetAuth.mockResolvedValue(undefined);
+      mockedLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }) as never,
+      );
 
       render(<LoginScreen />);
 
@@ -195,26 +250,36 @@ describe('LoginScreen', () => {
 
       fireEvent.press(screen.getByTestId('login-button'));
 
-      await waitFor(() => {
-        expect(mockedSetAuth).toHaveBeenCalledTimes(1);
-      });
+      expect(await screen.findByTestId('loading-screen')).toBeTruthy();
 
-      expect(mockedSetAuth).toHaveBeenCalledWith(
-        'testuser',
-        'access-token',
-        'refresh-token',
-      );
+      expect(screen.getByText('login.loggingIn')).toBeTruthy();
+
+      resolveLogin(successfulLoginResponse);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loading-screen')).toBeNull();
+      });
     });
 
-    it('navigates after successful login', async () => {
-      mockedLogin.mockResolvedValue({
-        access_token: 'access-token',
-        refresh_token: 'refresh-token',
-      } as never);
+    it('saves authentication data after successful login', async () => {
+      render(<LoginScreen />);
 
-      mockedSetAuth.mockResolvedValue(undefined);
-      mockedRouteAfterAuth.mockResolvedValue(undefined);
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
 
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
+
+      fireEvent.press(screen.getByTestId('login-button'));
+
+      await waitFor(() => {
+        expect(mockedSetAuth).toHaveBeenCalledWith(
+          'testuser',
+          'access-token',
+          'refresh-token',
+        );
+      });
+    });
+
+    it('navigates after successful authentication', async () => {
       render(<LoginScreen />);
 
       fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
@@ -225,6 +290,35 @@ describe('LoginScreen', () => {
 
       await waitFor(() => {
         expect(mockedRouteAfterAuth).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls authentication steps in the correct order', async () => {
+      const calls: string[] = [];
+
+      mockedLogin.mockImplementation(async () => {
+        calls.push('login');
+        return successfulLoginResponse as never;
+      });
+
+      mockedSetAuth.mockImplementation(async () => {
+        calls.push('setAuth');
+      });
+
+      mockedRouteAfterAuth.mockImplementation(async () => {
+        calls.push('routeAfterAuth');
+      });
+
+      render(<LoginScreen />);
+
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
+
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
+
+      fireEvent.press(screen.getByTestId('login-button'));
+
+      await waitFor(() => {
+        expect(calls).toEqual(['login', 'setAuth', 'routeAfterAuth']);
       });
     });
   });
@@ -245,12 +339,14 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       expect(await screen.findByTestId('login-error')).toBeTruthy();
-      expect(screen.getByText('Contrasenya incorrecta')).toBeTruthy();
 
-      expect(mockedRouterReplace).not.toHaveBeenCalled();
+      expect(await screen.findByText('Contrasenya incorrecta')).toBeTruthy();
+
+      expect(mockedSetAuth).not.toHaveBeenCalled();
+      expect(mockedRouteAfterAuth).not.toHaveBeenCalled();
     });
 
-    it('shows an error when login rejects with a non-Error value', async () => {
+    it('uses the translated fallback for non-Error failures', async () => {
       mockedLogin.mockRejectedValue('login failed');
 
       render(<LoginScreen />);
@@ -262,17 +358,65 @@ describe('LoginScreen', () => {
       fireEvent.press(screen.getByTestId('login-button'));
 
       expect(await screen.findByTestId('login-error')).toBeTruthy();
-      expect(mockedLogin).toHaveBeenCalled();
+
+      expect(
+        await screen.findByText('login.errors.invalidCredentials'),
+      ).toBeTruthy();
+    });
+
+    it('shows an error when saving authentication fails', async () => {
+      mockedLogin.mockResolvedValue(successfulLoginResponse as never);
+
+      mockedSetAuth.mockRejectedValue(
+        new Error("No s'ha pogut guardar la sessió"),
+      );
+
+      render(<LoginScreen />);
+
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
+
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
+
+      fireEvent.press(screen.getByTestId('login-button'));
+
+      expect(
+        await screen.findByText("No s'ha pogut guardar la sessió"),
+      ).toBeTruthy();
+
+      expect(mockedRouteAfterAuth).not.toHaveBeenCalled();
+    });
+
+    it('shows an error when post-login navigation fails', async () => {
+      mockedLogin.mockResolvedValue(successfulLoginResponse as never);
+      mockedRouteAfterAuth.mockRejectedValue(new Error('Navigation failed'));
+
+      render(<LoginScreen />);
+
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
+
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
+
+      fireEvent.press(screen.getByTestId('login-button'));
+
+      expect(await screen.findByText('Navigation failed')).toBeTruthy();
     });
   });
 
   describe('navigation', () => {
-    it('navigates to Sign Up when Sign Up is pressed', () => {
+    it('navigates to Sign Up when pressed', () => {
       render(<LoginScreen />);
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
       expect(mockedRouterPush).toHaveBeenCalledWith('/auth/signup');
+    });
+
+    it('navigates to Forgot Password when pressed', () => {
+      render(<LoginScreen />);
+
+      fireEvent.press(screen.getByTestId('forgot-password-link'));
+
+      expect(mockedRouterPush).toHaveBeenCalledWith('/auth/forgot-password');
     });
   });
 
@@ -301,12 +445,34 @@ describe('LoginScreen', () => {
       expect(screen.queryByTestId('login-error')).toBeNull();
     });
 
-    it('uses secure text entry for the password', () => {
+    it('disables inputs while authentication is in progress', async () => {
+      let resolveLogin!: (value: typeof successfulLoginResponse) => void;
+
+      mockedLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }) as never,
+      );
+
       render(<LoginScreen />);
 
-      expect(screen.getByTestId('password-input').props.secureTextEntry).toBe(
-        true,
-      );
+      fireEvent.changeText(screen.getByTestId('username-input'), 'testuser');
+
+      fireEvent.changeText(screen.getByTestId('password-input'), 'Password123');
+
+      fireEvent.press(screen.getByTestId('login-button'));
+
+      await screen.findByTestId('loading-screen');
+
+      // El formulari queda substituït per la pantalla de càrrega.
+      expect(screen.queryByTestId('username-input')).toBeNull();
+      expect(screen.queryByTestId('password-input')).toBeNull();
+
+      resolveLogin(successfulLoginResponse);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('username-input')).toBeTruthy();
+      });
     });
   });
 });

@@ -34,9 +34,7 @@ def client(mock_service, mock_profile_service):
         yield mock_profile_service
 
     app.dependency_overrides[get_user_service] = override_get_user_service
-    app.dependency_overrides[get_user_profile_service] = (
-        override_get_user_profile_service
-    )
+    app.dependency_overrides[get_user_profile_service] = override_get_user_profile_service
 
     try:
         yield TestClient(app)
@@ -294,7 +292,7 @@ def test_get_user_profile_not_found(client, mock_profile_service):
     assert response.json()["detail"] == "User profile not found"
 
     mock_profile_service.get_user_profile.assert_awaited_once_with(user_id)
-    
+
 
 def test_update_user_success(client, mock_service):
     user_id = uuid.uuid4()
