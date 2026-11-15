@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/constants/theme';
@@ -35,6 +36,27 @@ async function selectGarden(field: Field) {
     console.error('Error seleccionant el camp:', error);
   }
 }
+
+const PICKER_LINKS = [
+  {
+    testID: 'garden-picker-all',
+    path: '/field-selection',
+    icon: 'grid-outline',
+    labelKey: 'fieldSelection.allGardens',
+  },
+  {
+    testID: 'garden-picker-profile',
+    path: '/profile',
+    icon: 'person-circle-outline',
+    labelKey: 'fieldSelection.profile',
+  },
+] as const;
+
+function openFromPicker(path: '/field-selection' | '/profile') {
+  setGardenPicker({ open: false });
+  router.push(path);
+}
+
 export default function GardenPickerOverlay() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
@@ -51,7 +73,7 @@ export default function GardenPickerOverlay() {
     };
   }, []);
 
-  if (!picker.open || picker.fields.length <= 1) {
+  if (!picker.open || picker.fields.length === 0) {
     return null;
   }
 
@@ -154,6 +176,44 @@ export default function GardenPickerOverlay() {
             </Pressable>
           );
         })}
+        {PICKER_LINKS.map((link, index) => (
+          <Pressable
+            key={link.testID}
+            testID={link.testID}
+            onPress={() => openFromPicker(link.path)}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              opacity: pressed ? 0.7 : 1,
+              ...(index === 0
+                ? {
+                    marginTop: 4,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                  }
+                : {}),
+            })}
+          >
+            <Ionicons
+              name={link.icon}
+              size={16}
+              color={colors.primary}
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 14,
+                fontWeight: '600',
+                color: colors.primary,
+              }}
+            >
+              {t(link.labelKey)}
+            </Text>
+          </Pressable>
+        ))}
       </View>
     </View>
   );
