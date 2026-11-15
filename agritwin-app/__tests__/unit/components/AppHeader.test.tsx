@@ -26,6 +26,7 @@ import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
   router: {
+    push: jest.fn(),
     replace: jest.fn(),
   },
 }));
@@ -316,6 +317,25 @@ describe('AppHeader', () => {
     });
   });
 
+  it('opens the field selection from the logo', async () => {
+    render(<AppHeader />);
+    await waitFor(() => expect(screen.getByText('Hort')).toBeTruthy());
+
+    fireEvent.press(screen.getByTestId('header-logo'));
+
+    expect(router.push).toHaveBeenCalledWith('/field-selection');
+  });
+
+  it('shows the username instead of the garden and opens the profile', async () => {
+    render(<AppHeader showProfile />);
+    await waitFor(() => expect(screen.getByText('ainhoa')).toBeTruthy());
+    expect(screen.queryByLabelText('Hort')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('header-profile'));
+
+    expect(router.push).toHaveBeenCalledWith('/profile');
+  });
+
   it('opens the garden picker when there are several gardens', async () => {
     render(<AppHeader />);
 
@@ -382,7 +402,7 @@ describe('AppHeader', () => {
     expect(setGardenPicker).toHaveBeenLastCalledWith({ open: false });
   });
 
-  it('does not open a picker for a single garden', async () => {
+  it('opens the picker for a single garden', async () => {
     mockedGetFields.mockResolvedValue([
       {
         id: 3,
@@ -399,8 +419,10 @@ describe('AppHeader', () => {
 
     fireEvent.press(screen.getByLabelText('Hort'));
 
-    expect(setGardenPicker).not.toHaveBeenCalledWith(
-      expect.objectContaining({ open: true }),
+    await waitFor(() =>
+      expect(setGardenPicker).toHaveBeenCalledWith(
+        expect.objectContaining({ open: true, currentId: 3 }),
+      ),
     );
   });
 

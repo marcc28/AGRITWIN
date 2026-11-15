@@ -6,11 +6,18 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import { router } from 'expo-router';
 
 import GardenPickerOverlay from '../../../src/components/GardenPickerOverlay';
 import { setCurrentField } from '../../../src/services/currentField';
 import { setGardenPicker } from '../../../src/services/gardenPicker';
 import type { Field } from '../../../src/services/api';
+
+jest.mock('expo-router', () => ({
+  router: {
+    push: jest.fn(),
+  },
+}));
 
 jest.mock('../../../src/services/currentField', () => ({
   setCurrentField: jest.fn(async () => undefined),
@@ -60,9 +67,18 @@ describe('GardenPickerOverlay', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('hides the selector when only one garden exists', () => {
+  it.each([
+    ['garden-picker-all', '/field-selection'],
+    ['garden-picker-profile', '/profile'],
+  ])('closes the selector and opens %s', (testID, path) => {
     setGardenPicker({ open: true, fields: [field(1, 'Hort')], currentId: 1 });
-    expect(render(<GardenPickerOverlay />).toJSON()).toBeNull();
+    render(<GardenPickerOverlay />);
+    expect(screen.getByText('Hort')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId(testID));
+
+    expect(router.push).toHaveBeenCalledWith(path);
+    expect(screen.queryByText('Hort')).toBeNull();
   });
 
   it('shows an Arduino dot on each garden from the cached list', () => {
