@@ -63,6 +63,7 @@ export default function EditFieldScreen() {
   const params = useLocalSearchParams<{
     id: string | string[];
     addCrop?: string | string[];
+    from?: string | string[];
   }>();
   const fieldId = parseId(params.id);
   const addCropParam = Array.isArray(params.addCrop)
@@ -105,6 +106,10 @@ export default function EditFieldScreen() {
   const [cropNotes, setCropNotes] = useState('');
 
   function goBack() {
+    if (params.from === 'field-selection') {
+      router.replace('/field-selection');
+      return;
+    }
     router.replace({
       pathname: '/field-detail',
       params: { id: String(fieldId) },

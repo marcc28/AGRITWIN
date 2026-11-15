@@ -26,7 +26,11 @@ import {
   subscribeGardenPicker,
 } from '@/services/gardenPicker';
 
-export default function AppHeader() {
+type AppHeaderProps = Readonly<{
+  showProfile?: boolean;
+}>;
+
+export default function AppHeader({ showProfile = false }: AppHeaderProps) {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const insets = useSafeAreaInsets();
@@ -36,6 +40,7 @@ export default function AppHeader() {
   const [currentId, setCurrentId] = useState<number | null>(null);
   const [gardenName, setGardenName] = useState('');
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [username, setUsername] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +59,8 @@ export default function AppHeader() {
       if (cancelled) {
         return;
       }
+
+      setUsername(auth?.username ?? '');
 
       if (!auth?.token) {
         setFields([]);
@@ -141,7 +148,7 @@ export default function AppHeader() {
   }, []);
 
   function handleTogglePicker() {
-    if (!canSwitch) {
+    if (!canOpen) {
       return;
     }
 
@@ -163,7 +170,7 @@ export default function AppHeader() {
     });
   }
 
-  const canSwitch = fields.length > 1;
+  const canOpen = fields.length > 0;
   const currentField = fields.find((field) => field.id === currentId);
   const health =
     currentField?.devices_online == null
@@ -193,21 +200,62 @@ export default function AppHeader() {
         shadowRadius: 4,
       }}
     >
-      <Text
-        numberOfLines={1}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          fontSize: 20,
-          fontWeight: '800',
-          letterSpacing: 0.6,
-          color: colors.primaryDark,
-        }}
+      <Pressable
+        testID="header-logo"
+        accessibilityRole="button"
+        onPress={() => router.push('/field-selection')}
+        style={{ flex: 1, minWidth: 0 }}
       >
-        AGRITWIN
-      </Text>
+        <Text
+          numberOfLines={1}
+          style={{
+            fontSize: 20,
+            fontWeight: '800',
+            letterSpacing: 0.6,
+            color: colors.primaryDark,
+          }}
+        >
+          AGRITWIN
+        </Text>
+      </Pressable>
 
-      {gardenName ? (
+      {showProfile ? (
+        <Pressable
+          testID="header-profile"
+          onPress={() => router.push('/profile')}
+          accessibilityRole="button"
+          accessibilityLabel={t('fieldSelection.profile')}
+          hitSlop={8}
+          style={({ pressed }) => ({
+            marginLeft: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 16,
+            backgroundColor: colors.surfaceSecondary,
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Ionicons
+            name="person-circle"
+            size={16}
+            color={colors.primaryDark}
+            style={{ marginRight: 6 }}
+          />
+          <Text
+            numberOfLines={1}
+            style={{
+              maxWidth: 160,
+              fontSize: 12,
+              fontWeight: '600',
+              color: colors.text,
+            }}
+          >
+            {username || t('settings.profile')}
+          </Text>
+        </Pressable>
+      ) : gardenName ? (
         <View>
           <Pressable
             onPress={() => void handleTogglePicker()}
@@ -246,7 +294,7 @@ export default function AppHeader() {
             >
               {gardenName}
             </Text>
-            {canSwitch ? (
+            {canOpen ? (
               <Ionicons
                 name={pickerOpen ? 'chevron-up' : 'chevron-down'}
                 size={14}

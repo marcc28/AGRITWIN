@@ -602,5 +602,25 @@
       "invalidEmail": "Please enter a valid email address.",
       "sendFailed": "Could not send the recovery email."
     }
+  },
+  "fieldSelection": {
+    "title": "Choose your garden",
+    "manage": "Edit",
+    "done": "Done",
+    "add": "Add garden",
+    "editField": "Edit {{name}}",
+    "deleteField": "Delete {{name}}",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteMessage": "Its crops and Arduinos will be lost. This cannot be undone.",
+    "deleteConfirm": "Delete",
+    "legendOk": "All working",
+    "legendPartial": "Some not working",
+    "legendDown": "None working",
+    "profile": "My profile",
+    "loadError": "The gardens could not be loaded",
+    "back": "Back",
+    "eyebrow": "MY GARDENS",
+    "legendTitle": "Sensor status",
+    "allGardens": "See all gardens"
   }
 }

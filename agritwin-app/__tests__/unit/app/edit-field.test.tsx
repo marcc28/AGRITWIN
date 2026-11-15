@@ -33,7 +33,7 @@ jest.mock('react-i18next', () => {
 });
 
 const mockUseLocalSearchParams = jest.fn(
-  (): { id: string; addCrop?: string } => ({ id: '3' }),
+  (): { id: string; addCrop?: string; from?: string } => ({ id: '3' }),
 );
 const mockIsAuthError = jest.fn((_error?: unknown) => false);
 
@@ -289,6 +289,19 @@ describe('EditFieldScreen', () => {
       pathname: '/field-detail',
       params: { id: '3' },
     });
+  });
+
+  it('goes back to the field selection', async () => {
+    mockUseLocalSearchParams.mockReturnValue({
+      id: '3',
+      from: 'field-selection',
+    });
+    render(<EditFieldScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('settings.cancel')).toBeTruthy();
+    });
+    fireEvent.press(screen.getAllByText('settings.cancel')[0]);
+    expect(router.replace).toHaveBeenCalledWith('/field-selection');
   });
 
   it('rejects an invalid size', async () => {
