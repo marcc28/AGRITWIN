@@ -8,5 +8,5 @@ export async function routeAfterAuth() {
     router.replace('/create-field');
     return;
   }
-  router.replace('/app/home');
+  router.replace('/field-selection');
 }

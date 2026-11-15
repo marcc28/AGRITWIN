@@ -30,6 +30,7 @@ import { FieldLocationPicker } from '../components/FieldLocationPicker';
 import { clearAuth } from '../services/auth';
 import { setCurrentField } from '../services/currentField';
 import { setFieldPhotoIndex } from '../services/fieldPhoto';
+import { loadGardenPickerFields } from '../services/gardenPicker';
 import { styles } from '../styles/create-field.styles';
 import { Colors } from '../constants/theme';
 
@@ -59,8 +60,17 @@ async function logoutToLogin() {
 export default function CreateFieldScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ from?: string | string[] }>();
-  const fromProfile =
-    (Array.isArray(params.from) ? params.from[0] : params.from) === 'profile';
+  const from = Array.isArray(params.from) ? params.from[0] : params.from;
+  const fromSelection = from === 'field-selection';
+  const fromProfile = from === 'profile' || fromSelection;
+
+  function goBack() {
+    if (fromSelection) {
+      router.replace('/field-selection');
+      return;
+    }
+    goToSettings();
+  }
 
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
@@ -179,6 +189,11 @@ export default function CreateFieldScreen() {
       });
       await setFieldPhotoIndex(created.id, photoIndex);
       await setCurrentField({ id: created.id, name: created.name });
+      if (fromSelection) {
+        await loadGardenPickerFields(true);
+        router.replace('/app/home');
+        return;
+      }
       if (fromProfile) {
         router.replace({
           pathname: '/field-detail',
@@ -223,7 +238,7 @@ export default function CreateFieldScreen() {
           {fromProfile ? (
             <Pressable
               style={styles.backRow}
-              onPress={goToSettings}
+              onPress={goBack}
               disabled={saving}
             >
               <Ionicons
@@ -231,7 +246,11 @@ export default function CreateFieldScreen() {
                 size={18}
                 color={Colors.light.textSecondary}
               />
-              <Text style={styles.backText}>{t('settings.myGardens')}</Text>
+              <Text style={styles.backText}>
+                {fromSelection
+                  ? t('fieldSelection.back')
+                  : t('settings.myGardens')}
+              </Text>
             </Pressable>
           ) : null}
 

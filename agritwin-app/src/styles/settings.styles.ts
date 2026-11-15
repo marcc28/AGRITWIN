@@ -190,76 +190,6 @@ export const styles = StyleSheet.create({
     color: Colors.light.surface,
   },
 
-  gardenTitle: {
-    marginTop: 22,
-    marginBottom: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.light.primaryDark,
-  },
-
-  gardenGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-
-  gardenCard: {
-    width: '47%',
-    backgroundColor: Colors.light.surface,
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderWidth: 3,
-    borderColor: 'transparent',
-    shadowColor: Colors.light.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-
-  gardenCardCurrent: {
-    borderColor: Colors.light.primaryDark,
-  },
-
-  gardenPhoto: {
-    width: '100%',
-    height: 110,
-    backgroundColor: Colors.light.surfaceSecondary,
-  },
-
-  gardenBody: {
-    padding: 10,
-  },
-
-  gardenName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.light.text,
-  },
-
-  gardenMeta: {
-    marginTop: 4,
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-  },
-
-  gardenSetCurrent: {
-    paddingHorizontal: 10,
-    paddingBottom: 10,
-  },
-
-  gardenEdit: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.light.primary,
-  },
-
-  emptyGardens: {
-    fontSize: 13,
-    color: Colors.light.textSecondary,
-  },
-
   errorText: {
     marginBottom: 10,
     fontSize: 13,
@@ -285,22 +215,5 @@ export const styles = StyleSheet.create({
     width: 24,
     height: 24,
     marginRight: 10,
-  },
-
-  addGardenButton: {
-    marginTop: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.surface,
-  },
-
-  addGardenText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.light.primary,
   },
 });

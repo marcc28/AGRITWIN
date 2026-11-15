@@ -41,14 +41,16 @@ export default function RootLayout() {
         if (!active) {
           return;
         }
-        router.replace(fields.length === 0 ? '/create-field' : '/app/home');
+        router.replace(
+          fields.length === 0 ? '/create-field' : '/field-selection',
+        );
       } catch (error) {
         if (isAuthError(error)) {
           await clearAuth();
           router.replace('/auth/login');
           return;
         }
-        router.replace('/app/home');
+        router.replace('/field-selection');
       }
     }
 
