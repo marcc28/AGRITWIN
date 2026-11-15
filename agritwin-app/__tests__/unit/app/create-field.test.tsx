@@ -15,6 +15,7 @@ import {
   reverseGeocodeLocation,
 } from '../../../src/services/api';
 import { clearAuth } from '../../../src/services/auth';
+import { loadGardenPickerFields } from '../../../src/services/gardenPicker';
 import { router } from 'expo-router';
 
 const mockUseLocalSearchParams = jest.fn();
@@ -90,6 +91,10 @@ jest.mock('../../../src/services/currentField', () => ({
 
 jest.mock('../../../src/services/fieldPhoto', () => ({
   setFieldPhotoIndex: jest.fn(),
+}));
+
+jest.mock('../../../src/services/gardenPicker', () => ({
+  loadGardenPickerFields: jest.fn(),
 }));
 
 const mockedCreateField = createField as jest.MockedFunction<
@@ -454,6 +459,29 @@ describe('CreateFieldScreen', () => {
     render(<CreateFieldScreen />);
     fireEvent.press(screen.getByText('settings.myGardens'));
     expect(router.replace).toHaveBeenCalledWith('/app/settings');
+  });
+
+  it('goes back to the field selection', () => {
+    mockUseLocalSearchParams.mockReturnValue({ from: 'field-selection' });
+    render(<CreateFieldScreen />);
+    fireEvent.press(screen.getByText('fieldSelection.back'));
+    expect(router.replace).toHaveBeenCalledWith('/field-selection');
+  });
+
+  it('opens home with the new garden from the field selection', async () => {
+    mockUseLocalSearchParams.mockReturnValue({ from: 'field-selection' });
+    render(<CreateFieldScreen />);
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'Hort nou',
+    );
+    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith('/app/home');
+    });
+    expect(loadGardenPickerFields).toHaveBeenCalledWith(true);
   });
 
   it('logs out from the first-garden screen', async () => {
