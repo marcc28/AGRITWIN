@@ -52,14 +52,11 @@ class FieldCropService:
         if status is not None:
             query = query.where(FieldCrop.status == status)
 
-        query = (
-            query.order_by(FieldCrop.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        query = query.order_by(FieldCrop.created_at.desc()).offset(offset).limit(limit)
 
         result = await self._db.execute(query)
         return list(result.scalars().all())
+
     async def count_field_crops(
         self,
         user_id,

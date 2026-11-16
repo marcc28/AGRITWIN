@@ -487,7 +487,6 @@ class FieldCrop(Base):
         server_default=text("'planted'"),
     )
 
-    
     notes: Mapped[str | None] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(
