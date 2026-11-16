@@ -1,6 +1,11 @@
 import React from 'react';
 
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 
 import { DeviceSetupScreen } from '@/components/device-setup/DeviceSetupScreen';
 import type {
@@ -277,6 +282,25 @@ describe('DeviceSetupScreen', () => {
       expect(screen.getByText('addDevice.success.hint')).toBeTruthy();
       fireEvent.press(screen.getByText('addDevice.success.done'));
       expect(onClose).toHaveBeenCalled();
+    });
+
+    it('starts again from the beginning to add another board', async () => {
+      const calls: string[] = [];
+      const setup = makeSetup({ step: 'success', registration: 'created' });
+      setup.reset = jest.fn(async () => {
+        calls.push('reset');
+      });
+      setup.startScan = jest.fn(async () => {
+        calls.push('startScan');
+      });
+      const { onClose } = renderScreen(setup);
+
+      fireEvent.press(screen.getByTestId('add-another-device'));
+
+      await waitFor(() => {
+        expect(calls).toEqual(['reset', 'startScan']);
+      });
+      expect(onClose).not.toHaveBeenCalled();
     });
 
     it('tells when the board was already linked', () => {

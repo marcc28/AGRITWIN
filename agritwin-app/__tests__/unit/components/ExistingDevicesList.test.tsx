@@ -58,4 +58,51 @@ describe('ExistingDevicesList', () => {
 
     expect(onRemove).not.toHaveBeenCalled();
   });
+
+  it('says if each device is connected or not', () => {
+    render(
+      <ExistingDevicesList
+        devices={devices}
+        disabled={false}
+        onRemove={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('device-status-dev-1').props.children).toBe(
+      'settings.fieldDetail.connected',
+    );
+    expect(screen.getByTestId('device-status-dev-2').props.children).toBe(
+      'settings.fieldDetail.disconnected',
+    );
+    expect(screen.getAllByTestId('device-health-ok')).toHaveLength(1);
+    expect(screen.getAllByTestId('device-health-down')).toHaveLength(1);
+  });
+
+  it('shows a card for each device without brand or serial number', () => {
+    render(
+      <ExistingDevicesList
+        devices={[{ id: 'dev-9', battery_status: false }]}
+        disabled={false}
+        onRemove={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('device-dev-9')).toBeTruthy();
+    expect(screen.getByText('dev-9')).toBeTruthy();
+    expect(screen.queryByText(/·/)).toBeNull();
+  });
+
+  it('names the device in the label of its remove button', () => {
+    render(
+      <ExistingDevicesList
+        devices={devices}
+        disabled={false}
+        onRemove={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('remove-device-dev-1').props.accessibilityLabel,
+    ).toBe('settings.createField.removeDevice: dev-1');
+  });
 });

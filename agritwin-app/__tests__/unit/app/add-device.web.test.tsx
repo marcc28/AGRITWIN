@@ -9,9 +9,13 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+const mockUseLocalSearchParams = jest.fn(
+  () => ({ id: '7' }) as Record<string, string>,
+);
+
 jest.mock('expo-router', () => ({
   router: { replace: jest.fn() },
-  useLocalSearchParams: () => ({ id: '7' }),
+  useLocalSearchParams: () => mockUseLocalSearchParams(),
 }));
 
 describe('AddDeviceWebScreen', () => {
@@ -31,5 +35,14 @@ describe('AddDeviceWebScreen', () => {
       pathname: '/field-detail',
       params: { id: '7' },
     });
+  });
+
+  it('goes home when it was opened while creating the first garden', () => {
+    mockUseLocalSearchParams.mockReturnValueOnce({ id: '7', from: 'home' });
+    render(<AddDeviceWebScreen />);
+
+    fireEvent.press(screen.getByText('addDevice.back'));
+
+    expect(router.replace).toHaveBeenCalledWith('/app/home');
   });
 });
