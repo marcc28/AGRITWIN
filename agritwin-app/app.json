@@ -4,10 +4,10 @@
     "slug": "AgriTwin",
     "owner": "flaviaserret04s-team",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/logo.png",
     "scheme": "agritwin",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.AgriTwin.app",
@@ -65,6 +65,13 @@
           "neverForLocation": true,
           "bluetoothAlwaysPermission": "AgriTwin uses Bluetooth to set up the sensors of your field."
         }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-5472828884402627~5846471932",
+          "iosAppId": "ca-app-pub-5472828884402627~1715655235"
+        }
       ]
     ],
     "experiments": {
@@ -78,6 +85,9 @@
       "eas": {
         "projectId": "a4a995ec-0af0-43ab-bc44-d326c9141074"
       }
+    },
+    "scripts": {
+      "postinstall": "patch-package"
     }
   }
 }
