@@ -346,3 +346,4 @@ export function getMarketStyles(colors: ThemeColors, compactLandscape = false) {
     },
   });
 }
+
