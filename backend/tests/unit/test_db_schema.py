@@ -7,6 +7,7 @@ from db.schema import (
     Field,
     FieldCrop,
     FieldRecommendation,
+    GardenTask,
     JSONType,
     SocialAuthTicket,
     UsedPasswordResetToken,
@@ -30,6 +31,7 @@ def test_schema_registers_all_expected_tables():
         "field_crops",
         "field_recommendations",
         "used_password_reset_tokens",
+        "garden_tasks",
     }
 
 
@@ -138,3 +140,37 @@ def test_used_password_reset_token_schema():
     assert table.c.expires_at.nullable is False
     assert table.c.created_at.nullable is False
     assert table.c.created_at.server_default is not None
+
+
+def test_garden_tasks_only_allow_known_sources_kinds_and_priorities():
+    checks = {
+        constraint.name: str(constraint.sqltext)
+        for constraint in GardenTask.__table__.constraints
+        if isinstance(constraint, CheckConstraint)
+    }
+    assert "'ai', 'user'" in checks["chk_garden_task_source"]
+    assert "'task', 'recommendation'" in checks["chk_garden_task_kind"]
+    assert "'high', 'medium', 'low'" in checks["chk_garden_task_priority"]
+
+
+def test_an_ai_task_or_notice_is_unique_per_garden_kind_key_and_day():
+    index = next(
+        item for item in GardenTask.__table__.indexes if item.name == "uq_garden_tasks_ai_key_day"
+    )
+    assert index.unique is True
+    assert [column.name for column in index.columns] == [
+        "field_id",
+        "kind",
+        "signature",
+        "due_on",
+    ]
+
+
+def test_a_garden_task_is_a_task_by_default_and_a_notice_can_be_seen():
+    table = GardenTask.__table__
+    assert table.c.kind.nullable is False
+    assert table.c.seen_at.nullable is True
+
+
+def test_a_garden_remembers_when_the_ai_last_reviewed_it():
+    assert Field.__table__.c.ai_checked_at.nullable is True

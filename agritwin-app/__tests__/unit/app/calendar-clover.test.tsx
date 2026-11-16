@@ -2,7 +2,6 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import CalendarScreen from '@/app/app/calendar';
 import CloverScreen from '@/app/app/clover';
 
 jest.mock('expo-image', () => ({ Image: () => null }));
@@ -60,23 +59,21 @@ afterEach(() => {
   }
 });
 
-describe('calendar and clover tabs', () => {
-  it('share the same explore content through the calendar route', () => {
-    render(<CalendarScreen />);
+// The calendar tab now shows the garden tasks. Its tests are in
+// calendar.test.tsx. This file keeps covering the clover tab, which still
+// shows the shared explore content.
+describe('clover tab', () => {
+  it('shows the shared explore content', () => {
+    render(<CloverScreen />);
     expect(screen.getByText('Explore')).toBeTruthy();
+    expect(screen.getByText('Images')).toBeTruthy();
     expect(screen.getByText('Animations')).toBeTruthy();
     fireEvent.press(screen.getByText('Expo documentation'));
   });
 
-  it('reuse the shared content through the clover route', () => {
-    render(<CloverScreen />);
-    expect(screen.getByText('Explore')).toBeTruthy();
-    expect(screen.getByText('Images')).toBeTruthy();
-  });
-
   it('renders its web layout', () => {
     Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
-    render(<CalendarScreen />);
+    render(<CloverScreen />);
     expect(screen.getByText('Explore')).toBeTruthy();
   });
 });
