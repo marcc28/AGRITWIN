@@ -34,7 +34,7 @@ SPRINT 2,Implement Arduino/ESP32 IoT Sensor Node,45,Tigre44 & marcc28,48,83.3333
 SPRINT 2,IoT device status,13,ainhoaaf,11,100%,195,165,195,30,,,,,,,,
 SPRINT 2,"Login improvements, password recovery and menu clean-up",1,flaviaserret04,1,100%,15,15,15,0,,,,,,,,
 SPRINT 2,Marked redirection,9.2,flaviaserret04,9.2,100%,138,138,138,0,,,,,,,,
-SPRINT 2,Market infinite scroll,0.9,flaviaserret04,0.3,0%,13.5,4.5,0,9,,,,,,,,
+SPRINT 2,Market infinite scroll,0.9,flaviaserret04,0.6,33.333333%,13.5,9,4.5,4.5,,,,,,,,
 SPRINT 2,Planning commitment from Sprint 2,0,Tigre44 & atnic15,0,0%,0,0,0,0,,,,,,,,
 SPRINT 2,Plant photo diagnosis,11,atnic15,9.5,100%,165,142.5,165,22.5,,,,,,,,
 SPRINT 2,Responsive design and performance,0,,0,0%,0,0,0,0,,,,,,,,
@@ -42,4 +42,4 @@ SPRINT 2,"Security of the data, the broker and the API",17,marcc28,0,0%,255,0,0,
 SPRINT 2,Task list for the current garden,25,ainhoaaf,0,0%,375,0,0,375,,,,,,,,
 SPRINT 2,Weather alerts for the current garden,9,atnic15,7.5,100%,135,112.5,135,22.5,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,193.1,,149,,2896.5,2235,2058,661.5,10168,0.920805,0.710513,-177,-838.5,11042.507289,8807.507289,-874.507289
+SPRINT 2,TOTAL SPRINT 2,193.1,,149.3,,2896.5,2239.5,2062.5,657,10168,0.920965,0.712066,-177,-834,11040.599273,8801.099273,-872.599273
