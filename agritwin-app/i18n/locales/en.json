@@ -377,7 +377,8 @@
       "title": "Board connected",
       "hint": "Your board is now linked to this field and will start sending data.",
       "alreadyLinked": "This board was already linked to this field.",
-      "done": "Back to the field"
+      "done": "Finish",
+      "another": "Add another device"
     },
     "error": {
       "retry": "Try again",
@@ -429,6 +430,12 @@
     "web": {
       "title": "Only available on your phone",
       "hint": "To add a board you need the AgriTwin app on your phone, because it uses Bluetooth."
+    },
+    "section": {
+      "title": "Devices",
+      "none": "This field has no devices yet.",
+      "createHint": "You can link your AgriTwin boards now. We save the field first.",
+      "saveAndAdd": "Save and add device"
     }
   },
   "languages": {

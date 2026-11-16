@@ -377,7 +377,8 @@
       "title": "Placa connectada",
       "hint": "La teva placa ja està enllaçada amb aquest camp i començarà a enviar dades.",
       "alreadyLinked": "Aquesta placa ja estava enllaçada amb aquest camp.",
-      "done": "Tornar al camp"
+      "done": "Acaba",
+      "another": "Afegeix un altre dispositiu"
     },
     "error": {
       "retry": "Reintentar",
@@ -429,6 +430,12 @@
     "web": {
       "title": "Només disponible al mòbil",
       "hint": "Per afegir una placa necessites l'app d'AgriTwin al mòbil, perquè fa servir el Bluetooth."
+    },
+    "section": {
+      "title": "Dispositius",
+      "none": "Aquest camp encara no té dispositius.",
+      "createHint": "Pots vincular les teves plaques AgriTwin ara. Primer desarem el camp.",
+      "saveAndAdd": "Desa i afegeix un dispositiu"
     }
   },
   "languages": {

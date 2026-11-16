@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { Text, View, Pressable, TextInput, ScrollView } from 'react-native';
+import {
+  Platform,
+  Text,
+  View,
+  Pressable,
+  TextInput,
+  ScrollView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +23,7 @@ import { FieldOptionChips } from '../components/FieldOptionChips';
 import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
 import { OptionChip } from '../components/OptionChip';
 import { FieldBoundaryPicker } from '../components/FieldBoundaryPicker';
+import { FieldDevicesSection } from '../components/FieldDevicesSection';
 import type { MapPoint } from '../components/field-location/types';
 import {
   AREA_UNITS,
@@ -154,7 +162,8 @@ export default function CreateFieldScreen() {
     setAreaUnit(unit);
   }
 
-  async function handleCreate() {
+  // With `addDevices` the field is saved and then the "Add device" flow opens.
+  async function handleCreate(addDevices = false) {
     const trimmedName = name.trim();
     if (!trimmedName) {
       setErrorMessage(t('settings.errors.nameRequired'));
@@ -191,10 +200,18 @@ export default function CreateFieldScreen() {
       await setCurrentField({ id: created.id, name: created.name });
       if (fromSelection) {
         await loadGardenPickerFields(true);
-        router.replace('/app/home');
+      }
+      // Where the user ends up when they finish (or skip) adding devices.
+      const destination =
+        fromProfile && !fromSelection ? 'field-detail' : 'home';
+      if (addDevices) {
+        router.replace({
+          pathname: '/add-device',
+          params: { id: String(created.id), from: destination },
+        });
         return;
       }
-      if (fromProfile) {
+      if (destination === 'field-detail') {
         router.replace({
           pathname: '/field-detail',
           params: { id: String(created.id) },
@@ -451,6 +468,24 @@ export default function CreateFieldScreen() {
                 />
               ))}
             </View>
+          </View>
+
+          <View style={styles.card}>
+            <FieldDevicesSection
+              plain
+              hint={
+                Platform.OS === 'web'
+                  ? t('addDevice.web.hint')
+                  : t('addDevice.section.createHint')
+              }
+              addLabel={t('addDevice.section.saveAndAdd')}
+              disabled={saving || locating}
+              onAdd={
+                Platform.OS === 'web'
+                  ? undefined
+                  : () => void handleCreate(true)
+              }
+            />
           </View>
 
           <Pressable

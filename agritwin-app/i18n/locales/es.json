@@ -377,7 +377,8 @@
       "title": "Placa conectada",
       "hint": "Tu placa ya está enlazada con este campo y empezará a enviar datos.",
       "alreadyLinked": "Esta placa ya estaba enlazada con este campo.",
-      "done": "Volver al campo"
+      "done": "Terminar",
+      "another": "Añadir otro dispositivo"
     },
     "error": {
       "retry": "Reintentar",
@@ -429,6 +430,12 @@
     "web": {
       "title": "Solo disponible en el móvil",
       "hint": "Para añadir una placa necesitas la app de AgriTwin en tu móvil, porque usa el Bluetooth."
+    },
+    "section": {
+      "title": "Dispositivos",
+      "none": "Este campo aún no tiene dispositivos.",
+      "createHint": "Puedes vincular tus placas AgriTwin ahora. Primero guardaremos el campo.",
+      "saveAndAdd": "Guardar y añadir dispositivo"
     }
   },
   "languages": {
