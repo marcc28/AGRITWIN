@@ -23,6 +23,7 @@ from api.v1 import (
     legal,
     payments,
     social_auth,
+    tasks,
     user,
     weather,
     xauth,
@@ -92,6 +93,7 @@ app.include_router(fields.router, prefix="/api/v1")
 app.include_router(field_recommendations.router, prefix="/api/v1")
 app.include_router(weather.router, prefix="/api/v1")
 app.include_router(diagnosis.router, prefix="/api/v1")
+app.include_router(tasks.router, prefix="/api/v1")
 app.include_router(
     payments.router,
     prefix="/api/v1/payments",
