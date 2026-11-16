@@ -30,6 +30,7 @@ class FieldCropRead(BaseModel):
 
     id: int
     field_id: int
+    field_name: str = Field(validation_alias=AliasPath("field", "name"))
     crop_id: int
     crop_name: str = Field(validation_alias=AliasPath("crop", "name"))
     planted_at: date | None
