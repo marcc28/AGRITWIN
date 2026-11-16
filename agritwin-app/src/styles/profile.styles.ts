@@ -65,17 +65,12 @@ export const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.light.primary,
-  },
-
-  avatarEmoji: {
-    fontSize: 28,
+    overflow: 'hidden',
+    backgroundColor: Colors.light.primary,
   },
 });
