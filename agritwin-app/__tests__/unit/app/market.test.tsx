@@ -6,13 +6,15 @@ import {
   render,
   waitFor,
 } from '@testing-library/react-native';
-import { Animated } from 'react-native';
+import {
+  Animated,
+  Platform,
+} from 'react-native';
 
 import MarketScreen from '../../../src/app/app/market';
 
 import {
   getcontentfeed,
-  getAnuncesCount,
   getMarketProductsCount,
   searchMarketProducts,
 } from '@/services/api_market';
@@ -21,9 +23,18 @@ const mockPush = jest.fn();
 
 jest.mock('@/services/api_market', () => ({
   getcontentfeed: jest.fn(),
-  getAnuncesCount: jest.fn(),
   getMarketProductsCount: jest.fn(),
   searchMarketProducts: jest.fn(),
+}));
+
+jest.mock('@/components/adBanner/BannerAd', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('@/components/market/MarketSkeleton', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('expo-router', () => ({
@@ -50,7 +61,6 @@ const mockProducts = Array.from({ length: 6 }, (_, index) => ({
 
 const setupApiMocks = () => {
   (getMarketProductsCount as jest.Mock).mockResolvedValue(6);
-  (getAnuncesCount as jest.Mock).mockResolvedValue(0);
 
   (getcontentfeed as jest.Mock).mockImplementation(
     (offset: number, limit: number) =>
@@ -62,15 +72,26 @@ const setupApiMocks = () => {
 
 const renderScreen = () => render(<MarketScreen />);
 
+const searchInput = (screen: ReturnType<typeof render>) =>
+  screen.getByPlaceholderText('Cerca productes');
+
+const scrollToBottom = (screen: ReturnType<typeof render>) => {
+  fireEvent.scroll(screen.getByTestId('market-scroll-view'), {
+    nativeEvent: {
+      layoutMeasurement: { height: 500 },
+      contentOffset: { y: 400 },
+      contentSize: { height: 1000 },
+    },
+  });
+};
+
 describe('MarketScreen', () => {
   let animationSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
     setupApiMocks();
 
-    // Evitem executar animacions infinites durant els tests.
     animationSpy = jest.spyOn(Animated, 'loop').mockImplementation(
       () =>
         ({
@@ -97,7 +118,7 @@ describe('MarketScreen', () => {
       expect(screen.getByTestId('market-screen')).toBeTruthy();
     });
 
-    it('loads the initial products and counts', async () => {
+    it('loads the initial products and count', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
@@ -105,30 +126,20 @@ describe('MarketScreen', () => {
       });
 
       expect(getMarketProductsCount).toHaveBeenCalledTimes(1);
-      expect(getAnuncesCount).toHaveBeenCalledTimes(1);
-
       expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
     });
 
-    it('shows the initial loading message', () => {
-      let resolveCount!: (value: number) => void;
-
+    it('shows the loading skeleton while data is pending', () => {
       (getMarketProductsCount as jest.Mock).mockReturnValue(
-        new Promise((resolve) => {
-          resolveCount = resolve;
-        }),
+        new Promise(() => {}),
       );
 
       const screen = renderScreen();
 
-      expect(screen.getByText('Carregant...')).toBeTruthy();
-
-      act(() => {
-        resolveCount(6);
-      });
+      expect(screen.getByTestId('market-screen')).toBeTruthy();
     });
 
-    it('renders the product information correctly', async () => {
+    it('renders product information correctly', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
@@ -143,18 +154,24 @@ describe('MarketScreen', () => {
         'Nom tècnic 1',
       );
 
-      expect(screen.getByTestId('product-price-1')).toHaveTextContent('2.50 €');
+      expect(screen.getByTestId('product-price-1')).toHaveTextContent(
+        '2,50 €',
+      );
 
       expect(screen.getByTestId('product-price-kg-1')).toHaveTextContent(
-        '1.50 €/kg',
+        '1,50 €/kg',
       );
 
       expect(screen.getByTestId('product-units-1')).toHaveTextContent(
-        '0.00 market.units',
+        'Esgotat',
+      );
+
+      expect(screen.getByTestId('product-units-2')).toHaveTextContent(
+        'Només en queden 10',
       );
     });
 
-    it('shows out of stock for products without units', async () => {
+    it('shows the out-of-stock label for products without units', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
@@ -164,7 +181,7 @@ describe('MarketScreen', () => {
       expect(screen.getByTestId('buy-text-2')).toHaveTextContent('market.buy');
     });
 
-    it('does not show more than five products initially', async () => {
+    it('does not render more than five products initially', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
@@ -173,14 +190,15 @@ describe('MarketScreen', () => {
 
       expect(screen.queryByTestId('product-item-6')).toBeNull();
     });
+
   });
 
   // --------------------------------------------------
-  // NAVEGACIÓ A PRODUCTES
+  // NAVEGACIÓ
   // --------------------------------------------------
 
   describe('product navigation', () => {
-    it('navigates to the product detail when pressed', async () => {
+    it('navigates to product detail when pressed', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
@@ -209,19 +227,40 @@ describe('MarketScreen', () => {
         params: { id: '2' },
       });
     });
+
+    it('supports string product IDs', async () => {
+      const product = {
+        ...mockProducts[0],
+        id: 'product-test',
+      };
+
+      (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-product-test')).toBeTruthy();
+      });
+
+      fireEvent.press(screen.getByTestId('product-item-product-test'));
+
+      expect(mockPush).toHaveBeenCalledWith({
+        pathname: '/product/[id]',
+        params: { id: 'product-test' },
+      });
+    });
   });
 
   // --------------------------------------------------
-  // CERCA DE PRODUCTES
+  // CERCA
   // --------------------------------------------------
 
   describe('product search', () => {
     it('renders the search input', () => {
       const screen = renderScreen();
 
-      expect(
-        screen.getByPlaceholderText('Cerca productes o notícies...'),
-      ).toBeTruthy();
+      expect(searchInput(screen)).toBeTruthy();
     });
 
     it('searches products when text is entered', async () => {
@@ -231,10 +270,7 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Cerca productes o notícies...'),
-        'tomata',
-      );
+      fireEvent.changeText(searchInput(screen), 'tomata');
 
       await waitFor(
         () => {
@@ -242,10 +278,6 @@ describe('MarketScreen', () => {
         },
         { timeout: 3000 },
       );
-
-      await waitFor(() => {
-        expect(screen.getByTestId('product-item-1')).toBeTruthy();
-      });
     });
 
     it('trims whitespace before searching', async () => {
@@ -255,27 +287,21 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Cerca productes o notícies...'),
-        '  tomata  ',
-      );
+      fireEvent.changeText(searchInput(screen), '  tomata  ');
 
       await waitFor(() => {
         expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
       });
     });
 
-    it('does not search when the input contains only whitespace', async () => {
+    it('does not search when input contains only whitespace', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Cerca productes o notícies...'),
-        '   ',
-      );
+      fireEvent.changeText(searchInput(screen), '   ');
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -284,7 +310,7 @@ describe('MarketScreen', () => {
       expect(searchMarketProducts).not.toHaveBeenCalled();
     });
 
-    it('shows the searching state while a query is pending', async () => {
+    it('shows the searching skeleton while a search is pending', async () => {
       let resolveSearch!: (value: typeof mockProducts) => void;
 
       (searchMarketProducts as jest.Mock).mockReturnValueOnce(
@@ -299,51 +325,43 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Cerca productes o notícies...'),
-        'tomata',
-      );
+      fireEvent.changeText(searchInput(screen), 'tomata');
 
-      await waitFor(
-        () => {
-          expect(screen.getByText('Cercant...')).toBeTruthy();
-        },
-        { timeout: 3000 },
-      );
+      await waitFor(() => {
+        expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+      });
+
+      expect(screen.queryByTestId('product-item-1')).toBeNull();
 
       await act(async () => {
         resolveSearch([mockProducts[0]]);
       });
 
       await waitFor(() => {
-        expect(screen.queryByText('Cercant...')).toBeNull();
+        expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
     });
 
-    it('clears the search and restores the original products', async () => {
+    it('clears search and restores original products', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      const searchInput = screen.getByPlaceholderText(
-        'Cerca productes o notícies...',
-      );
-
-      fireEvent.changeText(searchInput, 'tomata');
+      fireEvent.changeText(searchInput(screen), 'tomata');
 
       await waitFor(() => {
         expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
       });
 
-      fireEvent.press(screen.getByText('×'));
+      fireEvent.press(screen.getByLabelText('Esborra la cerca'));
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
       });
 
-      expect(searchInput.props.value).toBe('');
+      expect(searchInput(screen).props.value).toBe('');
     });
 
     it('shows an error when product search fails', async () => {
@@ -361,14 +379,15 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Cerca productes o notícies...'),
-        'tomata',
-      );
+      fireEvent.changeText(searchInput(screen), 'tomata');
 
       await waitFor(
         () => {
-          expect(screen.getByText('Error en realitzar la cerca.')).toBeTruthy();
+          expect(
+            screen.getByText(
+              'No s’ha pogut fer la cerca. Torna-ho a provar.',
+            ),
+          ).toBeTruthy();
         },
         { timeout: 3000 },
       );
@@ -387,114 +406,152 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      fireEvent.changeText(
-        screen.getByPlaceholderText('Cerca productes o notícies...'),
-        'producte-inexistent',
-      );
+      fireEvent.changeText(searchInput(screen), 'producte-inexistent');
 
       await waitFor(
         () => {
-          expect(screen.getByText('No hi ha productes.')).toBeTruthy();
+          expect(
+            screen.getByText(
+              'Cap producte coincideix amb «producte-inexistent».',
+            ),
+          ).toBeTruthy();
         },
         { timeout: 3000 },
       );
     });
+
+    it('does not search again after clearing the query', async () => {
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-1')).toBeTruthy();
+      });
+
+      fireEvent.changeText(searchInput(screen), 'tomata');
+
+      await waitFor(() => {
+        expect(searchMarketProducts).toHaveBeenCalledTimes(1);
+      });
+
+      fireEvent.press(screen.getByLabelText('Esborra la cerca'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
+      });
+
+      expect(searchMarketProducts).toHaveBeenCalledTimes(1);
+    });
   });
 
   // --------------------------------------------------
-  // PAGINACIÓ
+  // SCROLL INFINIT
   // --------------------------------------------------
 
-  describe('pagination', () => {
-    it('shows pagination when there are more than five products', async () => {
+  describe('infinite scrolling', () => {
+    it('loads more products when scrolling near the bottom', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
-        expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
-          '1 / 2',
-        );
-      });
-
-      expect(screen.getByTestId('market-previous-page')).toBeDisabled();
-      expect(screen.getByTestId('market-next-page')).toBeEnabled();
-    });
-
-    it('loads the next page on demand', async () => {
-      const screen = renderScreen();
-
-      await waitFor(() => {
-        expect(screen.getByTestId('market-next-page')).toBeEnabled();
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByTestId('market-next-page'));
+        scrollToBottom(screen);
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
-          '2 / 2',
-        );
+        expect(screen.getByTestId('product-item-6')).toBeTruthy();
       });
 
       expect(getcontentfeed).toHaveBeenLastCalledWith(5, 5);
-      expect(screen.getByTestId('product-item-6')).toBeTruthy();
     });
 
-    it('returns to the previous page', async () => {
+    it('does not load more products when all products are loaded', async () => {
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(5);
+
       const screen = renderScreen();
 
       await waitFor(() => {
-        expect(screen.getByTestId('market-next-page')).toBeEnabled();
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
       });
 
       await act(async () => {
-        fireEvent.press(screen.getByTestId('market-next-page'));
+        scrollToBottom(screen);
       });
-
-      await waitFor(() => {
-        expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
-          '2 / 2',
-        );
-      });
-
-      await act(async () => {
-        fireEvent.press(screen.getByTestId('market-previous-page'));
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
-          '1 / 2',
-        );
-      });
-    });
-
-    it('disables the next page button on the last page', async () => {
-      const screen = renderScreen();
-
-      await waitFor(() => {
-        expect(screen.getByTestId('market-next-page')).toBeEnabled();
-      });
-
-      fireEvent.press(screen.getByTestId('market-next-page'));
-
-      await waitFor(() => {
-        expect(screen.getByTestId('market-next-page')).toBeDisabled();
-      });
-    });
-
-    it('does not load a page when the next button is disabled', async () => {
-      const screen = renderScreen();
-
-      await waitFor(() => {
-        expect(screen.getByTestId('market-next-page')).toBeEnabled();
-      });
-
-      fireEvent.press(screen.getByTestId('market-previous-page'));
 
       expect(getcontentfeed).toHaveBeenCalledTimes(1);
     });
 
-    it('shows an error when loading the next page fails', async () => {
+    it('does not make duplicate requests while loading', async () => {
+      let resolveNextPage!: (value: typeof mockProducts) => void;
+
+      (getcontentfeed as jest.Mock).mockImplementation(
+        (offset: number, limit: number) => {
+          if (offset === 5) {
+            return new Promise((resolve) => {
+              resolveNextPage = resolve;
+            });
+          }
+
+          return Promise.resolve(mockProducts.slice(offset, offset + limit));
+        },
+      );
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
+      });
+
+      act(() => {
+        scrollToBottom(screen);
+        scrollToBottom(screen);
+      });
+
+      expect(getcontentfeed).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        resolveNextPage([mockProducts[5]]);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-6')).toBeTruthy();
+      });
+    });
+
+    it('stops loading when the API returns an empty batch', async () => {
+      (getcontentfeed as jest.Mock).mockImplementation(
+        (offset: number, limit: number) => {
+          if (offset === 0) {
+            return Promise.resolve(mockProducts.slice(0, 5));
+          }
+
+          return Promise.resolve([]);
+        },
+      );
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
+      });
+
+      await act(async () => {
+        scrollToBottom(screen);
+      });
+
+      await waitFor(() => {
+        expect(getcontentfeed).toHaveBeenCalledWith(5, 5);
+      });
+
+      await act(async () => {
+        scrollToBottom(screen);
+      });
+
+      expect(getcontentfeed).toHaveBeenCalledTimes(2);
+    });
+
+    it('handles an error when loading more products', async () => {
       (getcontentfeed as jest.Mock).mockImplementation(
         (offset: number, limit: number) => {
           if (offset === 5) {
@@ -512,24 +569,120 @@ describe('MarketScreen', () => {
       const screen = renderScreen();
 
       await waitFor(() => {
-        expect(screen.getByTestId('market-next-page')).toBeEnabled();
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
       });
 
-      fireEvent.press(screen.getByTestId('market-next-page'));
+      await act(async () => {
+        scrollToBottom(screen);
+      });
 
       await waitFor(() => {
-        expect(
-          screen.getByText(
-            'No s’han pogut carregar més dades. Torna-ho a provar.',
-          ),
-        ).toBeTruthy();
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Error carregant més productes:',
+          expect.any(Error),
+        );
       });
 
-      expect(screen.getByTestId('market-page-indicator')).toHaveTextContent(
-        '1 / 2',
-      );
+      expect(screen.getByTestId('product-item-5')).toBeTruthy();
+      expect(screen.queryByTestId('product-item-6')).toBeNull();
 
       consoleSpy.mockRestore();
+    });
+
+    it('allows retrying after a failed request', async () => {
+      (getcontentfeed as jest.Mock).mockImplementation(
+        (offset: number, limit: number) => {
+          if (offset === 5) {
+            return Promise.reject(new Error('Page loading failed'));
+          }
+
+          return Promise.resolve(mockProducts.slice(offset, offset + limit));
+        },
+      );
+
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
+      });
+
+      await act(async () => {
+        scrollToBottom(screen);
+      });
+
+      await waitFor(() => {
+        expect(getcontentfeed).toHaveBeenCalledTimes(2);
+      });
+
+      (getcontentfeed as jest.Mock).mockImplementation(
+        (offset: number, limit: number) =>
+          Promise.resolve(mockProducts.slice(offset, offset + limit)),
+      );
+
+      await act(async () => {
+        scrollToBottom(screen);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-6')).toBeTruthy();
+      });
+    });
+
+    it('does not load more products while searching', async () => {
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
+      });
+
+      fireEvent.changeText(searchInput(screen), 'tomata');
+
+      await waitFor(() => {
+        expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+      });
+
+      const callsBeforeScroll = (getcontentfeed as jest.Mock).mock.calls.length;
+
+      await act(async () => {
+        scrollToBottom(screen);
+      });
+
+      expect(getcontentfeed).toHaveBeenCalledTimes(callsBeforeScroll);
+    });
+  });
+
+  describe('web load more control', () => {
+    it('loads another product batch when the web button is pressed', async () => {
+      jest.replaceProperty(Platform, 'OS', 'web');
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-load-more')).toBeEnabled();
+      });
+
+      fireEvent.press(screen.getByTestId('market-load-more'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-6')).toBeTruthy();
+      });
+
+      expect(getcontentfeed).toHaveBeenLastCalledWith(5, 5);
+    });
+
+    it('hides the web button after all products are loaded', async () => {
+      jest.replaceProperty(Platform, 'OS', 'web');
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(5);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-5')).toBeTruthy();
+      });
+
+      expect(screen.queryByTestId('market-load-more')).toBeNull();
     });
   });
 
@@ -544,12 +697,14 @@ describe('MarketScreen', () => {
       const screen = renderScreen();
 
       await waitFor(() => {
-        expect(screen.getByText('No hi ha productes.')).toBeTruthy();
+        expect(
+          screen.getByText('Encara no hi ha productes al mercat.'),
+        ).toBeTruthy();
       });
     });
 
-    it('does not show pagination when there is only one page', async () => {
-      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(2);
+    it('shows a message when search returns no products', async () => {
+      (searchMarketProducts as jest.Mock).mockResolvedValueOnce([]);
 
       const screen = renderScreen();
 
@@ -557,7 +712,18 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
       });
 
-      expect(screen.queryByTestId('market-page-indicator')).toBeNull();
+      fireEvent.changeText(searchInput(screen), 'producte-inexistent');
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(
+              'Cap producte coincideix amb «producte-inexistent».',
+            ),
+          ).toBeTruthy();
+        },
+        { timeout: 3000 },
+      );
     });
   });
 
@@ -578,17 +744,21 @@ describe('MarketScreen', () => {
       const screen = renderScreen();
 
       await waitFor(() => {
-        expect(screen.getByText('No hi ha productes.')).toBeTruthy();
+        expect(
+          screen.getByText('Encara no hi ha productes al mercat.'),
+        ).toBeTruthy();
       });
 
-      expect(getcontentfeed).not.toHaveBeenCalled();
+      expect(getMarketProductsCount).toHaveBeenCalledTimes(1);
+      expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
+      expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
 
-    it('handles an error when loading the announcement count', async () => {
-      (getAnuncesCount as jest.Mock).mockRejectedValueOnce(
-        new Error('Announcement count failed'),
+    it('handles an error when loading the initial products', async () => {
+      (getcontentfeed as jest.Mock).mockRejectedValueOnce(
+        new Error('Products loading failed'),
       );
 
       const consoleSpy = jest
@@ -598,17 +768,178 @@ describe('MarketScreen', () => {
       const screen = renderScreen();
 
       await waitFor(() => {
-        expect(screen.getByText('No hi ha productes.')).toBeTruthy();
+        expect(
+          screen.getByText('Encara no hi ha productes al mercat.'),
+        ).toBeTruthy();
       });
 
-      expect(getcontentfeed).not.toHaveBeenCalled();
+      expect(getMarketProductsCount).toHaveBeenCalledTimes(1);
+      expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
+      expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
   });
 
   // --------------------------------------------------
-  // CICLE DE VIDA
+  // ESTOC I VARIANTS DE PRODUCTE
+  // --------------------------------------------------
+
+  describe('product stock and images', () => {
+    it('shows available stock for products with more than 50 units', async () => {
+      const product = {
+        ...mockProducts[0],
+        left_units: 100,
+      };
+
+      (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-units-1')).toHaveTextContent(
+          '100 disponibles',
+        );
+      });
+    });
+
+    it('shows low stock for products with exactly 50 units', async () => {
+      const product = {
+        ...mockProducts[0],
+        left_units: 50,
+      };
+
+      (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-units-1')).toHaveTextContent(
+          'Només en queden 50',
+        );
+      });
+    });
+
+    it('handles negative stock as out of stock', async () => {
+      const product = {
+        ...mockProducts[0],
+        left_units: -5,
+      };
+
+      (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-units-1')).toHaveTextContent(
+          'Esgotat',
+        );
+      });
+    });
+
+    it('renders a fallback when the product has no image', async () => {
+      const product = {
+        ...mockProducts[0],
+        image_url: null,
+        url_image: null,
+      };
+
+      (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-name-1')).toBeTruthy();
+      });
+
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    it('uses url_image when image_url is unavailable', async () => {
+      const product = {
+        ...mockProducts[0],
+        image_url: null,
+        url_image: 'https://example.com/alternative.png',
+      };
+
+      (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-name-1')).toBeTruthy();
+      });
+
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+  });
+
+  // --------------------------------------------------
+  // HOVER I PREVISUALITZACIÓ
+  // --------------------------------------------------
+
+  describe('image preview', () => {
+    it('does not show image preview when there is no image', async () => {
+      const product = {
+        ...mockProducts[0],
+        image_url: null,
+        url_image: null,
+      };
+
+      (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
+      (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
+
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-1')).toBeTruthy();
+      });
+
+      fireEvent(screen.getByTestId('product-item-1'), 'hoverIn', {
+        nativeEvent: { pageX: 100, pageY: 100 },
+      });
+
+      expect(screen.queryByText('Producte 1')).toBeTruthy();
+    });
+
+    it('handles pointer movement with a mouse', async () => {
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-1')).toBeTruthy();
+      });
+
+      fireEvent(screen.getByTestId('product-item-1'), 'pointerMove', {
+        nativeEvent: {
+          pageX: 100,
+          pageY: 100,
+          pointerType: 'mouse',
+        },
+      });
+
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+
+    it('handles hover out', async () => {
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('product-item-1')).toBeTruthy();
+      });
+
+      fireEvent(screen.getByTestId('product-item-1'), 'hoverOut');
+
+      expect(screen.getByTestId('product-item-1')).toBeTruthy();
+    });
+  });
+
+  // --------------------------------------------------
+  // CICLE DE VIDA I ANIMACIONS
   // --------------------------------------------------
 
   describe('lifecycle', () => {
@@ -634,19 +965,45 @@ describe('MarketScreen', () => {
       });
     });
 
-    it('starts and stops product button animations', async () => {
+    it('starts animations only for products that have stock', async () => {
       const screen = renderScreen();
 
       await waitFor(() => {
-        expect(screen.getByTestId('buy-button-1')).toBeTruthy();
+        expect(screen.getByTestId('buy-button-5')).toBeTruthy();
       });
 
-      expect(animationSpy).toHaveBeenCalledTimes(5);
+      // El primer producte està esgotat.
+      expect(animationSpy).toHaveBeenCalledTimes(4);
+
+      screen.unmount();
+    });
+
+    it('does not animate an out-of-stock product', async () => {
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('buy-text-1')).toHaveTextContent('Esgotat');
+      });
+
+      expect(animationSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('stops animations when the screen is unmounted', async () => {
+      const screen = renderScreen();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('buy-button-5')).toBeTruthy();
+      });
+
+      const animations = animationSpy.mock.results.map(
+        (result) => result.value,
+      );
 
       screen.unmount();
 
-      // Una animació per cada producte visible.
-      expect(animationSpy.mock.results.length).toBe(5);
+      animations.forEach((animation) => {
+        expect(animation.stop).toHaveBeenCalled();
+      });
     });
   });
 });

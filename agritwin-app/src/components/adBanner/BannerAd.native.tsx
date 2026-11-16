@@ -42,7 +42,10 @@ export default function BannerAd({
   }
 
   return (
-    <View style={[styles.container, { marginTop, marginBottom }]}>
+    <View
+      testID="native-banner-ad-container"
+      style={[styles.container, { marginTop, marginBottom }]}
+    >
       <AdMobBanner
         unitId={adUnitId}
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}

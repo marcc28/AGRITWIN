@@ -9,9 +9,11 @@ import {
 import { Colors } from '@/constants/theme';
 
 function SkeletonProductCard({
+  testID,
   cardWidth,
   compact = false,
 }: {
+  testID: string;
   cardWidth?: number;
   compact?: boolean;
 }) {
@@ -51,6 +53,7 @@ function SkeletonProductCard({
 
   return (
     <View
+      testID={testID}
       style={{
         width: cardWidth ?? '100%',
         backgroundColor: colors.surface,
@@ -135,6 +138,7 @@ export default function MarketSkeleton({
 }) {
   return (
     <View
+      testID="market-skeleton"
       style={{
         width: '100%',
         flexDirection: 'row',
@@ -147,6 +151,7 @@ export default function MarketSkeleton({
       {Array.from({ length: count }).map((_, index) => (
         <SkeletonProductCard
           key={index}
+          testID={`market-skeleton-card-${index}`}
           cardWidth={cardWidth}
           compact={compact}
         />

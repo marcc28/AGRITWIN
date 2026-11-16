@@ -450,9 +450,7 @@ export default function MarketScreen() {
     };
   }, [searchQuery, loading, allProducts]);
 
-  useEffect(() => {
-  }, [searchQuery]);
-
+  useEffect(() => {}, [searchQuery]);
 
   const loadMoreProducts = async () => {
     if (
@@ -561,6 +559,7 @@ export default function MarketScreen() {
       </View>
 
       <ScrollView
+        testID="market-scroll-view"
         style={styles.scroll}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -669,6 +668,5 @@ export default function MarketScreen() {
         </View>
       )}
     </View>
-
   );
 }
