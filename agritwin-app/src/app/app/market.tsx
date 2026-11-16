@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import {
   Animated,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -9,20 +11,19 @@ import {
   useColorScheme,
   useWindowDimensions,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
+
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/theme';
-import { getMarketStyles } from '../../styles/market.styles';
+import { getMarketStyles, getMarketPalette } from '../../styles/market.styles';
 import {
   getcontentfeed,
   searchMarketProducts,
-  getAnuncesCount,
   getMarketProductsCount,
 } from '@/services/api_market';
-
-type Tab = 'prices';
+import BannerAd from '@/components/adBanner/BannerAd';
+import MarketSkeleton from '@/components/market/MarketSkeleton';
 
 type Product = {
   id: string | number;
@@ -41,29 +42,42 @@ const PAGE_SIZE =
     ? configuredPageSize
     : 5;
 
-function MarketImagePreview({
-  title,
-  imageUrl,
-  styles,
-  children,
-  onPress,
-  testID,
-  accessibilityLabel,
-  pressedOpacity = 0.7,
-  onHover,
-  onHoverOut,
-}: {
+// Per sota d'aquest estoc avisem que en queden poques unitats
+const LOW_STOCK = 50;
+
+const euros = (value: number) => Number(value).toFixed(2).replace('.', ',');
+
+type ProductCardProps = {
+  product: Product;
+  styles: ReturnType<typeof getMarketStyles>;
+  palette: ReturnType<typeof getMarketPalette>;
+  buyLabel: string;
+  onPress: () => void;
+};
+
+type ProductPreviewProps = {
   title: string;
   imageUrl?: string | null;
   styles: ReturnType<typeof getMarketStyles>;
   children: ReactNode;
   onPress: () => void;
-  testID: string;
-  accessibilityLabel: string;
-  pressedOpacity?: number;
   onHover: (pageX: number, pageY: number) => void;
   onHoverOut: () => void;
-}) {
+  testID: string;
+  accessibilityLabel: string;
+};
+
+function ProductPreview({
+  title,
+  imageUrl,
+  styles,
+  children,
+  onPress,
+  onHover,
+  onHoverOut,
+  testID,
+  accessibilityLabel,
+}: ProductPreviewProps) {
   return (
     <Pressable
       testID={testID}
@@ -74,12 +88,14 @@ function MarketImagePreview({
           onHover(event.nativeEvent.pageX, event.nativeEvent.pageY);
         }
       }}
+      onPointerMove={(event) => {
+        if (imageUrl && event.nativeEvent.pointerType === 'mouse') {
+          onHover(event.nativeEvent.pageX, event.nativeEvent.pageY);
+        }
+      }}
       onHoverOut={onHoverOut}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.priceCard,
-        pressed && { opacity: pressedOpacity },
-      ]}
+      style={({ pressed }) => [styles.priceCard, pressed && { opacity: 0.75 }]}
     >
       {children}
     </Pressable>
@@ -97,7 +113,14 @@ function HeartbeatBuyButton({
 }) {
   const scale = useRef(new Animated.Value(1)).current;
 
+  const outOfStock = Number(product.left_units) <= 0;
+
   useEffect(() => {
+    if (outOfStock) {
+      scale.setValue(1);
+      return;
+    }
+
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(scale, {
@@ -130,8 +153,7 @@ function HeartbeatBuyButton({
       animation.stop();
       scale.stopAnimation();
     };
-  }, [scale]);
-  const outOfStock = Number(product.left_units) <= 0;
+  }, [scale, outOfStock]);
 
   return (
     <Animated.View
@@ -142,9 +164,12 @@ function HeartbeatBuyButton({
     >
       <View
         testID={`buy-button-${product.id}`}
-        style={[styles.buyBtn, outOfStock && { opacity: 0.45 }]}
+        style={[styles.buyBtn, outOfStock && styles.buyBtnDisabled]}
       >
-        <Text testID={`buy-text-${product.id}`} style={styles.buyText}>
+        <Text
+          testID={`buy-text-${product.id}`}
+          style={[styles.buyText, outOfStock && styles.buyTextDisabled]}
+        >
           {outOfStock ? 'Esgotat' : label}
         </Text>
       </View>
@@ -152,47 +177,146 @@ function HeartbeatBuyButton({
   );
 }
 
+function ProductCard({
+  product,
+  styles,
+  palette,
+  buyLabel,
+  onPress,
+  onHover,
+  onHoverOut,
+}: ProductCardProps & {
+  onHover: (pageX: number, pageY: number) => void;
+  onHoverOut: () => void;
+}) {
+  const imageUrl = product.image_url ?? product.url_image;
+
+  const units = Math.max(0, Math.trunc(Number(product.left_units)));
+
+  const outOfStock = units <= 0;
+  const lowStock = !outOfStock && units <= LOW_STOCK;
+
+  const stockColor = outOfStock
+    ? palette.muted
+    : lowStock
+      ? palette.warn
+      : palette.ok;
+
+  const stockLabel = outOfStock
+    ? 'Esgotat'
+    : lowStock
+      ? `Només en queden ${units}`
+      : `${units} disponibles`;
+
+  return (
+    <ProductPreview
+      title={product.product}
+      imageUrl={imageUrl}
+      styles={styles}
+      testID={`product-item-${product.id}`}
+      accessibilityLabel={`Veure producte ${product.product}`}
+      onHover={onHover}
+      onHoverOut={onHoverOut}
+      onPress={onPress}
+    >
+      <View style={styles.priceTop}>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.thumb}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+          />
+        ) : (
+          <View style={styles.thumbFallback}>
+            <Text style={styles.thumbFallbackText}>
+              {product.product.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.info}>
+          <Text
+            testID={`product-name-${product.id}`}
+            style={styles.productName}
+            numberOfLines={2}
+          >
+            {product.product}
+          </Text>
+
+          <Text
+            testID={`product-technical-name-${product.id}`}
+            style={styles.detail}
+            numberOfLines={1}
+          >
+            {product.tecnical_name}
+          </Text>
+
+          <View style={styles.stockRow}>
+            <View style={[styles.stockDot, { backgroundColor: stockColor }]} />
+
+            <Text
+              testID={`product-units-${product.id}`}
+              style={[styles.stockText, { color: stockColor }]}
+            >
+              {stockLabel}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.priceMain}>
+          <Text
+            testID={`product-price-${product.id}`}
+            style={styles.priceValue}
+          >
+            {euros(product.price)} €
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.priceBottom}>
+        <Text
+          testID={`product-price-kg-${product.id}`}
+          style={styles.smallInfo}
+        >
+          {euros(product.price_per_kg)} €/kg
+        </Text>
+
+        <HeartbeatBuyButton
+          product={product}
+          label={buyLabel}
+          styles={styles}
+        />
+      </View>
+    </ProductPreview>
+  );
+}
+
 export default function MarketScreen() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const isDark = scheme === 'dark';
+  const colors = Colors[isDark ? 'dark' : 'light'];
   const { width, height } = useWindowDimensions();
   const compactLandscape = width > height && height < 600;
-  const styles = getMarketStyles(colors, compactLandscape);
+  const styles = getMarketStyles(colors, { width, height });
+  const palette = getMarketPalette(colors);
+  const skeletonCardWidth =
+    typeof styles.priceCard.width === 'number'
+      ? styles.priceCard.width
+      : undefined;
+  const skeletonGap =
+    typeof styles.list.gap === 'number' ? styles.list.gap : 12;
+  const compactSkeleton = width < 360 || compactLandscape;
   const router = useRouter();
   const marketRef = useRef<View>(null);
 
-  const [tab, setTab] = useState<Tab>('prices');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingPage, setLoadingPage] = useState(false);
-  const [pageLoadError, setPageLoadError] = useState('');
-  const [page, setPage] = useState(0);
-  const [productsTotal, setProductsTotal] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState('');
-  const [currentItems, setCurrentItems] = useState<Product[]>([]);
-  const isSearching = Boolean(searchQuery.trim());
-  const currentTotal = isSearching ? currentItems.length : productsTotal;
-  const totalPages = Math.ceil(currentTotal / PAGE_SIZE);
-
-  const visibleProducts = products.slice(
-    page * PAGE_SIZE,
-    (page + 1) * PAGE_SIZE,
-  );
-
-  const canGoBack = page > 0;
-  const canGoForward = page + 1 < totalPages;
-
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [hoverPreview, setHoverPreview] = useState<{
     title: string;
     imageUrl: string;
     left: number;
     top: number;
   } | null>(null);
-
   const showImagePreview = (
     title: string,
     imageUrl: string | null | undefined,
@@ -201,47 +325,73 @@ export default function MarketScreen() {
   ) => {
     if (!imageUrl) return;
 
-    marketRef.current?.measureInWindow((x, y, width) => {
+    marketRef.current?.measureInWindow((x, y, width, height) => {
       const previewWidth = 190;
       const previewHeight = 155;
-      const left = Math.min(
-        Math.max(8, pageX - x - previewWidth / 2),
-        Math.max(8, width - previewWidth - 8),
-      );
-      const top = Math.max(8, pageY - y - previewHeight - 12);
+      const offset = 16;
 
-      setHoverPreview({ title, imageUrl, left, top });
+      const cursorX = pageX - x;
+      const cursorY = pageY - y;
+      const maxLeft = Math.max(8, width - previewWidth - 8);
+      const maxTop = Math.max(8, height - previewHeight - 8);
+      const requestedLeft =
+        cursorX + offset + previewWidth > width - 8
+          ? cursorX - previewWidth - offset
+          : cursorX + offset;
+      const requestedTop =
+        cursorY + offset + previewHeight > height - 8
+          ? cursorY - previewHeight - offset
+          : cursorY + offset;
+
+      const left = Math.min(Math.max(8, requestedLeft), maxLeft);
+      const top = Math.min(Math.max(8, requestedTop), maxTop);
+
+      setHoverPreview({
+        title,
+        imageUrl,
+        left,
+        top,
+      });
     });
   };
 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [currentItems, setCurrentItems] = useState<Product[]>([]);
+  const [productsTotal, setProductsTotal] = useState(0);
+
+  const [loading, setLoading] = useState(true);
+  const [loadingPage, setLoadingPage] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  const isSearching = Boolean(searchQuery.trim());
+  const loadingMoreRef = useRef(false);
+  const [hasMore, setHasMore] = useState(true);
+  // Càrrega inicial
   useEffect(() => {
     let active = true;
 
     async function loadData() {
       try {
-        const [productsCount, newsCount] = await Promise.all([
+        const [productsCount, productsData] = await Promise.all([
           getMarketProductsCount(),
-          getAnuncesCount(),
-        ]);
-
-        const [productsData] = await Promise.all([
           getcontentfeed(0, PAGE_SIZE),
         ]);
 
         if (active) {
           setProductsTotal(productsCount);
           setAllProducts(productsData);
-
           setCurrentItems(productsData);
-
           setProducts(productsData);
+          setHasMore(productsData.length < productsCount);
         }
       } catch (error) {
         console.error('Error carregant les dades del mercat:', error);
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (active) setLoading(false);
       }
     }
 
@@ -252,6 +402,7 @@ export default function MarketScreen() {
     };
   }, []);
 
+  // Cerca amb debounce
   useEffect(() => {
     if (loading) return;
 
@@ -260,12 +411,11 @@ export default function MarketScreen() {
 
     setSearchError('');
 
-    // Si la cerca està buida, recuperem els productes originals
+    // Cerca buida: recuperem els productes originals
     if (!query) {
       setSearching(false);
       setProducts(allProducts);
       setCurrentItems(allProducts);
-
       return () => {
         active = false;
       };
@@ -280,20 +430,17 @@ export default function MarketScreen() {
         if (active) {
           setProducts(results);
           setCurrentItems(results);
-          setPage(0);
         }
       } catch (error) {
         console.error('Error en la cerca:', error);
 
         if (active) {
-          setSearchError('Error en realitzar la cerca.');
+          setSearchError('No s’ha pogut fer la cerca. Torna-ho a provar.');
           setProducts([]);
           setCurrentItems([]);
         }
       } finally {
-        if (active) {
-          setSearching(false);
-        }
+        if (active) setSearching(false);
       }
     }, 350);
 
@@ -301,50 +448,66 @@ export default function MarketScreen() {
       active = false;
       clearTimeout(timeout);
     };
-  }, [searchQuery, tab, loading, allProducts]);
+  }, [searchQuery, loading, allProducts]);
 
   useEffect(() => {
-    setPage(0);
-    setPageLoadError('');
-  }, [searchQuery, tab]);
+  }, [searchQuery]);
 
-  const changeTab = (nextTab: Tab) => {
-    setTab(nextTab);
-    setPage(0);
-  };
 
-  const goBack = () => {
-    setPage((current) => Math.max(0, current - 1));
-    setPageLoadError('');
-  };
-
-  const goForward = async () => {
-    if (loadingPage || !canGoForward) return;
-
-    const nextPage = page + 1;
-    const nextOffset = nextPage * PAGE_SIZE;
-    const loadedItems = allProducts;
-
-    if (!isSearching && loadedItems.length < nextOffset + 1) {
-      setLoadingPage(true);
-      setPageLoadError('');
-      try {
-        const batch = await getcontentfeed(nextOffset, PAGE_SIZE);
-        setAllProducts((previous) => [...previous, ...batch]);
-        setProducts((previous) => [...previous, ...batch]);
-        setCurrentItems((previous) => [...previous, ...batch]);
-      } catch (error) {
-        console.error('Error carregant més dades del mercat:', error);
-        setPageLoadError(
-          'No s’han pogut carregar més dades. Torna-ho a provar.',
-        );
-        return;
-      } finally {
-        setLoadingPage(false);
-      }
+  const loadMoreProducts = async () => {
+    if (
+      loading ||
+      searching ||
+      isSearching ||
+      loadingMoreRef.current ||
+      !hasMore
+    ) {
+      return;
     }
 
-    setPage(nextPage);
+    loadingMoreRef.current = true;
+    setLoadingPage(true);
+
+    try {
+      const offset = allProducts.length;
+
+      const batch = await getcontentfeed(offset, PAGE_SIZE);
+
+      if (batch.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      setAllProducts((previous) => [...previous, ...batch]);
+      setProducts((previous) => [...previous, ...batch]);
+
+      // Comprovem si encara queden productes per carregar
+      setHasMore(offset + batch.length < productsTotal);
+    } catch (error) {
+      console.error('Error carregant més productes:', error);
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingPage(false);
+    }
+  };
+  const handleScroll = ({
+    nativeEvent,
+  }: {
+    nativeEvent: {
+      layoutMeasurement: { height: number };
+      contentOffset: { y: number };
+      contentSize: { height: number };
+    };
+  }) => {
+    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+
+    const distanceFromBottom =
+      contentSize.height - (layoutMeasurement.height + contentOffset.y);
+
+    // Carreguem quan falten menys de 200 píxels per arribar al final
+    if (distanceFromBottom < 200) {
+      loadMoreProducts();
+    }
   };
 
   const openProduct = (productId: string | number) => {
@@ -368,17 +531,18 @@ export default function MarketScreen() {
       <View style={styles.searchWrap}>
         <Image
           source={require('@assets/images/search.png')}
-          style={{ width: 20, height: 20, marginRight: 10 }}
+          style={{
+            width: compactLandscape ? 16 : 20,
+            height: compactLandscape ? 16 : 20,
+            marginRight: compactLandscape ? 6 : 10,
+          }}
           resizeMode="contain"
         />
 
         <TextInput
           style={styles.searchInput}
-          placeholder={t(
-            'market.searchPlaceholder',
-            'Cerca productes o notícies...',
-          )}
-          placeholderTextColor={colors.textSecondary}
+          placeholder={t('market.searchPlaceholder', 'Cerca productes')}
+          placeholderTextColor={palette.muted}
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
@@ -387,6 +551,8 @@ export default function MarketScreen() {
         {searchQuery.length > 0 && (
           <Pressable
             style={styles.clearButton}
+            accessibilityRole="button"
+            accessibilityLabel="Esborra la cerca"
             onPress={() => setSearchQuery('')}
           >
             <Text style={styles.clearText}>×</Text>
@@ -398,144 +564,93 @@ export default function MarketScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={300}
       >
         {loading ? (
-          <Text style={styles.statusText}>
-            {t('common.loading', 'Carregant...')}
-          </Text>
+          <MarketSkeleton
+            count={PAGE_SIZE}
+            cardWidth={skeletonCardWidth}
+            gap={skeletonGap}
+            compact={compactSkeleton}
+          />
         ) : searching ? (
-          <Text style={styles.statusText}>Cercant...</Text>
+          <MarketSkeleton
+            count={PAGE_SIZE}
+            cardWidth={skeletonCardWidth}
+            gap={skeletonGap}
+            compact={compactSkeleton}
+          />
         ) : searchError ? (
           <Text style={styles.statusText}>{searchError}</Text>
-        ) : visibleProducts.length > 0 ? (
-          visibleProducts.map((product) => (
-            <MarketImagePreview
-              key={product.id}
-              title={product.product}
-              imageUrl={product.image_url ?? product.url_image}
-              styles={styles}
-              testID={`product-item-${product.id}`}
-              accessibilityLabel={`Veure producte ${product.product}`}
-              onHover={(pageX, pageY) =>
-                showImagePreview(
-                  product.product,
-                  product.image_url ?? product.url_image,
-                  pageX,
-                  pageY,
-                )
-              }
-              onHoverOut={() => setHoverPreview(null)}
-              onPress={() => openProduct(product.id)}
-            >
-              <View style={styles.priceTop}>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    testID={`product-name-${product.id}`}
-                    style={styles.productName}
-                  >
-                    {product.product}
-                  </Text>
-
-                  <Text
-                    testID={`product-technical-name-${product.id}`}
-                    style={styles.detail}
-                  >
-                    {product.tecnical_name}
-                  </Text>
-                </View>
-
-                <View style={styles.priceMain}>
-                  <Text
-                    testID={`product-price-${product.id}`}
-                    style={styles.priceValue}
-                  >
-                    {Number(product.price).toFixed(2)} €
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.priceBottom}>
-                <Text
-                  testID={`product-price-kg-${product.id}`}
-                  style={styles.smallInfo}
+        ) : products.length > 0 ? (
+          <>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                styles={styles}
+                palette={palette}
+                buyLabel={t('market.buy')}
+                onPress={() => openProduct(product.id)}
+                onHover={(pageX, pageY) =>
+                  showImagePreview(
+                    product.product,
+                    product.image_url ?? product.url_image,
+                    pageX,
+                    pageY,
+                  )
+                }
+                onHoverOut={() => setHoverPreview(null)}
+              />
+            ))}
+            {Platform.OS === 'web' && !isSearching && hasMore && (
+              <View style={styles.loadMoreWrap}>
+                <Pressable
+                  testID="market-load-more"
+                  accessibilityRole="button"
+                  accessibilityLabel="Carregar més productes"
+                  disabled={loadingPage}
+                  onPress={loadMoreProducts}
+                  style={({ pressed }) => [
+                    styles.loadMoreButton,
+                    pressed && !loadingPage && { opacity: 0.75 },
+                    loadingPage && { opacity: 0.65 },
+                  ]}
                 >
-                  {Number(product.price_per_kg).toFixed(2)} €/kg
-                </Text>
-
-                <Text
-                  testID={`product-units-${product.id}`}
-                  style={styles.smallInfo}
-                >
-                  {Number(product.left_units).toFixed(2)} {t('market.units')}
-                </Text>
-
-                <HeartbeatBuyButton
-                  product={product}
-                  label={t('market.buy')}
-                  styles={styles}
-                />
+                  <Text style={styles.loadMoreText}>
+                    {loadingPage
+                      ? t('common.loading', 'Carregant...')
+                      : t('market.loadMore', 'Carregar més productes')}
+                  </Text>
+                </Pressable>
               </View>
-            </MarketImagePreview>
-          ))
+            )}
+          </>
         ) : (
-          <Text style={styles.statusText}>No hi ha productes.</Text>
+          <Text style={styles.statusText}>
+            {isSearching
+              ? `Cap producte coincideix amb «${searchQuery.trim()}».`
+              : 'Encara no hi ha productes al mercat.'}
+          </Text>
+        )}
+
+        {/* Skeleton al final de la llista */}
+        {loadingPage && !loading && (
+          <MarketSkeleton
+            cardWidth={skeletonCardWidth}
+            gap={skeletonGap}
+            compact={compactSkeleton}
+          />
         )}
       </ScrollView>
-
-      {loadingPage && (
-        <Text style={styles.statusText}>
-          {t('common.loading', 'Carregant...')}
-        </Text>
-      )}
-      {pageLoadError ? (
-        <Text style={styles.statusText}>{pageLoadError}</Text>
-      ) : null}
-
-      {!loading && totalPages > 1 && (
-        <View style={styles.pagination}>
-          <Pressable
-            testID="market-previous-page"
-            accessibilityRole="button"
-            accessibilityLabel="Cinc elements enrere"
-            disabled={!canGoBack}
-            onPress={goBack}
-            style={({ pressed }) => [
-              styles.arrowButton,
-              !canGoBack && styles.arrowDisabled,
-              pressed && canGoBack && styles.arrowPressed,
-            ]}
-          >
-            <Image
-              source={require('@assets/images/left_arrow.png')}
-              style={styles.arrowIcon}
-              resizeMode="contain"
-            />
-          </Pressable>
-
-          <Text testID="market-page-indicator" style={styles.pageText}>
-            {page + 1} / {totalPages}
-          </Text>
-
-          <Pressable
-            testID="market-next-page"
-            accessibilityRole="button"
-            accessibilityLabel="Cinc elements endavant"
-            disabled={!canGoForward || loadingPage}
-            onPress={goForward}
-            style={({ pressed }) => [
-              styles.arrowButton,
-              !canGoForward && styles.arrowDisabled,
-              pressed && canGoForward && styles.arrowPressed,
-            ]}
-          >
-            <Image
-              source={require('@assets/images/right_arrow.png')}
-              style={styles.arrowIcon}
-              resizeMode="contain"
-            />
-          </Pressable>
-        </View>
-      )}
+      <View style={styles.bannerWrap}>
+        <BannerAd
+          position="bottom"
+          marginTop={compactLandscape ? 0 : 10}
+          marginBottom={compactLandscape ? 0 : 5}
+        />
+      </View>
 
       {hoverPreview && (
         <View
@@ -545,9 +660,7 @@ export default function MarketScreen() {
             { left: hoverPreview.left, top: hoverPreview.top },
           ]}
         >
-          <Text style={styles.imagePreviewTitle} numberOfLines={1}>
-            {hoverPreview.title}
-          </Text>
+          <Text style={styles.imagePreviewTitle}>{hoverPreview.title}</Text>
           <Image
             source={{ uri: hoverPreview.imageUrl }}
             style={styles.imagePreviewImage}
@@ -556,5 +669,6 @@ export default function MarketScreen() {
         </View>
       )}
     </View>
+
   );
 }

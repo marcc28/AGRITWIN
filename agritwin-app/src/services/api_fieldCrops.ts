@@ -13,6 +13,7 @@ export type FieldCrop = {
   field_id: string | number;
   crop_id: string | number;
   crop_name: string | null;
+  field_name: string; 
   planted_at?: string | null;
   expected_harvest_at?: string | null;
   status: string;
