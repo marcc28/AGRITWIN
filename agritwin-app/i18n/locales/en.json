@@ -677,14 +677,10 @@
     "deleteMessage": "Its crops and Arduinos will be lost. This cannot be undone.",
     "deleteConfirm": "Delete",
     "deleteError": "The garden could not be deleted",
-    "legendOk": "All working",
-    "legendPartial": "Some not working",
-    "legendDown": "None working",
     "profile": "My profile",
     "loadError": "The gardens could not be loaded",
     "back": "Back",
     "eyebrow": "MY GARDENS",
-    "legendTitle": "Sensor status",
     "allGardens": "See all gardens"
   }
 }

@@ -11,6 +11,7 @@ import {
   DEVICE_HEALTH_LABEL,
   deviceHealthFromCounts,
 } from '@/services/deviceHealth';
+import { clearAuth } from '@/services/auth';
 import { setCurrentField } from '@/services/currentField';
 import {
   getGardenPicker,
@@ -37,25 +38,40 @@ async function selectGarden(field: Field) {
   }
 }
 
-const PICKER_LINKS = [
-  {
-    testID: 'garden-picker-all',
-    path: '/field-selection',
-    icon: 'grid-outline',
-    labelKey: 'fieldSelection.allGardens',
-  },
-  {
-    testID: 'garden-picker-profile',
-    path: '/profile',
-    icon: 'person-circle-outline',
-    labelKey: 'fieldSelection.profile',
-  },
-] as const;
-
 function openFromPicker(path: '/field-selection' | '/profile') {
   setGardenPicker({ open: false });
   router.push(path);
 }
+
+async function logoutFromPicker() {
+  setGardenPicker({ open: false });
+  await clearAuth();
+  router.replace('/auth/login');
+}
+
+const PICKER_LINKS = [
+  {
+    testID: 'garden-picker-all',
+    icon: 'grid-outline',
+    labelKey: 'fieldSelection.allGardens',
+    danger: false,
+    onPress: () => openFromPicker('/field-selection'),
+  },
+  {
+    testID: 'garden-picker-profile',
+    icon: 'person-circle-outline',
+    labelKey: 'fieldSelection.profile',
+    danger: false,
+    onPress: () => openFromPicker('/profile'),
+  },
+  {
+    testID: 'garden-picker-logout',
+    icon: 'log-out-outline',
+    labelKey: 'settings.logout',
+    danger: true,
+    onPress: () => void logoutFromPicker(),
+  },
+] as const;
 
 export default function GardenPickerOverlay() {
   const scheme = useColorScheme();
@@ -180,7 +196,7 @@ export default function GardenPickerOverlay() {
           <Pressable
             key={link.testID}
             testID={link.testID}
-            onPress={() => openFromPicker(link.path)}
+            onPress={link.onPress}
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
@@ -199,7 +215,7 @@ export default function GardenPickerOverlay() {
             <Ionicons
               name={link.icon}
               size={16}
-              color={colors.primary}
+              color={link.danger ? colors.dangerText : colors.primary}
               style={{ marginRight: 8 }}
             />
             <Text
@@ -207,7 +223,7 @@ export default function GardenPickerOverlay() {
                 flex: 1,
                 fontSize: 14,
                 fontWeight: '600',
-                color: colors.primary,
+                color: link.danger ? colors.dangerText : colors.primary,
               }}
             >
               {t(link.labelKey)}

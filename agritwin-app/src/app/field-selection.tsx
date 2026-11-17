@@ -25,16 +25,9 @@ import {
 import {
   DEVICE_HEALTH_COLOR,
   deviceHealthFromCounts,
-  type DeviceHealth,
 } from '@/services/deviceHealth';
 import { loadGardenPickerFields } from '@/services/gardenPicker';
 import { styles } from '@/styles/field-selection.styles';
-
-const LEGEND: { health: DeviceHealth; labelKey: string }[] = [
-  { health: 'ok', labelKey: 'fieldSelection.legendOk' },
-  { health: 'partial', labelKey: 'fieldSelection.legendPartial' },
-  { health: 'down', labelKey: 'fieldSelection.legendDown' },
-];
 
 export default function FieldSelectionScreen() {
   const { t } = useTranslation();
@@ -194,10 +187,11 @@ export default function FieldSelectionScreen() {
             <View style={styles.grid}>
               {fields.map((field) => {
                 const current = field.id === currentId;
-                const health = deviceHealthFromCounts(
-                  field.device_count,
-                  field.devices_online ?? 0,
-                );
+                const connected =
+                  deviceHealthFromCounts(
+                    field.device_count,
+                    field.devices_online ?? 0,
+                  ) === 'ok';
                 return (
                   <View key={field.id} style={styles.tile}>
                     <Pressable
@@ -212,12 +206,7 @@ export default function FieldSelectionScreen() {
                         managing ? editField(field) : void chooseField(field)
                       }
                     >
-                      <View
-                        style={[
-                          styles.photoBox,
-                          { borderColor: DEVICE_HEALTH_COLOR[health] },
-                        ]}
-                      >
+                      <View style={styles.photoBox}>
                         <FieldPhoto fieldId={field.id} style={styles.photo} />
                         {managing ? (
                           <View style={styles.manageOverlay}>
@@ -239,6 +228,23 @@ export default function FieldSelectionScreen() {
                             />
                           </View>
                         ) : null}
+                        <View
+                          testID={`field-connection-${field.id}`}
+                          accessibilityLabel={t(
+                            connected
+                              ? 'settings.fieldDetail.connected'
+                              : 'settings.fieldDetail.disconnected',
+                          )}
+                          style={styles.connectionBadge}
+                        >
+                          <Ionicons
+                            name="wifi"
+                            size={20}
+                            color={
+                              DEVICE_HEALTH_COLOR[connected ? 'ok' : 'down']
+                            }
+                          />
+                        </View>
                       </View>
                       <View style={styles.cardBody}>
                         <Text
@@ -300,25 +306,6 @@ export default function FieldSelectionScreen() {
               </View>
             </View>
           )}
-
-          <View style={styles.legendCard}>
-            <Text style={styles.legendTitle}>
-              {t('fieldSelection.legendTitle')}
-            </Text>
-            <View style={styles.legendRow}>
-              {LEGEND.map((item) => (
-                <View key={item.health} style={styles.legendItem}>
-                  <View
-                    style={[
-                      styles.legendDot,
-                      { backgroundColor: DEVICE_HEALTH_COLOR[item.health] },
-                    ]}
-                  />
-                  <Text style={styles.legendText}>{t(item.labelKey)}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
         </View>
       </ScrollView>
 

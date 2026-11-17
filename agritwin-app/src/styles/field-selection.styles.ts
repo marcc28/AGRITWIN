@@ -104,7 +104,6 @@ export const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 18,
     overflow: 'hidden',
-    borderWidth: 4,
     backgroundColor: Colors.light.surfaceSecondary,
     shadowColor: Colors.light.shadow,
     shadowOffset: { width: 0, height: 8 },
@@ -145,6 +144,18 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.light.primaryDark,
+  },
+
+  connectionBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.light.surface,
   },
 
   cardBody: {
@@ -203,47 +214,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: Colors.light.primary,
-  },
-
-  legendCard: {
-    marginTop: 22,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-
-  legendTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-  },
-
-  legendRow: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-
-  legendItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-  },
-
-  legendDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-
-  legendText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.light.text,
-    textAlign: 'center',
   },
 
   modalBackdrop: {

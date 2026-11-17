@@ -677,14 +677,10 @@
     "deleteMessage": "Si perderanno le sue colture e i suoi Arduino. Questa azione non si può annullare.",
     "deleteConfirm": "Elimina",
     "deleteError": "Impossibile eliminare l'orto",
-    "legendOk": "Tutti funzionano",
-    "legendPartial": "Qualcuno non funziona",
-    "legendDown": "Nessuno funziona",
     "profile": "Il mio profilo",
     "loadError": "Non è stato possibile caricare gli orti",
     "back": "Indietro",
     "eyebrow": "I MIEI ORTI",
-    "legendTitle": "Stato dei sensori",
     "allGardens": "Vedi tutti gli orti"
   }
 }
