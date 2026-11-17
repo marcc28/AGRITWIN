@@ -47,8 +47,18 @@ export default function ProfileScreen() {
               <Text style={styles.eyebrow}>{t('settings.eyebrow')}</Text>
               <Text style={styles.title}>{t('fieldSelection.profile')}</Text>
             </View>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarEmoji}>🧑‍🌾</Text>
+            {/* The usual "no photo" avatar, in green. It is only a picture. */}
+            <View
+              testID="profile-avatar"
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
+              style={styles.avatar}
+            >
+              <Ionicons
+                name="person"
+                size={36}
+                color={Colors.light.surfaceSecondary}
+              />
             </View>
           </View>
 
