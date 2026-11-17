@@ -158,26 +158,27 @@ export const styles = StyleSheet.create({
   },
 
   checkbox: {
-    width: 22,
-    height: 22,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 4,
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: Colors.light.primaryDark,
+    borderRadius: 5,
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   checkboxChecked: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primaryDark,
+    borderColor: Colors.light.primaryDark,
   },
 
   checkmark: {
     color: Colors.light.surface,
-    fontWeight: 'bold',
+    fontWeight: '900',
+    fontSize: 17,
+    lineHeight: 20,
   },
-
   legalText: {
     flex: 1,
     fontSize: 13,
@@ -291,7 +292,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signUpTextContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 15,

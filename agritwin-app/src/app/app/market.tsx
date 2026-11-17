@@ -644,11 +644,6 @@ export default function MarketScreen() {
         )}
       </ScrollView>
       <View style={styles.bannerWrap}>
-        <BannerAd
-          position="bottom"
-          marginTop={compactLandscape ? 0 : 10}
-          marginBottom={compactLandscape ? 0 : 5}
-        />
       </View>
 
       {hoverPreview && (

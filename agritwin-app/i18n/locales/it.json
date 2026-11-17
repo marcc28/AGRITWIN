@@ -61,20 +61,19 @@
     "email": "Email",
     "password": "Password",
     "passwordConfirmation": "Ripeti la password",
-    "acceptPrivacy": "Accetto l'Informativa sulla privacy",
-    "acceptSecurity": "Accetto la Politica di sicurezza",
     "socialLogin": "Oppure registrati con",
     "logIn": "Accedi",
     "signUp": "Crea account",
     "creatingAccount": "Creazione account...",
+    "acceptPrivacy": "Accetto l'Informativa sulla privacy",
+    "acceptSecurity": "Accetto la Politica di sicurezza",
     "success": "Account creato con successo",
     "alreadyHaveAccount": "Hai già un account?",
     "errors": {
       "requiredFields": "Compila tutti i campi",
       "invalidEmail": "Formato email non valido",
       "passwordMismatch": "Le password non coincidono",
-      "privacyRequired": "Devi accettare l'Informativa sulla privacy",
-      "securityRequired": "Devi accettare la Politica di sicurezza",
+      "legalRequired": "Devi accettare la Privacy Notice e la Security Policy per creare un account.",
       "createFailed": "Non è stato possibile creare l'account"
     },
     "legal": {
@@ -594,7 +593,7 @@
     "email": "Indirizzo email",
     "send": "Invia email di recupero",
     "sending": "Invio in corso...",
-    "back": "Torna al login",
+    "back": "Torna al Accedi",
     "successTitle": "Email inviata",
     "success": "Se l'indirizzo email è registrato, riceverai un link per recuperare la password.",
     "errors": {

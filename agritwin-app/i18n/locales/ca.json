@@ -75,6 +75,7 @@
       "passwordMismatch": "Les contrasenyes no coincideixen",
       "privacyRequired": "Has d'acceptar la Privacy Notice",
       "securityRequired": "Has d'acceptar la Security Policy",
+      "legalRequired": "Has d'acceptar la Privacy Notice i la Security Policy per crear un compte.",
       "createFailed": "No s'ha pogut crear el compte"
     },
     "legal": {
@@ -594,7 +595,7 @@
     "email": "Correu electrònic",
     "send": "Enviar correu de recuperació",
     "sending": "Enviant...",
-    "back": "Tornar al login",
+    "back": "Tornar al iniciar sessió",
     "successTitle": "Correu enviat",
     "success": "Si el correu està registrat, rebràs un enllaç per recuperar la contrasenya.",
     "errors": {

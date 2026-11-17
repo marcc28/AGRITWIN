@@ -73,9 +73,8 @@
       "requiredFields": "Rellena todos los campos",
       "invalidEmail": "Formato de correo electrónico incorrecto",
       "passwordMismatch": "Las contraseñas no coinciden",
-      "privacyRequired": "Debes aceptar el Aviso de privacidad",
-      "securityRequired": "Debes aceptar la Política de seguridad",
-      "createFailed": "No se ha podido crear la cuenta"
+      "createFailed": "No se ha podido crear la cuenta",
+      "legalRequired": "Debes aceptar la Privacy Notice y la Security Policy para crear una cuenta."
     },
     "legal": {
       "privacy": "Aviso de privacidad",

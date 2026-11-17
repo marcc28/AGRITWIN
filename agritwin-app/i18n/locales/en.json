@@ -73,8 +73,7 @@
       "requiredFields": "Fill in all fields",
       "invalidEmail": "Invalid email format",
       "passwordMismatch": "Passwords do not match",
-      "privacyRequired": "You must accept the Privacy Notice",
-      "securityRequired": "You must accept the Security Policy",
+      "legalRequired": "You must accept the Privacy Notice and Security Policy to create an account.",
       "createFailed": "The account could not be created"
     },
     "legal": {

@@ -173,7 +173,7 @@ export default function LoginScreen() {
         </Pressable>
         <View style={styles.signUpTextContainer}>
           <Text style={styles.signUpNormalText}>{t('login.noAccount')} </Text>
-
+          
           <Pressable
             testID="signup-button"
             onPress={handleSignUp}
