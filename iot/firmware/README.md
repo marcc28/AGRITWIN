@@ -97,7 +97,8 @@ of two modes.
 | STATUS | `422285f2-0006-…` | read + notify | status, see the table below |
 
 The UUIDs must be **identical** in `config.h`, in `tools/provision_ble.py` and
-in the future app screen.
+in the app (`agritwin-app/src/services/bleProvisioning.ts`). The app flow is
+documented in [`docs/add-device.md`](../../docs/add-device.md).
 
 | STATUS | Meaning |
 |---|---|
@@ -310,7 +311,9 @@ problem is in the board or in the app.
    Supabase, table `fields`, column `id`.
 2. **Register the board in the backend** before it starts sending data,
    because the `telemetry` table only accepts a `device_id` that already exists
-   in `devices`. From the app: open the field → **edit** → add a device with:
+   in `devices`. The script does not do it (the app **Add device** flow does it
+   automatically, see [`docs/add-device.md`](../../docs/add-device.md)). From
+   the app: open the field → **edit** → add a device with:
    - id: the `device_id` read in step 6, e.g. `esp32_A1B2C3D4E5F6`
    - brand: `AgriTwin`
    - serial number: the 12 digits after `esp32_`, e.g. `A1B2C3D4E5F6`
