@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { defaultPhotoIndex } from '../constants/gardenPhotos';
@@ -22,7 +22,7 @@ import {
   reverseGeocodeLocation,
   type FieldDevice,
 } from '../services/api';
-import { ExistingDevicesList } from '../components/ExistingDevicesList';
+import { FieldDevicesSection } from '../components/FieldDevicesSection';
 import { clearAuth, getAuth } from '../services/auth';
 import { getCurrentField, setCurrentField } from '../services/currentField';
 import { getFieldPhotoIndex, setFieldPhotoIndex } from '../services/fieldPhoto';
@@ -202,6 +202,41 @@ export default function EditFieldScreen() {
       cropPageLoading.current = false;
       setLoadingCrops(false);
     }
+  }
+
+  // Coming back from "Add device" the list shows the new boards. The first
+  // time the screen opens, the load above already has them.
+  const firstFocus = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (firstFocus.current) {
+        firstFocus.current = false;
+        return undefined;
+      }
+      if (!Number.isFinite(fieldId)) {
+        return undefined;
+      }
+      let active = true;
+      getField(fieldId)
+        .then((field) => {
+          if (active) {
+            setExistingDevices(field.devices);
+          }
+        })
+        .catch(() => {
+          // Keep the list the user already sees.
+        });
+      return () => {
+        active = false;
+      };
+    }, [fieldId]),
+  );
+
+  function handleAddDevice() {
+    router.push({
+      pathname: '/add-device',
+      params: { id: String(fieldId), from: 'edit-field' },
+    });
   }
 
   async function handleRemoveDevice(deviceId: string) {
@@ -576,20 +611,15 @@ export default function EditFieldScreen() {
                   </Text>
                 ) : null}
 
-                {existingDevices.length > 0 ? (
-                  <>
-                    <Text style={styles.label}>
-                      {t('settings.createField.arduinos')}
-                    </Text>
-                    <ExistingDevicesList
-                      devices={existingDevices}
-                      disabled={saving}
-                      onRemove={(deviceId) => {
-                        void handleRemoveDevice(deviceId);
-                      }}
-                    />
-                  </>
-                ) : null}
+                <FieldDevicesSection
+                  devices={existingDevices}
+                  addLabel={t('addDevice.button')}
+                  disabled={saving}
+                  onAdd={handleAddDevice}
+                  onRemove={(deviceId) => {
+                    void handleRemoveDevice(deviceId);
+                  }}
+                />
               </>
             )}
             {!loading && (

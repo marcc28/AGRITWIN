@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 
 import {
   fireEvent,
@@ -376,10 +377,11 @@ describe('CreateFieldScreen', () => {
     });
   });
 
-  it('does not ask for devices when creating a garden', async () => {
+  it('offers to link devices, but creating without them links none', async () => {
     render(<CreateFieldScreen />);
-    expect(screen.queryByText('settings.createField.arduinos')).toBeNull();
-    expect(screen.queryByText('settings.createField.addNow')).toBeNull();
+    expect(screen.getByText('addDevice.section.title')).toBeTruthy();
+    expect(screen.getByText('addDevice.section.createHint')).toBeTruthy();
+    expect(screen.getByText('addDevice.section.saveAndAdd')).toBeTruthy();
 
     fireEvent.changeText(
       screen.getByPlaceholderText('settings.createField.namePlaceholder'),
@@ -391,6 +393,71 @@ describe('CreateFieldScreen', () => {
       expect(mockedCreateField).toHaveBeenCalled();
     });
     expect(mockedCreateDevice).not.toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: '/add-device' }),
+    );
+  });
+
+  it.each<[string, Record<string, string>, string]>([
+    ['from the profile', { from: 'profile' }, 'field-detail'],
+    ['for the first garden', {}, 'home'],
+    ['from the field selection', { from: 'field-selection' }, 'home'],
+  ])(
+    'saves the garden and opens "Add device" %s',
+    async (_name, params, destination) => {
+      mockUseLocalSearchParams.mockReturnValue(params);
+      render(<CreateFieldScreen />);
+
+      fireEvent.changeText(
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+        'Hort nou',
+      );
+      fireEvent.press(screen.getByTestId('field-devices-add'));
+
+      await waitFor(() => {
+        expect(router.replace).toHaveBeenCalledWith({
+          pathname: '/add-device',
+          params: { id: '8', from: destination },
+        });
+      });
+      expect(mockedCreateField).toHaveBeenCalledTimes(1);
+      if (params.from === 'field-selection') {
+        expect(loadGardenPickerFields).toHaveBeenCalledWith(true);
+      }
+    },
+  );
+
+  it('does not open "Add device" when the garden cannot be saved', async () => {
+    render(<CreateFieldScreen />);
+
+    fireEvent.press(screen.getByTestId('field-devices-add'));
+
+    expect(screen.getByText('settings.errors.nameRequired')).toBeTruthy();
+    expect(mockedCreateField).not.toHaveBeenCalled();
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'Hort nou',
+    );
+    mockedCreateField.mockRejectedValue(new Error('server down'));
+    fireEvent.press(screen.getByTestId('field-devices-add'));
+
+    await waitFor(() => {
+      expect(screen.getByText('server down')).toBeTruthy();
+    });
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it('explains that devices are added from the phone when on the web', () => {
+    const web = jest.replaceProperty(Platform, 'OS', 'web');
+    try {
+      render(<CreateFieldScreen />);
+
+      expect(screen.getByText('addDevice.web.hint')).toBeTruthy();
+      expect(screen.queryByTestId('field-devices-add')).toBeNull();
+    } finally {
+      web.restore();
+    }
   });
 
   it('shows a generic geocode error', async () => {

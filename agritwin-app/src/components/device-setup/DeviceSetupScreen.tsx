@@ -36,6 +36,12 @@ export function DeviceSetupScreen({ setup, onClose, onOpenSettings }: Props) {
 
   const busy = setup.step === 'provisioning' || setup.step === 'registering';
 
+  // Starts again from the beginning to link one more board.
+  async function addAnother() {
+    await setup.reset();
+    await setup.startScan();
+  }
+
   function renderStep() {
     switch (setup.step) {
       case 'noBoards':
@@ -67,6 +73,7 @@ export function DeviceSetupScreen({ setup, onClose, onOpenSettings }: Props) {
           <SuccessStep
             alreadyLinked={setup.registration === 'already_linked'}
             onDone={onClose}
+            onAddAnother={() => void addAnother()}
           />
         );
       case 'error':

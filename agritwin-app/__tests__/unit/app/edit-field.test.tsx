@@ -71,9 +71,19 @@ jest.mock('../../../src/components/field-location/MapCanvas', () => {
   };
 });
 
+// The screen runs this callback when it comes into focus. The tests keep it to
+// simulate coming back from another screen.
+let mockFocusCallback: (() => void | (() => void)) | undefined;
+
 jest.mock('expo-router', () => ({
   router: {
     replace: jest.fn(),
+    push: jest.fn(),
+  },
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const { useEffect } = jest.requireActual<typeof import('react')>('react');
+    mockFocusCallback = callback;
+    useEffect(callback, [callback]);
   },
   useLocalSearchParams: () => mockUseLocalSearchParams(),
 }));
@@ -314,13 +324,73 @@ describe('EditFieldScreen', () => {
     expect(screen.getByText('settings.errors.sizeNumber')).toBeTruthy();
   });
 
-  it('shows the linked devices and does not offer to add new ones', async () => {
+  it('shows the linked devices and a button to add another one', async () => {
     render(<EditFieldScreen />);
     await waitFor(() => {
       expect(screen.getByText('dev-1')).toBeTruthy();
     });
     expect(screen.getByText('ESP32 · SN-1')).toBeTruthy();
-    expect(screen.queryByText('settings.createField.addAnother')).toBeNull();
+    expect(screen.getByText('addDevice.section.title')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('field-devices-add'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/add-device',
+      params: { id: '3', from: 'edit-field' },
+    });
+  });
+
+  it('shows the new boards when the user comes back from adding one', async () => {
+    render(<EditFieldScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('dev-1')).toBeTruthy();
+    });
+    mockedGetField.mockResolvedValue({
+      id: 3,
+      name: 'Hort',
+      location: 'Andorra',
+      field_type: 'home_garden',
+      soil_type: 'loam',
+      size_m2: 40,
+      device_count: 2,
+      devices: [
+        { id: 'dev-1', battery_status: true },
+        { id: 'dev-2', battery_status: false },
+      ],
+    });
+
+    await act(async () => {
+      mockFocusCallback?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('dev-2')).toBeTruthy();
+    });
+    expect(screen.getByText('dev-1')).toBeTruthy();
+  });
+
+  it('keeps the list when it cannot be refreshed', async () => {
+    render(<EditFieldScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('dev-1')).toBeTruthy();
+    });
+    mockedGetField.mockRejectedValue(new Error('offline'));
+
+    await act(async () => {
+      mockFocusCallback?.();
+    });
+
+    expect(screen.getByText('dev-1')).toBeTruthy();
+    expect(screen.queryByText('offline')).toBeNull();
+  });
+
+  it('does not refresh the list on the first focus', async () => {
+    render(<EditFieldScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('dev-1')).toBeTruthy();
+    });
+
+    expect(mockedGetField).toHaveBeenCalledTimes(1);
   });
 
   it('saves the garden without touching its devices', async () => {
@@ -347,7 +417,7 @@ describe('EditFieldScreen', () => {
     expect(mockedCreateDevice).not.toHaveBeenCalled();
   });
 
-  it('hides the device section when the garden has no devices', async () => {
+  it('says there are no devices and still offers to add one', async () => {
     mockedGetField.mockResolvedValue({
       id: 3,
       name: 'Hort',
@@ -362,7 +432,8 @@ describe('EditFieldScreen', () => {
     await waitFor(() => {
       expect(screen.getByDisplayValue('Hort')).toBeTruthy();
     });
-    expect(screen.queryByText('settings.createField.arduinos')).toBeNull();
+    expect(screen.getByTestId('field-devices-section-empty')).toBeTruthy();
+    expect(screen.getByTestId('field-devices-add')).toBeTruthy();
   });
 
   it('removes an existing Arduino', async () => {
@@ -640,6 +711,12 @@ describe('EditFieldScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('settings.errors.invalidId')).toBeTruthy();
     });
+    mockedGetField.mockClear();
+
+    await act(async () => {
+      mockFocusCallback?.();
+    });
+    expect(mockedGetField).not.toHaveBeenCalled();
   });
 
   it('shows when the garden cannot be loaded', async () => {

@@ -12,7 +12,13 @@ import { errorGroup, needsSettings } from './errorGroups';
 export function SuccessStep({
   alreadyLinked,
   onDone,
-}: Readonly<{ alreadyLinked: boolean; onDone: () => void }>) {
+  onAddAnother,
+}: Readonly<{
+  alreadyLinked: boolean;
+  onDone: () => void;
+  /** Starts the flow again to link one more board. */
+  onAddAnother: () => void;
+}>) {
   const { t } = useTranslation();
 
   return (
@@ -33,6 +39,15 @@ export function SuccessStep({
       </View>
       <Pressable style={styles.primaryButton} onPress={onDone}>
         <Text style={styles.primaryText}>{t('addDevice.success.done')}</Text>
+      </Pressable>
+      <Pressable
+        testID="add-another-device"
+        style={styles.secondaryButton}
+        onPress={onAddAnother}
+      >
+        <Text style={styles.secondaryText}>
+          {t('addDevice.success.another')}
+        </Text>
       </Pressable>
     </View>
   );

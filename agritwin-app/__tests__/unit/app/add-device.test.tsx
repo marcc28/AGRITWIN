@@ -14,7 +14,12 @@ jest.mock('react-i18next', () => ({
 const mockUseLocalSearchParams = jest.fn();
 
 jest.mock('expo-router', () => ({
-  router: { replace: jest.fn(), push: jest.fn() },
+  router: {
+    replace: jest.fn(),
+    push: jest.fn(),
+    back: jest.fn(),
+    canGoBack: jest.fn(() => true),
+  },
   useLocalSearchParams: () => mockUseLocalSearchParams(),
 }));
 
@@ -82,6 +87,28 @@ describe('AddDeviceScreen', () => {
       pathname: '/field-detail',
       params: { id: '7' },
     });
+  });
+
+  it('goes home when it was opened while creating the first garden', () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '7', from: 'home' });
+    render(<AddDeviceScreen />);
+
+    fireEvent.press(screen.getByText('addDevice.back'));
+
+    expect(router.replace).toHaveBeenCalledWith('/app/home');
+  });
+
+  it('goes back to the edit screen when it was opened from there', () => {
+    mockUseLocalSearchParams.mockReturnValue({ id: '7', from: 'edit-field' });
+    mockUseDeviceSetup.mockReturnValue(
+      fakeSetup({ step: 'success', registration: 'created' }),
+    );
+    render(<AddDeviceScreen />);
+
+    fireEvent.press(screen.getByText('addDevice.success.done'));
+
+    expect(router.back).toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalled();
   });
 
   it('opens the app settings when the permission is missing', () => {

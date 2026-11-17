@@ -377,7 +377,8 @@
       "title": "Scheda collegata",
       "hint": "La tua scheda è ora collegata a questo campo e inizierà a inviare dati.",
       "alreadyLinked": "Questa scheda era già collegata a questo campo.",
-      "done": "Torna al campo"
+      "done": "Fine",
+      "another": "Aggiungi un altro dispositivo"
     },
     "error": {
       "retry": "Riprova",
@@ -429,6 +430,12 @@
     "web": {
       "title": "Disponibile solo sul telefono",
       "hint": "Per aggiungere una scheda serve l'app AgriTwin sul telefono, perché usa il Bluetooth."
+    },
+    "section": {
+      "title": "Dispositivi",
+      "none": "Questo campo non ha ancora dispositivi.",
+      "createHint": "Puoi collegare subito le tue schede AgriTwin. Prima salviamo il campo.",
+      "saveAndAdd": "Salva e aggiungi dispositivo"
     }
   },
   "languages": {
