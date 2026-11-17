@@ -77,7 +77,13 @@ function SkeletonProductCard({
           ]}
         />
 
-        <View style={{ flex: 1, marginLeft: compact ? 8 : 12, gap: compact ? 6 : 9 }}>
+        <View
+          style={{
+            flex: 1,
+            marginLeft: compact ? 8 : 12,
+            gap: compact ? 6 : 9,
+          }}
+        >
           <View style={[block, { width: '65%', height: compact ? 11 : 13 }]} />
           <View style={[block, { width: '85%', height: compact ? 9 : 10 }]} />
           <View style={[block, { width: '45%', height: compact ? 8 : 9 }]} />
@@ -145,7 +151,7 @@ export default function MarketSkeleton({
         flexWrap: 'wrap',
         justifyContent: 'center',
         gap,
-          paddingTop: compact ? 6 : 8,
+        paddingTop: compact ? 6 : 8,
       }}
     >
       {Array.from({ length: count }).map((_, index) => (

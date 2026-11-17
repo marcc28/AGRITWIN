@@ -16,6 +16,7 @@ jest.mock('@/services/auth', () => ({
 const crop: FieldCrop = {
   id: 15,
   field_id: 7,
+  field_name: 'Camp 1',
   crop_id: 3,
   crop_name: 'Tomàquet',
   planted_at: '2026-04-01',

@@ -12,4 +12,3 @@ export default function BannerAd({
 }: BannerAdProps) {
   return <View style={{ marginTop, marginBottom }} />;
 }
-

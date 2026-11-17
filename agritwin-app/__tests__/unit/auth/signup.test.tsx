@@ -423,6 +423,5 @@ describe('SignupScreen', () => {
         checked: false,
       });
     });
-
   });
 });

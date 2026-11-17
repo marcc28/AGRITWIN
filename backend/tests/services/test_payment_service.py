@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -10,7 +9,6 @@ from fastapi import HTTPException
 
 from models.payments import PaymentRequest
 from services.payment_service import PaymentService
-
 
 # ---------------------------------------------------------
 # Fixtures
@@ -135,9 +133,7 @@ def test_get_total_amount_rejects_invalid_prices(price):
         )
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == (
-        "El preu del producte no és vàlid"
-    )
+    assert exc.value.detail == ("El preu del producte no és vàlid")
 
 
 @pytest.mark.parametrize(
@@ -158,9 +154,7 @@ def test_get_total_amount_rejects_invalid_quantities(quantity):
         )
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == (
-        "La quantitat ha de ser superior a zero"
-    )
+    assert exc.value.detail == ("La quantitat ha de ser superior a zero")
 
 
 def test_get_total_amount_rejects_amount_below_one_cent():
@@ -171,23 +165,15 @@ def test_get_total_amount_rejects_amount_below_one_cent():
         )
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == (
-        "L'import total és massa baix per processar el pagament"
-    )
+    assert exc.value.detail == ("L'import total és massa baix per processar el pagament")
 
 
 def test_format_quantity():
-    assert PaymentService._format_quantity(
-        Decimal("2.00")
-    ) == "2"
+    assert PaymentService._format_quantity(Decimal("2.00")) == "2"
 
-    assert PaymentService._format_quantity(
-        Decimal("1.50")
-    ) == "1.5"
+    assert PaymentService._format_quantity(Decimal("1.50")) == "1.5"
 
-    assert PaymentService._format_quantity(
-        Decimal("1.25")
-    ) == "1.25"
+    assert PaymentService._format_quantity(Decimal("1.25")) == "1.25"
 
 
 def test_get_product_name(product):
@@ -490,9 +476,7 @@ async def test_rejects_unknown_product(
         )
 
     assert exc.value.status_code == 404
-    assert exc.value.detail == (
-        "No s'ha trobat el producte del mercat"
-    )
+    assert exc.value.detail == ("No s'ha trobat el producte del mercat")
 
 
 @pytest.mark.asyncio
@@ -511,9 +495,7 @@ async def test_payment_sheet_rejects_invalid_product_price(
         )
 
     assert exc.value.status_code == 400
-    assert exc.value.detail == (
-        "L'import total és massa baix per processar el pagament"
-    )
+    assert exc.value.detail == ("L'import total és massa baix per processar el pagament")
 
 
 @pytest.mark.asyncio
@@ -563,9 +545,7 @@ async def test_checkout_requires_return_urls(
         )
 
     assert exc.value.status_code == 500
-    assert exc.value.detail == (
-        "Falten les URLs de retorn de Stripe"
-    )
+    assert exc.value.detail == ("Falten les URLs de retorn de Stripe")
 
 
 @pytest.mark.asyncio
@@ -622,9 +602,7 @@ async def test_customer_stripe_errors_are_gateway_errors(
         )
 
     assert exc.value.status_code == 502
-    assert exc.value.detail == (
-        "Stripe no ha pogut preparar el pagament"
-    )
+    assert exc.value.detail == ("Stripe no ha pogut preparar el pagament")
 
 
 @pytest.mark.asyncio
@@ -657,9 +635,7 @@ async def test_ephemeral_key_stripe_errors_are_gateway_errors(
         )
 
     assert exc.value.status_code == 502
-    assert exc.value.detail == (
-        "Stripe no ha pogut preparar el pagament"
-    )
+    assert exc.value.detail == ("Stripe no ha pogut preparar el pagament")
 
 
 @pytest.mark.asyncio
@@ -698,9 +674,7 @@ async def test_payment_intent_stripe_errors_are_gateway_errors(
         )
 
     assert exc.value.status_code == 502
-    assert exc.value.detail == (
-        "Stripe no ha pogut preparar el pagament"
-    )
+    assert exc.value.detail == ("Stripe no ha pogut preparar el pagament")
 
 
 @pytest.mark.asyncio
@@ -728,7 +702,4 @@ async def test_checkout_stripe_errors_are_gateway_errors(
         )
 
     assert exc.value.status_code == 502
-    assert exc.value.detail == (
-        "No s'ha pogut crear la sessió de Stripe"
-    )
-
+    assert exc.value.detail == ("No s'ha pogut crear la sessió de Stripe")

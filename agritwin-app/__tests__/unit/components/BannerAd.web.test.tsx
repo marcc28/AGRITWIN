@@ -61,7 +61,9 @@ describe('BannerAd.web', () => {
       value: { adsbygoogle: existingQueue },
     });
 
-    const screen = render(<BannerAd position="bottom" marginTop={4} marginBottom={9} />);
+    const screen = render(
+      <BannerAd position="bottom" marginTop={4} marginBottom={9} />,
+    );
     const wrapper = screen.root.find(
       (node: { type: unknown }) => node.type === 'div',
     );
@@ -70,6 +72,9 @@ describe('BannerAd.web', () => {
       { existingRequest: true },
       {},
     ]);
-    expect(wrapper.props.style).toMatchObject({ marginTop: 4, marginBottom: 9 });
+    expect(wrapper.props.style).toMatchObject({
+      marginTop: 4,
+      marginBottom: 9,
+    });
   });
 });

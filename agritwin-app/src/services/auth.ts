@@ -1,4 +1,3 @@
-
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
@@ -77,18 +76,15 @@ export async function refreshAuth() {
     throw new Error('EXPO_PUBLIC_API_URL is not configured');
   }
 
-  const response = await fetch(
-    `${API_URL.replace(/\/$/, '')}/api/v1/refresh`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        refresh_token: refreshToken,
-      }).toString(),
+  const response = await fetch(`${API_URL.replace(/\/$/, '')}/api/v1/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-  );
+    body: new URLSearchParams({
+      refresh_token: refreshToken,
+    }).toString(),
+  });
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
@@ -130,9 +126,7 @@ export async function authenticatedFetch(
   accessToken?: string,
 ): Promise<Response> {
   const headers = new Headers(init.headers);
-  const headerToken = headers
-    .get('Authorization')
-    ?.replace(/^Bearer\s+/i, '');
+  const headerToken = headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   const hasAuthorization = Boolean(accessToken ?? headerToken);
 
   if (!hasAuthorization) {

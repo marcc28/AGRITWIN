@@ -6,10 +6,7 @@ import {
   render,
   waitFor,
 } from '@testing-library/react-native';
-import {
-  Animated,
-  Platform,
-} from 'react-native';
+import { Animated, Platform } from 'react-native';
 
 import MarketScreen from '../../../src/app/app/market';
 
@@ -164,9 +161,7 @@ describe('MarketScreen', () => {
         'Nom tècnic 1',
       );
 
-      expect(screen.getByTestId('product-price-1')).toHaveTextContent(
-        '2,50 €',
-      );
+      expect(screen.getByTestId('product-price-1')).toHaveTextContent('2,50 €');
 
       expect(screen.getByTestId('product-price-kg-1')).toHaveTextContent(
         '1,50 €/kg',
@@ -200,7 +195,6 @@ describe('MarketScreen', () => {
 
       expect(screen.queryByTestId('product-item-6')).toBeNull();
     });
-
   });
 
   // --------------------------------------------------
@@ -394,9 +388,7 @@ describe('MarketScreen', () => {
       await waitFor(
         () => {
           expect(
-            screen.getByText(
-              'No s’ha pogut fer la cerca. Torna-ho a provar.',
-            ),
+            screen.getByText('No s’ha pogut fer la cerca. Torna-ho a provar.'),
           ).toBeTruthy();
         },
         { timeout: 3000 },

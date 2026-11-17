@@ -4,21 +4,45 @@ import { StyleSheet, Text, View } from 'react-native';
 type Props = { content: string };
 
 function renderInline(text: string, keyPrefix: string) {
-  const tokenPattern = /(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
+  const tokenPattern =
+    /(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
   const pieces = text.split(tokenPattern).filter(Boolean);
 
   return pieces.map((piece, index) => {
     const key = `${keyPrefix}-${index}`;
     const link = piece.match(/^\[([^\]]+)\]\([^)]+\)$/);
-    if (link) return <Text key={key} style={styles.link}>{link[1]}</Text>;
-    if ((piece.startsWith('**') && piece.endsWith('**')) || (piece.startsWith('__') && piece.endsWith('__'))) {
-      return <Text key={key} style={styles.bold}>{piece.slice(2, -2)}</Text>;
+    if (link)
+      return (
+        <Text key={key} style={styles.link}>
+          {link[1]}
+        </Text>
+      );
+    if (
+      (piece.startsWith('**') && piece.endsWith('**')) ||
+      (piece.startsWith('__') && piece.endsWith('__'))
+    ) {
+      return (
+        <Text key={key} style={styles.bold}>
+          {piece.slice(2, -2)}
+        </Text>
+      );
     }
-    if ((piece.startsWith('*') && piece.endsWith('*')) || (piece.startsWith('_') && piece.endsWith('_'))) {
-      return <Text key={key} style={styles.italic}>{piece.slice(1, -1)}</Text>;
+    if (
+      (piece.startsWith('*') && piece.endsWith('*')) ||
+      (piece.startsWith('_') && piece.endsWith('_'))
+    ) {
+      return (
+        <Text key={key} style={styles.italic}>
+          {piece.slice(1, -1)}
+        </Text>
+      );
     }
     if (piece.startsWith('`') && piece.endsWith('`')) {
-      return <Text key={key} style={styles.code}>{piece.slice(1, -1)}</Text>;
+      return (
+        <Text key={key} style={styles.code}>
+          {piece.slice(1, -1)}
+        </Text>
+      );
     }
     return <Fragment key={key}>{piece}</Fragment>;
   });
@@ -26,7 +50,12 @@ function renderInline(text: string, keyPrefix: string) {
 
 export default function LegalDocumentContent({ content }: Props) {
   const lines = content.replace(/\r\n?/g, '\n').split('\n');
-  const blocks: { type: string; text: string; depth?: number; marker?: string }[] = [];
+  const blocks: {
+    type: string;
+    text: string;
+    depth?: number;
+    marker?: string;
+  }[] = [];
 
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
@@ -68,7 +97,9 @@ export default function LegalDocumentContent({ content }: Props) {
             block.type === 'h3' && styles.subheading,
             block.type === 'quote' && styles.quote,
             block.type === 'list' && styles.listItem,
-            block.type === 'list' && { marginLeft: 8 + (block.depth ?? 0) * 18 },
+            block.type === 'list' && {
+              marginLeft: 8 + (block.depth ?? 0) * 18,
+            },
           ]}
         >
           {block.type === 'list' ? `${block.marker} ` : null}

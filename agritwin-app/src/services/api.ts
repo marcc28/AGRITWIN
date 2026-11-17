@@ -494,14 +494,17 @@ export async function createDevice(
     throw new Error('Not authenticated');
   }
 
-  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${fieldId}/devices`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${auth.token}`,
+  const response = await authenticatedFetch(
+    `${API_URL}/api/v1/fields/${fieldId}/devices`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.token}`,
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 
   const data = await response.json();
 

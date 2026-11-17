@@ -643,8 +643,7 @@ export default function MarketScreen() {
           />
         )}
       </ScrollView>
-      <View style={styles.bannerWrap}>
-      </View>
+      <View style={styles.bannerWrap}></View>
 
       {hoverPreview && (
         <View

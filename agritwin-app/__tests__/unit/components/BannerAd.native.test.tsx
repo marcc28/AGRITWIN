@@ -30,7 +30,9 @@ describe('BannerAd.native', () => {
   });
 
   it('renders an adaptive AdMob banner with the test unit in development', () => {
-    const screen = render(<BannerAd position="top" marginTop={7} marginBottom={11} />);
+    const screen = render(
+      <BannerAd position="top" marginTop={7} marginBottom={11} />,
+    );
 
     const banner = screen.getByTestId('mocked-admob-banner');
     const container = screen.getByTestId('native-banner-ad-container');

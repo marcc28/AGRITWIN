@@ -1,4 +1,3 @@
-
 import os
 from decimal import ROUND_HALF_UP, Decimal, DecimalException
 from uuid import UUID
@@ -23,9 +22,7 @@ class PaymentService:
             )
 
     async def _get_product(self, product_id: UUID):
-        product = await self._conte_mercat_service.get_conte_mercat_by_id(
-            product_id
-        )
+        product = await self._conte_mercat_service.get_conte_mercat_by_id(product_id)
 
         if product is None:
             raise HTTPException(
@@ -93,9 +90,7 @@ class PaymentService:
         if total_amount < 1:
             raise HTTPException(
                 status_code=400,
-                detail=(
-                    "L'import total és massa baix per processar el pagament"
-                ),
+                detail=("L'import total és massa baix per processar el pagament"),
             )
 
         return total_amount
@@ -193,9 +188,7 @@ class PaymentService:
                             "unit_amount": total_amount,
                             "product_data": {
                                 "name": product_name,
-                                "description": (
-                                    f"Quantitat: {quantity_text} kg"
-                                ),
+                                "description": (f"Quantitat: {quantity_text} kg"),
                             },
                         },
                     }

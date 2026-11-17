@@ -24,6 +24,7 @@ const crop: FieldCrop = {
   id: 2,
   field_id: 8,
   crop_id: 4,
+  field_name: 'Hort',
   crop_name: 'Ordi',
   planted_at: '2026-01-01',
   expected_harvest_at: '2026-06-01',

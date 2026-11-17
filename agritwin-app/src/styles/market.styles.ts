@@ -60,11 +60,10 @@ export function getMarketStyles(
     width >= 1600 ? 1320 : width >= 1024 ? 1200 : width >= 600 ? 960 : 560;
   const horizontalInset = width < 360 ? 12 : width < 600 ? 16 : 24;
   const columnGap = width < 600 ? 12 : 16;
-  const contentWidth =
-    Math.min(width, maxContentWidth) - horizontalInset * 2;
-  const cardWidth =
-    (contentWidth - columnGap * (columns - 1)) / columns;
-  const thumb = width < 360 ? 52 : compactLandscape ? 48 : columns > 1 ? 64 : 76;
+  const contentWidth = Math.min(width, maxContentWidth) - horizontalInset * 2;
+  const cardWidth = (contentWidth - columnGap * (columns - 1)) / columns;
+  const thumb =
+    width < 360 ? 52 : compactLandscape ? 48 : columns > 1 ? 64 : 76;
 
   return StyleSheet.create({
     // Cerca
