@@ -3,6 +3,7 @@ import {
   createDevice,
   createField,
   deleteDevice,
+  deleteField,
   geocodeLocation,
   reverseGeocodeLocation,
   getField,
@@ -395,6 +396,19 @@ describe('fields api', () => {
     await expect(deleteDevice(3, 'esp32_sim_01')).resolves.toBeUndefined();
   });
 
+  it('deletes a field', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    }) as jest.Mock;
+
+    await expect(deleteField(3)).resolves.toBeUndefined();
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/fields/3'),
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
   it('rejects a fields payload that is not a list', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -502,6 +516,8 @@ describe('fields api', () => {
     ).rejects.toThrow('Not authenticated');
     mockedGetAuth.mockResolvedValueOnce(null);
     await expect(deleteDevice(3, 'd1')).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(deleteField(3)).rejects.toThrow('Not authenticated');
   });
 
   it('throws the api detail when field writes fail', async () => {
@@ -529,6 +545,9 @@ describe('fields api', () => {
       updateDevice(3, 'd1', { brand: 'ESP32', serial_number: 'SN' }),
     ).rejects.toThrow('This device is already registered');
     await expect(deleteDevice(3, 'd1')).rejects.toThrow(
+      'This device is already registered',
+    );
+    await expect(deleteField(3)).rejects.toThrow(
       'This device is already registered',
     );
   });

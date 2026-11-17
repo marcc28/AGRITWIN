@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -9,12 +10,14 @@ import {
 import { router } from 'expo-router';
 
 import FieldSelectionScreen from '../../../src/app/field-selection';
-import { getFields, isAuthError } from '../../../src/services/api';
+import { deleteField, getFields, isAuthError } from '../../../src/services/api';
 import { clearAuth } from '../../../src/services/auth';
 import {
+  clearCurrentField,
   getCurrentField,
   setCurrentField,
 } from '../../../src/services/currentField';
+import { loadGardenPickerFields } from '../../../src/services/gardenPicker';
 
 jest.mock('react-i18next', () => {
   const t = (key: string) => key;
@@ -35,6 +38,7 @@ jest.mock('expo-router', () => {
 });
 
 jest.mock('../../../src/services/api', () => ({
+  deleteField: jest.fn(),
   getFields: jest.fn(),
   isAuthError: jest.fn(() => false),
 }));
@@ -44,9 +48,14 @@ jest.mock('../../../src/services/auth', () => ({
 }));
 
 jest.mock('../../../src/services/currentField', () => ({
+  clearCurrentField: jest.fn(),
   getCurrentField: jest.fn(),
   setCurrentField: jest.fn(),
   subscribeCurrentField: () => () => undefined,
+}));
+
+jest.mock('../../../src/services/gardenPicker', () => ({
+  loadGardenPickerFields: jest.fn(),
 }));
 
 jest.mock('../../../src/components/FieldPhoto', () => ({
@@ -97,6 +106,20 @@ const fields = [
     devices_online: 0,
   },
 ];
+
+async function deleteGarden(id: number) {
+  render(<FieldSelectionScreen />);
+
+  await waitFor(() => {
+    expect(screen.getByTestId(`field-tile-${id}`)).toBeTruthy();
+  });
+  fireEvent.press(screen.getByTestId('field-selection-manage'));
+  fireEvent.press(screen.getByTestId(`field-delete-${id}`));
+  expect(screen.getByText('fieldSelection.deleteMessage')).toBeTruthy();
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('field-delete-confirm'));
+  });
+}
 
 describe('FieldSelectionScreen', () => {
   beforeEach(() => {
@@ -170,18 +193,38 @@ describe('FieldSelectionScreen', () => {
     });
   });
 
-  it('asks for confirmation before deleting a garden', async () => {
-    render(<FieldSelectionScreen />);
+  it('deletes the current garden and selects the next one', async () => {
+    await deleteGarden(3);
 
     await waitFor(() => {
-      expect(screen.getByText('Hort')).toBeTruthy();
+      expect(screen.queryByText('Hort')).toBeNull();
     });
-    fireEvent.press(screen.getByTestId('field-selection-manage'));
-    fireEvent.press(screen.getByTestId('field-delete-3'));
-    expect(screen.getByText('fieldSelection.deleteMessage')).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId('field-delete-confirm'));
+    expect(deleteField).toHaveBeenCalledWith(3);
+    expect(setCurrentField).toHaveBeenCalledWith({ id: 4, name: 'Camp' });
+    expect(loadGardenPickerFields).toHaveBeenCalledWith(true);
     expect(screen.queryByText('fieldSelection.deleteMessage')).toBeNull();
+  });
+
+  it('opens the create garden screen after deleting the last garden', async () => {
+    mockedGetFields.mockResolvedValue([fields[0]]);
+    await deleteGarden(3);
+
+    await waitFor(() => {
+      expect(router.replace).toHaveBeenCalledWith('/create-field');
+    });
+    expect(clearCurrentField).toHaveBeenCalled();
+  });
+
+  it('shows an error when the garden cannot be deleted', async () => {
+    (deleteField as jest.Mock).mockRejectedValueOnce(
+      new Error('Field not found'),
+    );
+    await deleteGarden(3);
+
+    await waitFor(() => {
+      expect(screen.getByText('fieldSelection.deleteError')).toBeTruthy();
+    });
+    expect(screen.getByText('Hort')).toBeTruthy();
   });
 
   it('redirects to login when the session is not valid', async () => {

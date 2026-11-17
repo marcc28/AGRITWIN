@@ -602,6 +602,26 @@ export async function updateField(
   return data as Field;
 }
 
+export async function deleteField(id: number): Promise<void> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(errorDetail(data, 'No s’ha pogut esborrar el camp'));
+  }
+}
+
 // --------------------------------------------------
 // WEATHER FORECAST
 // --------------------------------------------------

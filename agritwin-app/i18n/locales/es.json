@@ -676,6 +676,7 @@
     "deleteTitle": "¿Eliminar {{name}}?",
     "deleteMessage": "Se perderán sus cultivos y Arduinos. Esta acción no se puede deshacer.",
     "deleteConfirm": "Eliminar",
+    "deleteError": "No se ha podido eliminar el huerto",
     "profile": "Mi perfil",
     "loadError": "No se han podido cargar los huertos",
     "back": "Volver",

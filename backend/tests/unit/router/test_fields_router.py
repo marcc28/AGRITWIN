@@ -604,6 +604,39 @@ def test_delete_device_not_found():
     assert response.status_code == 404
 
 
+def test_delete_field():
+    client = make_client()
+    session = FakeSession([FakeResult(one=SimpleNamespace(id=3))])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.delete("/fields/3")
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    assert session.committed is True
+
+
+def test_delete_field_not_found():
+    client = make_client()
+    session = FakeSession([FakeResult(one=None)])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.delete("/fields/99")
+
+    assert response.status_code == 404
+    assert session.committed is False
+
+
+def test_delete_field_requires_auth():
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    response = client.delete("/fields/3")
+
+    assert response.status_code == 401
+
+
 def test_create_device_requires_auth():
     app = FastAPI()
     app.include_router(router)

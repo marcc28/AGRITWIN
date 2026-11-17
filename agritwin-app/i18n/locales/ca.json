@@ -676,6 +676,7 @@
     "deleteTitle": "Eliminar {{name}}?",
     "deleteMessage": "Es perdran els seus cultius i Arduinos. Aquesta acció no es pot desfer.",
     "deleteConfirm": "Eliminar",
+    "deleteError": "No s'ha pogut eliminar l'hort",
     "profile": "El meu perfil",
     "loadError": "No s'han pogut carregar els horts",
     "back": "Tornar",
