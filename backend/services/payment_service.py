@@ -77,7 +77,7 @@ class PaymentService:
                 detail="El preu del producte no és vàlid",
             )
 
-        if quantity <= 0:
+        if not quantity.is_finite() or quantity <= 0:
             raise HTTPException(
                 status_code=400,
                 detail="La quantitat ha de ser superior a zero",
@@ -93,7 +93,9 @@ class PaymentService:
         if total_amount < 1:
             raise HTTPException(
                 status_code=400,
-                detail="L'import total és massa baix per processar el pagament",
+                detail=(
+                    "L'import total és massa baix per processar el pagament"
+                ),
             )
 
         return total_amount

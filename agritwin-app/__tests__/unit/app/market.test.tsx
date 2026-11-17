@@ -70,7 +70,17 @@ const setupApiMocks = () => {
   (searchMarketProducts as jest.Mock).mockResolvedValue([mockProducts[0]]);
 };
 
-const renderScreen = () => render(<MarketScreen />);
+const renderScreen = async () => {
+  const renderedScreen = render(<MarketScreen />);
+
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  return renderedScreen;
+};
 
 const searchInput = (screen: ReturnType<typeof render>) =>
   screen.getByPlaceholderText('Cerca productes');
@@ -112,14 +122,14 @@ describe('MarketScreen', () => {
   // --------------------------------------------------
 
   describe('initial loading', () => {
-    it('renders the market screen', () => {
-      const screen = renderScreen();
+    it('renders the market screen', async () => {
+      const screen = await renderScreen();
 
       expect(screen.getByTestId('market-screen')).toBeTruthy();
     });
 
     it('loads the initial products and count', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -129,18 +139,18 @@ describe('MarketScreen', () => {
       expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
     });
 
-    it('shows the loading skeleton while data is pending', () => {
+    it('shows the loading skeleton while data is pending', async () => {
       (getMarketProductsCount as jest.Mock).mockReturnValue(
         new Promise(() => {}),
       );
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       expect(screen.getByTestId('market-screen')).toBeTruthy();
     });
 
     it('renders product information correctly', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-name-1')).toBeTruthy();
@@ -167,12 +177,12 @@ describe('MarketScreen', () => {
       );
 
       expect(screen.getByTestId('product-units-2')).toHaveTextContent(
-        'Només en queden 10',
+        'Només en queden 10 kg',
       );
     });
 
     it('shows the out-of-stock label for products without units', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('buy-text-1')).toHaveTextContent('Esgotat');
@@ -182,7 +192,7 @@ describe('MarketScreen', () => {
     });
 
     it('does not render more than five products initially', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -199,7 +209,7 @@ describe('MarketScreen', () => {
 
   describe('product navigation', () => {
     it('navigates to product detail when pressed', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -214,7 +224,7 @@ describe('MarketScreen', () => {
     });
 
     it('converts numeric product IDs to strings', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-2')).toBeTruthy();
@@ -237,7 +247,7 @@ describe('MarketScreen', () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-product-test')).toBeTruthy();
@@ -257,14 +267,14 @@ describe('MarketScreen', () => {
   // --------------------------------------------------
 
   describe('product search', () => {
-    it('renders the search input', () => {
-      const screen = renderScreen();
+    it('renders the search input', async () => {
+      const screen = await renderScreen();
 
       expect(searchInput(screen)).toBeTruthy();
     });
 
     it('searches products when text is entered', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -281,7 +291,7 @@ describe('MarketScreen', () => {
     });
 
     it('trims whitespace before searching', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -295,7 +305,7 @@ describe('MarketScreen', () => {
     });
 
     it('does not search when input contains only whitespace', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -319,7 +329,7 @@ describe('MarketScreen', () => {
         }),
       );
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -343,7 +353,7 @@ describe('MarketScreen', () => {
     });
 
     it('clears search and restores original products', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -373,7 +383,7 @@ describe('MarketScreen', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -400,7 +410,7 @@ describe('MarketScreen', () => {
     it('shows an empty message when search returns no products', async () => {
       (searchMarketProducts as jest.Mock).mockResolvedValueOnce([]);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -421,7 +431,7 @@ describe('MarketScreen', () => {
     });
 
     it('does not search again after clearing the query', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -449,7 +459,7 @@ describe('MarketScreen', () => {
 
   describe('infinite scrolling', () => {
     it('loads more products when scrolling near the bottom', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -469,7 +479,7 @@ describe('MarketScreen', () => {
     it('does not load more products when all products are loaded', async () => {
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(5);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -497,7 +507,7 @@ describe('MarketScreen', () => {
         },
       );
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -530,7 +540,7 @@ describe('MarketScreen', () => {
         },
       );
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -566,7 +576,7 @@ describe('MarketScreen', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -602,7 +612,7 @@ describe('MarketScreen', () => {
 
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -631,7 +641,7 @@ describe('MarketScreen', () => {
     });
 
     it('does not load more products while searching', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -657,7 +667,7 @@ describe('MarketScreen', () => {
     it('loads another product batch when the web button is pressed', async () => {
       jest.replaceProperty(Platform, 'OS', 'web');
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('market-load-more')).toBeEnabled();
@@ -676,7 +686,7 @@ describe('MarketScreen', () => {
       jest.replaceProperty(Platform, 'OS', 'web');
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(5);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-5')).toBeTruthy();
@@ -694,7 +704,7 @@ describe('MarketScreen', () => {
     it('shows a message when there are no products', async () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([]);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(
@@ -706,7 +716,7 @@ describe('MarketScreen', () => {
     it('shows a message when search returns no products', async () => {
       (searchMarketProducts as jest.Mock).mockResolvedValueOnce([]);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -741,7 +751,7 @@ describe('MarketScreen', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(
@@ -765,7 +775,7 @@ describe('MarketScreen', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(
@@ -795,11 +805,11 @@ describe('MarketScreen', () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-units-1')).toHaveTextContent(
-          '100 disponibles',
+          '100 kg disponibles',
         );
       });
     });
@@ -813,11 +823,11 @@ describe('MarketScreen', () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-units-1')).toHaveTextContent(
-          'Només en queden 50',
+          'Només en queden 50 kg',
         );
       });
     });
@@ -831,7 +841,7 @@ describe('MarketScreen', () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-units-1')).toHaveTextContent(
@@ -850,7 +860,7 @@ describe('MarketScreen', () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-name-1')).toBeTruthy();
@@ -869,7 +879,7 @@ describe('MarketScreen', () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-name-1')).toBeTruthy();
@@ -894,7 +904,7 @@ describe('MarketScreen', () => {
       (getcontentfeed as jest.Mock).mockResolvedValueOnce([product]);
       (getMarketProductsCount as jest.Mock).mockResolvedValueOnce(1);
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -908,7 +918,7 @@ describe('MarketScreen', () => {
     });
 
     it('handles pointer movement with a mouse', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -926,7 +936,7 @@ describe('MarketScreen', () => {
     });
 
     it('handles hover out', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('product-item-1')).toBeTruthy();
@@ -952,7 +962,7 @@ describe('MarketScreen', () => {
         }),
       );
 
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
@@ -966,7 +976,7 @@ describe('MarketScreen', () => {
     });
 
     it('starts animations only for products that have stock', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('buy-button-5')).toBeTruthy();
@@ -979,7 +989,7 @@ describe('MarketScreen', () => {
     });
 
     it('does not animate an out-of-stock product', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('buy-text-1')).toHaveTextContent('Esgotat');
@@ -989,7 +999,7 @@ describe('MarketScreen', () => {
     });
 
     it('stops animations when the screen is unmounted', async () => {
-      const screen = renderScreen();
+      const screen = await renderScreen();
 
       await waitFor(() => {
         expect(screen.getByTestId('buy-button-5')).toBeTruthy();

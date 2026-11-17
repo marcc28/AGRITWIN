@@ -7,6 +7,6 @@ from pydantic import BaseModel, Field
 class PaymentRequest(BaseModel):
     productId: UUID
     quantity: Decimal = Field(
-        ge=Decimal("0"),
+        gt=Decimal("0"),
         decimal_places=2,
     )

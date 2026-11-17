@@ -44,7 +44,7 @@ describe('PaymentResultScreen', () => {
   it('returns to the home route', () => {
     const screen = render(<PaymentResultScreen />);
 
-    fireEvent.press(screen.getByText("Tornar a l'inici"));
-    expect(mockReplace).toHaveBeenCalledWith('/');
+    fireEvent.press(screen.getByText('market.come_to_merkat'));
+    expect(mockReplace).toHaveBeenCalledWith('/app/market');
   });
 });

@@ -96,6 +96,11 @@ export default function ProductScreen() {
         const data = await getMarketProduct(String(productId));
 
         if (active) {
+          if (!data) {
+            setProduct(null);
+            return;
+          }
+
           const stock = Number(data.left_units);
           const initialQuantity = Number.isFinite(stock)
             ? Math.min(1, Math.max(0.01, Math.floor(stock * 100) / 100))

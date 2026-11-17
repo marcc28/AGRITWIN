@@ -1,7 +1,10 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { styles } from '../../styles/product.styles';
+import { Colors } from '../../constants/theme';
+import { getProductStyles } from '../../styles/product.styles';
+
+const styles = getProductStyles(Colors.light);
 
 type Props = {
   quantity: number;

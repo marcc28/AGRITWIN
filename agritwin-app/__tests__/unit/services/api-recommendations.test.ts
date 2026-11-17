@@ -3,6 +3,11 @@ import {
   type Recommendation,
 } from '@/services/api_recommendations';
 
+jest.mock('@/services/auth', () => ({
+  authenticatedFetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, init),
+}));
+
 const item = (fieldId: number): Recommendation =>
   ({
     id: `rec-${fieldId}`,

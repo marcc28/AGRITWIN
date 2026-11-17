@@ -190,13 +190,17 @@ describe('auth service', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null even when username and refresh token exist without access token', async () => {
+    it('should return refresh credentials when the access token is missing', async () => {
       storage[REFRESH_TOKEN_KEY] = 'refresh-token';
       storage[USERNAME_KEY] = 'testuser';
 
       const result = await getAuth();
 
-      expect(result).toBeNull();
+      expect(result).toEqual({
+        token: null,
+        refreshToken: 'refresh-token',
+        username: 'testuser',
+      });
     });
 
     it('should return null refresh token and username when they are missing', async () => {
@@ -249,7 +253,7 @@ describe('auth service', () => {
       expect(SecureStore.getItemAsync).toHaveBeenNthCalledWith(3, USERNAME_KEY);
     });
 
-    it('should return null when access token does not exist', async () => {
+    it('should return refresh credentials when the access token does not exist', async () => {
       (SecureStore.getItemAsync as jest.Mock)
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce('refresh-token')
@@ -257,7 +261,11 @@ describe('auth service', () => {
 
       const result = await getAuth();
 
-      expect(result).toBeNull();
+      expect(result).toEqual({
+        token: null,
+        refreshToken: 'refresh-token',
+        username: 'testuser',
+      });
     });
 
     it('should not use localStorage on native', async () => {
