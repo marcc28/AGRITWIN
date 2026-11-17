@@ -62,7 +62,7 @@ export default function LegalDocumentContent({ content }: Props) {
     const trimmed = line.trim();
     if (!trimmed || /^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) continue;
 
-    const heading = trimmed.match(/^(#{1,6})\s+([^*]+)\s\*#\*$/););
+    const heading = trimmed.match(/^(#{1,6})\s+([^*]+)\s\*#\*$/);
     if (heading) {
       blocks.push({ type: `h${heading[1].length}`, text: heading[2] });
       continue;
