@@ -465,6 +465,26 @@ async def delete_device(
     return {"ok": True}
 
 
+@router.delete("/fields/{field_id}", responses=HTTP_404)
+async def delete_field(
+    field_id: int,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            text(
+                "DELETE FROM fields WHERE fields.id = :field_id AND "
+                "fields.user_id = :user_id RETURNING fields.id"
+            ),
+            {"field_id": field_id, "user_id": current_user.id},
+        )
+        if result.one_or_none() is None:
+            raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND)
+        await session.commit()
+
+    return {"ok": True}
+
+
 @router.put("/fields/{field_id}", responses=HTTP_400 | HTTP_404)
 async def update_field(
     field_id: int,
