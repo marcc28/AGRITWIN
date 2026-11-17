@@ -292,6 +292,130 @@ function ProductCard({
   );
 }
 
+type MarketListContentProps = {
+  loading: boolean;
+  searching: boolean;
+  searchError: string;
+  products: Product[];
+  isSearching: boolean;
+  searchQuery: string;
+  hasMore: boolean;
+  loadingPage: boolean;
+  styles: ReturnType<typeof getMarketStyles>;
+  palette: ReturnType<typeof getMarketPalette>;
+  skeletonCardWidth?: number;
+  skeletonGap: number;
+  compactSkeleton: boolean;
+  buyLabel: string;
+  loadingLabel: string;
+  loadMoreLabel: string;
+  onLoadMore: () => void;
+  onOpenProduct: (productId: string | number) => void;
+  onHover: (
+    title: string,
+    imageUrl: string | null | undefined,
+    pageX: number,
+    pageY: number,
+  ) => void;
+  onHoverOut: () => void;
+};
+
+function MarketListContent({
+  loading,
+  searching,
+  searchError,
+  products,
+  isSearching,
+  searchQuery,
+  hasMore,
+  loadingPage,
+  styles,
+  palette,
+  skeletonCardWidth,
+  skeletonGap,
+  compactSkeleton,
+  buyLabel,
+  loadingLabel,
+  loadMoreLabel,
+  onLoadMore,
+  onOpenProduct,
+  onHover,
+  onHoverOut,
+}: MarketListContentProps) {
+  if (loading || searching) {
+    return (
+      <MarketSkeleton
+        count={PAGE_SIZE}
+        cardWidth={skeletonCardWidth}
+        gap={skeletonGap}
+        compact={compactSkeleton}
+      />
+    );
+  }
+
+  if (searchError) {
+    return <Text style={styles.statusText}>{searchError}</Text>;
+  }
+
+  if (products.length === 0) {
+    const emptyMessage = isSearching
+      ? `Cap producte coincideix amb «${searchQuery.trim()}».`
+      : 'Encara no hi ha productes al mercat.';
+    return <Text style={styles.statusText}>{emptyMessage}</Text>;
+  }
+
+  return (
+    <>
+      {products.map((product) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          styles={styles}
+          palette={palette}
+          buyLabel={buyLabel}
+          onPress={() => onOpenProduct(product.id)}
+          onHover={(pageX, pageY) =>
+            onHover(
+              product.product,
+              product.image_url ?? product.url_image,
+              pageX,
+              pageY,
+            )
+          }
+          onHoverOut={onHoverOut}
+        />
+      ))}
+      {Platform.OS === 'web' && !isSearching && hasMore && (
+        <View style={styles.loadMoreWrap}>
+          <Pressable
+            testID="market-load-more"
+            accessibilityRole="button"
+            accessibilityLabel="Carregar més productes"
+            disabled={loadingPage}
+            onPress={onLoadMore}
+            style={({ pressed }) => [
+              styles.loadMoreButton,
+              pressed && !loadingPage && { opacity: 0.75 },
+              loadingPage && { opacity: 0.65 },
+            ]}
+          >
+            <Text style={styles.loadMoreText}>
+              {loadingPage ? loadingLabel : loadMoreLabel}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+      {loadingPage && !loading && (
+        <MarketSkeleton
+          cardWidth={skeletonCardWidth}
+          gap={skeletonGap}
+          compact={compactSkeleton}
+        />
+      )}
+    </>
+  );
+}
+
 export default function MarketScreen() {
   const { t } = useTranslation();
   const scheme = useColorScheme();
@@ -566,82 +690,28 @@ export default function MarketScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={300}
       >
-        {loading ? (
-          <MarketSkeleton
-            count={PAGE_SIZE}
-            cardWidth={skeletonCardWidth}
-            gap={skeletonGap}
-            compact={compactSkeleton}
-          />
-        ) : searching ? (
-          <MarketSkeleton
-            count={PAGE_SIZE}
-            cardWidth={skeletonCardWidth}
-            gap={skeletonGap}
-            compact={compactSkeleton}
-          />
-        ) : searchError ? (
-          <Text style={styles.statusText}>{searchError}</Text>
-        ) : products.length > 0 ? (
-          <>
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                styles={styles}
-                palette={palette}
-                buyLabel={t('market.buy')}
-                onPress={() => openProduct(product.id)}
-                onHover={(pageX, pageY) =>
-                  showImagePreview(
-                    product.product,
-                    product.image_url ?? product.url_image,
-                    pageX,
-                    pageY,
-                  )
-                }
-                onHoverOut={() => setHoverPreview(null)}
-              />
-            ))}
-            {Platform.OS === 'web' && !isSearching && hasMore && (
-              <View style={styles.loadMoreWrap}>
-                <Pressable
-                  testID="market-load-more"
-                  accessibilityRole="button"
-                  accessibilityLabel="Carregar més productes"
-                  disabled={loadingPage}
-                  onPress={loadMoreProducts}
-                  style={({ pressed }) => [
-                    styles.loadMoreButton,
-                    pressed && !loadingPage && { opacity: 0.75 },
-                    loadingPage && { opacity: 0.65 },
-                  ]}
-                >
-                  <Text style={styles.loadMoreText}>
-                    {loadingPage
-                      ? t('common.loading', 'Carregant...')
-                      : t('market.loadMore', 'Carregar més productes')}
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-          </>
-        ) : (
-          <Text style={styles.statusText}>
-            {isSearching
-              ? `Cap producte coincideix amb «${searchQuery.trim()}».`
-              : 'Encara no hi ha productes al mercat.'}
-          </Text>
-        )}
-
-        {/* Skeleton al final de la llista */}
-        {loadingPage && !loading && (
-          <MarketSkeleton
-            cardWidth={skeletonCardWidth}
-            gap={skeletonGap}
-            compact={compactSkeleton}
-          />
-        )}
+        <MarketListContent
+          loading={loading}
+          searching={searching}
+          searchError={searchError}
+          products={products}
+          isSearching={isSearching}
+          searchQuery={searchQuery}
+          hasMore={hasMore}
+          loadingPage={loadingPage}
+          styles={styles}
+          palette={palette}
+          skeletonCardWidth={skeletonCardWidth}
+          skeletonGap={skeletonGap}
+          compactSkeleton={compactSkeleton}
+          buyLabel={t('market.buy')}
+          loadingLabel={t('common.loading', 'Carregant...')}
+          loadMoreLabel={t('market.loadMore', 'Carregar més productes')}
+          onLoadMore={loadMoreProducts}
+          onOpenProduct={openProduct}
+          onHover={showImagePreview}
+          onHoverOut={() => setHoverPreview(null)}
+        />
       </ScrollView>
       <View style={styles.bannerWrap}></View>
 

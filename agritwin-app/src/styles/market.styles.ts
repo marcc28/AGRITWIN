@@ -49,34 +49,160 @@ type MarketDimensions = {
   height?: number;
 };
 
+function getMarketGridMetrics(width: number) {
+  const tablet = width >= 600;
+  const columns = width >= 1600 ? 3 : width >= 680 ? 2 : 1;
+  const maxContentWidth =
+    width >= 1600 ? 1320 : width >= 1024 ? 1200 : tablet ? 960 : 560;
+  const columnGap = tablet ? 16 : 12;
+
+  return { columns, maxContentWidth, columnGap };
+}
+
+function getMarketViewportMetrics(width: number) {
+  const compact = width < 360;
+  const tablet = width >= 600;
+  return {
+    compact,
+    horizontalInset: compact ? 12 : tablet ? 24 : 16,
+  };
+}
+
+function getMarketThumbSize(
+  compact: boolean,
+  compactLandscape: boolean,
+  columns: number,
+) {
+  if (compact) return 52;
+  if (compactLandscape) return 48;
+  return columns > 1 ? 64 : 76;
+}
+
+function getMarketLayoutMetrics(width: number, height: number) {
+  const compactLandscape = width > height && height < 600;
+  const grid = getMarketGridMetrics(width);
+  const viewport = getMarketViewportMetrics(width);
+
+  return {
+    ...grid,
+    ...viewport,
+    compactLandscape,
+    contentWidth:
+      Math.min(width, grid.maxContentWidth) - viewport.horizontalInset * 2,
+    thumb: getMarketThumbSize(
+      viewport.compact,
+      compactLandscape,
+      grid.columns,
+    ),
+  };
+}
+
+function getMarketSearchMetrics(compact: boolean, compactLandscape: boolean) {
+  return {
+    marginTop: compactLandscape ? 6 : 12,
+    marginBottom: compactLandscape ? 2 : 4,
+    paddingHorizontal: compact ? 12 : 14,
+    minHeight: compactLandscape ? 40 : 46,
+    fontSize: compactLandscape ? 14 : 16,
+  };
+}
+
+function getMarketListMetrics(
+  width: number,
+  compactLandscape: boolean,
+  columns: number,
+  columnGap: number,
+) {
+  return {
+    justifyContent:
+      columns === 1 ? ('center' as const) : ('flex-start' as const),
+    paddingTop: compactLandscape ? 6 : width < 600 ? 10 : 16,
+    paddingBottom: compactLandscape ? 6 : 16,
+    gap: compactLandscape ? 8 : columnGap,
+  };
+}
+
+function getMarketCardMetrics(compactLandscape: boolean, compact: boolean) {
+  const compactCard = compactLandscape || compact;
+  return {
+    borderRadius: compactLandscape ? 16 : 20,
+    padding: compactLandscape ? 10 : 14,
+    gap: compactLandscape ? 8 : 13,
+    topGap: compactCard ? 8 : 12,
+    nameFontSize: compactLandscape ? 15 : compact ? 16 : 18,
+    detailFontSize: compactCard ? 11 : 13,
+    stockMarginTop: compactLandscape ? 5 : 8,
+    stockPaddingVertical: compactLandscape ? 3 : 5,
+    stockFontSize: compactCard ? 10 : 12,
+  };
+}
+
+function getMarketPriceMetrics(compactLandscape: boolean, compact: boolean) {
+  const compactCard = compactLandscape || compact;
+  return {
+    mainPaddingVertical: compactLandscape ? 5 : 8,
+    mainPaddingHorizontal: compactCard ? 8 : 11,
+    mainMinWidth: compactCard ? 76 : 88,
+    valueFontSize: compactLandscape ? 18 : 21,
+    currencyFontSize: compactLandscape ? 12 : 13,
+    bottomPaddingTop: compactLandscape ? 6 : 10,
+    smallInfoFontSize: compactLandscape ? 12 : 14,
+    buttonMinHeight: compactLandscape ? 34 : 40,
+    buttonPaddingVertical: compactLandscape ? 7 : 10,
+    buttonPaddingHorizontal: compactLandscape || compact ? 14 : 20,
+    buttonFontSize: compactLandscape ? 12 : 14,
+  };
+}
+
+function getMarketFooterMetrics(
+  compactLandscape: boolean,
+  horizontalInset: number,
+) {
+  return {
+    loadMorePaddingTop: compactLandscape ? 4 : 8,
+    loadMorePaddingBottom: compactLandscape ? 4 : 12,
+    bannerPaddingHorizontal: compactLandscape ? 8 : horizontalInset,
+  };
+}
+
 export function getMarketStyles(
   colors: ThemeColors,
   { width = 390, height = 844 }: MarketDimensions = {},
 ) {
   const p = getMarketPalette(colors);
-  const compactLandscape = width > height && height < 600;
-  const columns = width >= 1600 ? 3 : width >= 680 ? 2 : 1;
-  const maxContentWidth =
-    width >= 1600 ? 1320 : width >= 1024 ? 1200 : width >= 600 ? 960 : 560;
-  const horizontalInset = width < 360 ? 12 : width < 600 ? 16 : 24;
-  const columnGap = width < 600 ? 12 : 16;
-  const contentWidth = Math.min(width, maxContentWidth) - horizontalInset * 2;
-  const cardWidth = (contentWidth - columnGap * (columns - 1)) / columns;
-  const thumb =
-    width < 360 ? 52 : compactLandscape ? 48 : columns > 1 ? 64 : 76;
+  const layout = getMarketLayoutMetrics(width, height);
+  const search = getMarketSearchMetrics(
+    layout.compact,
+    layout.compactLandscape,
+  );
+  const list = getMarketListMetrics(
+    width,
+    layout.compactLandscape,
+    layout.columns,
+    layout.columnGap,
+  );
+  const card = getMarketCardMetrics(layout.compactLandscape, layout.compact);
+  const price = getMarketPriceMetrics(layout.compactLandscape, layout.compact);
+  const footer = getMarketFooterMetrics(
+    layout.compactLandscape,
+    layout.horizontalInset,
+  );
+  const cardWidth =
+    (layout.contentWidth - layout.columnGap * (layout.columns - 1)) /
+    layout.columns;
 
   return StyleSheet.create({
     // Cerca
     searchWrap: {
       alignSelf: 'center',
       width: '100%',
-      maxWidth: Math.min(width, maxContentWidth) - horizontalInset * 2,
+      maxWidth: layout.contentWidth,
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: compactLandscape ? 6 : 12,
-      marginBottom: compactLandscape ? 2 : 4,
-      paddingHorizontal: width < 360 ? 12 : 14,
-      minHeight: compactLandscape ? 40 : 46,
+      marginTop: search.marginTop,
+      marginBottom: search.marginBottom,
+      paddingHorizontal: search.paddingHorizontal,
+      minHeight: search.minHeight,
       borderRadius: 23,
       backgroundColor: p.surface,
       borderWidth: 1,
@@ -85,7 +211,7 @@ export function getMarketStyles(
     searchInput: {
       flex: 1,
       minWidth: 0,
-      fontSize: compactLandscape ? 14 : 16,
+      fontSize: search.fontSize,
       color: p.ink,
       paddingVertical: 0,
     },
@@ -111,15 +237,15 @@ export function getMarketStyles(
     list: {
       alignSelf: 'center',
       width: '100%',
-      maxWidth: maxContentWidth,
+      maxWidth: layout.maxContentWidth,
       flexDirection: 'row',
       flexWrap: 'wrap',
-      justifyContent: columns === 1 ? 'center' : 'flex-start',
+      justifyContent: list.justifyContent,
       alignItems: 'flex-start',
-      paddingHorizontal: horizontalInset,
-      paddingTop: compactLandscape ? 6 : width < 600 ? 10 : 16,
-      paddingBottom: compactLandscape ? 6 : 16,
-      gap: compactLandscape ? 8 : columnGap,
+      paddingHorizontal: layout.horizontalInset,
+      paddingTop: list.paddingTop,
+      paddingBottom: list.paddingBottom,
+      gap: list.gap,
     },
     statusText: {
       width: '100%',
@@ -133,26 +259,26 @@ export function getMarketStyles(
     priceCard: {
       width: cardWidth,
       backgroundColor: p.surface,
-      borderRadius: compactLandscape ? 16 : 20,
+      borderRadius: card.borderRadius,
       borderWidth: 1,
       borderColor: p.line,
-      padding: compactLandscape ? 10 : 14,
-      gap: compactLandscape ? 8 : 13,
+      padding: card.padding,
+      gap: card.gap,
     },
     priceTop: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: compactLandscape || width < 360 ? 8 : 12,
+      gap: card.topGap,
     },
     thumb: {
-      width: thumb,
-      height: thumb,
+      width: layout.thumb,
+      height: layout.thumb,
       borderRadius: 12,
       backgroundColor: p.placeholder,
     },
     thumbFallback: {
-      width: thumb,
-      height: thumb,
+      width: layout.thumb,
+      height: layout.thumb,
       borderRadius: 12,
       backgroundColor: p.placeholder,
       alignItems: 'center',
@@ -168,13 +294,13 @@ export function getMarketStyles(
       minWidth: 0,
     },
     productName: {
-      fontSize: compactLandscape ? 15 : width < 360 ? 16 : 18,
+      fontSize: card.nameFontSize,
       fontWeight: '700',
       color: p.ink,
       letterSpacing: -0.2,
     },
     detail: {
-      fontSize: compactLandscape || width < 360 ? 11 : 13,
+      fontSize: card.detailFontSize,
       fontStyle: 'italic',
       color: p.muted,
       marginTop: 1,
@@ -184,9 +310,9 @@ export function getMarketStyles(
       alignItems: 'center',
       alignSelf: 'flex-start',
       gap: 6,
-      marginTop: compactLandscape ? 5 : 8,
+      marginTop: card.stockMarginTop,
       paddingHorizontal: 9,
-      paddingVertical: compactLandscape ? 3 : 5,
+      paddingVertical: card.stockPaddingVertical,
       borderRadius: 999,
       backgroundColor: colors.successBackground,
     },
@@ -196,7 +322,7 @@ export function getMarketStyles(
       borderRadius: 3,
     },
     stockText: {
-      fontSize: compactLandscape || width < 360 ? 10 : 12,
+      fontSize: card.stockFontSize,
       flexShrink: 1,
       fontWeight: '600',
     },
@@ -209,19 +335,19 @@ export function getMarketStyles(
       gap: 3,
       backgroundColor: p.priceBackground,
       borderRadius: 14,
-      paddingVertical: compactLandscape ? 5 : 8,
-      paddingHorizontal: compactLandscape || width < 360 ? 8 : 11,
-      minWidth: compactLandscape || width < 360 ? 76 : 88,
+      paddingVertical: price.mainPaddingVertical,
+      paddingHorizontal: price.mainPaddingHorizontal,
+      minWidth: price.mainMinWidth,
     },
     priceValue: {
-      fontSize: compactLandscape ? 18 : 21,
+      fontSize: price.valueFontSize,
       fontWeight: '800',
       color: p.tagText,
       fontVariant: ['tabular-nums'],
       letterSpacing: -0.6,
     },
     priceCurrency: {
-      fontSize: compactLandscape ? 12 : 13,
+      fontSize: price.currencyFontSize,
       fontWeight: '700',
       color: p.tagText,
     },
@@ -237,20 +363,20 @@ export function getMarketStyles(
       flexWrap: 'wrap',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingTop: compactLandscape ? 6 : 10,
+      paddingTop: price.bottomPaddingTop,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: p.line,
     },
     smallInfo: {
-      fontSize: compactLandscape ? 12 : 14,
+      fontSize: price.smallInfoFontSize,
       color: p.muted,
       fontVariant: ['tabular-nums'],
     },
     buyBtn: {
       backgroundColor: p.accent,
-      minHeight: compactLandscape ? 34 : 40,
-      paddingVertical: compactLandscape ? 7 : 10,
-      paddingHorizontal: compactLandscape ? 14 : width < 360 ? 14 : 20,
+      minHeight: price.buttonMinHeight,
+      paddingVertical: price.buttonPaddingVertical,
+      paddingHorizontal: price.buttonPaddingHorizontal,
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 14,
@@ -261,7 +387,7 @@ export function getMarketStyles(
     buyText: {
       color: p.accentText,
       fontWeight: '700',
-      fontSize: compactLandscape ? 12 : 14,
+      fontSize: price.buttonFontSize,
     },
     buyTextDisabled: {
       color: p.muted,
@@ -269,8 +395,8 @@ export function getMarketStyles(
     loadMoreWrap: {
       width: '100%',
       alignItems: 'center',
-      paddingTop: compactLandscape ? 4 : 8,
-      paddingBottom: compactLandscape ? 4 : 12,
+      paddingTop: footer.loadMorePaddingTop,
+      paddingBottom: footer.loadMorePaddingBottom,
     },
     loadMoreButton: {
       minHeight: 44,
@@ -346,8 +472,8 @@ export function getMarketStyles(
     bannerWrap: {
       alignSelf: 'center',
       width: '100%',
-      maxWidth: Math.min(width, maxContentWidth),
-      paddingHorizontal: compactLandscape ? 8 : horizontalInset,
+      maxWidth: Math.min(width, layout.maxContentWidth),
+      paddingHorizontal: footer.bannerPaddingHorizontal,
     },
     imagePreview: {
       position: 'absolute',

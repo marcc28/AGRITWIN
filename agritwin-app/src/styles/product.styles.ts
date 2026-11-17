@@ -37,6 +37,71 @@ export function getProductPalette(colors: ThemeColors) {
   };
 }
 
+function getProductFrameMetrics(
+  compact: boolean,
+  tablet: boolean,
+  desktop: boolean,
+  landscape: boolean,
+) {
+  return {
+    horizontalPadding: compact ? 14 : tablet ? 28 : 20,
+    cardPadding: compact ? 17 : tablet ? 28 : 22,
+    maxWidth: desktop ? 1080 : tablet ? 850 : 500,
+    contentPaddingTop: landscape ? 12 : tablet ? 28 : 20,
+    cardRadius: compact ? 18 : 24,
+    topLineMarginBottom: compact ? 18 : 24,
+    heroMarginBottom: compact ? 20 : 26,
+  };
+}
+
+function getProductHeroMetrics(
+  compact: boolean,
+  tablet: boolean,
+  wideLayout: boolean,
+) {
+  return {
+    direction: wideLayout ? ('row' as const) : ('column' as const),
+    gap: wideLayout ? 28 : 0,
+    imageWidth: wideLayout ? ('46%' as const) : ('100%' as const),
+    imageAspectRatio: wideLayout ? 1.25 : tablet ? 2 : 1.6,
+    imageMaxHeight: wideLayout ? 420 : tablet ? 320 : 230,
+    imageBorderRadius: compact ? 13 : 18,
+    imageMarginBottom: wideLayout ? 0 : compact ? 17 : 22,
+    headerFlex: wideLayout ? 1 : undefined,
+    headerAlignment: wideLayout ? ('flex-start' as const) : ('center' as const),
+  };
+}
+
+function getProductTextMetrics(
+  compact: boolean,
+  tablet: boolean,
+  wideLayout: boolean,
+) {
+  return {
+    titleFontSize: compact ? 23 : tablet ? 32 : 28,
+    titleLineHeight: compact ? 30 : tablet ? 39 : 35,
+    textAlignment: wideLayout ? ('left' as const) : ('center' as const),
+    descriptionFontSize: compact ? 12 : 14,
+    priceDirection: compact ? ('column' as const) : ('row' as const),
+    priceAlignment: compact ? ('flex-start' as const) : ('center' as const),
+    priceFontSize: compact ? 32 : tablet ? 40 : 36,
+  };
+}
+
+function getProductOrderMetrics(compact: boolean, tablet: boolean) {
+  return {
+    sectionTitleFontSize: compact ? 16 : 18,
+    quantityPadding: compact ? 13 : 17,
+    quantityGap: compact ? 12 : 18,
+    quantityButtonSize: compact ? 40 : 46,
+    quantityInputWidth: compact ? 118 : 145,
+    quantityInputHeight: compact ? 44 : 50,
+    quantityFontSize: compact ? 20 : 24,
+    totalPadding: compact ? 13 : 16,
+    totalPriceFontSize: compact ? 21 : tablet ? 29 : 25,
+  };
+}
+
 export function getProductStyles(
   colors: ThemeColors,
   width = 390,
@@ -50,10 +115,10 @@ export function getProductStyles(
   const wideLayout = width >= 760;
   const landscape = width > height && height < 600;
 
-  const horizontalPadding = compact ? 14 : tablet ? 28 : 20;
-  const cardPadding = compact ? 17 : tablet ? 28 : 22;
-
-  const maxWidth = desktop ? 1080 : tablet ? 850 : 500;
+  const frame = getProductFrameMetrics(compact, tablet, desktop, landscape);
+  const hero = getProductHeroMetrics(compact, tablet, wideLayout);
+  const text = getProductTextMetrics(compact, tablet, wideLayout);
+  const order = getProductOrderMetrics(compact, tablet);
 
   return StyleSheet.create({
     screen: {
@@ -64,17 +129,17 @@ export function getProductStyles(
     scrollContent: {
       flexGrow: 1,
       alignItems: 'center',
-      paddingHorizontal: horizontalPadding,
-      paddingTop: landscape ? 12 : tablet ? 28 : 20,
+      paddingHorizontal: frame.horizontalPadding,
+      paddingTop: frame.contentPaddingTop,
       paddingBottom: 40,
     },
 
     card: {
       width: '100%',
-      maxWidth,
+      maxWidth: frame.maxWidth,
       backgroundColor: C.surface,
-      borderRadius: compact ? 18 : 24,
-      padding: cardPadding,
+      borderRadius: frame.cardRadius,
+      padding: frame.cardPadding,
       borderWidth: 1,
       borderColor: C.border,
       overflow: 'hidden',
@@ -129,29 +194,29 @@ export function getProductStyles(
       alignSelf: 'center',
       borderRadius: 4,
       backgroundColor: C.primary,
-      marginBottom: compact ? 18 : 24,
+      marginBottom: frame.topLineMarginBottom,
     },
 
     hero: {
       width: '100%',
-      flexDirection: wideLayout ? 'row' : 'column',
+      flexDirection: hero.direction,
       alignItems: 'center',
-      gap: wideLayout ? 28 : 0,
-      marginBottom: compact ? 20 : 26,
+      gap: hero.gap,
+      marginBottom: frame.heroMarginBottom,
     },
 
     productImage: {
-      width: wideLayout ? '46%' : '100%',
-      aspectRatio: wideLayout ? 1.25 : tablet ? 2 : 1.6,
-      maxHeight: wideLayout ? 420 : tablet ? 320 : 230,
-      borderRadius: compact ? 13 : 18,
-      marginBottom: wideLayout ? 0 : compact ? 17 : 22,
+      width: hero.imageWidth,
+      aspectRatio: hero.imageAspectRatio,
+      maxHeight: hero.imageMaxHeight,
+      borderRadius: hero.imageBorderRadius,
+      marginBottom: hero.imageMarginBottom,
       backgroundColor: C.surfaceSecondary,
     },
 
     header: {
-      flex: wideLayout ? 1 : undefined,
-      alignItems: wideLayout ? 'flex-start' : 'center',
+      flex: hero.headerFlex,
+      alignItems: hero.headerAlignment,
       justifyContent: 'center',
       marginBottom: 0,
     },
@@ -166,23 +231,23 @@ export function getProductStyles(
 
     title: {
       color: C.text,
-      fontSize: compact ? 23 : tablet ? 32 : 28,
-      lineHeight: compact ? 30 : tablet ? 39 : 35,
+      fontSize: text.titleFontSize,
+      lineHeight: text.titleLineHeight,
       fontWeight: '900',
-      textAlign: wideLayout ? 'left' : 'center',
+      textAlign: text.textAlignment,
     },
 
     description: {
       color: C.muted,
-      fontSize: compact ? 12 : 14,
+      fontSize: text.descriptionFontSize,
       lineHeight: 21,
-      textAlign: wideLayout ? 'left' : 'center',
+      textAlign: text.textAlignment,
       marginTop: 8,
     },
 
     priceSection: {
-      flexDirection: compact ? 'column' : 'row',
-      alignItems: compact ? 'flex-start' : 'center',
+      flexDirection: text.priceDirection,
+      alignItems: text.priceAlignment,
       justifyContent: 'space-between',
       gap: 14,
       marginBottom: 22,
@@ -202,7 +267,7 @@ export function getProductStyles(
 
     price: {
       color: C.primaryDark,
-      fontSize: compact ? 32 : tablet ? 40 : 36,
+      fontSize: text.priceFontSize,
       fontWeight: '900',
       letterSpacing: -1,
     },
@@ -314,7 +379,7 @@ export function getProductStyles(
 
     sectionTitle: {
       color: C.text,
-      fontSize: compact ? 16 : 18,
+      fontSize: order.sectionTitleFontSize,
       fontWeight: '800',
       marginBottom: 13,
     },
@@ -324,7 +389,7 @@ export function getProductStyles(
       borderWidth: 1,
       borderColor: C.border,
       borderRadius: 17,
-      padding: compact ? 13 : 17,
+      padding: order.quantityPadding,
       marginBottom: 17,
     },
 
@@ -362,12 +427,12 @@ export function getProductStyles(
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: compact ? 12 : 18,
+      gap: order.quantityGap,
     },
 
     quantityButton: {
-      width: compact ? 40 : 46,
-      height: compact ? 40 : 46,
+      width: order.quantityButtonSize,
+      height: order.quantityButtonSize,
       borderRadius: 13,
       backgroundColor: C.primary,
       alignItems: 'center',
@@ -389,8 +454,8 @@ export function getProductStyles(
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      width: compact ? 118 : 145,
-      height: compact ? 44 : 50,
+      width: order.quantityInputWidth,
+      height: order.quantityInputHeight,
       justifyContent: 'center',
       backgroundColor: C.surface,
       borderWidth: 1,
@@ -402,7 +467,7 @@ export function getProductStyles(
     quantityValue: {
       flex: 1,
       color: C.text,
-      fontSize: compact ? 20 : 24,
+      fontSize: order.quantityFontSize,
       fontWeight: '900',
       fontVariant: ['tabular-nums'],
       textAlign: 'center',
@@ -425,7 +490,7 @@ export function getProductStyles(
       borderWidth: 1,
       borderColor: C.border,
       borderRadius: 16,
-      padding: compact ? 13 : 16,
+      padding: order.totalPadding,
       marginBottom: 17,
     },
 
@@ -444,7 +509,7 @@ export function getProductStyles(
 
     totalPrice: {
       color: C.primaryDark,
-      fontSize: compact ? 21 : tablet ? 29 : 25,
+      fontSize: order.totalPriceFontSize,
       fontWeight: '900',
       flexShrink: 0,
       fontVariant: ['tabular-nums'],

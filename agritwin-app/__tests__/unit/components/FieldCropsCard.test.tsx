@@ -102,7 +102,7 @@ describe('field crop cards', () => {
     fireEvent.press(screen.getAllByLabelText('recommendations.open')[0]);
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/recommendations/[fieldId]',
-      params: { fieldId: '8' },
+      params: { fieldId: '8', fieldName: 'Hort' },
     });
   });
 
