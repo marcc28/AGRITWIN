@@ -89,11 +89,7 @@ function getMarketLayoutMetrics(width: number, height: number) {
     compactLandscape,
     contentWidth:
       Math.min(width, grid.maxContentWidth) - viewport.horizontalInset * 2,
-    thumb: getMarketThumbSize(
-      viewport.compact,
-      compactLandscape,
-      grid.columns,
-    ),
+    thumb: getMarketThumbSize(viewport.compact, compactLandscape, grid.columns),
   };
 }
 
