@@ -731,3 +731,4 @@ async def test_checkout_stripe_errors_are_gateway_errors(
     assert exc.value.detail == (
         "No s'ha pogut crear la sessió de Stripe"
     )
+
