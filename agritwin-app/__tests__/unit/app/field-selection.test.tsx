@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
 import {
   fireEvent,
@@ -16,7 +15,6 @@ import {
   getCurrentField,
   setCurrentField,
 } from '../../../src/services/currentField';
-import { DEVICE_HEALTH_COLOR } from '../../../src/services/deviceHealth';
 
 jest.mock('react-i18next', () => {
   const t = (key: string) => key;
@@ -100,17 +98,6 @@ const fields = [
   },
 ];
 
-function frameColor(id: number) {
-  const [frame] = screen
-    .getByTestId(`field-tile-${id}`)
-    .findAll(
-      (node: { type: unknown; props: { style?: StyleProp<ViewStyle> } }) =>
-        typeof node.type === 'string' &&
-        StyleSheet.flatten(node.props.style)?.borderWidth === 4,
-    );
-  return StyleSheet.flatten(frame.props.style).borderColor;
-}
-
 describe('FieldSelectionScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -119,16 +106,24 @@ describe('FieldSelectionScreen', () => {
     mockedIsAuthError.mockReturnValue(false);
   });
 
-  it('frames each garden with the colour of its sensors', async () => {
+  it('shows a garden as connected only when every sensor is online', async () => {
     render(<FieldSelectionScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('Terrassa')).toBeTruthy();
     });
-    expect(frameColor(3)).toBe(DEVICE_HEALTH_COLOR.ok);
-    expect(frameColor(4)).toBe(DEVICE_HEALTH_COLOR.partial);
-    expect(frameColor(5)).toBe(DEVICE_HEALTH_COLOR.down);
-    expect(screen.getByText('fieldSelection.legendTitle')).toBeTruthy();
+    expect(screen.getByTestId('field-connection-3')).toHaveProp(
+      'accessibilityLabel',
+      'settings.fieldDetail.connected',
+    );
+    expect(screen.getByTestId('field-connection-4')).toHaveProp(
+      'accessibilityLabel',
+      'settings.fieldDetail.disconnected',
+    );
+    expect(screen.getByTestId('field-connection-5')).toHaveProp(
+      'accessibilityLabel',
+      'settings.fieldDetail.disconnected',
+    );
   });
 
   it('opens home with the chosen garden', async () => {

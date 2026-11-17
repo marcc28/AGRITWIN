@@ -676,14 +676,10 @@
     "deleteTitle": "Eliminar {{name}}?",
     "deleteMessage": "Es perdran els seus cultius i Arduinos. Aquesta acció no es pot desfer.",
     "deleteConfirm": "Eliminar",
-    "legendOk": "Tots funcionen",
-    "legendPartial": "Algun no funciona",
-    "legendDown": "Cap funciona",
     "profile": "El meu perfil",
     "loadError": "No s'han pogut carregar els horts",
     "back": "Tornar",
     "eyebrow": "ELS MEUS HORTS",
-    "legendTitle": "Estat dels sensors",
     "allGardens": "Veure tots els horts"
   }
 }

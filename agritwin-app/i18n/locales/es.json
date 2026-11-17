@@ -676,14 +676,10 @@
     "deleteTitle": "¿Eliminar {{name}}?",
     "deleteMessage": "Se perderán sus cultivos y Arduinos. Esta acción no se puede deshacer.",
     "deleteConfirm": "Eliminar",
-    "legendOk": "Todos funcionan",
-    "legendPartial": "Alguno no funciona",
-    "legendDown": "Ninguno funciona",
     "profile": "Mi perfil",
     "loadError": "No se han podido cargar los huertos",
     "back": "Volver",
     "eyebrow": "MIS HUERTOS",
-    "legendTitle": "Estado de los sensores",
     "allGardens": "Ver todos los huertos"
   }
 }
