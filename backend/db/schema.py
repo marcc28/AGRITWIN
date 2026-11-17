@@ -285,6 +285,8 @@ class Field(Base):
     size_m2: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
     boundary: Mapped[list[dict] | None] = mapped_column(JSONType)
     excluded_zones: Mapped[list[list[dict]] | None] = mapped_column(JSONType)
+    # When Gemini last reviewed this garden's tasks (see TaskService).
+    ai_checked_at: Mapped[datetime | None] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -575,4 +577,64 @@ class UsedPasswordResetToken(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+    )
+
+
+class GardenTask(Base):
+    """A task for one garden, or a short notice (kind "recommendation").
+
+    A notice stays until the gardener marks it as seen. It can also be turned
+    into a task, which only changes its kind.
+    """
+
+    __tablename__ = "garden_tasks"
+    __table_args__ = (
+        CheckConstraint("source IN ('ai', 'user')", name="chk_garden_task_source"),
+        CheckConstraint(
+            "kind IN ('task', 'recommendation')",
+            name="chk_garden_task_kind",
+        ),
+        CheckConstraint(
+            "priority IN ('high', 'medium', 'low')",
+            name="chk_garden_task_priority",
+        ),
+        Index("idx_garden_tasks_field_due", "field_id", "due_on"),
+        # An AI task or notice is unique per garden, kind, key and day.
+        # Manual tasks are free.
+        Index(
+            "uq_garden_tasks_ai_key_day",
+            "field_id",
+            "kind",
+            "signature",
+            "due_on",
+            unique=True,
+            postgresql_where=text("source = 'ai'"),
+            sqlite_where=text("source = 'ai'"),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigIntType, primary_key=True, autoincrement=True)
+    field_id: Mapped[int] = mapped_column(
+        BigIntType,
+        ForeignKey("fields.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    kind: Mapped[str] = mapped_column(
+        String(14), nullable=False, default="task", server_default=text("'task'")
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    details: Mapped[str | None] = mapped_column(Text)
+    due_on: Mapped[date | None] = mapped_column(Date)
+    source: Mapped[str] = mapped_column(String(10), nullable=False)
+    signature: Mapped[str | None] = mapped_column(String(80))
+    priority: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="medium", server_default=text("'medium'")
+    )
+    completion_reason: Mapped[str | None] = mapped_column(Text)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    seen_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        server_default=func.current_timestamp(),
     )

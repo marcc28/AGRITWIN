@@ -778,3 +778,150 @@ export async function forgotPassword(email: string): Promise<void> {
     );
   }
 }
+
+export type TaskPriority = 'high' | 'medium' | 'low';
+
+export type GardenTask = {
+  id: number;
+  title: string;
+  details: string | null;
+  due_on: string | null;
+  source: 'ai' | 'user';
+  priority: TaskPriority;
+  completion_reason: string | null;
+  completed: boolean;
+  can_delete: boolean;
+  created_at: string;
+};
+
+// What the user can change in a task. Only the sent fields change.
+export type TaskChanges = {
+  completed?: boolean;
+  title?: string;
+  details?: string | null;
+  priority?: TaskPriority;
+  due_on?: string;
+};
+
+export type GardenRecommendation = {
+  id: number;
+  title: string;
+  details: string | null;
+  due_on: string;
+  signature: string;
+};
+
+export type GardenTaskList = {
+  today: string;
+  has_sensors: boolean;
+  refresh: boolean;
+  tasks: GardenTask[];
+  recommendations: GardenRecommendation[];
+};
+
+async function taskRequest(
+  path: string,
+  fallback: string,
+  init: { method?: string; body?: unknown } = {},
+): Promise<unknown> {
+  const auth = await getAuth();
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/tasks${path}`, {
+    method: init.method ?? 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+      ...(init.body === undefined
+        ? {}
+        : { 'Content-Type': 'application/json' }),
+    },
+    ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+  });
+  if (response.status === 204) {
+    return null;
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(errorDetail(data, fallback));
+  }
+  return data;
+}
+
+export async function getGardenTasks(
+  fieldId: number,
+  lang: string,
+): Promise<GardenTaskList> {
+  const data = await taskRequest(
+    `?field_id=${fieldId}&lang=${encodeURIComponent(lang)}`,
+    'No s’han pogut carregar les tasques',
+  );
+  return data as GardenTaskList;
+}
+
+export async function createGardenTask(
+  fieldId: number,
+  title: string,
+  dueOn: string,
+  priority: TaskPriority,
+  details?: string,
+): Promise<GardenTask> {
+  const data = await taskRequest('', 'No s’ha pogut crear la tasca', {
+    method: 'POST',
+    body: {
+      field_id: fieldId,
+      title,
+      due_on: dueOn,
+      priority,
+      details: details?.trim() || null,
+    },
+  });
+  return data as GardenTask;
+}
+
+export async function updateGardenTask(
+  fieldId: number,
+  taskId: number,
+  changes: TaskChanges,
+): Promise<GardenTask> {
+  const data = await taskRequest(
+    `/${taskId}?field_id=${fieldId}`,
+    'No s’ha pogut actualitzar la tasca',
+    { method: 'PATCH', body: changes },
+  );
+  return data as GardenTask;
+}
+
+export async function deleteGardenTask(
+  fieldId: number,
+  taskId: number,
+): Promise<void> {
+  await taskRequest(
+    `/${taskId}?field_id=${fieldId}`,
+    'No s’ha pogut esborrar la tasca',
+    { method: 'DELETE' },
+  );
+}
+
+export async function dismissRecommendation(
+  fieldId: number,
+  recommendationId: number,
+): Promise<void> {
+  await taskRequest(
+    `/recommendations/${recommendationId}/seen?field_id=${fieldId}`,
+    'No s’ha pogut actualitzar la recomanació',
+    { method: 'POST' },
+  );
+}
+
+export async function convertRecommendation(
+  fieldId: number,
+  recommendationId: number,
+): Promise<void> {
+  await taskRequest(
+    `/recommendations/${recommendationId}/task?field_id=${fieldId}`,
+    'No s’ha pogut actualitzar la recomanació',
+    { method: 'POST' },
+  );
+}
