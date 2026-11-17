@@ -628,7 +628,7 @@ export default function MarketScreen() {
 
     // Carreguem quan falten menys de 200 píxels per arribar al final
     if (distanceFromBottom < 200) {
-      loadMoreProducts();
+      void loadMoreProducts();
     }
   };
 
