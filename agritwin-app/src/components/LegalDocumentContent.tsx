@@ -5,7 +5,7 @@ type Props = { content: string };
 
 function renderInline(text: string, keyPrefix: string) {
   const tokenPattern =
-  /(\*\*[^*\r\n]+\*\*|__[^_\r\n]+__|\*[^*\r\n]+\*|_[^_\r\n]+_|`[^`\r\n]+`|\[[^\]\r\n]+\]\([^)()\r\n]+\))/g;
+    /(\*\*[^*\r\n]+\*\*|__[^_\r\n]+__|\*[^*\r\n]+\*|_[^_\r\n]+_|`[^`\r\n]+`|\[[^\]\r\n]+\]\([^)()\r\n]+\))/g;
   const pieces = text.split(tokenPattern).filter(Boolean);
 
   return pieces.map((piece, index) => {
