@@ -5,7 +5,7 @@ type Props = { content: string };
 
 function renderInline(text: string, keyPrefix: string) {
   const tokenPattern =
-    /(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
+  /(\*\*[^*\r\n]+\*\*|__[^_\r\n]+__|\*[^*\r\n]+\*|_[^_\r\n]+_|`[^`\r\n]+`|\[[^\]\r\n]+\]\([^)()\r\n]+\))/g;
   const pieces = text.split(tokenPattern).filter(Boolean);
 
   return pieces.map((piece, index) => {
@@ -62,7 +62,7 @@ export default function LegalDocumentContent({ content }: Props) {
     const trimmed = line.trim();
     if (!trimmed || /^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) continue;
 
-    const heading = trimmed.match(/^(#{1,6})\s+(.+?)\s*#*$/);
+    const heading = trimmed.match(/^(#{1,6})\s+([^*]+)\s\*#\*$/););
     if (heading) {
       blocks.push({ type: `h${heading[1].length}`, text: heading[2] });
       continue;
@@ -72,7 +72,7 @@ export default function LegalDocumentContent({ content }: Props) {
       blocks.push({ type: 'quote', text: quote[1] });
       continue;
     }
-    const list = line.match(/^(\s*)([-*+]\s+|\d+[.)]\s+)(.*)$/);
+    const list = line.match(/^\s*(?:[-*+]|\d+[.)])\s+(.*)$/);
     if (list) {
       blocks.push({
         type: 'list',
