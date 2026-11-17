@@ -676,6 +676,7 @@
     "deleteTitle": "Delete {{name}}?",
     "deleteMessage": "Its crops and Arduinos will be lost. This cannot be undone.",
     "deleteConfirm": "Delete",
+    "deleteError": "The garden could not be deleted",
     "legendOk": "All working",
     "legendPartial": "Some not working",
     "legendDown": "None working",
