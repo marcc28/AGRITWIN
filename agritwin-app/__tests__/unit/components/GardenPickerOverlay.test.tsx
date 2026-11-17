@@ -9,6 +9,7 @@ import {
 import { router } from 'expo-router';
 
 import GardenPickerOverlay from '../../../src/components/GardenPickerOverlay';
+import { clearAuth } from '../../../src/services/auth';
 import { setCurrentField } from '../../../src/services/currentField';
 import { setGardenPicker } from '../../../src/services/gardenPicker';
 import type { Field } from '../../../src/services/api';
@@ -16,7 +17,12 @@ import type { Field } from '../../../src/services/api';
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
+    replace: jest.fn(),
   },
+}));
+
+jest.mock('../../../src/services/auth', () => ({
+  clearAuth: jest.fn(async () => undefined),
 }));
 
 jest.mock('../../../src/services/currentField', () => ({
@@ -130,6 +136,19 @@ describe('GardenPickerOverlay', () => {
     fireEvent.press(screen.getByText('Camp'));
     await waitFor(() => {
       expect(setCurrentField).toHaveBeenCalledWith({ id: 2, name: 'Camp' });
+    });
+  });
+
+  it('closes the selector and logs out', async () => {
+    setGardenPicker({ open: true, fields: [field(1, 'Hort')], currentId: 1 });
+    render(<GardenPickerOverlay />);
+
+    fireEvent.press(screen.getByTestId('garden-picker-logout'));
+
+    expect(screen.queryByText('Hort')).toBeNull();
+    await waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/auth/login');
     });
   });
 
