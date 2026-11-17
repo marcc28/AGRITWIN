@@ -2,7 +2,10 @@ import React from 'react';
 import { Image, Text, View } from 'react-native';
 
 import type { MarketProduct } from '@/services/api_market';
-import { styles } from '../../styles/product.styles';
+import { Colors } from '../../constants/theme';
+import { getProductStyles } from '../../styles/product.styles';
+
+const styles = getProductStyles(Colors.light);
 
 type Props = {
   product: MarketProduct;

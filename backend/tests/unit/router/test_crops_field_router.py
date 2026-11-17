@@ -26,6 +26,7 @@ def field_crop(**overrides):
         "field_id": 7,
         "crop_id": 3,
         "crop": SimpleNamespace(name="Tomàquet"),
+        "field": SimpleNamespace(name="Camp de prova"),
         "planted_at": date(2026, 4, 1),
         "expected_harvest_at": date(2026, 8, 1),
         "status": "planted",
@@ -140,6 +141,7 @@ def test_get_field_crop_by_id(client, service):
     assert response.json() == {
         "id": 15,
         "field_id": 7,
+        "field_name": "Camp de prova",
         "crop_id": 3,
         "crop_name": "Tomàquet",
         "planted_at": "2026-04-01",

@@ -3,40 +3,55 @@ import {
   Image,
   View,
   Text,
+  TextInput,
   Pressable,
   ScrollView,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
 import { getMarketProduct, type MarketProduct } from '@/services/api_market';
 
 import CheckoutForm from '@/components/checkout-form';
+import { Colors } from '../../constants/theme';
+import { getProductStyles } from '../../styles/product.styles';
 
-import { styles } from '../../styles/product.styles';
+type ProductStyles = ReturnType<typeof getProductStyles>;
 
 function ProductUnavailable({
   message,
   onBack,
+  styles,
 }: {
   message: string;
   onBack: () => void;
+  styles: ProductStyles;
 }) {
   return (
-    <View style={styles.screen}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.card}>
-        <Text style={styles.title}>Producte no disponible</Text>
-        <Text style={styles.description}>{message}</Text>
-        <Pressable
-          style={styles.backButton}
-          onPress={onBack}
-          accessibilityRole="button"
-          accessibilityLabel="Tornar a la pantalla anterior"
-        >
-          <Text style={styles.backArrow}>‹</Text>
-          <Text style={styles.backButtonText}>Tornar al mercat</Text>
-        </Pressable>
+    <View style={[styles.screen, { justifyContent: 'center' }]}>
+      <StatusBar barStyle="dark-content" />
+
+      <View style={styles.scrollContent}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Producte no disponible</Text>
+
+          <Text style={styles.description}>{message}</Text>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && styles.backButtonPressed,
+            ]}
+            onPress={onBack}
+            accessibilityRole="button"
+            accessibilityLabel="Tornar al mercat"
+          >
+            <Text style={styles.backArrow}>‹</Text>
+            <Text style={styles.backButtonText}>Tornar al mercat</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -44,14 +59,24 @@ function ProductUnavailable({
 
 export default function ProductScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string | string[] }>();
 
-  const productId = Array.isArray(id) ? id.at(0) : id;
+  const { width, height } = useWindowDimensions();
+
+  const styles = getProductStyles(Colors.light, width, height);
+
+  const { id } = useLocalSearchParams<{
+    id: string | string[];
+  }>();
+
+  const productId = Array.isArray(id) ? id[0] : id;
 
   const [product, setProduct] = useState<MarketProduct | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState('1');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const formatQuantity = (value: number) =>
+    Number(value.toFixed(2)).toString().replace('.', ',');
 
   useEffect(() => {
     let active = true;
@@ -61,6 +86,7 @@ export default function ProductScreen() {
       setError(null);
       setProduct(null);
       setQuantity(1);
+      setQuantityInput('1');
 
       try {
         if (!productId) {
@@ -70,7 +96,18 @@ export default function ProductScreen() {
         const data = await getMarketProduct(String(productId));
 
         if (active) {
+          if (!data) {
+            setProduct(null);
+            return;
+          }
+
+          const stock = Number(data.left_units);
+          const initialQuantity = Number.isFinite(stock)
+            ? Math.min(1, Math.max(0.01, Math.floor(stock * 100) / 100))
+            : 1;
           setProduct(data);
+          setQuantity(initialQuantity);
+          setQuantityInput(formatQuantity(initialQuantity));
         }
       } catch (err) {
         if (active) {
@@ -94,54 +131,99 @@ export default function ProductScreen() {
     };
   }, [productId]);
 
+  const handleBack = () => router.back();
+
   if (loading) {
     return (
-      <View style={styles.screen}>
-        <StatusBar barStyle="light-content" />
+      <View style={[styles.screen, { justifyContent: 'center' }]}>
+        <StatusBar barStyle="dark-content" />
 
-        <View style={styles.card}>
-          <Text style={styles.title}>Carregant producte...</Text>
+        <View style={styles.scrollContent}>
+          <View style={styles.card}>
+            <Text style={styles.eyebrow}>AGRITWIN · MERCAT</Text>
 
-          <Text style={styles.description}>
-            Estem obtenint les dades del mercat.
-          </Text>
+            <Text style={styles.title}>Carregant producte...</Text>
+
+            <Text style={styles.description}>
+              Estem obtenint les dades del mercat.
+            </Text>
+          </View>
         </View>
       </View>
     );
   }
 
   if (error !== null) {
-    return <ProductUnavailable message={error} onBack={() => router.back()} />;
+    return (
+      <ProductUnavailable message={error} onBack={handleBack} styles={styles} />
+    );
   }
 
   if (product === null) {
     return (
       <ProductUnavailable
         message="No s’han pogut carregar les dades del producte."
-        onBack={() => router.back()}
+        onBack={handleBack}
+        styles={styles}
       />
     );
   }
 
-  const available = Math.max(0, Math.floor(Number(product.left_units) || 0));
+  const rawAvailable = Number(product.left_units);
+  const available = Number.isFinite(rawAvailable)
+    ? Math.max(0, Math.floor(rawAvailable * 100) / 100)
+    : 0;
+  const maxQuantity = Math.min(available, 20);
 
   const unitPrice = Number(product.price_per_kg) || 0;
   const total = unitPrice * quantity;
-  const outOfStock = available < 1;
+  const outOfStock = maxQuantity < 0.01;
+
+  const handleQuantityInput = (value: string) => {
+    if (!/^\d*(?:[.,]\d{0,2})?$/.test(value)) return;
+
+    setQuantityInput(value);
+    const parsed = Number(value.replace(',', '.'));
+    if (Number.isFinite(parsed) && parsed >= 0.01 && parsed <= maxQuantity) {
+      setQuantity(parsed);
+    }
+  };
+
+  const commitQuantityInput = () => {
+    const parsed = Number(quantityInput.replace(',', '.'));
+    if (Number.isFinite(parsed) && parsed >= 0.01) {
+      const nextQuantity = Math.min(maxQuantity, parsed);
+      if (nextQuantity >= 0.01) setQuantity(nextQuantity);
+      setQuantityInput(formatQuantity(nextQuantity));
+      return;
+    }
+
+    setQuantityInput(formatQuantity(quantity));
+  };
+
+  const changeQuantity = (nextQuantity: number) => {
+    const boundedQuantity = Number(
+      Math.min(maxQuantity, Math.max(0.01, nextQuantity)).toFixed(2),
+    );
+    setQuantity(boundedQuantity);
+    setQuantityInput(formatQuantity(boundedQuantity));
+  };
 
   const formatPrice = (value: number) =>
     `${value.toFixed(2).replace('.', ',')} €`;
 
+  const incrementDisabled = outOfStock || quantity >= maxQuantity;
+
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.card}>
-          {/* Decoració superior */}
+          {/* Decoració */}
           <View pointerEvents="none" style={styles.decoration}>
             <View style={styles.decorCircleLarge} />
             <View style={styles.decorCircleSmall} />
@@ -150,28 +232,27 @@ export default function ProductScreen() {
 
           <View style={styles.topLine} />
 
-          {product.image_url ? (
-            <Image
-              source={{ uri: product.image_url }}
-              accessibilityLabel={`Imatge de ${product.product}`}
-              resizeMode="cover"
-              style={{
-                width: '100%',
-                aspectRatio: 1.6,
-                borderRadius: 18,
-                marginBottom: 22,
-                backgroundColor: 'rgba(255,255,255,0.12)',
-              }}
-            />
-          ) : null}
+          <View style={styles.hero}>
+            {/* Imatge */}
+            {product.image_url ? (
+              <Image
+                source={{ uri: product.image_url }}
+                accessibilityLabel={`Imatge de ${product.product}`}
+                resizeMode="cover"
+                style={styles.productImage}
+              />
+            ) : null}
 
-          {/* Capçalera del producte */}
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>AGRITWIN · MERCAT</Text>
+            {/* Capçalera */}
+            <View style={styles.header}>
+              <Text style={styles.eyebrow}>AGRITWIN · MERCAT</Text>
 
-            <Text style={styles.title}>{product.product}</Text>
+              <Text style={styles.title}>{product.product}</Text>
 
-            <Text style={styles.description}>{product.tecnical_name}</Text>
+              {!!product.tecnical_name && (
+                <Text style={styles.description}>{product.tecnical_name}</Text>
+              )}
+            </View>
           </View>
 
           {/* Preu i disponibilitat */}
@@ -191,15 +272,19 @@ export default function ProductScreen() {
                 style={[styles.stockDot, outOfStock && styles.stockDotEmpty]}
               />
 
-              <Text style={styles.stockText}>
-                {outOfStock ? 'Sense estoc' : `${available} disponibles`}
+              <Text
+                style={[styles.stockText, outOfStock && styles.stockTextEmpty]}
+              >
+                {outOfStock
+                  ? 'Sense estoc'
+                  : `${formatQuantity(available)} kg disponibles`}
               </Text>
             </View>
           </View>
 
           <View style={styles.separator} />
 
-          {/* Informació essencial */}
+          {/* Informació */}
           <View style={styles.infoPanel}>
             <View style={styles.infoRow}>
               <View style={styles.infoIcon}>
@@ -213,7 +298,12 @@ export default function ProductScreen() {
                   Disponibilitat del producte
                 </Text>
 
-                <Text style={styles.infoValue}>
+                <Text
+                  style={[
+                    styles.infoValue,
+                    outOfStock && styles.infoValueEmpty,
+                  ]}
+                >
                   {outOfStock
                     ? 'Actualment no disponible'
                     : 'Disponible per comprar'}
@@ -222,7 +312,7 @@ export default function ProductScreen() {
             </View>
           </View>
 
-          {/* Comanda */}
+          {/* Quantitat */}
           <Text style={styles.sectionTitle}>La teva comanda</Text>
 
           <View style={styles.quantityPanel}>
@@ -242,61 +332,67 @@ export default function ProductScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Reduir quantitat"
+                disabled={quantity <= 0.01}
                 style={[
                   styles.quantityButton,
-                  quantity <= 1 && styles.disabledButton,
+                  quantity <= 0.01 && styles.disabledButton,
                 ]}
-                disabled={quantity <= 1}
-                onPress={() =>
-                  setQuantity((current) => Math.max(1, current - 1))
-                }
+                onPress={() => changeQuantity(quantity - 0.25)}
               >
                 <Text style={styles.quantityButtonText}>−</Text>
               </Pressable>
 
               <View style={styles.quantityValueContainer}>
-                <Text style={styles.quantityValue}>{quantity}</Text>
-
+                <TextInput
+                  accessibilityLabel="Quantitat en quilograms"
+                  keyboardType="decimal-pad"
+                  value={quantityInput}
+                  editable={!outOfStock}
+                  selectTextOnFocus
+                  onChangeText={handleQuantityInput}
+                  onBlur={commitQuantityInput}
+                  onSubmitEditing={commitQuantityInput}
+                  style={styles.quantityValue}
+                />
                 <Text style={styles.quantityValueUnit}>kg</Text>
               </View>
 
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Augmentar quantitat"
+                disabled={incrementDisabled}
                 style={[
                   styles.quantityButton,
-                  (quantity >= available || outOfStock) &&
-                    styles.disabledButton,
+                  incrementDisabled && styles.disabledButton,
                 ]}
-                disabled={quantity >= available || outOfStock}
-                onPress={() =>
-                  setQuantity((current) => Math.min(available, current + 1))
-                }
+                onPress={() => changeQuantity(quantity + 0.25)}
               >
                 <Text style={styles.quantityButtonText}>+</Text>
               </Pressable>
             </View>
           </View>
 
-          {/* Resum del preu */}
+          {/* Resum de la comanda */}
           <View style={styles.totalPanel}>
-            <View>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.totalLabel}>TOTAL DE LA COMANDA</Text>
 
               <Text style={styles.totalHint}>
-                {quantity} kg × {unitPrice.toFixed(2).replace('.', ',')} €/kg
+                {formatQuantity(quantity)} kg ×{' '}
+                {unitPrice.toFixed(2).replace('.', ',')} €/kg
               </Text>
             </View>
 
             <Text style={styles.totalPrice}>{formatPrice(total)}</Text>
           </View>
 
-          {/* Botó de compra amb Stripe */}
+          {/* Pagament Stripe */}
           <CheckoutForm
             productId={String(productId)}
             quantity={quantity}
             disabled={outOfStock}
           />
+
           <Text style={styles.footerText}>
             AgriTwin · Agricultura intel·ligent
           </Text>

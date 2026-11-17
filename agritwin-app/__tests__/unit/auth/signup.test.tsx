@@ -78,9 +78,7 @@ const mockedGetSecurityPolicy = getSecurityPolicy as jest.MockedFunction<
 
 const mockedRouterPush = router.push as jest.MockedFunction<typeof router.push>;
 
-const getPrivacyCheckbox = () => screen.getByTestId('privacy-checkbox-press');
-
-const getSecurityCheckbox = () => screen.getByTestId('security-checkbox-press');
+const getLegalCheckbox = () => screen.getByTestId('legal-checkbox');
 
 const setCheckbox = (
   checkbox: ReturnType<typeof screen.getByTestId>,
@@ -94,8 +92,7 @@ const setCheckbox = (
 };
 
 const acceptBothPolicies = () => {
-  setCheckbox(getPrivacyCheckbox(), true);
-  setCheckbox(getSecurityCheckbox(), true);
+  setCheckbox(getLegalCheckbox(), true);
 };
 
 const fillValidSignupForm = () => {
@@ -124,8 +121,7 @@ describe('SignupScreen', () => {
       expect(screen.getByTestId('signup-password-confirm')).toBeTruthy();
       expect(screen.getByTestId('signup-email')).toBeTruthy();
 
-      expect(getPrivacyCheckbox()).toBeTruthy();
-      expect(getSecurityCheckbox()).toBeTruthy();
+      expect(getLegalCheckbox()).toBeTruthy();
 
       expect(screen.getByTestId('login-button')).toBeTruthy();
       expect(screen.getByTestId('signup-button')).toBeTruthy();
@@ -167,27 +163,10 @@ describe('SignupScreen', () => {
       expect(mockedSignup).not.toHaveBeenCalled();
     });
 
-    it('requires the privacy policy to be accepted', async () => {
+    it('requires both legal policies to be accepted', async () => {
       render(<SignupScreen />);
 
       fillValidSignupForm();
-
-      setCheckbox(getPrivacyCheckbox(), false);
-      setCheckbox(getSecurityCheckbox(), true);
-
-      fireEvent.press(screen.getByTestId('signup-button'));
-
-      expect(await screen.findByTestId('signup-error')).toBeTruthy();
-      expect(mockedSignup).not.toHaveBeenCalled();
-    });
-
-    it('requires the security policy to be accepted', async () => {
-      render(<SignupScreen />);
-
-      fillValidSignupForm();
-
-      setCheckbox(getPrivacyCheckbox(), true);
-      setCheckbox(getSecurityCheckbox(), false);
 
       fireEvent.press(screen.getByTestId('signup-button'));
 
@@ -281,7 +260,7 @@ describe('SignupScreen', () => {
       expect(await screen.findByTestId('signup-success-message')).toBeTruthy();
     });
 
-    it('navigates to login after successful signup', async () => {
+    it('keeps the success message visible after successful signup', async () => {
       mockedSignup.mockResolvedValue({
         id: 1,
         username: 'testuser',
@@ -296,8 +275,9 @@ describe('SignupScreen', () => {
       fireEvent.press(screen.getByTestId('signup-button'));
 
       await waitFor(() => {
-        expect(mockedRouterPush).toHaveBeenCalledWith('/auth/login');
+        expect(screen.getByTestId('signup-success-message')).toBeTruthy();
       });
+      expect(mockedRouterPush).not.toHaveBeenCalled();
     });
   });
 
@@ -428,34 +408,18 @@ describe('SignupScreen', () => {
       });
     });
 
-    it('allows the privacy checkbox to be toggled', () => {
+    it('allows the legal checkbox to be toggled', () => {
       render(<SignupScreen />);
 
-      fireEvent.press(getPrivacyCheckbox());
+      fireEvent.press(getLegalCheckbox());
 
-      expect(getPrivacyCheckbox().props.accessibilityState).toMatchObject({
+      expect(getLegalCheckbox().props.accessibilityState).toMatchObject({
         checked: true,
       });
 
-      fireEvent.press(getPrivacyCheckbox());
+      fireEvent.press(getLegalCheckbox());
 
-      expect(getPrivacyCheckbox().props.accessibilityState).toMatchObject({
-        checked: false,
-      });
-    });
-
-    it('allows the security checkbox to be toggled', () => {
-      render(<SignupScreen />);
-
-      fireEvent.press(getSecurityCheckbox());
-
-      expect(getSecurityCheckbox().props.accessibilityState).toMatchObject({
-        checked: true,
-      });
-
-      fireEvent.press(getSecurityCheckbox());
-
-      expect(getSecurityCheckbox().props.accessibilityState).toMatchObject({
+      expect(getLegalCheckbox().props.accessibilityState).toMatchObject({
         checked: false,
       });
     });

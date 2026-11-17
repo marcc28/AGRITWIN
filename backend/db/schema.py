@@ -306,6 +306,10 @@ class Field(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    field_crops: Mapped[list["FieldCrop"]] = relationship(
+        back_populates="field",
+        cascade="all, delete-orphan",
+    )
 
     def to_dict(self) -> dict:
         return {
@@ -473,6 +477,7 @@ class FieldCrop(Base):
     )
 
     crop: Mapped["Crop"] = relationship(lazy="joined")
+    field: Mapped["Field"] = relationship(back_populates="field_crops")
 
     planted_at: Mapped[date | None] = mapped_column(Date)
     expected_harvest_at: Mapped[date | None] = mapped_column(Date)

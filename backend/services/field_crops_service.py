@@ -1,6 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from db.schema import Crop, Field, FieldCrop
 
@@ -34,6 +35,10 @@ class FieldCropService:
 
         query = (
             select(FieldCrop)
+            .options(
+                selectinload(FieldCrop.field),
+                selectinload(FieldCrop.crop),
+            )
             .join(Field, FieldCrop.field_id == Field.id)
             .where(Field.user_id == user_id)
         )
@@ -76,12 +81,17 @@ class FieldCropService:
     ) -> FieldCrop | None:
         result = await self._db.execute(
             select(FieldCrop)
+            .options(
+                selectinload(FieldCrop.field),
+                selectinload(FieldCrop.crop),
+            )
             .join(Field, FieldCrop.field_id == Field.id)
             .where(
                 FieldCrop.id == field_crop_id,
                 Field.user_id == user_id,
             )
         )
+
         return result.scalar_one_or_none()
 
     async def create_field_crop(

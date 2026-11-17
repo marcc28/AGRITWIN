@@ -1,5 +1,4 @@
 // app/recommendations/[fieldId].tsx
-
 import {
   ActivityIndicator,
   Image,
@@ -108,8 +107,9 @@ export default function RecommendationsScreen() {
   const colorScheme = useColorScheme();
   const styles = createRecommendationsStyles(colorScheme === 'dark');
 
-  const { fieldId } = useLocalSearchParams<{
+  const { fieldId, fieldName } = useLocalSearchParams<{
     fieldId: string;
+    fieldName: string;
   }>();
 
   const { status, data, retry } = useFieldRecommendations(fieldId ?? null);
@@ -151,7 +151,7 @@ export default function RecommendationsScreen() {
           <Text style={styles.subtitle}>{t('recommendations.subtitle')}</Text>
 
           <Text style={styles.fieldLabel}>
-            {t('recommendations.field')} #{fieldId}
+            {t('recommendations.field')} {fieldName}
           </Text>
         </View>
 

@@ -14,14 +14,18 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import Alert from '../../components/Alert';
+import LegalDocumentContent from '../../components/LegalDocumentContent';
 import {
   getPrivacyPolicy,
   getSecurityPolicy,
+  login,
   signup,
 } from '../../services/api';
 import { styles } from '../../styles/signup.styles';
 import { Gradients } from '@/constants/colors';
 import SocialLoginButtons from '@/components/SocialLoginButtons';
+import { setAuth } from '@/services/auth';
+import { routeAfterAuth } from '@/services/routeAfterAuth';
 
 export default function SignupScreen() {
   const { t } = useTranslation();
@@ -33,9 +37,7 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const [securityAccepted, setSecurityAccepted] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   // -----------------------------
   // Legal document modal
@@ -123,13 +125,8 @@ export default function SignupScreen() {
     }
 
     // Acceptació legal
-    if (!privacyAccepted) {
-      setErrorMessage(t('signup.errors.privacyRequired'));
-      return;
-    }
-
-    if (!securityAccepted) {
-      setErrorMessage(t('signup.errors.securityRequired'));
+    if (!legalAccepted) {
+      setErrorMessage(t('signup.errors.legalRequired'));
       return;
     }
 
@@ -141,12 +138,14 @@ export default function SignupScreen() {
         trimmedEmail,
         trimmedPassword,
         trimmedPasswordConf,
-        privacyAccepted,
-        securityAccepted,
+        legalAccepted,
+        legalAccepted,
       );
 
       setSuccessMessage(t('signup.success'));
-      router.push('/auth/login');
+      const data = await login(trimmedUsername, trimmedPassword);
+      await setAuth(trimmedUsername, data.access_token, data.refresh_token);
+      await routeAfterAuth();
     } catch (error) {
       const message =
         error instanceof Error
@@ -283,28 +282,28 @@ export default function SignupScreen() {
           editable={!loading}
         />
 
-        {/* Legal */}
+        {/* Legal i  Security */}
+        {/* Acceptació legal */}
         <View style={styles.legalContainer}>
-          {/* Privacy */}
           <View style={styles.checkboxRow}>
             <Pressable
-              testID="privacy-checkbox-press"
-              onPress={() => setPrivacyAccepted(!privacyAccepted)}
+              testID="legal-checkbox"
+              onPress={() => setLegalAccepted((current) => !current)}
               disabled={loading}
               accessibilityRole="checkbox"
-              accessibilityLabel="Accept privacy notice"
+              accessibilityLabel="Acceptar Privacy Notice i Security Policy"
               accessibilityState={{
-                checked: privacyAccepted,
+                checked: legalAccepted,
                 disabled: loading,
               }}
             >
               <View
                 style={[
                   styles.checkbox,
-                  privacyAccepted && styles.checkboxChecked,
+                  legalAccepted && styles.checkboxChecked,
                 ]}
               >
-                {privacyAccepted && <Text style={styles.checkmark}>✓</Text>}
+                {legalAccepted && <Text style={styles.checkmark}>✓</Text>}
               </View>
             </Pressable>
 
@@ -314,41 +313,16 @@ export default function SignupScreen() {
                 testID="privacy-checkbox-open"
                 style={styles.link}
                 onPress={() => openLegalDocument('privacy')}
+                accessibilityRole="link"
               >
                 Privacy Notice
-              </Text>
-              .
-            </Text>
-          </View>
-
-          {/* Security */}
-          <View style={styles.checkboxRow}>
-            <Pressable
-              testID="security-checkbox-press"
-              onPress={() => setSecurityAccepted(!securityAccepted)}
-              disabled={loading}
-              accessibilityRole="checkbox"
-              accessibilityLabel="Accept security policy"
-              accessibilityState={{
-                checked: securityAccepted,
-                disabled: loading,
-              }}
-            >
-              <View
-                style={[
-                  styles.checkbox,
-                  securityAccepted && styles.checkboxChecked,
-                ]}
-              >
-                {securityAccepted && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-            </Pressable>
-
-            <Text style={styles.legalText}>
-              He llegit i accepto la{' '}
+              </Text>{' '}
+              <Text>&</Text>{' '}
               <Text
+                testID="security-checkbox-open"
                 style={styles.link}
                 onPress={() => openLegalDocument('security')}
+                accessibilityRole="link"
               >
                 Security Policy
               </Text>
@@ -384,17 +358,19 @@ export default function SignupScreen() {
         />
 
         {/* Enllaç per iniciar sessió */}
+
         <View style={styles.signUpTextContainer}>
           <Text style={styles.signUpNormalText}>
-            {t('signup.alreadyHaveAccount')}{' '}
+            {t('signup.alreadyHaveAccount')}
           </Text>
 
           <Pressable
             testID="login-button"
             onPress={handleLogIn}
             disabled={loading}
+            accessibilityRole="button"
           >
-            <Text style={styles.signUpLinkText}>{t('signup.logIn')}</Text>
+            <Text style={styles.signUpLinkText}> {t('signup.logIn')}</Text>
           </Pressable>
         </View>
 
@@ -449,7 +425,7 @@ export default function SignupScreen() {
                   contentContainerStyle={styles.modalScrollContent}
                   showsVerticalScrollIndicator={true}
                 >
-                  <Text style={styles.legalDocumentText}>{legalContent}</Text>
+                  <LegalDocumentContent content={legalContent} />
                 </ScrollView>
               )}
 

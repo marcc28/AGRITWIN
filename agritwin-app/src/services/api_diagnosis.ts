@@ -1,4 +1,4 @@
-import { getAuth } from './auth';
+import { authenticatedFetch, getAuth } from './auth';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -58,7 +58,7 @@ export async function diagnosePlant(
     } as unknown as Blob);
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/diagnosis?lang=${encodeURIComponent(lang)}`,
     {
       method: 'POST',

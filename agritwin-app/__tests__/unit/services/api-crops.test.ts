@@ -9,6 +9,11 @@ import {
   type Crop,
 } from '@/services/api_crops';
 
+jest.mock('@/services/auth', () => ({
+  authenticatedFetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, init),
+}));
+
 const crop: Crop = {
   id: 3,
   name: 'Ordi',

@@ -173,6 +173,7 @@ const mockedGetCrops = getCrops as jest.MockedFunction<typeof getCrops>;
 const fieldCrop: FieldCrop = {
   id: 21,
   field_id: 3,
+  field_name: 'Hort',
   crop_id: 4,
   crop_name: 'Ceba',
   status: 'planted',

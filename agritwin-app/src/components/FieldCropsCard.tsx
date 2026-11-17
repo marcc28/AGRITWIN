@@ -85,6 +85,7 @@ export function FieldCropsCard({
                         pathname: '/recommendations/[fieldId]',
                         params: {
                           fieldId: String(crop.field_id),
+                          fieldName: crop.field_name,
                         },
                       } as unknown as Href)
                     }

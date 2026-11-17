@@ -1,3 +1,5 @@
+import { authenticatedFetch } from './auth';
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!API_URL) {
@@ -13,6 +15,7 @@ export type FieldCrop = {
   field_id: string | number;
   crop_id: string | number;
   crop_name: string | null;
+  field_name: string;
   planted_at?: string | null;
   expected_harvest_at?: string | null;
   status: string;
@@ -82,7 +85,7 @@ export async function getFieldCrops(
     params.append('status', filters.status);
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/field-crops?${params.toString()}`,
     {
       method: 'GET',
@@ -108,10 +111,13 @@ export async function getFieldCrops(
 // --------------------------------------------------
 
 export async function getFieldCropsCount(token: string): Promise<number> {
-  const response = await fetch(`${API_URL}/api/v1/crops/field-crops/count`, {
-    method: 'GET',
-    headers: getHeaders(token),
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/api/v1/crops/field-crops/count`,
+    {
+      method: 'GET',
+      headers: getHeaders(token),
+    },
+  );
 
   const data = await response.json();
 
@@ -134,7 +140,7 @@ export async function getFieldCropById(
   id: string | number,
   token: string,
 ): Promise<FieldCrop> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/field-crops/${encodeURIComponent(id)}`,
     {
       method: 'GET',
@@ -163,11 +169,14 @@ export async function createFieldCrop(
   fieldCrop: FieldCropCreate,
   token: string,
 ): Promise<FieldCrop> {
-  const response = await fetch(`${API_URL}/api/v1/crops/field-crops`, {
-    method: 'POST',
-    headers: getHeaders(token, true),
-    body: JSON.stringify(fieldCrop),
-  });
+  const response = await authenticatedFetch(
+    `${API_URL}/api/v1/crops/field-crops`,
+    {
+      method: 'POST',
+      headers: getHeaders(token, true),
+      body: JSON.stringify(fieldCrop),
+    },
+  );
 
   const data = await response.json().catch(() => null);
 
@@ -191,7 +200,7 @@ export async function updateFieldCrop(
   fieldCrop: FieldCropUpdate,
   token: string,
 ): Promise<FieldCrop> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/field-crops/${encodeURIComponent(id)}`,
     {
       method: 'PATCH',
@@ -221,7 +230,7 @@ export async function deleteFieldCrop(
   id: string | number,
   token: string,
 ): Promise<void> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/field-crops/${encodeURIComponent(id)}`,
     {
       method: 'DELETE',

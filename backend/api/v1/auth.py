@@ -94,7 +94,7 @@ def create_access_token(
 def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
 
-    expire = datetime.now(UTC) + timedelta(days=7)
+    expire = datetime.now(UTC) + timedelta(days=30)
 
     to_encode.update(
         {

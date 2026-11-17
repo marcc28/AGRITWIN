@@ -24,6 +24,8 @@ import {
 
 jest.mock('../../../src/services/auth', () => ({
   getAuth: jest.fn(),
+  authenticatedFetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, init),
 }));
 
 const mockedGetAuth = getAuth as jest.MockedFunction<typeof getAuth>;

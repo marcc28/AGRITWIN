@@ -66,7 +66,7 @@ describe('ProductScreen', () => {
     expect(getMarketProduct).toHaveBeenCalledWith('1');
     expect(screen.getByText('Solanum lycopersicum')).toBeTruthy();
     expect(screen.getAllByText('2,50 €')).toHaveLength(2);
-    expect(screen.getByText('10 disponibles')).toBeTruthy();
+    expect(screen.getByText('10 kg disponibles')).toBeTruthy();
   });
 
   it('mostra la imatge del producte', async () => {
@@ -101,9 +101,13 @@ describe('ProductScreen', () => {
 
     fireEvent.press(screen.getByLabelText('Augmentar quantitat'));
 
-    expect(screen.getByText('2')).toBeTruthy();
-    expect(screen.getByText('5,00 €')).toBeTruthy();
-    expect(screen.getByTestId('checkout-form')).toHaveTextContent('1-2-false');
+    expect(screen.getByLabelText('Quantitat en quilograms').props.value).toBe(
+      '1,25',
+    );
+    expect(screen.getByText('3,13 €')).toBeTruthy();
+    expect(screen.getByTestId('checkout-form')).toHaveTextContent(
+      '1-1.25-false',
+    );
   });
 
   it('decrementa la quantitat', async () => {
@@ -116,7 +120,9 @@ describe('ProductScreen', () => {
     fireEvent.press(screen.getByLabelText('Augmentar quantitat'));
     fireEvent.press(screen.getByLabelText('Reduir quantitat'));
 
-    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.getByLabelText('Quantitat en quilograms').props.value).toBe(
+      '1',
+    );
     expect(screen.getAllByText('2,50 €')).toHaveLength(2);
   });
 
@@ -127,9 +133,13 @@ describe('ProductScreen', () => {
       expect(screen.getByText('Tomata')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByLabelText('Reduir quantitat'));
+    for (let i = 0; i < 4; i += 1) {
+      fireEvent.press(screen.getByLabelText('Reduir quantitat'));
+    }
 
-    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.getByLabelText('Quantitat en quilograms').props.value).toBe(
+      '0,01',
+    );
   });
 
   it('no permet superar les unitats disponibles', async () => {
@@ -161,7 +171,9 @@ describe('ProductScreen', () => {
 
     expect(screen.getByText('Actualment no disponible')).toBeTruthy();
 
-    expect(screen.getByTestId('checkout-form')).toHaveTextContent('1-1-true');
+    expect(screen.getByTestId('checkout-form')).toHaveTextContent(
+      '1-0.01-true',
+    );
 
     expect(screen.getByLabelText('Augmentar quantitat')).toBeDisabled();
   });
@@ -222,7 +234,7 @@ describe('ProductScreen', () => {
       expect(screen.getByText('Producte no disponible')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByLabelText('Tornar a la pantalla anterior'));
+    fireEvent.press(screen.getByLabelText('Tornar al mercat'));
 
     expect(mockBack).toHaveBeenCalled();
   });
@@ -238,7 +250,7 @@ describe('ProductScreen', () => {
       ).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByLabelText('Tornar a la pantalla anterior'));
+    fireEvent.press(screen.getByLabelText('Tornar al mercat'));
     expect(mockBack).toHaveBeenCalled();
   });
 

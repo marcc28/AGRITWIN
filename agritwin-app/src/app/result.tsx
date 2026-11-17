@@ -3,8 +3,10 @@ import { View, Text, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../styles/result.styles';
+import { useTranslation } from 'react-i18next';
 
 export default function PaymentResultScreen() {
+  const { t } = useTranslation();
   const { session_id } = useLocalSearchParams<{ session_id?: string }>();
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -50,9 +52,12 @@ export default function PaymentResultScreen() {
           Gràcies per confiar en AgriTwin i donar suport als productors locals.
         </Text>
 
-        <Pressable style={styles.button} onPress={() => router.replace('/')}>
+        <Pressable
+          style={styles.button}
+          onPress={() => router.replace('/app/market')}
+        >
           <Ionicons name="home-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.buttonText}>Tornar a l'inici</Text>
+          <Text style={styles.buttonText}>{t('market.come_to_merkat')}</Text>
         </Pressable>
 
         <Text style={styles.footer}>

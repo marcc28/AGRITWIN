@@ -8,9 +8,15 @@ import {
   type FieldCrop,
 } from '@/services/api_fieldCrops';
 
+jest.mock('@/services/auth', () => ({
+  authenticatedFetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, init),
+}));
+
 const crop: FieldCrop = {
   id: 15,
   field_id: 7,
+  field_name: 'Camp 1',
   crop_id: 3,
   crop_name: 'Tomàquet',
   planted_at: '2026-04-01',

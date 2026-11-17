@@ -293,8 +293,8 @@ export default function FieldDetailScreen() {
                     return (
                       <View key={String(fieldCrop.id)} style={styles.cropRow}>
                         <Text style={styles.cropName} numberOfLines={1}>
-                          {fieldCrop.crop_name ??
-                            crop?.name ??
+                          {crop?.name ??
+                            fieldCrop.crop_name ??
                             `Cultiu #${fieldCrop.crop_id}`}
                         </Text>
                         <Text

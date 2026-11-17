@@ -25,10 +25,12 @@ jest.mock('react-i18next', () => ({
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useRouter: () => mockRouter,
-  useLocalSearchParams: () => ({ fieldId: '7' }),
+  useLocalSearchParams: () => ({
+    fieldId: '7',
+    fieldName: 'Camp de prova',
+  }),
   router: mockRouter,
 }));
-
 jest.mock('@/hooks/use-field-recommendations', () => ({
   useFieldRecommendations: jest.fn(),
 }));
@@ -73,7 +75,9 @@ describe('RecommendationsScreen', () => {
     render(<RecommendationsScreen />);
 
     expect(screen.getByText('recommendations.title')).toBeTruthy();
-    expect(screen.getByText('recommendations.field #7')).toBeTruthy();
+    expect(
+      screen.getByText('recommendations.field Camp de prova'),
+    ).toBeTruthy();
     expect(screen.getByText('recommendations.loading')).toBeTruthy();
     expect(mockedUseRecommendations).toHaveBeenCalledWith('7');
   });

@@ -243,7 +243,8 @@ describe('FieldDetailScreen', () => {
         id: 31,
         field_id: 3,
         crop_id: 9,
-        crop_name: null,
+        field_name: 'Hort',
+        crop_name: 'Patata',
         planted_at: '2026-04-01',
         expected_harvest_at: '2026-08-01',
         status: 'planned',
@@ -253,6 +254,7 @@ describe('FieldDetailScreen', () => {
         field_id: 3,
         crop_id: 10,
         crop_name: 'Ceba',
+        field_name: 'Hort',
         status: 'harvested',
       },
     ]);
