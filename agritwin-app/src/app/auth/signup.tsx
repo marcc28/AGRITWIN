@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import Alert from '../../components/Alert';
+import LegalDocumentContent from '../../components/LegalDocumentContent';
 import {
   getPrivacyPolicy,
   getSecurityPolicy,
@@ -316,7 +317,7 @@ export default function SignupScreen() {
               >
                 Privacy Notice
               </Text>{' '}
-              i la{' '}
+              <Text>&</Text>{' '}
               <Text
                 testID="security-checkbox-open"
                 style={styles.link}
@@ -424,7 +425,7 @@ export default function SignupScreen() {
                   contentContainerStyle={styles.modalScrollContent}
                   showsVerticalScrollIndicator={true}
                 >
-                  <Text style={styles.legalDocumentText}>{legalContent}</Text>
+                  <LegalDocumentContent content={legalContent} />
                 </ScrollView>
               )}
 

@@ -443,7 +443,8 @@
     "units": "units",
     "errors": {
       "loadFailed": "Could not load market data"
-    }
+    },
+    "come_to_merkat": "Back to the market"
   },
   "weather": {
     "subtitle": "Weather forecast",

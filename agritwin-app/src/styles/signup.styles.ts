@@ -188,6 +188,7 @@ export const styles = StyleSheet.create({
   link: {
     color: Colors.light.primary,
     fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 
   modalOverlay: {
@@ -246,12 +247,6 @@ export const styles = StyleSheet.create({
 
   modalScrollContent: {
     padding: 20,
-  },
-
-  legalDocumentText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: Colors.light.text,
   },
 
   modalLoading: {

@@ -1,3 +1,5 @@
+import { authenticatedFetch } from './auth';
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!API_URL) {
@@ -52,7 +54,7 @@ export async function getCrops(
   limit: number,
   token: string,
 ): Promise<Crop[]> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops?offset=${offset}&limit=${limit}`,
     {
       method: 'GET',
@@ -81,7 +83,7 @@ export async function getCropById(
   id: string | number,
   token: string,
 ): Promise<Crop> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/${encodeURIComponent(id)}`,
     {
       method: 'GET',
@@ -110,7 +112,7 @@ export async function searchCrops(
   name: string,
   token: string,
 ): Promise<Crop[]> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/search?name=${encodeURIComponent(name)}`,
     {
       method: 'GET',
@@ -134,7 +136,7 @@ export async function searchCrops(
 // --------------------------------------------------
 
 export async function getCropsCount(token: string): Promise<number> {
-  const response = await fetch(`${API_URL}/api/v1/crops/count`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/crops/count`, {
     method: 'GET',
     headers: getHeaders(token),
   });
@@ -160,7 +162,7 @@ export async function createCrop(
   crop: CropCreate,
   token: string,
 ): Promise<Crop> {
-  const response = await fetch(`${API_URL}/api/v1/crops`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/crops`, {
     method: 'POST',
     headers: getHeaders(token, true),
     body: JSON.stringify(crop),
@@ -186,7 +188,7 @@ export async function updateCrop(
   crop: CropUpdate,
   token: string,
 ): Promise<Crop> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/${encodeURIComponent(id)}`,
     {
       method: 'PATCH',
@@ -216,7 +218,7 @@ export async function deleteCrop(
   id: string | number,
   token: string,
 ): Promise<void> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/crops/${encodeURIComponent(id)}`,
     {
       method: 'DELETE',

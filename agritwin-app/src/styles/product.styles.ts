@@ -1,437 +1,494 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../constants/theme';
 
-const C = Colors.light;
+type ThemeColors = {
+  primary: string;
+  primaryDark: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  surfaceSecondary: string;
+  text: string;
+  textSecondary: string;
+  textMuted: string;
+  border: string;
+  dangerBackground: string;
+  dangerText: string;
+  successBackground: string;
+  successText: string;
+  shadow: string;
+};
 
-export const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: C.background,
-  },
+export function getProductPalette(colors: ThemeColors) {
+  return {
+    background: colors.background,
+    surface: colors.surface,
+    surfaceSecondary: colors.surfaceSecondary,
+    primary: colors.primary,
+    primaryDark: colors.primaryDark,
+    text: colors.text,
+    muted: colors.textSecondary,
+    subtle: colors.textMuted,
+    border: colors.border,
+    successBackground: colors.successBackground,
+    successText: colors.successText,
+    dangerBackground: colors.dangerBackground,
+    dangerText: colors.dangerText,
+    shadow: colors.shadow,
+  };
+}
 
-  scrollContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 40,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    marginTop: 16,
-    marginBottom: 12,
-    borderRadius: 14,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  backButtonText: {
-    color: C.primaryDark,
-    fontSize: 15,
-    fontWeight: '700',
-  },
+export function getProductStyles(
+  colors: ThemeColors,
+  width = 390,
+  height = 844,
+) {
+  const C = getProductPalette(colors);
 
-  card: {
-    width: '100%',
-    maxWidth: 440,
-    backgroundColor: C.primaryDark,
-    borderRadius: 26,
-    padding: 24,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: C.primary,
+  const compact = width < 360;
+  const tablet = width >= 600;
+  const desktop = width >= 1024;
+  const wideLayout = width >= 760;
+  const landscape = width > height && height < 600;
 
-    shadowColor: C.shadow,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 18,
-    elevation: 9,
-  },
+  const horizontalPadding = compact ? 14 : tablet ? 28 : 20;
+  const cardPadding = compact ? 17 : tablet ? 28 : 22;
 
-  decoration: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  const maxWidth = desktop ? 1080 : tablet ? 850 : 500;
 
-  decorCircleLarge: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: C.primary,
-    opacity: 0.22,
-    top: -65,
-    right: -45,
-  },
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: C.background,
+    },
 
-  decorCircleSmall: {
-    position: 'absolute',
-    width: 65,
-    height: 65,
-    borderRadius: 33,
-    backgroundColor: C.surfaceSecondary,
-    opacity: 0.13,
-    bottom: 190,
-    left: -35,
-  },
+    scrollContent: {
+      flexGrow: 1,
+      alignItems: 'center',
+      paddingHorizontal: horizontalPadding,
+      paddingTop: landscape ? 12 : tablet ? 28 : 20,
+      paddingBottom: 40,
+    },
 
-  decorCircleTiny: {
-    position: 'absolute',
-    width: 13,
-    height: 13,
-    borderRadius: 7,
-    backgroundColor: C.secondary,
-    opacity: 0.9,
-    top: 85,
-    right: 35,
-  },
+    card: {
+      width: '100%',
+      maxWidth,
+      backgroundColor: C.surface,
+      borderRadius: compact ? 18 : 24,
+      padding: cardPadding,
+      borderWidth: 1,
+      borderColor: C.border,
+      overflow: 'hidden',
 
-  topLine: {
-    height: 3,
-    width: '45%',
-    alignSelf: 'center',
-    borderRadius: 2,
-    backgroundColor: C.surfaceSecondary,
-    marginBottom: 25,
-  },
+      shadowColor: C.shadow,
+      shadowOffset: { width: 0, height: 7 },
+      shadowOpacity: 0.1,
+      shadowRadius: 16,
+      elevation: 4,
+    },
 
-  header: {
-    alignItems: 'center',
-    marginBottom: 28,
-  },
+    decoration: {
+      ...StyleSheet.absoluteFillObject,
+    },
 
-  eyebrow: {
-    color: C.surfaceSecondary,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 2,
-    marginBottom: 12,
-  },
+    decorCircleLarge: {
+      position: 'absolute',
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: C.primary,
+      opacity: 0.08,
+      top: -75,
+      right: -55,
+    },
 
-  title: {
-    color: C.surface,
-    fontSize: 29,
-    lineHeight: 36,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
+    decorCircleSmall: {
+      position: 'absolute',
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: C.successBackground,
+      opacity: 0.5,
+      bottom: 200,
+      left: -45,
+    },
 
-  description: {
-    color: '#D4DED4',
-    fontSize: 14,
-    lineHeight: 21,
-    textAlign: 'center',
-    marginTop: 9,
-  },
+    decorCircleTiny: {
+      position: 'absolute',
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: C.primary,
+      opacity: 0.7,
+      top: 65,
+      right: 30,
+    },
 
-  priceSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 24,
-  },
+    topLine: {
+      height: 4,
+      width: 55,
+      alignSelf: 'center',
+      borderRadius: 4,
+      backgroundColor: C.primary,
+      marginBottom: compact ? 18 : 24,
+    },
 
-  priceInfo: {
-    flex: 1,
-  },
+    hero: {
+      width: '100%',
+      flexDirection: wideLayout ? 'row' : 'column',
+      alignItems: 'center',
+      gap: wideLayout ? 28 : 0,
+      marginBottom: compact ? 20 : 26,
+    },
 
-  priceLabel: {
-    color: '#D4DED4',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
+    productImage: {
+      width: wideLayout ? '46%' : '100%',
+      aspectRatio: wideLayout ? 1.25 : tablet ? 2 : 1.6,
+      maxHeight: wideLayout ? 420 : tablet ? 320 : 230,
+      borderRadius: compact ? 13 : 18,
+      marginBottom: wideLayout ? 0 : compact ? 17 : 22,
+      backgroundColor: C.surfaceSecondary,
+    },
 
-  price: {
-    color: '#E7E8D8',
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-  },
+    header: {
+      flex: wideLayout ? 1 : undefined,
+      alignItems: wideLayout ? 'flex-start' : 'center',
+      justifyContent: 'center',
+      marginBottom: 0,
+    },
 
-  priceUnit: {
-    color: '#D4DED4',
-    fontSize: 13,
-    marginTop: 2,
-  },
+    eyebrow: {
+      color: C.primary,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 2,
+      marginBottom: 10,
+    },
 
-  stockBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    backgroundColor: 'rgba(202,218,191,0.15)',
-    borderColor: 'rgba(202,218,191,0.35)',
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    borderRadius: 30,
-    maxWidth: '52%',
-  },
+    title: {
+      color: C.text,
+      fontSize: compact ? 23 : tablet ? 32 : 28,
+      lineHeight: compact ? 30 : tablet ? 39 : 35,
+      fontWeight: '900',
+      textAlign: wideLayout ? 'left' : 'center',
+    },
 
-  stockBadgeEmpty: {
-    backgroundColor: 'rgba(217,164,164,0.15)',
-    borderColor: C.dangerBorder,
-  },
+    description: {
+      color: C.muted,
+      fontSize: compact ? 12 : 14,
+      lineHeight: 21,
+      textAlign: wideLayout ? 'left' : 'center',
+      marginTop: 8,
+    },
 
-  stockDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#B5CFB7',
-  },
+    priceSection: {
+      flexDirection: compact ? 'column' : 'row',
+      alignItems: compact ? 'flex-start' : 'center',
+      justifyContent: 'space-between',
+      gap: 14,
+      marginBottom: 22,
+    },
 
-  stockDotEmpty: {
-    backgroundColor: '#E6A5A5',
-  },
+    priceInfo: {
+      flex: 1,
+    },
 
-  stockText: {
-    color: C.surface,
-    fontSize: 11,
-    fontWeight: '700',
-    flexShrink: 1,
-  },
+    priceLabel: {
+      color: C.muted,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1,
+      marginBottom: 5,
+    },
 
-  separator: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    marginBottom: 24,
-  },
+    price: {
+      color: C.primaryDark,
+      fontSize: compact ? 32 : tablet ? 40 : 36,
+      fontWeight: '900',
+      letterSpacing: -1,
+    },
 
-  sectionTitle: {
-    color: C.surface,
-    fontSize: 17,
-    fontWeight: '800',
-    marginBottom: 14,
-  },
+    priceUnit: {
+      color: C.muted,
+      fontSize: 13,
+      marginTop: 2,
+    },
 
-  infoPanel: {
-    backgroundColor: 'rgba(202,218,191,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(202,218,191,0.22)',
-    borderRadius: 17,
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    marginBottom: 27,
-  },
+    stockBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+      backgroundColor: C.successBackground,
+      borderColor: C.successText,
+      borderWidth: 1,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      borderRadius: 30,
+      maxWidth: '100%',
+    },
 
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 13,
-    gap: 12,
-  },
+    stockBadgeEmpty: {
+      backgroundColor: C.dangerBackground,
+      borderColor: C.dangerText,
+    },
 
-  infoIcon: {
-    width: 37,
-    height: 37,
-    borderRadius: 12,
-    backgroundColor: 'rgba(202,218,191,0.16)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    stockDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: C.successText,
+    },
 
-  infoIconText: {
-    color: '#D6E4D3',
-    fontSize: 19,
-    fontWeight: '800',
-  },
+    stockDotEmpty: {
+      backgroundColor: C.dangerText,
+    },
 
-  infoContent: {
-    flex: 1,
-  },
+    stockText: {
+      color: C.successText,
+      fontSize: 12,
+      fontWeight: '700',
+      flexShrink: 1,
+    },
 
-  infoLabel: {
-    color: '#C7D2C8',
-    fontSize: 11,
-    marginBottom: 4,
-  },
+    stockTextEmpty: {
+      color: C.dangerText,
+    },
 
-  infoValue: {
-    color: C.surface,
-    fontSize: 13,
-    fontWeight: '700',
-  },
+    separator: {
+      height: 1,
+      backgroundColor: C.border,
+      marginBottom: 22,
+    },
 
-  infoDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-  },
+    infoPanel: {
+      backgroundColor: C.surfaceSecondary,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 16,
+      paddingHorizontal: 14,
+      paddingVertical: 5,
+      marginBottom: 25,
+    },
 
-  quantityPanel: {
-    backgroundColor: C.surface,
-    borderRadius: 18,
-    padding: 17,
-    marginBottom: 18,
-  },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      gap: 12,
+    },
 
-  quantityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 17,
-  },
+    infoIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      backgroundColor: C.successBackground,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  quantityTitle: {
-    color: C.text,
-    fontSize: 15,
-    fontWeight: '800',
-  },
+    infoIconText: {
+      color: C.successText,
+      fontSize: 19,
+      fontWeight: '800',
+    },
 
-  quantityHint: {
-    color: C.textMuted,
-    fontSize: 12,
-    marginTop: 4,
-  },
+    infoContent: {
+      flex: 1,
+      minWidth: 0,
+    },
 
-  quantityUnit: {
-    color: C.primaryDark,
-    backgroundColor: C.surfaceSecondary,
-    overflow: 'hidden',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    fontSize: 12,
-    fontWeight: '800',
-  },
+    infoLabel: {
+      color: C.muted,
+      fontSize: 11,
+      marginBottom: 4,
+    },
 
-  quantityRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 25,
-  },
+    infoValue: {
+      color: C.text,
+      fontSize: 13,
+      fontWeight: '700',
+    },
 
-  quantityButton: {
-    width: 43,
-    height: 43,
-    borderRadius: 13,
-    backgroundColor: C.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    infoValueEmpty: {
+      color: C.dangerText,
+    },
 
-  disabledButton: {
-    opacity: 0.35,
-  },
+    sectionTitle: {
+      color: C.text,
+      fontSize: compact ? 16 : 18,
+      fontWeight: '800',
+      marginBottom: 13,
+    },
 
-  quantityButtonText: {
-    color: C.surface,
-    fontSize: 25,
-    fontWeight: '700',
-    lineHeight: 29,
-  },
+    quantityPanel: {
+      backgroundColor: C.surfaceSecondary,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 17,
+      padding: compact ? 13 : 17,
+      marginBottom: 17,
+    },
 
-  quantityValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 5,
-    minWidth: 55,
-    justifyContent: 'center',
-  },
+    quantityHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 17,
+    },
 
-  quantityValue: {
-    color: C.text,
-    fontSize: 28,
-    fontWeight: '900',
-  },
+    quantityTitle: {
+      color: C.text,
+      fontSize: 15,
+      fontWeight: '800',
+    },
 
-  quantityValueUnit: {
-    color: C.textSecondary,
-    fontSize: 13,
-  },
+    quantityHint: {
+      color: C.muted,
+      fontSize: 12,
+      marginTop: 4,
+    },
 
-  totalPanel: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(202,218,191,0.13)',
-    borderWidth: 1,
-    borderColor: 'rgba(202,218,191,0.25)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 17,
-  },
+    quantityUnit: {
+      color: C.primaryDark,
+      backgroundColor: C.successBackground,
+      overflow: 'hidden',
+      borderRadius: 8,
+      paddingHorizontal: 11,
+      paddingVertical: 6,
+      fontSize: 12,
+      fontWeight: '800',
+    },
 
-  totalLabel: {
-    color: '#D4DED4',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
+    quantityRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: compact ? 12 : 18,
+    },
 
-  totalHint: {
-    color: '#C7D2C8',
-    fontSize: 11,
-    marginTop: 7,
-  },
+    quantityButton: {
+      width: compact ? 40 : 46,
+      height: compact ? 40 : 46,
+      borderRadius: 13,
+      backgroundColor: C.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  totalPrice: {
-    color: '#E7E8D8',
-    fontSize: 25,
-    fontWeight: '900',
-    flexShrink: 0,
-  },
+    disabledButton: {
+      opacity: 0.3,
+    },
 
-  buyButton: {
-    backgroundColor: C.surfaceSecondary,
-    borderRadius: 15,
-    paddingVertical: 17,
-    paddingHorizontal: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    quantityButtonText: {
+      color: '#FFFFFF',
+      fontSize: 25,
+      fontWeight: '700',
+      lineHeight: 29,
+    },
 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
+    quantityValueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      width: compact ? 118 : 145,
+      height: compact ? 44 : 50,
+      justifyContent: 'center',
+      backgroundColor: C.surface,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 13,
+      paddingHorizontal: 10,
+    },
 
-  buyButtonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
-  },
+    quantityValue: {
+      flex: 1,
+      color: C.text,
+      fontSize: compact ? 20 : 24,
+      fontWeight: '900',
+      fontVariant: ['tabular-nums'],
+      textAlign: 'center',
+      paddingVertical: 0,
+      minWidth: 0,
+    },
 
-  buyButtonDisabled: {
-    backgroundColor: C.textMuted,
-    elevation: 0,
-  },
+    quantityValueUnit: {
+      color: C.muted,
+      fontSize: 13,
+      flexShrink: 0,
+    },
 
-  buyButtonText: {
-    color: C.primaryDark,
-    fontSize: 16,
-    fontWeight: '900',
-  },
+    totalPanel: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: C.successBackground,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 16,
+      padding: compact ? 13 : 16,
+      marginBottom: 17,
+    },
 
-  footerText: {
-    color: '#BFCDBF',
-    textAlign: 'center',
-    fontSize: 10,
-    letterSpacing: 0.7,
-    marginTop: 20,
-  },
-  backArrow: {
-    fontSize: 28,
-    lineHeight: 30,
-    color: Colors.light.primaryDark,
-    fontWeight: '600',
-  },
-  backButtonPressed: {
-    opacity: 0.65,
-    transform: [{ scale: 0.97 }],
-  },
-  productImage: {
-    width: '100%',
-    aspectRatio: 1.6,
-    borderRadius: 18,
-    marginBottom: 22,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-});
+    totalLabel: {
+      color: C.successText,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+    },
+
+    totalHint: {
+      color: C.text,
+      fontSize: 11,
+      marginTop: 7,
+    },
+
+    totalPrice: {
+      color: C.primaryDark,
+      fontSize: compact ? 21 : tablet ? 29 : 25,
+      fontWeight: '900',
+      flexShrink: 0,
+      fontVariant: ['tabular-nums'],
+    },
+
+    footerText: {
+      color: C.muted,
+      textAlign: 'center',
+      fontSize: 10,
+      letterSpacing: 0.5,
+      marginTop: 20,
+    },
+
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 18,
+      marginTop: 16,
+      borderRadius: 14,
+      backgroundColor: C.surfaceSecondary,
+      borderWidth: 1,
+      borderColor: C.border,
+    },
+
+    backButtonText: {
+      color: C.primaryDark,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+
+    backArrow: {
+      fontSize: 25,
+      lineHeight: 28,
+      color: C.primaryDark,
+      fontWeight: '600',
+    },
+
+    backButtonPressed: {
+      opacity: 0.7,
+      transform: [{ scale: 0.98 }],
+    },
+  });
+}

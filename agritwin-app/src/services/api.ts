@@ -1,4 +1,4 @@
-import { getAuth } from './auth';
+import { authenticatedFetch, getAuth } from './auth';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -137,7 +137,7 @@ export async function getDashboard(fieldId?: number): Promise<Dashboard> {
       ? `${API_URL}/api/v1/dashboard`
       : `${API_URL}/api/v1/dashboard?field_id=${fieldId}`;
 
-  const response = await fetch(url, {
+  const response = await authenticatedFetch(url, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -207,7 +207,7 @@ export async function getMe(): Promise<Me> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me`, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -229,7 +229,7 @@ export async function updateMe(payload: MeUpdate): Promise<Me> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -255,7 +255,7 @@ export async function updateMyEmail(email: string): Promise<Me> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me/email`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me/email`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -284,7 +284,7 @@ export async function updateMyPassword(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me/password`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me/password`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -361,7 +361,7 @@ export async function getField(id: number): Promise<FieldDetail> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${id}`, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -393,7 +393,7 @@ export async function getFields(): Promise<Field[]> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields`, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -435,7 +435,7 @@ export async function updateDevice(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
     {
       method: 'PUT',
@@ -468,7 +468,7 @@ export async function deleteDevice(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
     {
       method: 'DELETE',
@@ -494,7 +494,7 @@ export async function createDevice(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields/${fieldId}/devices`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${fieldId}/devices`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -525,7 +525,7 @@ export async function createField(payload: FieldPayload): Promise<Field> {
       !!payload.excluded_zones?.length,
     );
 
-  const response = await fetch(`${API_URL}/api/v1/fields`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -550,7 +550,7 @@ export async function geocodeLocation(query: string): Promise<GeoLocation> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/geocode?q=${encodeURIComponent(query)}`,
     {
       headers: {
@@ -584,7 +584,7 @@ export async function updateField(
       !!payload.excluded_zones?.length,
     );
 
-  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -703,7 +703,7 @@ export async function getFieldWeather(
     throw new WeatherRequestError('Not authenticated', 401);
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/weather/fields/${fieldId}?days=${days}&lang=${encodeURIComponent(lang)}`,
     {
       method: 'GET',
@@ -730,7 +730,7 @@ export async function reverseGeocodeLocation(
 ): Promise<GeoLocation> {
   const auth = await getAuth();
   if (!auth?.token) throw new Error('Not authenticated');
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/reverse-geocode?lat=${lat}&lon=${lon}`,
     { headers: { Authorization: `Bearer ${auth.token}` } },
   );

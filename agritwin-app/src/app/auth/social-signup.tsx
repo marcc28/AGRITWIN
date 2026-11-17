@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import Alert from '../../components/Alert';
+import LegalDocumentContent from '../../components/LegalDocumentContent';
 import { getPrivacyPolicy, getSecurityPolicy } from '../../services/api';
 import { completeSocialSignup } from '../../services/api_oauth';
 import { setAuth } from '../../services/auth';
@@ -371,7 +372,7 @@ export default function SocialSignupScreen() {
                 contentContainerStyle={styles.modalScrollContent}
                 showsVerticalScrollIndicator={true}
               >
-                <Text style={styles.legalDocumentText}>{legalContent}</Text>
+                <LegalDocumentContent content={legalContent} />
               </ScrollView>
             )}
 

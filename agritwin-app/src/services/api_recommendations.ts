@@ -1,3 +1,5 @@
+import { authenticatedFetch } from './auth';
+
 // services/api_recommendations.ts
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -34,7 +36,7 @@ export async function getFieldRecommendations(
   fieldId: string | number,
   token: string,
 ): Promise<Recommendation[]> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/fields/${encodeURIComponent(fieldId)}/recommendations`,
     {
       method: 'GET',

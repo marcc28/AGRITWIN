@@ -443,7 +443,8 @@
     "units": "unidades",
     "errors": {
       "loadFailed": "No se han podido cargar los datos del mercado"
-    }
+    },
+    "come_to_merkat": "Volver al mercado"
   },
   "weather": {
     "subtitle": "Previsión del tiempo",

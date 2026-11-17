@@ -1,3 +1,4 @@
+
 import os
 from decimal import ROUND_HALF_UP, Decimal, DecimalException
 from uuid import UUID
@@ -12,8 +13,6 @@ from services.content_market_service import ConteMercatService
 class PaymentService:
     def __init__(self, conte_mercat_service: ConteMercatService):
         self._conte_mercat_service = conte_mercat_service
-
-        # Comprova la clau quan s'inicialitza el servei.
         stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
     def _require_stripe_key(self) -> None:
@@ -24,54 +23,110 @@ class PaymentService:
             )
 
     async def _get_product(self, product_id: UUID):
-        product = await self._conte_mercat_service.get_conte_mercat_by_id(product_id)
+        product = await self._conte_mercat_service.get_conte_mercat_by_id(
+            product_id
+        )
+
         if product is None:
             raise HTTPException(
                 status_code=404,
                 detail="No s'ha trobat el producte del mercat",
             )
+
         return product
 
     @staticmethod
-    def _get_unit_amount(price: object, low_price_detail: str) -> int:
+    def _to_decimal(value: object, error_message: str) -> Decimal:
         try:
-            unit_price = Decimal(str(price))
+            result = Decimal(str(value))
         except (DecimalException, TypeError, ValueError) as exc:
             raise HTTPException(
                 status_code=400,
-                detail="El preu del producte no és vàlid",
+                detail=error_message,
             ) from exc
 
-        if not unit_price.is_finite() or unit_price <= 0:
+        if not result.is_finite():
+            raise HTTPException(
+                status_code=400,
+                detail=error_message,
+            )
+
+        return result
+
+    @classmethod
+    def _get_total_amount(
+        cls,
+        unit_price: object,
+        quantity: Decimal,
+    ) -> int:
+        """
+        Calcula l'import total en cèntims.
+
+        Exemple:
+            2.50 €/kg * 1.25 kg = 3.125 €
+            Import Stripe = 313 cèntims
+        """
+        price = cls._to_decimal(
+            unit_price,
+            "El preu del producte no és vàlid",
+        )
+
+        if price <= 0:
             raise HTTPException(
                 status_code=400,
                 detail="El preu del producte no és vàlid",
             )
 
-        unit_amount = int(
-            (unit_price * 100).quantize(
-                Decimal("1"),
-                rounding=ROUND_HALF_UP,
+        if quantity <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="La quantitat ha de ser superior a zero",
             )
+
+        total = (price * quantity * Decimal("100")).quantize(
+            Decimal("1"),
+            rounding=ROUND_HALF_UP,
         )
 
-        if unit_amount < 1:
-            raise HTTPException(status_code=400, detail=low_price_detail)
+        total_amount = int(total)
 
-        return unit_amount
+        if total_amount < 1:
+            raise HTTPException(
+                status_code=400,
+                detail="L'import total és massa baix per processar el pagament",
+            )
+
+        return total_amount
+
+    @staticmethod
+    def _format_quantity(quantity: Decimal) -> str:
+        return format(quantity.normalize(), "f")
+
+    @staticmethod
+    def _get_product_name(product) -> str:
+        return str(product.product)
+
+    def _get_payment_metadata(
+        self,
+        body: PaymentRequest,
+    ) -> dict:
+        return {
+            "product_id": str(body.productId),
+            "quantity": self._format_quantity(body.quantity),
+            "unit": "kg",
+        }
 
     async def create_payment_sheet(self, body: PaymentRequest) -> dict:
         self._require_stripe_key()
+
         product = await self._get_product(body.productId)
-        unit_amount = self._get_unit_amount(
+
+        total_amount = self._get_total_amount(
             product.price,
-            "El preu és massa baix per processar el pagament",
+            body.quantity,
         )
 
         try:
-            # Stripe rep l'import en cèntims.
-            total_amount = unit_amount * body.quantity
-
             customer = stripe.Customer.create()
 
             ephemeral_key = stripe.EphemeralKey.create(
@@ -84,10 +139,7 @@ class PaymentService:
                 currency="eur",
                 customer=customer.id,
                 automatic_payment_methods={"enabled": True},
-                metadata={
-                    "product_id": str(body.productId),
-                    "quantity": str(body.quantity),
-                },
+                metadata=self._get_payment_metadata(body),
             )
 
             return {
@@ -106,10 +158,12 @@ class PaymentService:
 
     async def create_checkout_session(self, body: PaymentRequest) -> dict:
         self._require_stripe_key()
+
         product = await self._get_product(body.productId)
-        unit_amount = self._get_unit_amount(
+
+        total_amount = self._get_total_amount(
             product.price,
-            "El preu del producte no és vàlid",
+            body.quantity,
         )
 
         try:
@@ -122,26 +176,31 @@ class PaymentService:
                     detail="Falten les URLs de retorn de Stripe",
                 )
 
+            quantity_text = self._format_quantity(body.quantity)
+            product_name = self._get_product_name(product)
+
             session = stripe.checkout.Session.create(
                 mode="payment",
                 line_items=[
                     {
-                        "quantity": body.quantity,
+                        # Stripe Checkout no admet quantitats decimals.
+                        # Enviem el total com una sola unitat.
+                        "quantity": 1,
                         "price_data": {
                             "currency": "eur",
-                            "unit_amount": unit_amount,
+                            "unit_amount": total_amount,
                             "product_data": {
-                                "name": str(product.product),
+                                "name": product_name,
+                                "description": (
+                                    f"Quantitat: {quantity_text} kg"
+                                ),
                             },
                         },
                     }
                 ],
                 success_url=success_url,
                 cancel_url=cancel_url,
-                metadata={
-                    "product_id": str(body.productId),
-                    "quantity": str(body.quantity),
-                },
+                metadata=self._get_payment_metadata(body),
             )
 
             if not session.url:
@@ -150,7 +209,11 @@ class PaymentService:
                     detail="Stripe no ha retornat cap URL",
                 )
 
-            return {"url": session.url}
+            return {
+                "url": session.url,
+                "amount": total_amount,
+                "currency": "eur",
+            }
 
         except stripe.StripeError as exc:
             raise HTTPException(

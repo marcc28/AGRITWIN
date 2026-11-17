@@ -445,7 +445,8 @@
     "units": "unitats",
     "errors": {
       "loadFailed": "No s'han pogut carregar les dades del mercat"
-    }
+    },
+    "come_to_merkat": "Tornar al mercat"
   },
   "weather": {
     "subtitle": "Previsió del temps",

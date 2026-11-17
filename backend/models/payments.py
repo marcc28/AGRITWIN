@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -5,4 +6,7 @@ from pydantic import BaseModel, Field
 
 class PaymentRequest(BaseModel):
     productId: UUID
-    quantity: int = Field(ge=1, le=20)
+    quantity: Decimal = Field(
+        ge=Decimal("0"),
+        decimal_places=2,
+    )

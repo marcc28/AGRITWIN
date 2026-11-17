@@ -205,8 +205,8 @@ function ProductCard({
   const stockLabel = outOfStock
     ? 'Esgotat'
     : lowStock
-      ? `Només en queden ${units}`
-      : `${units} disponibles`;
+      ? `Només en queden ${units} kg`
+      : `${units} kg disponibles`;
 
   return (
     <ProductPreview
