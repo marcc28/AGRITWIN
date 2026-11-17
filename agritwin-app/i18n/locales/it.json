@@ -676,6 +676,7 @@
     "deleteTitle": "Eliminare {{name}}?",
     "deleteMessage": "Si perderanno le sue colture e i suoi Arduino. Questa azione non si può annullare.",
     "deleteConfirm": "Elimina",
+    "deleteError": "Impossibile eliminare l'orto",
     "legendOk": "Tutti funzionano",
     "legendPartial": "Qualcuno non funziona",
     "legendDown": "Nessuno funziona",

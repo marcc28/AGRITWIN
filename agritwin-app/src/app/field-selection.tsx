@@ -9,9 +9,15 @@ import { FieldPhoto } from '@/components/FieldPhoto';
 import GardenPickerOverlay from '@/components/GardenPickerOverlay';
 import { gardenPhotoAt } from '@/constants/gardenPhotos';
 import { Colors } from '@/constants/theme';
-import { getFields, isAuthError, type Field } from '@/services/api';
+import {
+  deleteField,
+  getFields,
+  isAuthError,
+  type Field,
+} from '@/services/api';
 import { clearAuth } from '@/services/auth';
 import {
+  clearCurrentField,
   getCurrentField,
   setCurrentField,
   subscribeCurrentField,
@@ -21,6 +27,7 @@ import {
   deviceHealthFromCounts,
   type DeviceHealth,
 } from '@/services/deviceHealth';
+import { loadGardenPickerFields } from '@/services/gardenPicker';
 import { styles } from '@/styles/field-selection.styles';
 
 const LEGEND: { health: DeviceHealth; labelKey: string }[] = [
@@ -37,6 +44,7 @@ export default function FieldSelectionScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [managing, setManaging] = useState(false);
   const [toDelete, setToDelete] = useState<Field | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -95,6 +103,39 @@ export default function FieldSelectionScreen() {
       pathname: '/edit-field',
       params: { id: String(field.id), from: 'field-selection' },
     });
+  }
+
+  async function confirmDelete(field: Field) {
+    setDeleting(true);
+    try {
+      await deleteField(field.id);
+      const remaining = fields.filter((item) => item.id !== field.id);
+      setFields(remaining);
+      setToDelete(null);
+      setErrorMessage('');
+      if (remaining.length === 0) {
+        await clearCurrentField();
+      } else if (field.id === currentId) {
+        await setCurrentField({
+          id: remaining[0].id,
+          name: remaining[0].name,
+        });
+      }
+      await loadGardenPickerFields(true);
+      if (remaining.length === 0) {
+        router.replace('/create-field');
+      }
+    } catch (error) {
+      if (isAuthError(error)) {
+        await clearAuth();
+        router.replace('/auth/login');
+        return;
+      }
+      setToDelete(null);
+      setErrorMessage(t('fieldSelection.deleteError'));
+    } finally {
+      setDeleting(false);
+    }
   }
 
   function addField() {
@@ -301,6 +342,7 @@ export default function FieldSelectionScreen() {
               <Pressable
                 style={[styles.modalButton, styles.modalCancel]}
                 onPress={() => setToDelete(null)}
+                disabled={deleting}
               >
                 <Text style={styles.modalCancelText}>
                   {t('settings.cancel')}
@@ -309,7 +351,8 @@ export default function FieldSelectionScreen() {
               <Pressable
                 testID="field-delete-confirm"
                 style={[styles.modalButton, styles.modalDelete]}
-                onPress={() => setToDelete(null)}
+                onPress={() => toDelete && void confirmDelete(toDelete)}
+                disabled={deleting}
               >
                 <Text style={styles.modalDeleteText}>
                   {t('fieldSelection.deleteConfirm')}
