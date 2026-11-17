@@ -136,7 +136,15 @@ function parseInlineToken(
 }
 
 function tokenizeInline(text: string): InlinePiece[] {
-  const next = buildNextCharacterIndexes(text, ["*", '_', '`', '[', ']', '(', ')']);
+  const next = buildNextCharacterIndexes(text, [
+    '*',
+    '_',
+    '`',
+    '[',
+    ']',
+    '(',
+    ')',
+  ]);
   const nextDoubleAsterisk = buildNextDoubleDelimiterIndexes(text, '*');
   const nextDoubleUnderscore = buildNextDoubleDelimiterIndexes(text, '_');
   const pieces: InlinePiece[] = [];
@@ -241,7 +249,11 @@ function parseListItem(line: string) {
   ) {
     markerEnd = 1;
   } else {
-    while (markerEnd < trimmed.length && trimmed[markerEnd] >= '0' && trimmed[markerEnd] <= '9') {
+    while (
+      markerEnd < trimmed.length &&
+      trimmed[markerEnd] >= '0' &&
+      trimmed[markerEnd] <= '9'
+    ) {
       markerEnd += 1;
     }
     const listTerminator = trimmed[markerEnd];

@@ -7,7 +7,9 @@ describe('LegalDocumentContent', () => {
   it('renders paragraphs, headings, quotes, and skips separators', () => {
     render(
       <LegalDocumentContent
-        content={'# Title *#*\r\n\r\n---\r\nA paragraph.\r\n> A quote\r\n### Subheading *#*'}
+        content={
+          '# Title *#*\r\n\r\n---\r\nA paragraph.\r\n> A quote\r\n### Subheading *#*'
+        }
       />,
     );
 
@@ -37,7 +39,9 @@ describe('LegalDocumentContent', () => {
   it('renders bold, italic, code, and link spans inline', () => {
     render(
       <LegalDocumentContent
-        content={'Plain **bold** __strong__ *italic* _emphasis_ `code` [link](https://example.test/path)'}
+        content={
+          'Plain **bold** __strong__ *italic* _emphasis_ `code` [link](https://example.test/path)'
+        }
       />,
     );
 
