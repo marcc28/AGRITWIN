@@ -1,9 +1,11 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, within } from '@testing-library/react-native';
 
 import { WeatherDetails } from '../../../src/components/WeatherDetails';
 import type { FieldWeather } from '../../../src/services/api';
+import { resetWindowSize, setWindowSize } from '../helpers/screenSize';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -20,6 +22,11 @@ jest.mock('react-i18next', () => ({
       return key;
     },
   }),
+}));
+
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 function condition(main: string, description: string, icon = '01d') {
@@ -97,6 +104,8 @@ const weather: FieldWeather = {
 };
 
 describe('WeatherDetails', () => {
+  beforeEach(resetWindowSize);
+
   it('shows the weather of today', () => {
     render(<WeatherDetails weather={weather} />);
 
@@ -175,5 +184,34 @@ describe('WeatherDetails', () => {
     expect(screen.getByText('17°')).toBeTruthy();
     expect(screen.getByText('35%')).toBeTruthy();
     expect(screen.queryByText('weather.sunrise 08:19')).toBeNull();
+  });
+
+  describe('on a desktop screen', () => {
+    beforeEach(() => {
+      setWindowSize(1280, 800);
+    });
+
+    it('shows more hours of the day', () => {
+      render(<WeatherDetails weather={weather} />);
+
+      expect(screen.getByText('23:00')).toBeTruthy();
+    });
+
+    it('shows the forecast next to the weather of today', () => {
+      render(<WeatherDetails weather={weather} />);
+
+      let row = screen.getByText('weather.threeDayForecast').parent;
+      while (
+        row &&
+        StyleSheet.flatten(row.props.style)?.alignItems !== 'flex-start'
+      ) {
+        row = row.parent;
+      }
+      if (!row) {
+        throw new Error('The weather has no columns');
+      }
+      expect(StyleSheet.flatten(row.props.style)?.flexDirection).toBe('row');
+      expect(within(row).getByText('17°')).toBeTruthy();
+    });
   });
 });

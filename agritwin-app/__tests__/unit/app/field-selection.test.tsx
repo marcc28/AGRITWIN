@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 
 import {
   act,
@@ -18,6 +19,7 @@ import {
   setCurrentField,
 } from '../../../src/services/currentField';
 import { loadGardenPickerFields } from '../../../src/services/gardenPicker';
+import { resetWindowSize, setWindowSize } from '../helpers/screenSize';
 
 jest.mock('react-i18next', () => {
   const t = (key: string) => key;
@@ -66,6 +68,11 @@ jest.mock('../../../src/components/AppHeader', () => () => null);
 
 jest.mock('../../../src/components/GardenPickerOverlay', () => () => null);
 
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const mockedGetFields = getFields as jest.MockedFunction<typeof getFields>;
 const mockedIsAuthError = isAuthError as jest.MockedFunction<
   typeof isAuthError
@@ -107,6 +114,14 @@ const fields = [
   },
 ];
 
+function tileWidth(id: number) {
+  let node = screen.getByTestId(`field-tile-${id}`).parent;
+  while (node && StyleSheet.flatten(node.props.style)?.width === undefined) {
+    node = node.parent;
+  }
+  return StyleSheet.flatten(node?.props.style)?.width;
+}
+
 async function deleteGarden(id: number) {
   render(<FieldSelectionScreen />);
 
@@ -124,6 +139,7 @@ async function deleteGarden(id: number) {
 describe('FieldSelectionScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetWindowSize();
     mockedGetFields.mockResolvedValue(fields);
     mockedGetCurrentField.mockResolvedValue({ id: 3, name: 'Hort' });
     mockedIsAuthError.mockReturnValue(false);
@@ -236,6 +252,28 @@ describe('FieldSelectionScreen', () => {
     await waitFor(() => {
       expect(clearAuth).toHaveBeenCalled();
       expect(router.replace).toHaveBeenCalledWith('/auth/login');
+    });
+  });
+
+  describe('on different screen sizes', () => {
+    it('shows two gardens per row on a phone', async () => {
+      render(<FieldSelectionScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Hort')).toBeTruthy();
+      });
+      expect(tileWidth(3)).toBe('50%');
+    });
+
+    it('shows more gardens per row on a desktop screen', async () => {
+      setWindowSize(1280, 800);
+
+      render(<FieldSelectionScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Hort')).toBeTruthy();
+      });
+      expect(tileWidth(3)).toBe(`${100 / 6}%`);
     });
   });
 });
