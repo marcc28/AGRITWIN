@@ -1,20 +1,17 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
+import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 
 import AppHeader from '@/components/AppHeader';
 import { FieldPhoto } from '@/components/FieldPhoto';
 import GardenPickerOverlay from '@/components/GardenPickerOverlay';
 import { gardenPhotoAt } from '@/constants/gardenPhotos';
+import { useCachedQuery, useRefreshOnFocus } from '@/hooks/use-cached-query';
 import { Colors } from '@/constants/theme';
-import {
-  deleteField,
-  getFields,
-  isAuthError,
-  type Field,
-} from '@/services/api';
+import { deleteField, isAuthError, type Field } from '@/services/api';
 import { clearAuth } from '@/services/auth';
 import {
   clearCurrentField,
@@ -27,65 +24,69 @@ import {
   deviceHealthFromCounts,
 } from '@/services/deviceHealth';
 import { loadGardenPickerFields } from '@/services/gardenPicker';
+import { fieldsQuery, prefetchFieldData, queryKeys } from '@/services/queries';
+import { queryClient } from '@/services/queryClient';
 import { styles } from '@/styles/field-selection.styles';
 
 export default function FieldSelectionScreen() {
   const { t } = useTranslation();
-  const [fields, setFields] = useState<Field[]>([]);
   const [currentId, setCurrentId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
   const [managing, setManaging] = useState(false);
   const [toDelete, setToDelete] = useState<Field | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  // Gardens from the cache are shown at once and refreshed in the background
+  // (and again whenever the screen gets focus and they are stale).
+  const fieldsResult = useCachedQuery(fieldsQuery());
+  useRefreshOnFocus(fieldsResult, true, 'always');
+  const fields = fieldsResult.data ?? [];
+  const loading = fieldsResult.data === undefined && !fieldsResult.isError;
+  const errorMessage =
+    deleteError || (fieldsResult.isError ? t('fieldSelection.loadError') : '');
+  const sessionExpired = isAuthError(fieldsResult.error);
+
+  useEffect(() => {
+    if (!sessionExpired) {
+      return;
+    }
+    async function logOut() {
+      await clearAuth();
+      router.replace('/auth/login');
+    }
+    void logOut();
+  }, [sessionExpired]);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
 
-      async function load() {
-        try {
-          const [list, stored] = await Promise.all([
-            getFields(),
-            getCurrentField(),
-          ]);
-          if (active) {
-            setFields(list);
-            setCurrentId(stored?.id ?? null);
-            setErrorMessage('');
-          }
-        } catch (error) {
-          if (isAuthError(error)) {
-            await clearAuth();
-            router.replace('/auth/login');
-            return;
-          }
-          if (active) {
-            setErrorMessage(t('fieldSelection.loadError'));
-          }
-        } finally {
-          if (active) {
-            setLoading(false);
-          }
-        }
-      }
+      const loadCurrent = () => {
+        void getCurrentField()
+          .catch(() => null)
+          .then((stored) => {
+            if (active) {
+              setCurrentId(stored?.id ?? null);
+            }
+            if (active && stored) {
+              // The garden used last time is the one most likely chosen.
+              prefetchFieldData(stored.id, i18next.language);
+            }
+          });
+      };
 
-      void load();
-      const unsubscribe = subscribeCurrentField(() => {
-        void getCurrentField().then((stored) => {
-          if (active) {
-            setCurrentId(stored?.id ?? null);
-          }
-        });
-      });
+      loadCurrent();
+      const unsubscribe = subscribeCurrentField(loadCurrent);
       return () => {
         active = false;
         unsubscribe();
       };
-    }, [t]),
+    }, []),
   );
 
   async function chooseField(field: Field) {
+    // Home starts loading while the navigation animation runs.
+    prefetchFieldData(field.id, i18next.language);
     await setCurrentField({ id: field.id, name: field.name });
     setCurrentId(field.id);
     router.push('/app/home');
@@ -103,9 +104,9 @@ export default function FieldSelectionScreen() {
     try {
       await deleteField(field.id);
       const remaining = fields.filter((item) => item.id !== field.id);
-      setFields(remaining);
+      queryClient.setQueryData(queryKeys.fields, remaining);
       setToDelete(null);
-      setErrorMessage('');
+      setDeleteError('');
       if (remaining.length === 0) {
         await clearCurrentField();
       } else if (field.id === currentId) {
@@ -125,7 +126,7 @@ export default function FieldSelectionScreen() {
         return;
       }
       setToDelete(null);
-      setErrorMessage(t('fieldSelection.deleteError'));
+      setDeleteError(t('fieldSelection.deleteError'));
     } finally {
       setDeleting(false);
     }

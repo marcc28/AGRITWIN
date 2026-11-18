@@ -1,29 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-import { getMe, subscribeMe, type Me } from '@/services/api';
+import { subscribeMe, type Me } from '@/services/api';
+import { meQuery, queryKeys } from '@/services/queries';
+import { queryClient } from '@/services/queryClient';
+import { useCachedQuery } from './use-cached-query';
 
+/** Whether the user wants weather alerts (profile option, cached). */
 export function useWeatherAlertsEnabled() {
-  const [enabled, setEnabled] = useState(true);
+  const { data } = useCachedQuery(meQuery());
 
-  useEffect(() => {
-    let active = true;
+  useEffect(
+    () =>
+      // A profile saved on the settings screen updates the cache at once.
+      subscribeMe((me: Me) => {
+        queryClient.setQueryData(queryKeys.me, me);
+      }),
+    [],
+  );
 
-    const update = (me: Me) => {
-      if (active) {
-        setEnabled(me.weather_alerts_enabled);
-      }
-    };
-
-    void getMe()
-      .then(update)
-      .catch(() => undefined);
-    const unsubscribe = subscribeMe(update);
-
-    return () => {
-      active = false;
-      unsubscribe();
-    };
-  }, []);
-
-  return enabled;
+  return data?.weather_alerts_enabled ?? true;
 }

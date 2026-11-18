@@ -718,5 +718,8 @@
     "back": "Volver",
     "eyebrow": "MIS HUERTOS",
     "allGardens": "Ver todos los huertos"
+  },
+  "startup": {
+    "loading": "Preparando tus datos…"
   }
 }

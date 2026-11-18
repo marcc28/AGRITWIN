@@ -6,14 +6,10 @@ import { useTranslation } from 'react-i18next';
 
 import { OptionChip } from '@/components/OptionChip';
 import { Colors } from '@/constants/theme';
-import {
-  getMe,
-  isAuthError,
-  updateMe,
-  updateMyEmail,
-  type Me,
-} from '@/services/api';
+import { isAuthError, updateMe, updateMyEmail, type Me } from '@/services/api';
 import { clearAuth } from '@/services/auth';
+import { meQuery, queryKeys } from '@/services/queries';
+import { queryClient } from '@/services/queryClient';
 import { styles } from '@/styles/settings.styles';
 
 const LANGUAGES = [
@@ -25,7 +21,16 @@ const LANGUAGES = [
 
 export function AccountCard() {
   const { t, i18n } = useTranslation();
-  const [me, setMe] = useState<Me | null>(null);
+  // The profile from the cache is shown at once, then refreshed below.
+  const [me, setMe] = useState<Me | null>(
+    () => queryClient.getQueryData<Me>(queryKeys.me) ?? null,
+  );
+
+  /** Shows the profile and keeps the shared cache equal to it. */
+  function rememberMe(next: Me) {
+    setMe(next);
+    queryClient.setQueryData(queryKeys.me, next);
+  }
   const [errorMessage, setErrorMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [editingEmail, setEditingEmail] = useState(false);
@@ -36,8 +41,11 @@ export function AccountCard() {
   useEffect(() => {
     async function loadMe() {
       try {
-        const data = await getMe();
-        setMe(data);
+        const data = await queryClient.query({
+          ...meQuery(),
+          staleTime: 0,
+        });
+        rememberMe(data);
         if (data.language && data.language !== i18n.language) {
           await i18n.changeLanguage(data.language);
         }
@@ -70,7 +78,7 @@ export function AccountCard() {
         notifications_enabled: next.notifications_enabled,
         weather_alerts_enabled: next.weather_alerts_enabled,
       });
-      setMe(saved);
+      rememberMe(saved);
       return true;
     } catch (error) {
       setErrorMessage(
@@ -85,7 +93,7 @@ export function AccountCard() {
   }
 
   async function savePrefs(next: Me) {
-    setMe(next);
+    rememberMe(next);
     await saveProfile(next);
   }
 
@@ -137,7 +145,7 @@ export function AccountCard() {
     try {
       setSaving(true);
       setErrorMessage('');
-      setMe(await updateMyEmail(next));
+      rememberMe(await updateMyEmail(next));
       setEditingEmail(false);
     } catch (error) {
       setErrorMessage(

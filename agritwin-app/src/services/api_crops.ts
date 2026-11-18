@@ -1,4 +1,5 @@
 import { authenticatedFetch } from './auth';
+import { invalidateCropCatalog } from './cacheInvalidation';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -176,6 +177,7 @@ export async function createCrop(
     );
   }
 
+  invalidateCropCatalog();
   return data as Crop;
 }
 
@@ -207,6 +209,7 @@ export async function updateCrop(
     );
   }
 
+  invalidateCropCatalog();
   return data as Crop;
 }
 
@@ -235,4 +238,6 @@ export async function deleteCrop(
         : 'Error eliminant el cultiu',
     );
   }
+
+  invalidateCropCatalog();
 }

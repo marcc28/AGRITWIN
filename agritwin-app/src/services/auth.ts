@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 import { clearCurrentField } from './currentField';
+import { clearQueryCache } from './queryPersistence';
 
 const TOKEN_KEY = 'agritwin_access_token';
 const REFRESH_TOKEN_KEY = 'agritwin_refresh_token';
@@ -33,22 +34,50 @@ async function removeItem(key: string) {
   }
 }
 
+export type Auth = {
+  token: string | null;
+  refreshToken: string | null;
+  username: string | null;
+};
+
+/**
+ * Every API call needs the token. Reading the secure store is slow on a
+ * phone, so the credentials are read once and kept in memory until they
+ * change (setAuth / refreshAuth / clearAuth).
+ */
+let authInMemory: Promise<Auth | null> | null = null;
+
+/** Forgets the credentials kept in memory (they stay in the secure store). */
+export function resetAuthCache() {
+  authInMemory = null;
+}
+
 // Guardar els tokens
 export async function setAuth(
   username: string,
   accessToken: string,
   refreshToken?: string,
 ) {
-  await setItem(USERNAME_KEY, username);
-  await setItem(TOKEN_KEY, accessToken);
+  const previousUsername = await getItem(USERNAME_KEY);
+  if (previousUsername && previousUsername !== username) {
+    // Another user: data cached for the previous account must not show up.
+    await clearQueryCache();
+  }
 
-  if (refreshToken) {
-    await setItem(REFRESH_TOKEN_KEY, refreshToken);
+  resetAuthCache();
+  try {
+    await setItem(USERNAME_KEY, username);
+    await setItem(TOKEN_KEY, accessToken);
+
+    if (refreshToken) {
+      await setItem(REFRESH_TOKEN_KEY, refreshToken);
+    }
+  } finally {
+    resetAuthCache();
   }
 }
 
-// Recuperar els tokens
-export async function getAuth() {
+async function readAuth(): Promise<Auth | null> {
   const token = await getItem(TOKEN_KEY);
   const refreshToken = await getItem(REFRESH_TOKEN_KEY);
   const username = await getItem(USERNAME_KEY);
@@ -62,6 +91,21 @@ export async function getAuth() {
     refreshToken,
     username,
   };
+}
+
+// Recuperar els tokens
+export async function getAuth(): Promise<Auth | null> {
+  if (!authInMemory) {
+    const reading = readAuth();
+    authInMemory = reading;
+    // A failed read must not be remembered.
+    reading.catch(() => {
+      if (authInMemory === reading) {
+        authInMemory = null;
+      }
+    });
+  }
+  return authInMemory;
 }
 
 // Renovar l'access token
@@ -102,12 +146,18 @@ export async function refreshAuth() {
 
   const username = await getItem(USERNAME_KEY);
 
-  await setItem(TOKEN_KEY, data.access_token);
+  resetAuthCache();
+  try {
+    await setItem(TOKEN_KEY, data.access_token);
 
-  // Si el servidor rota el refresh token, guardar el nou.
-  // Si no el retorna, conservar l'anterior.
-  if (data.refresh_token) {
-    await setItem(REFRESH_TOKEN_KEY, data.refresh_token);
+    // Si el servidor rota el refresh token, guardar el nou.
+    // Si no el retorna, conservar l'anterior.
+    if (data.refresh_token) {
+      await setItem(REFRESH_TOKEN_KEY, data.refresh_token);
+    }
+  } finally {
+    // Every next request uses the new token.
+    resetAuthCache();
   }
 
   return {
@@ -167,9 +217,15 @@ export async function authenticatedFetch(
 
 // Eliminar tota la informació d'autenticació
 export async function clearAuth() {
-  await removeItem(TOKEN_KEY);
-  await removeItem(REFRESH_TOKEN_KEY);
-  await removeItem(USERNAME_KEY);
+  resetAuthCache();
+  try {
+    await removeItem(TOKEN_KEY);
+    await removeItem(REFRESH_TOKEN_KEY);
+    await removeItem(USERNAME_KEY);
+  } finally {
+    resetAuthCache();
+  }
 
   await clearCurrentField();
+  await clearQueryCache();
 }

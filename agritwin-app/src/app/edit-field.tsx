@@ -15,7 +15,6 @@ import { useTranslation } from 'react-i18next';
 import { defaultPhotoIndex } from '../constants/gardenPhotos';
 import {
   deleteDevice,
-  getField,
   isAuthError,
   updateField,
   reverseGeocodeLocation,
@@ -54,14 +53,17 @@ import { DateField } from '../components/DateField';
 
 import {
   createFieldCrop,
-  getFieldCrops,
   deleteFieldCrop,
   type FieldCrop,
 } from '../services/api_fieldCrops';
 
 import { getCrops, type Crop } from '../services/api_crops';
+import { fieldCropsQuery, fieldDetailQuery } from '../services/queries';
+import { queryClient } from '../services/queryClient';
 
 const CROP_PAGE_SIZE = 50;
+/** The form reuses garden data loaded less than this long ago. */
+const FORM_DATA_MAX_AGE_MS = 15 * 1000;
 
 export default function EditFieldScreen() {
   const { t } = useTranslation();
@@ -163,7 +165,12 @@ export default function EditFieldScreen() {
   useEffect(() => {
     async function loadField() {
       try {
-        const field = await getField(fieldId);
+        // A copy loaded a few seconds ago (e.g. by the garden screen that
+        // was just open) is reused at once instead of asking the server.
+        const field = await queryClient.query({
+          ...fieldDetailQuery(fieldId),
+          staleTime: FORM_DATA_MAX_AGE_MS,
+        });
 
         setName(field.name);
         setLocation(field.location ?? '');
@@ -188,8 +195,9 @@ export default function EditFieldScreen() {
         }
 
         const [fieldCrops, crops] = await Promise.all([
-          getFieldCrops(0, 100, auth.token, {
-            field_id: fieldId,
+          queryClient.query({
+            ...fieldCropsQuery(fieldId),
+            staleTime: FORM_DATA_MAX_AGE_MS,
           }),
           getCrops(0, CROP_PAGE_SIZE, auth.token),
         ]);
@@ -262,7 +270,9 @@ export default function EditFieldScreen() {
         return undefined;
       }
       let active = true;
-      getField(fieldId)
+      // Always asked to the server: a board may have just been added.
+      queryClient
+        .query({ ...fieldDetailQuery(fieldId), staleTime: 0 })
         .then((field) => {
           if (active) {
             setExistingDevices(field.devices);

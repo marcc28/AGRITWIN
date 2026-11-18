@@ -720,5 +720,8 @@
     "back": "Tornar",
     "eyebrow": "ELS MEUS HORTS",
     "allGardens": "Veure tots els horts"
+  },
+  "startup": {
+    "loading": "Preparant les teves dades…"
   }
 }
