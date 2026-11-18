@@ -118,6 +118,50 @@ const created = {
   device_count: 0,
 };
 
+function goToStep(target: number) {
+  const current =
+    screen.getByRole('progressbar').props.accessibilityValue.now - 1;
+  for (let index = current; index < target; index++) {
+    if (index === 0) {
+      const input = screen.getByPlaceholderText(
+        'settings.createField.namePlaceholder',
+      );
+      if (!input.props.value.trim()) fireEvent.changeText(input, 'Hort nou');
+    }
+    if (index === 1) {
+      const input = screen.getByPlaceholderText(
+        'settings.createField.locationPlaceholder',
+      );
+      if (
+        !input.props.value.trim() &&
+        screen.queryByText('settings.createField.coordsHint')
+      )
+        fireEvent.changeText(input, 'Lleida');
+    }
+    if (index === 2) {
+      if (
+        screen.queryAllByRole('button', {
+          selected: true,
+          name: /settings.fieldTypes\./,
+        }).length === 0
+      )
+        fireEvent.press(screen.getByText('settings.fieldTypes.home_garden'));
+      const input = screen.getByPlaceholderText(
+        'settings.createField.sizePlaceholder',
+      );
+      if (!input.props.value.trim()) fireEvent.changeText(input, '40');
+    }
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+  }
+  for (let index = current; index > target; index--)
+    fireEvent.press(screen.getByText('settings.fieldForm.previous'));
+}
+
+function onStep<T>(step: number, find: () => T): T {
+  goToStep(step);
+  return find();
+}
+
 describe('CreateFieldScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -129,16 +173,128 @@ describe('CreateFieldScreen', () => {
       .mockResolvedValue({ lat: 42.5, lon: 1.5, label: 'Field address' });
   });
 
+  it('navigates one section at a time and preserves entered values without saving', () => {
+    render(<CreateFieldScreen />);
+    expect(screen.getByRole('progressbar')).toHaveProp('accessibilityValue', {
+      min: 1,
+      max: 4,
+      now: 1,
+    });
+    expect(
+      screen.queryByPlaceholderText('settings.createField.locationPlaceholder'),
+    ).toBeNull();
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      'My field',
+    );
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    expect(
+      screen.queryByPlaceholderText('settings.createField.namePlaceholder'),
+    ).toBeNull();
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      'Carrer Major, Lleida',
+    );
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    fireEvent.changeText(
+      screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      '250',
+    );
+    fireEvent.press(screen.getByText('settings.fieldTypes.home_garden'));
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    expect(screen.queryByText('settings.fieldForm.next')).toBeNull();
+    expect(screen.getByText('settings.createField.submitNext')).toBeTruthy();
+    fireEvent.press(screen.getByText('settings.fieldForm.previous'));
+    expect(screen.getByDisplayValue('250')).toBeTruthy();
+    fireEvent.press(screen.getByText('settings.fieldForm.previous'));
+    expect(screen.getByDisplayValue('Carrer Major, Lleida')).toBeTruthy();
+    fireEvent.press(screen.getByText('settings.fieldForm.previous'));
+    expect(screen.getByDisplayValue('My field')).toBeTruthy();
+    expect(mockedCreateField).not.toHaveBeenCalled();
+    expect(mockedGeocode).not.toHaveBeenCalled();
+  });
+
+  it('retries a failed address lookup for the same selected point', async () => {
+    jest
+      .mocked(reverseGeocodeLocation)
+      .mockRejectedValueOnce(new Error('provider unavailable'));
+    render(<CreateFieldScreen />);
+    goToStep(1);
+    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(screen.getByText('Select test point'));
+    fireEvent.press(screen.getByText('settings.createField.map.confirm'));
+    await waitFor(() =>
+      expect(
+        screen.getByText('settings.createField.errors.addressUnavailable'),
+      ).toBeTruthy(),
+    );
+    expect(screen.getByText('settings.createField.coords')).toBeTruthy();
+    fireEvent.press(screen.getByText('settings.createField.retryAddress'));
+    await screen.findByDisplayValue('Field address');
+    expect(reverseGeocodeLocation).toHaveBeenNthCalledWith(2, 42.5, 1.5);
+  });
+
+  it('requires each mandatory section and leaves unknown soil empty', async () => {
+    render(<CreateFieldScreen />);
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    expect(screen.getByText('settings.errors.nameRequired')).toBeTruthy();
+    fireEvent.changeText(
+      screen.getByLabelText('settings.name'),
+      'Required field',
+    );
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    expect(
+      screen.getByText('settings.fieldForm.errors.locationRequired'),
+    ).toBeTruthy();
+    fireEvent.changeText(screen.getByLabelText('settings.location'), 'Lleida');
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    expect(
+      screen.getByText('settings.fieldForm.errors.typeRequired'),
+    ).toBeTruthy();
+    expect(
+      screen.getByText('settings.fieldForm.errors.areaRequired'),
+    ).toBeTruthy();
+    expect(mockedCreateField).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByText('settings.fieldTypes.orchard'));
+    fireEvent.changeText(
+      screen.getByLabelText('settings.createField.areaLabel'),
+      '250',
+    );
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    await waitFor(() =>
+      expect(mockedCreateField).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Required field',
+          location: 'Lleida',
+          field_type: 'orchard',
+          size_m2: 250,
+          soil_type: null,
+        }),
+      ),
+    );
+  });
+
   it('creates a garden from the profile form', async () => {
     render(<CreateFieldScreen />);
 
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.fieldTypes.open_field'));
-    fireEvent.press(screen.getByText('settings.soilTypes.clay'));
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.fieldTypes.open_field')),
+    );
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.soilTypes.clay')),
+    );
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
 
     await waitFor(() => {
       expect(mockedCreateField).toHaveBeenCalledWith(
@@ -160,10 +316,14 @@ describe('CreateFieldScreen', () => {
     render(<CreateFieldScreen />);
 
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitFirst'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitFirst')),
+    );
 
     await waitFor(() => {
       expect(router.replace).toHaveBeenCalledWith('/app/home');
@@ -175,10 +335,14 @@ describe('CreateFieldScreen', () => {
     render(<CreateFieldScreen />);
 
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
 
     await waitFor(() => {
       expect(router.replace).toHaveBeenCalledWith({
@@ -190,27 +354,34 @@ describe('CreateFieldScreen', () => {
 
   it('rejects an empty name', () => {
     render(<CreateFieldScreen />);
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
     expect(screen.getByText('settings.errors.nameRequired')).toBeTruthy();
   });
 
   it('rejects an invalid size', () => {
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      onStep(2, () =>
+        screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      ),
       '-4',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(screen.getByText('settings.fieldTypes.home_garden'));
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
     expect(screen.getByText('settings.errors.sizeNumber')).toBeTruthy();
   });
 
   it('asks for a location before geocoding', () => {
     render(<CreateFieldScreen />);
-    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
+    fireEvent.press(
+      onStep(1, () => screen.getByText('settings.createField.lookupAddress')),
+    );
     expect(
       screen.getByText('settings.createField.errors.locationRequired'),
     ).toBeTruthy();
@@ -219,22 +390,32 @@ describe('CreateFieldScreen', () => {
   it('creates a field with a confirmed map point', async () => {
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'Old address',
     );
-    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(
+      onStep(1, () => screen.getByLabelText('settings.createField.map.open')),
+    );
     expect(screen.getByText('settings.createField.map.confirm')).toBeDisabled();
     fireEvent.press(screen.getByText('Select test point'));
     fireEvent.press(screen.getByText('settings.createField.map.confirm'));
     await waitFor(() =>
-      expect(screen.getByDisplayValue('Field address')).toBeTruthy(),
+      expect(
+        onStep(1, () => screen.getByDisplayValue('Field address')),
+      ).toBeTruthy(),
     );
     expect(screen.queryByText('settings.createField.map.title')).toBeNull();
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
     await waitFor(() =>
       expect(mockedCreateField).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -250,20 +431,30 @@ describe('CreateFieldScreen', () => {
   it('discards an unconfirmed point and keeps the manual address', async () => {
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'Andorra',
     );
-    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(
+      onStep(1, () => screen.getByLabelText('settings.createField.map.open')),
+    );
     fireEvent.press(screen.getByText('Select test point'));
     fireEvent.press(screen.getByText('settings.createField.map.cancel'));
-    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(
+      onStep(1, () => screen.getByLabelText('settings.createField.map.open')),
+    );
     expect(screen.getByText('settings.createField.map.confirm')).toBeDisabled();
     fireEvent.press(screen.getByText('settings.createField.map.cancel'));
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
     await waitFor(() =>
       expect(mockedCreateField).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -278,23 +469,35 @@ describe('CreateFieldScreen', () => {
   it('reopens the saved point and clears it after editing the address', async () => {
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(
+      onStep(1, () => screen.getByLabelText('settings.createField.map.open')),
+    );
     fireEvent.press(screen.getByText('Select test point'));
     fireEvent.press(screen.getByText('settings.createField.map.confirm'));
     await waitFor(() =>
-      expect(screen.getByDisplayValue('Field address')).toBeTruthy(),
+      expect(
+        onStep(1, () => screen.getByDisplayValue('Field address')),
+      ).toBeTruthy(),
     );
-    fireEvent.press(screen.getByLabelText('settings.createField.map.open'));
+    fireEvent.press(
+      onStep(1, () => screen.getByLabelText('settings.createField.map.open')),
+    );
     expect(screen.getByText('settings.createField.map.confirm')).toBeEnabled();
     fireEvent.press(screen.getByText('settings.createField.map.cancel'));
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'La Massana',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
     await waitFor(() =>
       expect(mockedCreateField).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -314,10 +517,14 @@ describe('CreateFieldScreen', () => {
     });
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
+    fireEvent.press(
+      onStep(1, () => screen.getByText('settings.createField.lookupAddress')),
+    );
 
     await waitFor(() => {
       expect(mockedGeocode).toHaveBeenCalledWith('Andorra');
@@ -333,15 +540,21 @@ describe('CreateFieldScreen', () => {
     });
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
+    fireEvent.press(
+      onStep(1, () => screen.getByText('settings.createField.lookupAddress')),
+    );
     await waitFor(() => {
       expect(screen.getByText(/settings.createField.coords/)).toBeTruthy();
     });
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'La Massana',
     );
     expect(screen.getByText('settings.createField.coordsHint')).toBeTruthy();
@@ -351,10 +564,14 @@ describe('CreateFieldScreen', () => {
     mockedGeocode.mockRejectedValue(new Error('not found'));
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'xxxx',
     );
-    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
+    fireEvent.press(
+      onStep(1, () => screen.getByText('settings.createField.lookupAddress')),
+    );
 
     await waitFor(() => {
       expect(screen.getByText('not found')).toBeTruthy();
@@ -366,10 +583,14 @@ describe('CreateFieldScreen', () => {
     mockedGeocode.mockRejectedValue(new Error('Not authenticated'));
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
+    fireEvent.press(
+      onStep(1, () => screen.getByText('settings.createField.lookupAddress')),
+    );
 
     await waitFor(() => {
       expect(clearAuth).toHaveBeenCalled();
@@ -379,15 +600,25 @@ describe('CreateFieldScreen', () => {
 
   it('offers to link devices, but creating without them links none', async () => {
     render(<CreateFieldScreen />);
-    expect(screen.getByText('addDevice.section.title')).toBeTruthy();
-    expect(screen.getByText('addDevice.section.createHint')).toBeTruthy();
-    expect(screen.getByText('addDevice.section.saveAndAdd')).toBeTruthy();
+    expect(
+      onStep(3, () => screen.getByText('addDevice.section.title')),
+    ).toBeTruthy();
+    expect(
+      onStep(3, () => screen.getByText('addDevice.section.createHint')),
+    ).toBeTruthy();
+    expect(
+      onStep(3, () => screen.getByText('addDevice.section.saveAndAdd')),
+    ).toBeTruthy();
 
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
 
     await waitFor(() => {
       expect(mockedCreateField).toHaveBeenCalled();
@@ -409,10 +640,12 @@ describe('CreateFieldScreen', () => {
       render(<CreateFieldScreen />);
 
       fireEvent.changeText(
-        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+        onStep(0, () =>
+          screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+        ),
         'Hort nou',
       );
-      fireEvent.press(screen.getByTestId('field-devices-add'));
+      fireEvent.press(onStep(3, () => screen.getByTestId('field-devices-add')));
 
       await waitFor(() => {
         expect(router.replace).toHaveBeenCalledWith({
@@ -430,17 +663,19 @@ describe('CreateFieldScreen', () => {
   it('does not open "Add device" when the garden cannot be saved', async () => {
     render(<CreateFieldScreen />);
 
-    fireEvent.press(screen.getByTestId('field-devices-add'));
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
 
     expect(screen.getByText('settings.errors.nameRequired')).toBeTruthy();
     expect(mockedCreateField).not.toHaveBeenCalled();
 
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
     mockedCreateField.mockRejectedValue(new Error('server down'));
-    fireEvent.press(screen.getByTestId('field-devices-add'));
+    fireEvent.press(onStep(3, () => screen.getByTestId('field-devices-add')));
 
     await waitFor(() => {
       expect(screen.getByText('server down')).toBeTruthy();
@@ -453,7 +688,9 @@ describe('CreateFieldScreen', () => {
     try {
       render(<CreateFieldScreen />);
 
-      expect(screen.getByText('addDevice.web.hint')).toBeTruthy();
+      expect(
+        onStep(3, () => screen.getByText('addDevice.web.hint')),
+      ).toBeTruthy();
       expect(screen.queryByTestId('field-devices-add')).toBeNull();
     } finally {
       web.restore();
@@ -464,10 +701,14 @@ describe('CreateFieldScreen', () => {
     mockedGeocode.mockRejectedValue('offline');
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      onStep(1, () =>
+        screen.getByPlaceholderText('settings.createField.locationPlaceholder'),
+      ),
       'Andorra',
     );
-    fireEvent.press(screen.getByText('settings.createField.lookupAddress'));
+    fireEvent.press(
+      onStep(1, () => screen.getByText('settings.createField.lookupAddress')),
+    );
 
     await waitFor(() => {
       expect(
@@ -480,10 +721,14 @@ describe('CreateFieldScreen', () => {
     mockedCreateField.mockRejectedValue(new Error('create failed'));
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
 
     await waitFor(() => {
       expect(screen.getByText('create failed')).toBeTruthy();
@@ -494,10 +739,14 @@ describe('CreateFieldScreen', () => {
     mockedCreateField.mockRejectedValue('offline');
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
 
     await waitFor(() => {
       expect(
@@ -511,10 +760,14 @@ describe('CreateFieldScreen', () => {
     mockedCreateField.mockRejectedValue(new Error('Not authenticated'));
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
 
     await waitFor(() => {
       expect(clearAuth).toHaveBeenCalled();
@@ -540,10 +793,14 @@ describe('CreateFieldScreen', () => {
     render(<CreateFieldScreen />);
 
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'Hort nou',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
 
     await waitFor(() => {
       expect(router.replace).toHaveBeenCalledWith('/app/home');
@@ -554,7 +811,7 @@ describe('CreateFieldScreen', () => {
   it('logs out from the first-garden screen', async () => {
     mockUseLocalSearchParams.mockReturnValue({});
     render(<CreateFieldScreen />);
-    fireEvent.press(screen.getByText('settings.logout'));
+    fireEvent.press(onStep(3, () => screen.getByText('settings.logout')));
     await waitFor(() => {
       expect(clearAuth).toHaveBeenCalled();
       expect(router.replace).toHaveBeenCalledWith('/auth/login');
@@ -576,24 +833,34 @@ describe('Field area and boundaries', () => {
     render(<CreateFieldScreen />);
     expect(screen.queryByText('settings.createField.boundary.draw')).toBeNull();
     for (const type of ['open_field', 'greenhouse', 'orchard']) {
-      fireEvent.press(screen.getByText(`settings.fieldTypes.${type}`));
+      fireEvent.press(
+        onStep(2, () => screen.getByText(`settings.fieldTypes.${type}`)),
+      );
       expect(
-        screen.getByText('settings.createField.boundary.draw'),
+        onStep(2, () => screen.getByText('settings.createField.boundary.draw')),
       ).toBeTruthy();
     }
   });
   it('converts manually entered hectares to square metres', async () => {
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'New field',
     );
-    fireEvent.press(screen.getByText('settings.createField.areaUnits.ha'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.areaUnits.ha')),
+    );
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      onStep(2, () =>
+        screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      ),
       '2,5',
     );
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
     await waitFor(() =>
       expect(mockedCreateField).toHaveBeenCalledWith(
         expect.objectContaining({ size_m2: 25000 }),
@@ -603,11 +870,17 @@ describe('Field area and boundaries', () => {
   it('calculates a boundary area, fills its address and submits its corners', async () => {
     render(<CreateFieldScreen />);
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      onStep(0, () =>
+        screen.getByPlaceholderText('settings.createField.namePlaceholder'),
+      ),
       'New field',
     );
-    fireEvent.press(screen.getByText('settings.fieldTypes.open_field'));
-    fireEvent.press(screen.getByText('settings.createField.boundary.draw'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.fieldTypes.open_field')),
+    );
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.boundary.draw')),
+    );
     expect(
       screen.getByText('settings.createField.boundary.confirm'),
     ).toBeDisabled();
@@ -615,13 +888,21 @@ describe('Field area and boundaries', () => {
       fireEvent.press(screen.getByText('Add test corner'));
     fireEvent.press(screen.getByText('settings.createField.boundary.confirm'));
     await waitFor(() =>
-      expect(screen.getByDisplayValue('Field road')).toBeTruthy(),
+      expect(
+        onStep(1, () => screen.getByDisplayValue('Field road')),
+      ).toBeTruthy(),
     );
     expect(
-      screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      onStep(2, () =>
+        screen.getByPlaceholderText('settings.createField.sizePlaceholder'),
+      ),
     ).toHaveProp('editable', false);
-    fireEvent.press(screen.getByText('settings.createField.areaUnits.ha'));
-    fireEvent.press(screen.getByText('settings.createField.submitNext'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.areaUnits.ha')),
+    );
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.createField.submitNext')),
+    );
     await waitFor(() =>
       expect(mockedCreateField).toHaveBeenCalledWith(
         expect.objectContaining({

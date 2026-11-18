@@ -76,6 +76,50 @@ def test_reverse_rejects_invalid_coordinates():
         request.assert_not_called()
 
 
+def test_reverse_uses_fallback_when_primary_has_no_address():
+    photon = {
+        "features": [
+            {
+                "properties": {
+                    "street": "Carrer Major",
+                    "city": "Lleida",
+                    "country": "Spain",
+                    "housenumber": "5",
+                }
+            }
+        ]
+    }
+    with patch("services.geocode_service._request", side_effect=[None, photon]) as request:
+        assert geocoder.reverse_location(41.6, 0.6) == {
+            "lat": 41.6,
+            "lon": 0.6,
+            "label": "Carrer Major, Lleida",
+        }
+        assert request.call_count == 2
+        assert request.call_args.kwargs["base_url"] == geocoder.FALLBACK_URL
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        None,
+        {},
+        {"features": [None]},
+        {"features": [{"properties": {"name": "Business", "country": "Spain"}}]},
+    ],
+)
+def test_reverse_does_not_invent_addresses_when_both_providers_fail(payload):
+    with patch("services.geocode_service._request", side_effect=[None, payload]):
+        assert geocoder.reverse_location(41.6, 0.6) is None
+
+
+def test_reverse_can_disable_fallback(monkeypatch):
+    monkeypatch.setattr(geocoder, "FALLBACK_URL", "")
+    with patch("services.geocode_service._request", return_value=None) as request:
+        assert geocoder.reverse_location(41.6, 0.6) is None
+        request.assert_called_once()
+
+
 @pytest.mark.parametrize(
     ("address", "label"),
     [

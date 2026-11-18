@@ -366,7 +366,8 @@
         "noBoundary": "Encara no hi ha cap contorn dibuixat. Una superfície numèrica no permet saber quina forma té el camp.",
         "areaSummary": "Total: {{gross}} {{unit}} · Exclosa: {{excluded}} {{unit}} · Útil: {{net}} {{unit}}"
       },
-      "netAreaLabel": "Superfície útil"
+      "netAreaLabel": "Superfície útil",
+      "retryAddress": "Torna a cercar l’adreça"
     },
     "manageCrops": {
       "title": "Cultius",
@@ -389,6 +390,41 @@
         "harvestBeforePlanting": "La collita prevista no pot ser anterior a la plantació",
         "addFailed": "Error afegint el cultiu",
         "removeFailed": "Error eliminant el cultiu"
+      }
+    },
+    "fieldForm": {
+      "next": "Següent",
+      "previous": "Anterior",
+      "progress": "Pas {{current}} de {{total}}",
+      "steps": {
+        "details": {
+          "title": "Fes-lo teu",
+          "hint": "Tria una foto i un nom per al teu espai de cultiu."
+        },
+        "location": {
+          "title": "On és el teu camp?",
+          "hint": "Introdueix una adreça o selecciona la ubicació al mapa."
+        },
+        "characteristics": {
+          "title": "El teu camp, al detall",
+          "hint": "Indica el tipus, el sòl i la superfície. Dibuixa el contorn si cal."
+        },
+        "crops": {
+          "title": "Què estàs cultivant?",
+          "hint": "Consulta i gestiona els cultius vinculats al teu camp."
+        },
+        "devices": {
+          "title": "Connecta amb el teu camp",
+          "hint": "Gestiona els dispositius i acaba quan ho tinguis tot."
+        }
+      },
+      "requiredHint": "El nom, la ubicació, el tipus i la superfície són obligatoris. El sòl, els cultius i els dispositius són opcionals.",
+      "unknownSoil": "No ho sé",
+      "errors": {
+        "nameTooLong": "Fes servir un màxim de 100 caràcters.",
+        "locationRequired": "Introdueix una adreça o selecciona un punt al mapa.",
+        "typeRequired": "Selecciona un tipus de camp.",
+        "areaRequired": "Introdueix la superfície o dibuixa el contorn del camp."
       }
     }
   },

@@ -134,6 +134,28 @@ export const cropCatalogQuery = () =>
     staleTime: 60 * MINUTE,
   });
 
+/** Paginated crop choices share the catalogue invalidation prefix. */
+export const cropCatalogPageQuery = (offset: number, limit: number) =>
+  queryOptions({
+    queryKey: queryKeys.cropCatalogPage(offset, limit),
+    queryFn: async () => getCrops(offset, limit, await requireToken()),
+    staleTime: 60 * MINUTE,
+    initialData: () => {
+      const state = queryClient.getQueryState(queryKeys.cropCatalog);
+      const catalog = queryClient.getQueryData<
+        Awaited<ReturnType<typeof getCrops>>
+      >(queryKeys.cropCatalog);
+      if (!Array.isArray(catalog) || state?.isInvalidated) return undefined;
+      // The preloaded catalogue contains up to 100 rows. Only reuse a slice
+      // known to be complete, or its known final (short) page.
+      if (catalog.length >= offset + limit || catalog.length < 100)
+        return catalog.slice(offset, offset + limit);
+      return undefined;
+    },
+    initialDataUpdatedAt: () =>
+      queryClient.getQueryState(queryKeys.cropCatalog)?.dataUpdatedAt,
+  });
+
 // --------------------------------------------------
 // MARKET
 // --------------------------------------------------

@@ -9,6 +9,7 @@ os.environ.setdefault(
     "postgresql+asyncpg://user:pass@localhost:5432/testdb",
 )
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import IntegrityError
@@ -386,7 +387,12 @@ def test_update_field_not_found():
     with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
         response = client.put(
             "/fields/99",
-            json={"name": "Hort nou"},
+            json={
+                "name": "Hort nou",
+                "location": "Lleida",
+                "field_type": "home_garden",
+                "size_m2": 40,
+            },
         )
 
     assert response.status_code == 404
@@ -886,8 +892,9 @@ def test_update_explicitly_clears_boundary_and_exclusions():
             "/fields/3",
             json={
                 "name": "Field",
+                "location": "Lleida",
                 "field_type": "open_field",
-                "size_m2": None,
+                "size_m2": 40,
                 "boundary": None,
                 "excluded_zones": [],
             },
@@ -895,4 +902,30 @@ def test_update_explicitly_clears_boundary_and_exclusions():
     assert response.status_code == 200
     assert session.parameters["boundary"] is None
     assert session.parameters["excluded_zones"] == "[]"
-    assert session.parameters["size_m2"] is None
+    assert session.parameters["size_m2"] == 40
+
+
+@pytest.mark.parametrize("method,path", [("post", "/fields"), ("put", "/fields/3")])
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"name": " "},
+        {"name": "x" * 101},
+        {"location": None},
+        {"field_type": None},
+        {"field_type": "invented"},
+        {"size_m2": None},
+        {"size_m2": 0},
+        {"soil_type": "invented"},
+    ],
+)
+def test_required_field_data_is_enforced_on_all_writes(method, path, change):
+    body = {
+        "name": "Field",
+        "location": "Lleida",
+        "field_type": "open_field",
+        "size_m2": 25,
+        "soil_type": None,
+    }
+    response = getattr(make_client(), method)(path, json={**body, **change})
+    assert response.status_code == 400

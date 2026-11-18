@@ -4,6 +4,57 @@ Related work: #151, #152, #153, #154 and #155.
 
 ## Scope
 
+### Form navigation
+
+Creation is presented in four pages: photo/name, location, characteristics/area,
+and devices. Editing uses the same pages plus crop management before devices.
+Previous and Next stay in the bottom navigation bar. Form values remain in the
+parent screen state when switching pages. Next validates the required data for
+the completed steps; Previous always allows returning. Navigation does not save
+the field. The `addCrop=true` edit link opens the crop page.
+
+Name (1–100 characters), location, a valid field type and usable area are required
+both on creation and editing. Location accepts either a manual address or a valid
+coordinate pair; an unavailable reverse-geocoded address does not invalidate a
+selected point. Area must be 0.01–99,999,999.99 m² and may come from a drawing.
+Errors appear next to the relevant controls without discarding any values.
+Create/Accept repeats all required checks, and the API enforces the same rules.
+The type starts unselected. Soil starts as unknown and is stored as null unless
+chosen explicitly. Photo, soil, crops and devices are optional.
+
+Existing incomplete records can still be read; editing them requires completing
+the missing required values. Writes now require the complete required data,
+including coordinates for a location without an address. Editing a manual
+address without a boundary clears outdated coordinates; coordinate updates reuse
+the existing columns. No database migration is introduced by these form rules.
+
+### Manual field type selection
+
+The user must select Home garden, Open field, Greenhouse or Orchard explicitly.
+Creation starts without a selected type; editing keeps the saved type. Location
+and boundary selection never classify the field or change its type. The form
+makes no external land-use lookup. Name, location, type and area remain required.
+
+### Address lookup recovery
+
+After confirming a point, the form resolves its street/city on the backend and
+keeps coordinates separate. If Nominatim fails or supplies no usable address,
+reverse lookup tries Photon using OpenStreetMap data, within a 1 km search
+radius. It preserves the original point, not the provider's nearest feature.
+Both providers share the existing process-local limiter and bounded cache.
+`GEOCODING_FALLBACK_URL` defaults to `https://photon.komoot.io`; setting it to an
+empty string disables the fallback. Public services can throttle requests and
+have no availability guarantee. Coordinates are sent to the fallback only when
+the primary lookup fails; no lookup is triggered merely by switching form pages.
+The public Photon server's [usage conditions and API](https://github.com/komoot/photon)
+apply. Configure a suitable hosted instance for larger deployments.
+
+If both lookups fail, the form keeps the coordinates, displays an error and offers
+Retry address lookup. Manual address entry remains available. Backend warnings
+record failure type/status without logging addresses or exact coordinates. These
+changes improve the reproducible provider-failure path; they do not establish the
+cause of a remote deployment's failed request without its runtime logs.
+
 The create-field form accepts a manually entered address or a point selected on
 an OpenStreetMap map. Leaflet 1.9.4 renders the map. No map API key, Google Cloud
 project, account, payment method or billing configuration is required.
@@ -58,6 +109,17 @@ area totals and converts the selected input/display unit. Confirming a modal
 updates the form; creating the field or pressing Accept in editing sends it to
 the API. Cancelling a modal discards its candidate changes. Buildings are marked
 manually as excluded zones; there is no automatic building detection.
+
+**Shared query cache.** Editing observes field details, assigned crops and crop
+choices through `useCachedQuery`, with keys in `services/queryKeys.ts` and query
+definitions in `services/queries.ts`. Paginated crop choices reuse complete
+preloaded catalogue slices and retain the original freshness timestamp. Cache
+invalidation refreshes those pages after a catalogue mutation. Field, crop and
+device mutations retain the existing `services/cacheInvalidation.ts` calls.
+The editable draft is initialized once per field; background refreshes update
+related devices/crops without replacing unsaved names, addresses, units or rings.
+A failed background refresh retains the last available data; authentication
+errors still redirect to sign-in.
 
 **Backend.** FastAPI/Pydantic validates the request coordinates and ring limits.
 `field_geometry_service.py` independently checks polygon validity, calculates
@@ -317,11 +379,20 @@ Before release, validate web and physical Android/iOS devices separately:
 
 ## Current rollout status
 
-Implementation is on `feature/151-field-geolocation`. The branch was updated with
-`dev` through commit `af4d719` before preparing the pull request. Conflicts were
-resolved while preserving online-device counts and the latest authentication
-fixtures. Another person must approve the pull request before merging. Opening
-the pull request does not deploy the feature or apply the database migration.
+The original geometry implementation was delivered in PR #174. The subsequent
+form navigation, required-data rules and manual type selection are on
+`feature/field-form-steps`, initially based on dev commit `a9b071b` and integrated
+with `origin/dev` at `421e90d`, including the shared query cache. Another person
+must approve the pull request before merging. These form changes introduce no
+new database columns or migration.
+
+The updated dev dependency tree includes
+`@react-native-async-storage/async-storage` 2.2.0. Run `npm ci` after updating the
+branch. Existing Android binaries must be rebuilt with `npx expo run:android`, or
+replaced with a new APK that includes the native dependency. A JavaScript refresh
+cannot add a native module to an old binary. Local verification has no Java
+runtime or Android SDK, so native compilation and cold-start verification remain
+pending. A successful Android JavaScript export is not an APK build.
 
 The local preview uses SQLite with the geometry columns present. Local field
 labels were shortened to street/city. The production PostgreSQL migration is
@@ -375,3 +446,23 @@ refer to an older commit. A passive scan of the published application does not
 validate this feature before deployment. Physical Android/iOS checks and applying
 and verifying the migration on the target PostgreSQL database remain release
 checks.
+
+## Form rules validation: 2026-11-18
+
+- Complete frontend suite after integrating dev: 1,106 tests passed in 122 suites.
+- Complete backend suite: 909 tests passed.
+- Required-step validation, manual address/map alternatives, missing/invalid
+  areas, unknown soil, database persistence, coordinate clearing and server-side
+  rejection of incomplete writes are covered.
+- Cache integration tests cover prefetched data reuse, stale/invalidated crop
+  catalogue pages, mutation invalidation, offline refresh and preservation of an
+  unsaved name, area and display unit during background updates.
+- TypeScript, lint and feature formatting were checked separately.
+  Existing ESLint and Python dependency warnings remain.
+- Expo web export and Android JavaScript/Hermes export passed. Native Android
+  compilation, installation and cold start remain unverified locally because
+  Java and the Android SDK are unavailable.
+
+The stricter write contract should be released with the updated forms. Legacy
+records remain readable, but incomplete edits and older clients sending missing
+required data will receive a validation error rather than silently storing defaults.
