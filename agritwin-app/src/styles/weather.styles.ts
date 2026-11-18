@@ -1,6 +1,13 @@
 import { StyleSheet } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+import type { ScreenSize } from '@/hooks/use-screen-size';
+
+export const HOURS_SHOWN: Record<ScreenSize, number> = {
+  mobile: 5,
+  tablet: 5,
+  desktop: 8,
+};
 
 const BOX_RADIUS = 12;
 const CREAM = '#F4F2EB';
@@ -126,6 +133,24 @@ export const weatherStyles = StyleSheet.create({
 
   hoursRow: {
     marginTop: 12,
+  },
+
+  pageCardWide: {
+    padding: 24,
+  },
+
+  columnTitle: {
+    marginTop: 16,
+  },
+
+  metric: {
+    flexGrow: 1,
+  },
+
+  metricInRow: {
+    width: 'auto',
+    flexBasis: 0,
+    minWidth: 110,
   },
 
   nowLabel: {

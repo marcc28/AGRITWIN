@@ -26,7 +26,6 @@ export const styles = StyleSheet.create({
 
   container: {
     width: '100%',
-    maxWidth: 360,
   },
 
   title: {
@@ -66,6 +65,14 @@ export const styles = StyleSheet.create({
     height: 90,
   },
 
+  previewWide: {
+    height: 320,
+  },
+
+  previewCompact: {
+    height: 160,
+  },
+
   compactCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -98,6 +105,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+  },
+
+  placeholderWide: {
+    height: 320,
   },
 
   placeholderText: {
