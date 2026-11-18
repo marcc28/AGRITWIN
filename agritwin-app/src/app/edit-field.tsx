@@ -122,7 +122,7 @@ export default function EditFieldScreen() {
       try {
         // A copy loaded a few seconds ago (e.g. by the garden screen that
         // was just open) is reused at once instead of asking the server.
-        const field = await queryClient.fetchQuery({
+        const field = await queryClient.query({
           ...fieldDetailQuery(fieldId),
           staleTime: FORM_DATA_MAX_AGE_MS,
         });
@@ -150,7 +150,7 @@ export default function EditFieldScreen() {
         }
 
         const [fieldCrops, crops] = await Promise.all([
-          queryClient.fetchQuery({
+          queryClient.query({
             ...fieldCropsQuery(fieldId),
             staleTime: FORM_DATA_MAX_AGE_MS,
           }),
@@ -227,7 +227,7 @@ export default function EditFieldScreen() {
       let active = true;
       // Always asked to the server: a board may have just been added.
       queryClient
-        .fetchQuery({ ...fieldDetailQuery(fieldId), staleTime: 0 })
+        .query({ ...fieldDetailQuery(fieldId), staleTime: 0 })
         .then((field) => {
           if (active) {
             setExistingDevices(field.devices);

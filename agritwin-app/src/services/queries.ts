@@ -184,7 +184,7 @@ export function findProductInMarketPages(
 // PREFETCH
 // --------------------------------------------------
 
-type AnyQuery = Parameters<typeof queryClient.prefetchQuery>[0];
+type AnyQuery = Parameters<typeof queryClient.query>[0];
 
 function fieldQueries(fieldId: number, lang: string) {
   return [
@@ -207,7 +207,10 @@ function appQueries() {
 
 function prefetch(options: AnyQuery) {
   // Errors are ignored here: the screen shows them when it is opened.
-  return queryClient.prefetchQuery(options).catch(() => undefined);
+  return queryClient.query(options).then(
+    () => undefined,
+    () => undefined,
+  );
 }
 
 /**

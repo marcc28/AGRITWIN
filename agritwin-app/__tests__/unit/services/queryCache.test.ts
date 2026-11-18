@@ -88,7 +88,7 @@ describe('query cache', () => {
     it('asks the crops of a garden with the session token', async () => {
       (getFieldCrops as jest.Mock).mockResolvedValue([]);
 
-      await queryClient.fetchQuery(fieldCropsQuery(4));
+      await queryClient.query(fieldCropsQuery(4));
 
       expect(getFieldCrops).toHaveBeenCalledWith(0, 100, 'token-1', {
         field_id: 4,
@@ -98,7 +98,7 @@ describe('query cache', () => {
     it('fails without a session instead of calling the server', async () => {
       mockedGetAuth.mockResolvedValue(null);
 
-      await expect(queryClient.fetchQuery(cropCatalogQuery())).rejects.toThrow(
+      await expect(queryClient.query(cropCatalogQuery())).rejects.toThrow(
         NOT_AUTHENTICATED,
       );
       expect(getCrops).not.toHaveBeenCalled();
@@ -109,11 +109,9 @@ describe('query cache', () => {
       (getMarketProductsCount as jest.Mock).mockResolvedValue(12);
 
       await expect(
-        queryClient.fetchQuery(recommendationsQuery('5')),
+        queryClient.query(recommendationsQuery('5')),
       ).resolves.toEqual(['r']);
-      await expect(queryClient.fetchQuery(marketCountQuery())).resolves.toBe(
-        12,
-      );
+      await expect(queryClient.query(marketCountQuery())).resolves.toBe(12);
       expect(getFieldRecommendations).toHaveBeenCalledWith('5', 'token-1');
     });
 
@@ -272,7 +270,7 @@ describe('query cache', () => {
         .find({ queryKey: queryKeys.me });
 
       await queryClient
-        .fetchQuery({
+        .query({
           queryKey: ['broken'],
           queryFn: () => Promise.reject(new Error('x')),
         })
@@ -284,7 +282,7 @@ describe('query cache', () => {
     });
 
     it('does not save queries that opt out', async () => {
-      await queryClient.fetchQuery({
+      await queryClient.query({
         queryKey: ['search'],
         queryFn: () => Promise.resolve([]),
         meta: { persist: false },

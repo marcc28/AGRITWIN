@@ -14,12 +14,12 @@ export function prefetchImages(urls: (string | null | undefined)[]): void {
       continue;
     }
     requested.add(url);
-    try {
-      void Promise.resolve(Image.prefetch(url)).catch(() => {
+    // Started inside a promise chain so a synchronous throw of
+    // Image.prefetch also ends in the catch below.
+    Promise.resolve()
+      .then(() => Image.prefetch(url))
+      .catch(() => {
         requested.delete(url);
       });
-    } catch {
-      requested.delete(url);
-    }
   }
 }

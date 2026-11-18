@@ -22,12 +22,13 @@ const LANGUAGES = [
 export function AccountCard() {
   const { t, i18n } = useTranslation();
   // The profile from the cache is shown at once, then refreshed below.
-  const [me, setLocalMe] = useState<Me | null>(
+  const [me, setMe] = useState<Me | null>(
     () => queryClient.getQueryData<Me>(queryKeys.me) ?? null,
   );
 
-  function setMe(next: Me) {
-    setLocalMe(next);
+  /** Shows the profile and keeps the shared cache equal to it. */
+  function rememberMe(next: Me) {
+    setMe(next);
     queryClient.setQueryData(queryKeys.me, next);
   }
   const [errorMessage, setErrorMessage] = useState('');
@@ -40,11 +41,11 @@ export function AccountCard() {
   useEffect(() => {
     async function loadMe() {
       try {
-        const data = await queryClient.fetchQuery({
+        const data = await queryClient.query({
           ...meQuery(),
           staleTime: 0,
         });
-        setMe(data);
+        rememberMe(data);
         if (data.language && data.language !== i18n.language) {
           await i18n.changeLanguage(data.language);
         }
@@ -77,7 +78,7 @@ export function AccountCard() {
         notifications_enabled: next.notifications_enabled,
         weather_alerts_enabled: next.weather_alerts_enabled,
       });
-      setMe(saved);
+      rememberMe(saved);
       return true;
     } catch (error) {
       setErrorMessage(
@@ -92,7 +93,7 @@ export function AccountCard() {
   }
 
   async function savePrefs(next: Me) {
-    setMe(next);
+    rememberMe(next);
     await saveProfile(next);
   }
 
@@ -144,7 +145,7 @@ export function AccountCard() {
     try {
       setSaving(true);
       setErrorMessage('');
-      setMe(await updateMyEmail(next));
+      rememberMe(await updateMyEmail(next));
       setEditingEmail(false);
     } catch (error) {
       setErrorMessage(

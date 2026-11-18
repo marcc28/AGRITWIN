@@ -40,7 +40,7 @@ export const persistOptions: Omit<PersistQueryClientOptions, 'queryClient'> = {
  * Used on logout and when another user logs in.
  */
 export async function clearQueryCache(): Promise<void> {
-  queryClient.cancelQueries().catch(() => undefined);
+  void queryClient.cancelQueries().catch(() => undefined);
   queryClient.clear();
   try {
     await queryPersister.removeClient();

@@ -62,6 +62,83 @@ function ProductUnavailable({
   );
 }
 
+const formatQuantity = (value: number) =>
+  Number(value.toFixed(2)).toString().replace('.', ',');
+
+/** Starting quantity: 1, or less when there is less than 1 unit in stock. */
+function initialQuantityFor(product: MarketProduct) {
+  const stock = Number(product.left_units);
+  return Number.isFinite(stock)
+    ? Math.min(1, Math.max(0.01, Math.floor(stock * 100) / 100))
+    : 1;
+}
+
+function loadError(
+  productId: string | undefined,
+  hasProduct: boolean,
+  failure: unknown,
+): string | null {
+  if (!productId) {
+    return 'No s’ha indicat cap producte.';
+  }
+  if (hasProduct || !failure) {
+    return null;
+  }
+  return failure instanceof Error
+    ? failure.message
+    : 'No s’ha pogut carregar el producte.';
+}
+
+/**
+ * Product of the page and the quantity chosen. Shown at once from the cache
+ * (or from the market list it was opened from); price and stock are always
+ * refreshed from the server.
+ */
+function useMarketProduct(productId: string | undefined) {
+  const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState('1');
+
+  const result = useCachedQuery({
+    ...marketProductQuery(String(productId)),
+    enabled: !!productId,
+    placeholderData: () =>
+      productId ? findProductInMarketPages(String(productId)) : undefined,
+  });
+
+  const product: MarketProduct | null = result.data ?? null;
+  const loading = !!productId && result.data === undefined && !result.isError;
+  const error = loadError(productId, !!product, result.error);
+
+  useEffect(() => {
+    setQuantity(1);
+    setQuantityInput('1');
+  }, [productId]);
+
+  // The starting quantity depends on the stock: it is set once per product,
+  // from the server's answer (not from the copy shown while it loads).
+  const quantityFor = useRef<string | null>(null);
+  useEffect(() => {
+    const key = String(productId);
+    if (!product || result.isPlaceholderData || quantityFor.current === key) {
+      return;
+    }
+    quantityFor.current = key;
+    const initialQuantity = initialQuantityFor(product);
+    setQuantity(initialQuantity);
+    setQuantityInput(formatQuantity(initialQuantity));
+  }, [product, productId, result.isPlaceholderData]);
+
+  return {
+    product,
+    loading,
+    error,
+    quantity,
+    setQuantity,
+    quantityInput,
+    setQuantityInput,
+  };
+}
+
 export default function ProductScreen() {
   const router = useRouter();
 
@@ -75,56 +152,15 @@ export default function ProductScreen() {
 
   const productId = Array.isArray(id) ? id[0] : id;
 
-  const [quantity, setQuantity] = useState(1);
-  const [quantityInput, setQuantityInput] = useState('1');
-  const formatQuantity = (value: number) =>
-    Number(value.toFixed(2)).toString().replace('.', ',');
-
-  // Shown at once from the cache (or from the market list it was opened
-  // from); price and stock are always refreshed from the server.
-  const result = useCachedQuery({
-    ...marketProductQuery(String(productId)),
-    enabled: !!productId,
-    placeholderData: () =>
-      productId ? findProductInMarketPages(String(productId)) : undefined,
-  });
-
-  const product: MarketProduct | null = result.data ?? null;
-  const loading = !!productId && result.data === undefined && !result.isError;
-  let error: string | null = null;
-  if (!productId) {
-    error = 'No s’ha indicat cap producte.';
-  } else if (!product && result.isError) {
-    error =
-      result.error instanceof Error
-        ? result.error.message
-        : 'No s’ha pogut carregar el producte.';
-  }
-
-  useEffect(() => {
-    setQuantity(1);
-    setQuantityInput('1');
-  }, [productId]);
-
-  // The starting quantity depends on the stock: it is set once per product,
-  // from the server's answer (not from the copy shown while it loads).
-  const quantityFor = useRef<string | null>(null);
-  useEffect(() => {
-    if (!product || result.isPlaceholderData) {
-      return;
-    }
-    const key = String(productId);
-    if (quantityFor.current === key) {
-      return;
-    }
-    quantityFor.current = key;
-    const stock = Number(product.left_units);
-    const initialQuantity = Number.isFinite(stock)
-      ? Math.min(1, Math.max(0.01, Math.floor(stock * 100) / 100))
-      : 1;
-    setQuantity(initialQuantity);
-    setQuantityInput(formatQuantity(initialQuantity));
-  }, [product, productId, result.isPlaceholderData]);
+  const {
+    product,
+    loading,
+    error,
+    quantity,
+    setQuantity,
+    quantityInput,
+    setQuantityInput,
+  } = useMarketProduct(productId);
 
   const handleBack = () => router.back();
 

@@ -504,7 +504,7 @@ export default function MarketScreen() {
 
   const [products, setProducts] = useState<Product[]>(cached.products);
   const [allProducts, setAllProducts] = useState<Product[]>(cached.products);
-  const [currentItems, setCurrentItems] = useState<Product[]>(cached.products);
+  const [currentItems, setCurrentItems] = useState<Product[]>([]);
   const [productsTotal, setProductsTotal] = useState(cached.total);
 
   const [loading, setLoading] = useState(!cached.ready);
@@ -524,8 +524,8 @@ export default function MarketScreen() {
     async function loadData() {
       try {
         const [productsCount, productsData] = await Promise.all([
-          queryClient.fetchQuery(marketCountQuery()),
-          queryClient.fetchQuery(marketPageQuery(0, PAGE_SIZE)),
+          queryClient.query(marketCountQuery()),
+          queryClient.query(marketPageQuery(0, PAGE_SIZE)),
         ]);
 
         if (active) {
@@ -624,7 +624,7 @@ export default function MarketScreen() {
     try {
       const offset = allProducts.length;
 
-      const batch = (await queryClient.fetchQuery(
+      const batch = (await queryClient.query(
         marketPageQuery(offset, PAGE_SIZE),
       )) as Product[];
       prefetchImages(batch.map(productImage));
