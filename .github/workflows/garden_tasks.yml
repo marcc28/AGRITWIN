@@ -1,0 +1,36 @@
+name: Garden tasks
+
+# Every day at 08:00 and 20:00 (Spain) the backend asks Gemini to review the
+# tasks of every garden. It can also be started by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8,20 * * *"
+      timezone: "Europe/Madrid"
+
+# Never run two reviews at the same time.
+concurrency:
+  group: garden-tasks
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Ask the backend to review the gardens
+        env:
+          TASKS_CRON_SECRET: ${{ secrets.TASKS_CRON_SECRET }}
+        run: |
+          if [ -z "$TASKS_CRON_SECRET" ]; then
+            echo "The secret TASKS_CRON_SECRET is not set in this repository"
+            exit 1
+          fi
+          # Render may be asleep: give it time to wake up. The backend answers
+          # when every garden is reviewed, so the wait can be long.
+          curl --fail-with-body --silent --show-error \
+            --max-time 900 --retry 2 --retry-delay 30 --retry-all-errors \
+            --request POST \
+            --header "x-cron-secret: ${TASKS_CRON_SECRET}" \
+            "https://backend-web-ur8z.onrender.com/api/v1/tasks/generate"
+          echo
