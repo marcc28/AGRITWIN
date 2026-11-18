@@ -1,7 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
-
-import { getField, type FieldDevice } from '@/services/api';
+import { type FieldDevice } from '@/services/api';
+import { fieldDetailQuery } from '@/services/queries';
+import {
+  useCachedQuery,
+  useRefreshOnFocus,
+  useRetry,
+} from './use-cached-query';
 
 export type FieldDevicesState =
   | { status: 'loading' }
@@ -9,53 +12,30 @@ export type FieldDevicesState =
   | { status: 'ready'; devices: FieldDevice[] };
 
 /**
- * Devices of a field with their status. It loads again every time the screen
- * comes back into focus, so a board added or removed elsewhere shows up.
+ * Devices of a field with their status. The last known list is shown at
+ * once from the cache and it loads again every time the screen comes back
+ * into focus, so a board added or removed elsewhere shows up.
  */
 export function useFieldDevices(fieldId: number | null) {
-  const [state, setState] = useState<FieldDevicesState>({ status: 'loading' });
-  const loadedFor = useRef<number | null>(null);
+  const query = useCachedQuery({
+    ...fieldDetailQuery(fieldId ?? -1),
+    enabled: fieldId != null,
+  });
 
-  const load = useCallback(
-    (isActive: () => boolean) => {
-      if (fieldId == null) {
-        return;
-      }
-      if (loadedFor.current !== fieldId) {
-        setState({ status: 'loading' });
-      }
-      getField(fieldId)
-        .then((field) => {
-          if (isActive()) {
-            loadedFor.current = fieldId;
-            setState({ status: 'ready', devices: field.devices });
-          }
-        })
-        .catch(() => {
-          // Keep what is already on screen if only a refresh fails.
-          if (isActive() && loadedFor.current !== fieldId) {
-            setState({ status: 'error' });
-          }
-        });
-    },
-    [fieldId],
-  );
+  useRefreshOnFocus(query, fieldId != null, 'always');
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      load(() => active);
-      return () => {
-        active = false;
-      };
-    }, [load]),
-  );
+  const { data, isError, isFetching, refetch } = query;
+  const { retrying, retry: retryQuery } = useRetry(refetch);
 
-  const retry = useCallback(() => {
-    setState({ status: 'loading' });
-    loadedFor.current = null;
-    load(() => true);
-  }, [load]);
+  let state: FieldDevicesState;
+  if (data) {
+    // Keep what is already on screen if only a refresh fails.
+    state = { status: 'ready', devices: data.devices };
+  } else if (isError && !isFetching && !retrying) {
+    state = { status: 'error' };
+  } else {
+    state = { status: 'loading' };
+  }
 
-  return { state, retry };
+  return { state, retry: retryQuery };
 }

@@ -16,6 +16,7 @@ import {
 } from '@/services/deviceHealth';
 import {
   getCurrentField,
+  peekCurrentField,
   setCurrentField,
   subscribeCurrentField,
 } from '@/services/currentField';
@@ -36,9 +37,15 @@ export default function AppHeader({ showProfile = false }: AppHeaderProps) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
-  const [fields, setFields] = useState<Field[]>([]);
-  const [currentId, setCurrentId] = useState<number | null>(null);
-  const [gardenName, setGardenName] = useState('');
+  // Start from what is already in memory so the header does not flicker
+  // empty every time a screen with it is opened.
+  const [fields, setFields] = useState<Field[]>(() => getGardenPicker().fields);
+  const [currentId, setCurrentId] = useState<number | null>(
+    () => peekCurrentField()?.id ?? null,
+  );
+  const [gardenName, setGardenName] = useState(
+    () => peekCurrentField()?.name ?? '',
+  );
   const [pickerOpen, setPickerOpen] = useState(false);
   const [username, setUsername] = useState('');
 

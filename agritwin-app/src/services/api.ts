@@ -1,4 +1,5 @@
 import { authenticatedFetch, getAuth } from './auth';
+import { forgetField, invalidateField } from './cacheInvalidation';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -455,6 +456,7 @@ export async function updateDevice(
     );
   }
 
+  invalidateField(fieldId);
   return data as FieldDevice;
 }
 
@@ -482,6 +484,8 @@ export async function deleteDevice(
     const data = await response.json();
     throw new Error(errorDetail(data, 'No s’ha pogut treure el dispositiu'));
   }
+
+  invalidateField(fieldId);
 }
 
 export async function createDevice(
@@ -512,6 +516,7 @@ export async function createDevice(
     throw new Error(errorDetail(data, 'No s’ha pogut enllaçar el dispositiu'));
   }
 
+  invalidateField(fieldId);
   return data as FieldDevice;
 }
 
@@ -543,6 +548,7 @@ export async function createField(payload: FieldPayload): Promise<Field> {
     throw new Error(errorDetail(data, 'No s’ha pogut crear el camp'));
   }
 
+  invalidateField();
   return data as Field;
 }
 
@@ -602,6 +608,7 @@ export async function updateField(
     throw new Error(data.detail || 'No s’ha pogut guardar el camp');
   }
 
+  invalidateField(id);
   return data as Field;
 }
 
@@ -623,6 +630,8 @@ export async function deleteField(id: number): Promise<void> {
     const data = await response.json();
     throw new Error(errorDetail(data, 'No s’ha pogut esborrar el camp'));
   }
+
+  forgetField(id);
 }
 
 // --------------------------------------------------

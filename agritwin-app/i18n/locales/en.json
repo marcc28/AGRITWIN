@@ -682,5 +682,8 @@
     "back": "Back",
     "eyebrow": "MY GARDENS",
     "allGardens": "See all gardens"
+  },
+  "startup": {
+    "loading": "Getting your data ready…"
   }
 }

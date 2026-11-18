@@ -7,18 +7,31 @@ import AppHeader from '@/components/AppHeader';
 import GardenPickerOverlay from '@/components/GardenPickerOverlay';
 
 import { useEffect } from 'react';
+import { useCurrentField } from '@/hooks/use-current-field';
 import { loadGardenPickerFields } from '@/services/gardenPicker';
+import { prefetchAppData, prefetchFieldData } from '@/services/queries';
 
 export default function Layout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const field = useCurrentField();
+  const fieldId = field?.id ?? null;
 
   useEffect(() => {
     loadGardenPickerFields().catch((error) => {
       console.error('Error carregant els camps:', error);
     });
+    // Market, profile and crop types ready before their tab is opened.
+    prefetchAppData();
   }, []);
+
+  useEffect(() => {
+    // Everything the tabs show for the selected garden, loaded in advance.
+    if (fieldId != null) {
+      prefetchFieldData(fieldId, i18n.language);
+    }
+  }, [fieldId, i18n.language]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
