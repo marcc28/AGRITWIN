@@ -83,6 +83,12 @@ export const fieldCropsQuery = (fieldId: number) =>
     staleTime: 30 * SECOND,
   });
 
+/**
+ * How often the sensor screen asks again while the user keeps it open.
+ * Ten seconds for the presentation. Change this value to slow it down.
+ */
+export const SENSOR_REFRESH_MS = 10 * SECOND;
+
 /** Sensor readings: always revalidated so values on screen are current. */
 export const dashboardQuery = (fieldId: number) =>
   queryOptions({
