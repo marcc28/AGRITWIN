@@ -118,3 +118,41 @@ async def test_another_owner_cannot_read_or_replace_geometry(field_flow):
     assert (await client.put(path, json=PAYLOAD)).status_code == 404
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(id=OWNER.hex)
     assert (await client.get(path)).json()["excluded_zones"] == [HOLE]
+
+
+async def test_a_drawn_boundary_supplies_required_coordinates_and_area(field_flow):
+    client, _, _ = field_flow
+    response = await client.post(
+        "/api/v1/fields", json={**PAYLOAD, "location": None, "size_m2": None}
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["size_m2"] == 11869.78
+    assert response.json()["lat"] is not None
+
+
+async def test_coordinate_only_location_and_manual_address_edits_round_trip(field_flow):
+    client, _, _ = field_flow
+    body = {
+        **PAYLOAD,
+        "location": None,
+        "boundary": None,
+        "excluded_zones": [],
+        "size_m2": 25,
+        "lat": 41.6,
+        "lon": 0.6,
+        "soil_type": None,
+    }
+    response = await client.post("/api/v1/fields", json=body)
+    assert response.status_code == 200, response.text
+    saved = response.json()
+    assert saved["location"] is None
+    assert saved["lat"] == 41.6
+    assert saved["soil_type"] is None
+    response = await client.put(
+        f"/api/v1/fields/{saved['id']}",
+        json={**body, "location": "Lleida", "lat": None, "lon": None},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["lat"] is None
+    assert response.json()["lon"] is None
+    assert response.json()["location"] == "Lleida"

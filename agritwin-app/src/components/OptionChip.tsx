@@ -27,6 +27,8 @@ export function OptionChip({
 }>) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected, disabled: Boolean(disabled) }}
       onPress={onPress}
       disabled={disabled}
       style={[style, selected ? selectedStyle : null]}

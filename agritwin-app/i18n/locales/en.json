@@ -364,7 +364,8 @@
         "noBoundary": "No boundary has been drawn yet. A numeric area alone cannot locate the field outline.",
         "areaSummary": "Total: {{gross}} {{unit}} · Excluded: {{excluded}} {{unit}} · Usable: {{net}} {{unit}}"
       },
-      "netAreaLabel": "Usable area"
+      "netAreaLabel": "Usable area",
+      "retryAddress": "Retry address lookup"
     },
     "manageCrops": {
       "title": "Crops",
@@ -387,6 +388,41 @@
         "harvestBeforePlanting": "Expected harvest cannot be before planting",
         "addFailed": "Error adding the crop",
         "removeFailed": "Error removing the crop"
+      }
+    },
+    "fieldForm": {
+      "next": "Next",
+      "previous": "Previous",
+      "progress": "Step {{current}} of {{total}}",
+      "steps": {
+        "details": {
+          "title": "Make it yours",
+          "hint": "Choose a photo and a name for your growing space."
+        },
+        "location": {
+          "title": "Where is your field?",
+          "hint": "Enter an address or select its location on the map."
+        },
+        "characteristics": {
+          "title": "Your field, in detail",
+          "hint": "Set the field type, soil and area. Draw its boundary if needed."
+        },
+        "crops": {
+          "title": "What are you growing?",
+          "hint": "View and manage the crops already linked to your field."
+        },
+        "devices": {
+          "title": "Connected to your field",
+          "hint": "Manage your devices and finish when you are ready."
+        }
+      },
+      "requiredHint": "Name, location, field type and area are required. Soil, crops and devices are optional.",
+      "unknownSoil": "I don’t know",
+      "errors": {
+        "nameTooLong": "Use 100 characters or fewer.",
+        "locationRequired": "Enter an address or select a point on the map.",
+        "typeRequired": "Select a field type.",
+        "areaRequired": "Enter the area or draw the field boundary."
       }
     }
   },

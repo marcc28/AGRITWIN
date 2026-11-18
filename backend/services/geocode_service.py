@@ -1,4 +1,5 @@
 import json
+import logging
 import math
 import os
 from collections import OrderedDict
@@ -9,14 +10,16 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 NOMINATIM_URL = os.getenv("GEOCODING_BASE_URL", "https://nominatim.openstreetmap.org").rstrip("/")
+FALLBACK_URL = os.getenv("GEOCODING_FALLBACK_URL", "https://photon.komoot.io").rstrip("/")
+logger = logging.getLogger(__name__)
 _cache: OrderedDict[str, tuple[float, object]] = OrderedDict()
 _lock = Lock()
 _last_request = 0.0
 
 
-def _request(path: str, params: dict):
+def _request(path: str, params: dict, base_url: str | None = None):
     global _last_request
-    url = f"{NOMINATIM_URL}/{path}?{urlencode(params)}"
+    url = f"{base_url or NOMINATIM_URL}/{path}?{urlencode(params)}"
     with _lock:
         cached = _cache.get(url)
         if cached and cached[0] > monotonic():
@@ -35,7 +38,13 @@ def _request(path: str, params: dict):
         try:
             with urlopen(request, timeout=8) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-        except (URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError):
+        except (URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError) as error:
+            # Do not log query strings or precise coordinates.
+            logger.warning(
+                "Geocoding request failed: %s (%s)",
+                type(error).__name__,
+                getattr(error, "code", "upstream"),
+            )
             payload = None
         _cache[url] = (monotonic() + (3600 if payload else 30), payload)
         if len(_cache) > 512:
@@ -102,6 +111,40 @@ def reverse_location(lat: float, lon: float) -> dict | None:
     )
     result = _result(payload)
     if not result or not result["label"]:
-        return None
+        label = _fallback_address(lat, lon)
+        if not label:
+            return None
+        return {"lat": lat, "lon": lon, "label": label}
     # Retain the selected coordinates; the provider returns a nearby mapped object.
     return {"lat": lat, "lon": lon, "label": result["label"]}
+
+
+def _fallback_address(lat: float, lon: float) -> str | None:
+    if not FALLBACK_URL:
+        return None
+    payload = _request(
+        "reverse",
+        {"lat": round(lat, 6), "lon": round(lon, 6), "limit": 1, "radius": 1},
+        base_url=FALLBACK_URL,
+    )
+    if not isinstance(payload, dict) or not isinstance(payload.get("features"), list):
+        return None
+    for feature in payload["features"]:
+        properties = feature.get("properties") if isinstance(feature, dict) else None
+        if not isinstance(properties, dict):
+            continue
+        street = properties.get("street")
+        city = properties.get("city")
+        if not street and properties.get("osm_key") == "highway":
+            street = properties.get("name")
+        if (
+            not city
+            and properties.get("osm_key") == "place"
+            and properties.get("osm_value")
+            in {"city", "town", "village", "hamlet", "municipality", "locality"}
+        ):
+            city = properties.get("name")
+        label = _address_label({"address": {"road": street, "city": city}})
+        if label:
+            return label
+    return None

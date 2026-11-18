@@ -364,7 +364,8 @@
         "noBoundary": "Non è stato ancora disegnato un confine. Una superficie numerica non descrive la forma del campo.",
         "areaSummary": "Totale: {{gross}} {{unit}} · Esclusa: {{excluded}} {{unit}} · Utile: {{net}} {{unit}}"
       },
-      "netAreaLabel": "Superficie utile"
+      "netAreaLabel": "Superficie utile",
+      "retryAddress": "Riprova la ricerca dell’indirizzo"
     },
     "manageCrops": {
       "title": "Colture",
@@ -387,6 +388,41 @@
         "harvestBeforePlanting": "La raccolta prevista non può precedere la piantagione",
         "addFailed": "Errore durante l’aggiunta della coltura",
         "removeFailed": "Errore durante la rimozione della coltura"
+      }
+    },
+    "fieldForm": {
+      "next": "Avanti",
+      "previous": "Indietro",
+      "progress": "Passaggio {{current}} di {{total}}",
+      "steps": {
+        "details": {
+          "title": "Personalizza il tuo campo",
+          "hint": "Scegli una foto e un nome per il tuo spazio di coltivazione."
+        },
+        "location": {
+          "title": "Dove si trova il campo?",
+          "hint": "Inserisci un indirizzo o seleziona la posizione sulla mappa."
+        },
+        "characteristics": {
+          "title": "Il tuo campo, in dettaglio",
+          "hint": "Indica il tipo, il terreno e la superficie. Disegna il perimetro se necessario."
+        },
+        "crops": {
+          "title": "Cosa stai coltivando?",
+          "hint": "Consulta e gestisci le colture associate al tuo campo."
+        },
+        "devices": {
+          "title": "Connettiti al tuo campo",
+          "hint": "Gestisci i dispositivi e termina quando sei pronto."
+        }
+      },
+      "requiredHint": "Nome, posizione, tipo e superficie sono obbligatori. Terreno, colture e dispositivi sono facoltativi.",
+      "unknownSoil": "Non lo so",
+      "errors": {
+        "nameTooLong": "Usa un massimo di 100 caratteri.",
+        "locationRequired": "Inserisci un indirizzo o seleziona un punto sulla mappa.",
+        "typeRequired": "Seleziona un tipo di campo.",
+        "areaRequired": "Inserisci la superficie o disegna il perimetro del campo."
       }
     }
   },

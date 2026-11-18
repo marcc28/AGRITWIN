@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import {
-  Platform,
-  Text,
-  View,
-  Pressable,
-  TextInput,
-  ScrollView,
-} from 'react-native';
+import { useMemo, useState } from 'react';
+import { Platform, Text, View, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { defaultPhotoIndex } from '../constants/gardenPhotos';
-import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
 import {
   createField,
   geocodeLocation,
   reverseGeocodeLocation,
   isAuthError,
 } from '../services/api';
+import { FieldFormError } from '../components/FieldFormError';
+import {
+  fieldFormErrors,
+  firstFieldError,
+  FIELD_FORM_STEPS,
+  type FieldFormKey,
+} from '../utils/fieldFormValidation';
+import { FieldFormSteps } from '../components/FieldFormSteps';
 import { FieldOptionChips } from '../components/FieldOptionChips';
 import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
 import { OptionChip } from '../components/OptionChip';
@@ -28,7 +28,6 @@ import type { MapPoint } from '../components/field-location/types';
 import {
   AREA_UNITS,
   BORDER_FIELD_TYPES,
-  MAX_FIELD_AREA,
   parseArea,
   displayArea,
   fieldGeometry,
@@ -80,10 +79,11 @@ export default function CreateFieldScreen() {
     goToSettings();
   }
 
+  const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  const [fieldType, setFieldType] = useState<string>(FIELD_TYPES[0]);
-  const [soilType, setSoilType] = useState<string>(SOIL_TYPES[0]);
+  const [fieldType, setFieldType] = useState<string>('');
+  const [soilType, setSoilType] = useState<string>('');
   const [sizeValue, setSizeValue] = useState('');
   const [areaUnit, setAreaUnit] = useState<AreaUnit>('m2');
   const [boundary, setBoundary] = useState<MapPoint[] | null>(null);
@@ -96,6 +96,46 @@ export default function CreateFieldScreen() {
   const [locating, setLocating] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [validationThrough, setValidationThrough] = useState(-1);
+  const areaM2 = useMemo(() => {
+    try {
+      return boundary
+        ? fieldGeometry(boundary, excludedZones).areaM2
+        : parseArea(sizeValue, areaUnit);
+    } catch {
+      return Number.NaN;
+    }
+  }, [boundary, excludedZones, sizeValue, areaUnit]);
+  const requiredErrors = fieldFormErrors({
+    name,
+    location,
+    point: lat != null && lon != null ? { lat, lon } : null,
+    fieldType,
+    areaM2,
+  });
+  function visibleError(key: FieldFormKey) {
+    return FIELD_FORM_STEPS[key] <= validationThrough
+      ? requiredErrors[key]
+      : undefined;
+  }
+  function validateRequired(through: number) {
+    setValidationThrough((current) => Math.max(current, Math.min(through, 2)));
+    const failed = firstFieldError(requiredErrors, through);
+    if (failed) {
+      setStep(FIELD_FORM_STEPS[failed]);
+      setErrorMessage('');
+      return false;
+    }
+    return true;
+  }
+  function navigateStep(target: number) {
+    if (target <= step || validateRequired(step)) {
+      setStep(target);
+      setErrorMessage('');
+    }
+  }
+
+  const canRetryAddress = lat != null && lon != null && !location.trim();
   async function handleLocate() {
     const query = location.trim();
     if (!query) {
@@ -164,24 +204,9 @@ export default function CreateFieldScreen() {
 
   // With `addDevices` the field is saved and then the "Add device" flow opens.
   async function handleCreate(addDevices = false) {
+    if (!validateRequired(2)) return;
     const trimmedName = name.trim();
-    if (!trimmedName) {
-      setErrorMessage(t('settings.errors.nameRequired'));
-      return;
-    }
-
-    const parsedSize = boundary
-      ? fieldGeometry(boundary, excludedZones).areaM2
-      : parseArea(sizeValue, areaUnit);
-    if (
-      parsedSize != null &&
-      (!Number.isFinite(parsedSize) ||
-        parsedSize < 0.01 ||
-        parsedSize > MAX_FIELD_AREA)
-    ) {
-      setErrorMessage(t('settings.errors.sizeNumber'));
-      return;
-    }
+    const parsedSize = areaM2;
 
     try {
       setSaving(true);
@@ -237,88 +262,111 @@ export default function CreateFieldScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+      <FieldFormSteps
+        steps={['details', 'location', 'characteristics', 'devices'].map(
+          (key) => ({
+            title: t(`settings.fieldForm.steps.${key}.title`),
+            hint: t(`settings.fieldForm.steps.${key}.hint`),
+          }),
+        )}
+        currentStep={step}
+        onStepChange={navigateStep}
+        disabled={saving || locating}
+        header={
+          <>
+            <View style={styles.topRow}>
+              <Text style={styles.brand}>AGRITWIN</Text>
+              <View style={styles.topChip}>
+                <Text style={styles.topChipText} numberOfLines={1}>
+                  {name.trim() || t('settings.createField.firstGarden')}
+                </Text>
+              </View>
+            </View>
+
+            {fromProfile ? (
+              <Pressable
+                style={styles.backRow}
+                onPress={goBack}
+                disabled={saving}
+              >
+                <Ionicons
+                  name="chevron-back"
+                  size={18}
+                  color={Colors.light.textSecondary}
+                />
+                <Text style={styles.backText}>
+                  {fromSelection
+                    ? t('fieldSelection.back')
+                    : t('settings.myGardens')}
+                </Text>
+              </Pressable>
+            ) : null}
+
+            <Text style={styles.eyebrow}>
+              {t('settings.createField.eyebrow')}
+            </Text>
+            <Text style={styles.title}>
+              {fromProfile
+                ? t('settings.createField.titleNext')
+                : t('settings.createField.titleFirst')}
+            </Text>
+            <Text style={styles.subtitle}>
+              {t('settings.createField.subtitle')}
+            </Text>
+          </>
+        }
+        error={errorMessage}
+        finalAction={
+          <Pressable
+            accessibilityRole="button"
+            style={[styles.primaryButton, { marginTop: 0, minHeight: 50 }]}
+            onPress={() => void handleCreate()}
+            disabled={saving || locating}
+          >
+            <Text style={styles.primaryText}>
+              {createSubmitLabel(saving, fromProfile, t)}
+            </Text>
+          </Pressable>
+        }
       >
-        <View style={styles.container}>
-          <View style={styles.topRow}>
-            <Text style={styles.brand}>AGRITWIN</Text>
-            <View style={styles.topChip}>
-              <Text style={styles.topChipText} numberOfLines={1}>
-                {name.trim() || t('settings.createField.firstGarden')}
-              </Text>
-            </View>
-          </View>
-
-          {fromProfile ? (
-            <Pressable
-              style={styles.backRow}
-              onPress={goBack}
-              disabled={saving}
-            >
-              <Ionicons
-                name="chevron-back"
-                size={18}
-                color={Colors.light.textSecondary}
-              />
-              <Text style={styles.backText}>
-                {fromSelection
-                  ? t('fieldSelection.back')
-                  : t('settings.myGardens')}
-              </Text>
-            </Pressable>
-          ) : null}
-
-          <Text style={styles.eyebrow}>
-            {t('settings.createField.eyebrow')}
-          </Text>
-          <Text style={styles.title}>
-            {fromProfile
-              ? t('settings.createField.titleNext')
-              : t('settings.createField.titleFirst')}
-          </Text>
-          <Text style={styles.subtitle}>
-            {t('settings.createField.subtitle')}
-          </Text>
-
-          {errorMessage ? (
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          ) : null}
-
-          <GardenPhotoPicker
-            photoIndex={photoIndex}
-            onChange={setPhotoIndex}
-            disabled={saving}
-            photoStyle={styles.hero}
-          />
-
+        {step === 0 ? (
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>
-                {t('settings.createField.details')}
-              </Text>
-              <Text style={styles.cardHint}>
-                {t('settings.createField.required')}
-              </Text>
-            </View>
+            <GardenPhotoPicker
+              photoIndex={photoIndex}
+              onChange={setPhotoIndex}
+              disabled={saving}
+              photoStyle={styles.hero}
+            />
 
             <Text style={styles.label}>{t('settings.name')}</Text>
             <TextInput
               style={styles.input}
               value={name}
+              accessibilityLabel={t('settings.name')}
+              accessibilityHint={
+                visibleError('name') ? t(visibleError('name')!) : undefined
+              }
               onChangeText={setName}
               editable={!saving}
               placeholder={t('settings.createField.namePlaceholder')}
               placeholderTextColor={Colors.light.textMuted}
             />
-
+            <FieldFormError error={visibleError('name')} />
+          </View>
+        ) : null}
+        {step === 1 ? (
+          <View style={styles.card}>
             <Text style={styles.label}>{t('settings.location')}</Text>
             <View style={styles.locationRow}>
               <TextInput
                 style={[styles.input, styles.locationInput]}
                 value={location}
+                accessibilityLabel={t('settings.location')}
+                accessibilityHint={
+                  visibleError('location')
+                    ? t(visibleError('location')!)
+                    : undefined
+                }
                 onChangeText={(value) => {
                   setLocation(value);
                   if (!boundary) {
@@ -344,14 +392,18 @@ export default function CreateFieldScreen() {
                 />
               </Pressable>
             </View>
+            <FieldFormError error={visibleError('location')} />
             <Pressable
               accessibilityRole="button"
-              onPress={() => void handleLocate()}
+              onPress={() => {
+                if (canRetryAddress) void applyMapLocation({ lat, lon });
+                else void handleLocate();
+              }}
               disabled={saving || locating}
             >
               <Text style={styles.lookupText}>
                 {t(
-                  `settings.createField.${locating ? 'lookingUp' : 'lookupAddress'}`,
+                  `settings.createField.${locating ? 'lookingUp' : canRetryAddress ? 'retryAddress' : 'lookupAddress'}`,
                 )}
               </Text>
             </Pressable>
@@ -367,9 +419,13 @@ export default function CreateFieldScreen() {
                 {t('settings.createField.coordsHint')}
               </Text>
             )}
-
+          </View>
+        ) : null}
+        {step === 2 ? (
+          <View style={styles.card}>
             <FieldOptionChips
               fieldType={fieldType}
+              typeHelp={<FieldFormError error={visibleError('fieldType')} />}
               soilType={soilType}
               onFieldType={(value) => {
                 setFieldType(value);
@@ -430,7 +486,6 @@ export default function CreateFieldScreen() {
                 </View>
               ) : null}
             </FieldOptionChips>
-
             <Text style={styles.label}>
               {t(
                 `settings.createField.${excludedZones.length ? 'netAreaLabel' : 'areaLabel'}`,
@@ -448,6 +503,7 @@ export default function CreateFieldScreen() {
               placeholder={t('settings.createField.sizePlaceholder')}
               placeholderTextColor={Colors.light.textMuted}
             />
+            <FieldFormError error={visibleError('area')} />
             <Text style={styles.coordsHint}>
               {t(
                 `settings.createField.${boundary ? 'automaticArea' : 'areaUnitLabel'}`,
@@ -469,42 +525,34 @@ export default function CreateFieldScreen() {
               ))}
             </View>
           </View>
-
-          <View style={styles.card}>
-            <FieldDevicesSection
-              plain
-              hint={
-                Platform.OS === 'web'
-                  ? t('addDevice.web.hint')
-                  : t('addDevice.section.createHint')
-              }
-              addLabel={t('addDevice.section.saveAndAdd')}
-              disabled={saving || locating}
-              onAdd={
-                Platform.OS === 'web'
-                  ? undefined
-                  : () => void handleCreate(true)
-              }
-            />
-          </View>
-
-          <Pressable
-            style={styles.primaryButton}
-            onPress={() => void handleCreate()}
-            disabled={saving || locating}
-          >
-            <Text style={styles.primaryText}>
-              {createSubmitLabel(saving, fromProfile, t)}
-            </Text>
-          </Pressable>
-
-          {fromProfile ? null : (
-            <Pressable onPress={() => void logoutToLogin()} disabled={saving}>
-              <Text style={styles.logoutLink}>{t('settings.logout')}</Text>
-            </Pressable>
-          )}
-        </View>
-      </ScrollView>
+        ) : null}
+        {step === 3 ? (
+          <>
+            <View style={styles.card}>
+              <FieldDevicesSection
+                plain
+                hint={
+                  Platform.OS === 'web'
+                    ? t('addDevice.web.hint')
+                    : t('addDevice.section.createHint')
+                }
+                addLabel={t('addDevice.section.saveAndAdd')}
+                disabled={saving || locating}
+                onAdd={
+                  Platform.OS === 'web'
+                    ? undefined
+                    : () => void handleCreate(true)
+                }
+              />
+            </View>
+            {fromProfile ? null : (
+              <Pressable onPress={() => void logoutToLogin()} disabled={saving}>
+                <Text style={styles.logoutLink}>{t('settings.logout')}</Text>
+              </Pressable>
+            )}
+          </>
+        ) : null}
+      </FieldFormSteps>
       {mapOpen ? (
         <FieldLocationPicker
           initialPoint={lat != null && lon != null ? { lat, lon } : null}

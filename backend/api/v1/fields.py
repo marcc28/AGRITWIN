@@ -51,6 +51,8 @@ class FieldUpdate(BaseModel):
     excluded_zones: list[list[BoundaryPoint]] = PydanticField(default_factory=list, max_length=20)
     name: str
     location: str | None = PydanticField(default=None, max_length=255)
+    lat: float | None = None
+    lon: float | None = None
     field_type: str | None = None
     soil_type: str | None = None
     size_m2: float | None = None
@@ -122,7 +124,20 @@ def _clean_name(name: str) -> str:
     cleaned = name.strip()
     if not cleaned:
         raise ValueError("Name is required")
+    if len(cleaned) > 100:
+        raise ValueError("Name must contain at most 100 characters")
     return cleaned
+
+
+def _require_field_data(body, size_m2, lat, lon):
+    if not (body.location and body.location.strip()) and lat is None:
+        raise ValueError("An address or map coordinates are required")
+    if body.field_type not in {*BORDER_FIELD_TYPES, "home_garden"}:
+        raise ValueError("A valid field type is required")
+    if size_m2 is None:
+        raise ValueError("Area is required")
+    if body.soil_type not in {None, "loam", "clay", "sandy"}:
+        raise ValueError("Invalid soil type")
 
 
 def _clean_coords(
@@ -228,6 +243,7 @@ async def create_field(
                 raise ValueError("This field type does not support a boundary")
             boundary = [point.model_dump() for point in body.boundary]
             size_m2, lat, lon = field_geometry(boundary, excluded_zones)
+        _require_field_data(body, size_m2, lat, lon)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
@@ -243,7 +259,9 @@ async def create_field(
             {
                 "user_id": current_user.id,
                 "name": name,
-                "location": body.location,
+                "location": body.location.strip()
+                if body.location and body.location.strip()
+                else None,
                 "lat": lat,
                 "lon": lon,
                 "field_type": body.field_type,
@@ -493,6 +511,7 @@ async def update_field(
 ) -> FieldRead:
     try:
         name = _clean_name(body.name)
+        lat, lon = _clean_coords(body.lat, body.lon)
         size_m2 = _clean_size(body.size_m2)
         geometry_sent = "boundary" in body.model_fields_set
         excluded_zones = [[p.model_dump() for p in zone] for zone in body.excluded_zones]
@@ -502,7 +521,7 @@ async def update_field(
         coordinates = ""
         parameters = {
             "name": name,
-            "location": body.location,
+            "location": body.location.strip() if body.location and body.location.strip() else None,
             "field_type": body.field_type,
             "soil_type": body.soil_type,
             "size_m2": size_m2,
@@ -515,6 +534,10 @@ async def update_field(
             size_m2, lat, lon = field_geometry(boundary, excluded_zones)
             parameters.update(size_m2=size_m2, lat=lat, lon=lon)
             coordinates = "lat = :lat, lon = :lon, "
+        elif "lat" in body.model_fields_set or "lon" in body.model_fields_set:
+            coordinates = "lat = :lat, lon = :lon, "
+            parameters.update(lat=lat, lon=lon)
+        _require_field_data(body, size_m2, lat, lon)
         if geometry_sent:
             geometry = "boundary = :boundary, excluded_zones = :excluded_zones, "
             parameters.update(

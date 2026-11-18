@@ -4,6 +4,57 @@ Related work: #151, #152, #153, #154 and #155.
 
 ## Scope
 
+### Form navigation
+
+Creation is presented in four pages: photo/name, location, characteristics/area,
+and devices. Editing uses the same pages plus crop management before devices.
+Previous and Next stay in the bottom navigation bar. Form values remain in the
+parent screen state when switching pages. Next validates the required data for
+the completed steps; Previous always allows returning. Navigation does not save
+the field. The `addCrop=true` edit link opens the crop page.
+
+Name (1–100 characters), location, a valid field type and usable area are required
+both on creation and editing. Location accepts either a manual address or a valid
+coordinate pair; an unavailable reverse-geocoded address does not invalidate a
+selected point. Area must be 0.01–99,999,999.99 m² and may come from a drawing.
+Errors appear next to the relevant controls without discarding any values.
+Create/Accept repeats all required checks, and the API enforces the same rules.
+The type starts unselected. Soil starts as unknown and is stored as null unless
+chosen explicitly. Photo, soil, crops and devices are optional.
+
+Existing incomplete records can still be read; editing them requires completing
+the missing required values. Writes now require the complete required data,
+including coordinates for a location without an address. Editing a manual
+address without a boundary clears outdated coordinates; coordinate updates reuse
+the existing columns. No database migration is introduced by these form rules.
+
+### Manual field type selection
+
+The user must select Home garden, Open field, Greenhouse or Orchard explicitly.
+Creation starts without a selected type; editing keeps the saved type. Location
+and boundary selection never classify the field or change its type. The form
+makes no external land-use lookup. Name, location, type and area remain required.
+
+### Address lookup recovery
+
+After confirming a point, the form resolves its street/city on the backend and
+keeps coordinates separate. If Nominatim fails or supplies no usable address,
+reverse lookup tries Photon using OpenStreetMap data, within a 1 km search
+radius. It preserves the original point, not the provider's nearest feature.
+Both providers share the existing process-local limiter and bounded cache.
+`GEOCODING_FALLBACK_URL` defaults to `https://photon.komoot.io`; setting it to an
+empty string disables the fallback. Public services can throttle requests and
+have no availability guarantee. Coordinates are sent to the fallback only when
+the primary lookup fails; no lookup is triggered merely by switching form pages.
+The public Photon server's [usage conditions and API](https://github.com/komoot/photon)
+apply. Configure a suitable hosted instance for larger deployments.
+
+If both lookups fail, the form keeps the coordinates, displays an error and offers
+Retry address lookup. Manual address entry remains available. Backend warnings
+record failure type/status without logging addresses or exact coordinates. These
+changes improve the reproducible provider-failure path; they do not establish the
+cause of a remote deployment's failed request without its runtime logs.
+
 The create-field form accepts a manually entered address or a point selected on
 an OpenStreetMap map. Leaflet 1.9.4 renders the map. No map API key, Google Cloud
 project, account, payment method or billing configuration is required.
@@ -317,11 +368,11 @@ Before release, validate web and physical Android/iOS devices separately:
 
 ## Current rollout status
 
-Implementation is on `feature/151-field-geolocation`. The branch was updated with
-`dev` through commit `af4d719` before preparing the pull request. Conflicts were
-resolved while preserving online-device counts and the latest authentication
-fixtures. Another person must approve the pull request before merging. Opening
-the pull request does not deploy the feature or apply the database migration.
+The original geometry implementation was delivered in PR #174. The subsequent
+form navigation, required-data rules and manual type selection are local changes
+on `feature/field-form-steps`, created from dev commit `a9b071b`. They have not yet
+been committed or pushed. Another person must approve any new pull request before
+merging. These form changes introduce no new database columns or migration.
 
 The local preview uses SQLite with the geometry columns present. Local field
 labels were shortened to street/city. The production PostgreSQL migration is
@@ -375,3 +426,17 @@ refer to an older commit. A passive scan of the published application does not
 validate this feature before deployment. Physical Android/iOS checks and applying
 and verifying the migration on the target PostgreSQL database remain release
 checks.
+
+## Form rules validation: 2026-11-18
+
+- Complete frontend suite: 1,044 tests passed in 113 suites.
+- Complete backend suite: 909 tests passed.
+- Required-step validation, manual address/map alternatives, missing/invalid
+  areas, unknown soil, database persistence, coordinate clearing and server-side
+  rejection of incomplete writes are covered.
+- TypeScript, lint and feature formatting were checked separately.
+  Existing ESLint and Python dependency warnings remain.
+
+The stricter write contract should be released with the updated forms. Legacy
+records remain readable, but incomplete edits and older clients sending missing
+required data will receive a validation error rather than silently storing defaults.

@@ -180,13 +180,25 @@ const fieldCrop: FieldCrop = {
 };
 
 async function waitForCropForm() {
-  await waitFor(
-    () => {
-      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
-      expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy();
-    },
-    { timeout: 10000 },
+  await waitFor(() =>
+    expect(screen.queryByText('settings.loading')).toBeNull(),
   );
+  goToStep(3);
+  expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy();
+}
+
+function goToStep(target: number) {
+  const current =
+    screen.getByRole('progressbar').props.accessibilityValue.now - 1;
+  for (let index = current; index < target; index++)
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
+  for (let index = current; index > target; index--)
+    fireEvent.press(screen.getByText('settings.fieldForm.previous'));
+}
+
+function onStep<T>(step: number, find: () => T): T {
+  goToStep(step);
+  return find();
 }
 
 describe('EditFieldScreen', () => {
@@ -240,14 +252,17 @@ describe('EditFieldScreen', () => {
 
   it('loads the garden to edit', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
 
     await waitFor(
       () => {
-        expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+        expect(onStep(0, () => screen.getByDisplayValue('Hort'))).toBeTruthy();
       },
       { timeout: 10000 },
     );
-    expect(screen.getByDisplayValue('Andorra')).toBeTruthy();
+    expect(onStep(1, () => screen.getByDisplayValue('Andorra'))).toBeTruthy();
   });
 
   it('saves the garden', async () => {
@@ -262,11 +277,17 @@ describe('EditFieldScreen', () => {
     });
 
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+      expect(onStep(0, () => screen.getByDisplayValue('Hort'))).toBeTruthy();
     });
-    fireEvent.changeText(screen.getByDisplayValue('Hort'), 'Hort nou');
-    fireEvent.press(screen.getByText('settings.accept'));
+    fireEvent.changeText(
+      onStep(0, () => screen.getByDisplayValue('Hort')),
+      'Hort nou',
+    );
+    fireEvent.press(onStep(4, () => screen.getByText('settings.accept')));
 
     await waitFor(() => {
       expect(mockedUpdateField).toHaveBeenCalledWith(
@@ -282,20 +303,29 @@ describe('EditFieldScreen', () => {
 
   it('rejects an empty name', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+      expect(onStep(0, () => screen.getByDisplayValue('Hort'))).toBeTruthy();
     });
-    fireEvent.changeText(screen.getByDisplayValue('Hort'), '  ');
-    fireEvent.press(screen.getByText('settings.accept'));
+    fireEvent.changeText(
+      onStep(0, () => screen.getByDisplayValue('Hort')),
+      '  ',
+    );
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
     expect(screen.getByText('settings.errors.nameRequired')).toBeTruthy();
   });
 
   it('goes back without saving', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('settings.cancel')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('settings.cancel'))).toBeTruthy();
     });
-    fireEvent.press(screen.getAllByText('settings.cancel')[0]);
+    fireEvent.press(screen.getByText('settings.cancel'));
     expect(router.replace).toHaveBeenCalledWith({
       pathname: '/field-detail',
       params: { id: '3' },
@@ -308,32 +338,46 @@ describe('EditFieldScreen', () => {
       from: 'field-selection',
     });
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('settings.cancel')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('settings.cancel'))).toBeTruthy();
     });
-    fireEvent.press(screen.getAllByText('settings.cancel')[0]);
+    fireEvent.press(onStep(4, () => screen.getAllByText('settings.cancel'))[0]);
     expect(router.replace).toHaveBeenCalledWith('/field-selection');
   });
 
   it('rejects an invalid size', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByDisplayValue('40')).toBeTruthy();
+      expect(onStep(2, () => screen.getByDisplayValue('40'))).toBeTruthy();
     });
-    fireEvent.changeText(screen.getByDisplayValue('40'), 'nope');
-    fireEvent.press(screen.getByText('settings.accept'));
+    fireEvent.changeText(
+      onStep(2, () => screen.getByDisplayValue('40')),
+      'nope',
+    );
+    fireEvent.press(screen.getByText('settings.fieldForm.next'));
     expect(screen.getByText('settings.errors.sizeNumber')).toBeTruthy();
   });
 
   it('shows the linked devices and a button to add another one', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('dev-1')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('dev-1'))).toBeTruthy();
     });
-    expect(screen.getByText('ESP32 · SN-1')).toBeTruthy();
-    expect(screen.getByText('addDevice.section.title')).toBeTruthy();
+    expect(onStep(4, () => screen.getByText('ESP32 · SN-1'))).toBeTruthy();
+    expect(
+      onStep(4, () => screen.getByText('addDevice.section.title')),
+    ).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId('field-devices-add'));
+    fireEvent.press(onStep(4, () => screen.getByTestId('field-devices-add')));
 
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/add-device',
@@ -343,8 +387,11 @@ describe('EditFieldScreen', () => {
 
   it('shows the new boards when the user comes back from adding one', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('dev-1')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('dev-1'))).toBeTruthy();
     });
     mockedGetField.mockResolvedValue({
       id: 3,
@@ -365,15 +412,18 @@ describe('EditFieldScreen', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('dev-2')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('dev-2'))).toBeTruthy();
     });
-    expect(screen.getByText('dev-1')).toBeTruthy();
+    expect(onStep(4, () => screen.getByText('dev-1'))).toBeTruthy();
   });
 
   it('keeps the list when it cannot be refreshed', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('dev-1')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('dev-1'))).toBeTruthy();
     });
     mockedGetField.mockRejectedValue(new Error('offline'));
 
@@ -381,14 +431,17 @@ describe('EditFieldScreen', () => {
       mockFocusCallback?.();
     });
 
-    expect(screen.getByText('dev-1')).toBeTruthy();
+    expect(onStep(4, () => screen.getByText('dev-1'))).toBeTruthy();
     expect(screen.queryByText('offline')).toBeNull();
   });
 
   it('does not refresh the list on the first focus', async () => {
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('dev-1')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('dev-1'))).toBeTruthy();
     });
 
     expect(mockedGetField).toHaveBeenCalledTimes(1);
@@ -406,10 +459,13 @@ describe('EditFieldScreen', () => {
     });
 
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('dev-1')).toBeTruthy();
+      expect(onStep(4, () => screen.getByText('dev-1'))).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.accept'));
+    fireEvent.press(onStep(4, () => screen.getByText('settings.accept')));
 
     await waitFor(() => {
       expect(mockedUpdateField).toHaveBeenCalled();
@@ -430,22 +486,34 @@ describe('EditFieldScreen', () => {
       devices: [],
     });
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+      expect(onStep(0, () => screen.getByDisplayValue('Hort'))).toBeTruthy();
     });
-    expect(screen.getByTestId('field-devices-section-empty')).toBeTruthy();
-    expect(screen.getByTestId('field-devices-add')).toBeTruthy();
+    expect(
+      onStep(4, () => screen.getByTestId('field-devices-section-empty')),
+    ).toBeTruthy();
+    expect(
+      onStep(4, () => screen.getByTestId('field-devices-add')),
+    ).toBeTruthy();
   });
 
   it('removes an existing Arduino', async () => {
     mockedDeleteDevice.mockResolvedValue(undefined);
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
       expect(
-        screen.getByText('settings.createField.removeDevice'),
+        onStep(4, () => screen.getByText('settings.createField.removeDevice')),
       ).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.createField.removeDevice'));
+    fireEvent.press(
+      onStep(4, () => screen.getByText('settings.createField.removeDevice')),
+    );
     await waitFor(() => {
       expect(mockedDeleteDevice).toHaveBeenCalledWith(3, 'dev-1');
     });
@@ -454,12 +522,17 @@ describe('EditFieldScreen', () => {
   it('shows when removing a device fails', async () => {
     mockedDeleteDevice.mockRejectedValue(new Error('cannot delete'));
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
       expect(
-        screen.getByText('settings.createField.removeDevice'),
+        onStep(4, () => screen.getByText('settings.createField.removeDevice')),
       ).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.createField.removeDevice'));
+    fireEvent.press(
+      onStep(4, () => screen.getByText('settings.createField.removeDevice')),
+    );
     await waitFor(() => {
       expect(screen.getByText('cannot delete')).toBeTruthy();
     });
@@ -468,10 +541,13 @@ describe('EditFieldScreen', () => {
   it('shows when saving fails', async () => {
     mockedUpdateField.mockRejectedValue(new Error('cannot save'));
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+      expect(onStep(0, () => screen.getByDisplayValue('Hort'))).toBeTruthy();
     });
-    fireEvent.press(screen.getByText('settings.accept'));
+    fireEvent.press(onStep(4, () => screen.getByText('settings.accept')));
     await waitFor(() => {
       expect(screen.getByText('cannot save')).toBeTruthy();
     });
@@ -482,10 +558,15 @@ describe('EditFieldScreen', () => {
     mockedDeleteFieldCrop.mockResolvedValue(undefined);
 
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
-      expect(screen.getByText('Ceba')).toBeTruthy();
+      expect(onStep(3, () => screen.getByText('Ceba'))).toBeTruthy();
     });
-    fireEvent.press(screen.getByLabelText('settings.manageCrops.removeCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByLabelText('settings.manageCrops.removeCrop')),
+    );
 
     await waitFor(() => {
       expect(mockedDeleteFieldCrop).toHaveBeenCalledWith(21, 'token');
@@ -500,15 +581,24 @@ describe('EditFieldScreen', () => {
       crop_name: 'Tomàquet',
     });
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitForCropForm();
 
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
-    fireEvent.press(screen.getByText('Tomàquet'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
+    fireEvent.press(onStep(3, () => screen.getByText('Tomàquet')));
     fireEvent.changeText(
-      screen.getByPlaceholderText('settings.manageCrops.notesPlaceholder'),
+      onStep(3, () =>
+        screen.getByPlaceholderText('settings.manageCrops.notesPlaceholder'),
+      ),
       '  Reg setmanal  ',
     );
-    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.saveCrop')),
+    );
 
     await waitFor(() => {
       expect(mockedCreateFieldCrop).toHaveBeenCalledWith(
@@ -528,26 +618,37 @@ describe('EditFieldScreen', () => {
   it('rejects invalid crop dates and harvests before planting', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitForCropForm();
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
-    fireEvent.press(screen.getByText('Tomàquet'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
+    fireEvent.press(onStep(3, () => screen.getByText('Tomàquet')));
     const dates = screen.getAllByLabelText('settings.manageCrops.selectDate');
     fireEvent.changeText(dates[0], '2026-02-30');
-    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.saveCrop')),
+    );
     expect(
       screen.getByText('settings.manageCrops.errors.invalidDate'),
     ).toBeTruthy();
     expect(mockedCreateFieldCrop).not.toHaveBeenCalled();
 
     fireEvent.changeText(dates[0], '30/02/2026');
-    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.saveCrop')),
+    );
     expect(
       screen.getByText('settings.manageCrops.errors.invalidDate'),
     ).toBeTruthy();
 
     fireEvent.changeText(dates[0], '2026-04-01');
     fireEvent.changeText(dates[1], '2026-03-31');
-    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.saveCrop')),
+    );
     expect(
       screen.getByText('settings.manageCrops.errors.harvestBeforePlanting'),
     ).toBeTruthy();
@@ -574,8 +675,13 @@ describe('EditFieldScreen', () => {
         },
       ]);
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitForCropForm();
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
     const cropList = screen.getByTestId('crop-selector-list');
     await act(async () => cropList.props.onEndReached());
     await waitFor(() =>
@@ -597,8 +703,13 @@ describe('EditFieldScreen', () => {
       )
       .mockRejectedValueOnce(new Error('catalog unavailable'));
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitForCropForm();
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
     const cropList = screen.getByTestId('crop-selector-list');
     await act(async () => cropList.props.onEndReached());
     await waitFor(() =>
@@ -609,6 +720,9 @@ describe('EditFieldScreen', () => {
   it('shows auth failures while loading and adding a crop', async () => {
     mockedGetAuth.mockResolvedValueOnce(null);
     const loadingView = render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() =>
       expect(
         screen.getByText('No s’ha trobat el token d’autenticació'),
@@ -634,11 +748,18 @@ describe('EditFieldScreen', () => {
     ]);
     mockedGetFieldCrops.mockResolvedValue([]);
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitForCropForm();
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
-    fireEvent.press(screen.getByText('Tomàquet'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
+    fireEvent.press(onStep(3, () => screen.getByText('Tomàquet')));
     mockedGetAuth.mockResolvedValueOnce(null);
-    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.saveCrop')),
+    );
     await waitFor(() =>
       expect(screen.getByText('No s’ha trobat el token')).toBeTruthy(),
     );
@@ -652,16 +773,25 @@ describe('EditFieldScreen', () => {
       new Error('remove unavailable'),
     );
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitForCropForm();
 
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
-    fireEvent.press(screen.getByText('Tomàquet'));
-    fireEvent.press(screen.getByText('settings.manageCrops.saveCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
+    fireEvent.press(onStep(3, () => screen.getByText('Tomàquet')));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.saveCrop')),
+    );
     await waitFor(() =>
       expect(screen.getByText('add unavailable')).toBeTruthy(),
     );
 
-    fireEvent.press(screen.getByLabelText('settings.manageCrops.removeCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByLabelText('settings.manageCrops.removeCrop')),
+    );
     await waitFor(() =>
       expect(screen.getByText('remove unavailable')).toBeTruthy(),
     );
@@ -670,26 +800,46 @@ describe('EditFieldScreen', () => {
   it('closes the crop picker and form, then reopens crop entry', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitForCropForm();
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
     const modal = screen.getByTestId('crop-selector-modal');
     await act(async () => modal.props.onRequestClose());
 
-    fireEvent.press(screen.getByText('settings.manageCrops.selectCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    );
     fireEvent.press(screen.getByLabelText('settings.cancel'));
-    expect(screen.getByText('settings.manageCrops.selectCrop')).toBeTruthy();
+    expect(
+      onStep(3, () => screen.getByText('settings.manageCrops.selectCrop')),
+    ).toBeTruthy();
 
-    fireEvent.press(screen.getAllByText('settings.cancel')[0]);
-    fireEvent.press(screen.getByText('settings.manageCrops.addCrop'));
-    expect(screen.getByText('settings.manageCrops.cropType')).toBeTruthy();
+    fireEvent.press(screen.getByText('settings.cancel'));
+    fireEvent.press(
+      onStep(3, () => screen.getByText('settings.manageCrops.addCrop')),
+    );
+    expect(
+      onStep(3, () => screen.getByText('settings.manageCrops.cropType')),
+    ).toBeTruthy();
   });
 
   it('shows a missing-auth error when removing a crop', async () => {
     mockedGetFieldCrops.mockResolvedValue([fieldCrop]);
     render(<EditFieldScreen />);
-    await waitFor(() => expect(screen.getByText('Ceba')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+    await waitFor(() =>
+      expect(onStep(3, () => screen.getByText('Ceba'))).toBeTruthy(),
+    );
     mockedGetAuth.mockResolvedValueOnce(null);
-    fireEvent.press(screen.getByLabelText('settings.manageCrops.removeCrop'));
+    fireEvent.press(
+      onStep(3, () => screen.getByLabelText('settings.manageCrops.removeCrop')),
+    );
     await waitFor(() =>
       expect(screen.getByText('No s’ha trobat el token')).toBeTruthy(),
     );
@@ -700,6 +850,9 @@ describe('EditFieldScreen', () => {
     mockIsAuthError.mockReturnValue(true);
     mockedGetField.mockRejectedValue(new Error('Not authenticated'));
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
       expect(clearAuth).toHaveBeenCalled();
       expect(router.replace).toHaveBeenCalledWith('/auth/login');
@@ -709,6 +862,9 @@ describe('EditFieldScreen', () => {
   it('shows an invalid id', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: 'nope' });
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
       expect(screen.getByText('settings.errors.invalidId')).toBeTruthy();
     });
@@ -723,6 +879,9 @@ describe('EditFieldScreen', () => {
   it('shows when the garden cannot be loaded', async () => {
     mockedGetField.mockRejectedValue(new Error('missing garden'));
     render(<EditFieldScreen />);
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
     await waitFor(() => {
       expect(screen.getByText('missing garden')).toBeTruthy();
     });
@@ -771,10 +930,18 @@ describe('Editing field geometry', () => {
   });
   it('changes display units and saves the canonical area with its boundary', async () => {
     render(<EditFieldScreen />);
-    await screen.findByDisplayValue('12364.35');
-    fireEvent.press(screen.getByText('settings.createField.areaUnits.ha'));
-    expect(screen.getByDisplayValue('1.236435')).toHaveProp('editable', false);
-    fireEvent.press(screen.getByText('settings.accept'));
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+    await onStep(2, () => screen.findByDisplayValue('12364.35'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.areaUnits.ha')),
+    );
+    expect(onStep(2, () => screen.getByDisplayValue('1.236435'))).toHaveProp(
+      'editable',
+      false,
+    );
+    fireEvent.press(onStep(4, () => screen.getByText('settings.accept')));
     await waitFor(() =>
       expect(mockedUpdateField).toHaveBeenCalledWith(
         3,
@@ -788,8 +955,13 @@ describe('Editing field geometry', () => {
   });
   it('displays the stored boundary without permitting edits in view mode', async () => {
     render(<EditFieldScreen />);
-    await screen.findByDisplayValue('Field');
-    fireEvent.press(screen.getByText('settings.createField.boundary.view'));
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+    await onStep(0, () => screen.findByDisplayValue('Field'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.boundary.view')),
+    );
     expect(screen.getByText('Stored boundary: 4')).toBeTruthy();
     expect(
       screen.queryByText('settings.createField.boundary.confirm'),
@@ -799,23 +971,35 @@ describe('Editing field geometry', () => {
   });
   it('can cancel a redraw without losing the saved area', async () => {
     render(<EditFieldScreen />);
-    await screen.findByDisplayValue('12364.35');
-    fireEvent.press(screen.getByText('settings.createField.boundary.redraw'));
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+    await onStep(2, () => screen.findByDisplayValue('12364.35'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.boundary.redraw')),
+    );
     expect(screen.getByText('Stored boundary: 0')).toBeTruthy();
     fireEvent.press(screen.getByText('Add boundary corner'));
     fireEvent.press(screen.getByText('settings.createField.map.cancel'));
-    expect(screen.getByDisplayValue('12364.35')).toBeTruthy();
+    expect(onStep(2, () => screen.getByDisplayValue('12364.35'))).toBeTruthy();
     expect(mockedUpdateField).not.toHaveBeenCalled();
   });
   it('removes the old area when switching to manual entry', async () => {
     render(<EditFieldScreen />);
-    await screen.findByDisplayValue('12364.35');
-    fireEvent.press(screen.getByText('settings.createField.boundary.remove'));
-    const area = screen.getByLabelText('settings.createField.areaLabel');
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+    await onStep(2, () => screen.findByDisplayValue('12364.35'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.boundary.remove')),
+    );
+    const area = onStep(2, () =>
+      screen.getByLabelText('settings.createField.areaLabel'),
+    );
     expect(area).toHaveProp('editable', true);
     expect(area).toHaveProp('value', '');
     fireEvent.changeText(area, '25');
-    fireEvent.press(screen.getByText('settings.accept'));
+    fireEvent.press(onStep(4, () => screen.getByText('settings.accept')));
     await waitFor(() =>
       expect(mockedUpdateField).toHaveBeenCalledWith(
         3,
@@ -829,13 +1013,22 @@ describe('Editing field geometry', () => {
   });
   it('replaces a boundary only after a valid outline is confirmed', async () => {
     render(<EditFieldScreen />);
-    await screen.findByDisplayValue('12364.35');
-    fireEvent.press(screen.getByText('settings.createField.boundary.redraw'));
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+    await onStep(2, () => screen.findByDisplayValue('12364.35'));
+    fireEvent.press(
+      onStep(2, () => screen.getByText('settings.createField.boundary.redraw')),
+    );
     for (let i = 0; i < 3; i++)
       fireEvent.press(screen.getByText('Add boundary corner'));
     fireEvent.press(screen.getByText('settings.createField.boundary.confirm'));
-    await screen.findByDisplayValue('Updated field address');
-    fireEvent.press(screen.getByText('settings.accept'));
+    await waitFor(() =>
+      expect(
+        onStep(1, () => screen.getByDisplayValue('Updated field address')),
+      ).toBeTruthy(),
+    );
+    fireEvent.press(onStep(4, () => screen.getByText('settings.accept')));
     await waitFor(() =>
       expect(mockedUpdateField).toHaveBeenCalledWith(
         3,

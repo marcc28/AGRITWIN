@@ -364,7 +364,8 @@
         "noBoundary": "Todavía no hay un contorno dibujado. Una superficie numérica no permite conocer la forma del campo.",
         "areaSummary": "Total: {{gross}} {{unit}} · Excluida: {{excluded}} {{unit}} · Útil: {{net}} {{unit}}"
       },
-      "netAreaLabel": "Superficie útil"
+      "netAreaLabel": "Superficie útil",
+      "retryAddress": "Reintentar búsqueda de dirección"
     },
     "manageCrops": {
       "title": "Cultivos",
@@ -387,6 +388,41 @@
         "harvestBeforePlanting": "La cosecha prevista no puede ser anterior a la plantación",
         "addFailed": "Error al añadir el cultivo",
         "removeFailed": "Error al eliminar el cultivo"
+      }
+    },
+    "fieldForm": {
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "progress": "Paso {{current}} de {{total}}",
+      "steps": {
+        "details": {
+          "title": "Hazlo tuyo",
+          "hint": "Escoge una foto y un nombre para tu espacio de cultivo."
+        },
+        "location": {
+          "title": "¿Dónde está tu campo?",
+          "hint": "Introduce una dirección o selecciona su ubicación en el mapa."
+        },
+        "characteristics": {
+          "title": "Tu campo, al detalle",
+          "hint": "Indica el tipo, el suelo y la superficie. Dibuja su contorno si lo necesitas."
+        },
+        "crops": {
+          "title": "¿Qué estás cultivando?",
+          "hint": "Consulta y gestiona los cultivos vinculados a tu campo."
+        },
+        "devices": {
+          "title": "Conecta con tu campo",
+          "hint": "Gestiona tus dispositivos y termina cuando lo tengas todo."
+        }
+      },
+      "requiredHint": "El nombre, la ubicación, el tipo y la superficie son obligatorios. El suelo, los cultivos y los dispositivos son opcionales.",
+      "unknownSoil": "No lo sé",
+      "errors": {
+        "nameTooLong": "Utiliza un máximo de 100 caracteres.",
+        "locationRequired": "Introduce una dirección o selecciona un punto en el mapa.",
+        "typeRequired": "Selecciona un tipo de campo.",
+        "areaRequired": "Introduce la superficie o dibuja el contorno del campo."
       }
     }
   },
