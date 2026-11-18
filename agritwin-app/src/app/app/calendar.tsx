@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 
@@ -10,6 +16,7 @@ import { TaskMonthCalendar } from '@/components/tasks/TaskMonthCalendar';
 import { useGardenTasks } from '@/hooks/use-garden-tasks';
 import { useTaskEditor } from '@/hooks/use-task-editor';
 import { styles } from '@/styles/tasks.styles';
+import { CALENDAR_PHONE, getPageFrame } from '@/styles/responsive';
 import {
   addDays,
   formatDay,
@@ -20,6 +27,8 @@ import {
 /** The calendar tab: a month on top, then yesterday, today and tomorrow. */
 export default function CalendarScreen() {
   const { t, i18n } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const frame = getPageFrame(width, height, CALENDAR_PHONE);
   const garden = useGardenTasks();
   const editor = useTaskEditor(garden);
   const [month, setMonth] = useState(() => new Date());
@@ -46,10 +55,16 @@ export default function CalendarScreen() {
   return (
     <View style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: frame.horizontalInset },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>
+        <View
+          testID="calendar-content"
+          style={[styles.content, { maxWidth: frame.maxWidth }]}
+        >
           <View style={styles.headerRow}>
             <View style={styles.headerText}>
               <Text style={styles.title}>{t('tasks.title')}</Text>
