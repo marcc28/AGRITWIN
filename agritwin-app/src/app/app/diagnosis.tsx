@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 import { PlantIllustration } from '@/components/PlantIllustration';
 import { Colors } from '@/constants/theme';
+import { useScreenSize } from '@/hooks/use-screen-size';
 import { isAuthError } from '@/services/api';
 import { clearAuth } from '@/services/auth';
 import {
@@ -25,6 +26,7 @@ import {
   type PlantDiagnosis,
 } from '@/services/api_diagnosis';
 import { choosePhoto, type PickedPhoto } from '@/services/photoPicker';
+import { responsiveStyles } from '@/styles/responsive.styles';
 import { styles } from '@/styles/diagnosis.styles';
 
 const ERROR_KEYS: Record<number, string> = {
@@ -65,6 +67,8 @@ function StatusItem({ icon, label, value, warning }: StatusItemProps) {
 
 export default function DiagnosisScreen() {
   const { t, i18n } = useTranslation();
+  const { isWide, isDesktop, isCompactLandscape, pagePadding, contentWidth } =
+    useScreenSize();
 
   const [photo, setPhoto] = useState<DiagnosisPhoto | null>(null);
   const [result, setResult] = useState<PlantDiagnosis | null>(null);
@@ -141,61 +145,20 @@ export default function DiagnosisScreen() {
     <View style={styles.screen}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: pagePadding },
+        ]}
       >
-        <View style={styles.container}>
+        <View style={[styles.container, { maxWidth: contentWidth }]}>
           <Text style={styles.title}>{t('diagnosis.title')}</Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {t('diagnosis.subtitle')}
           </Text>
 
-          {result && photo ? (
-            <View style={[styles.card, styles.compactCard]}>
-              <Pressable
-                testID="diagnosis-open-photo"
-                accessibilityRole="imagebutton"
-                accessibilityLabel={t('diagnosis.enlarge')}
-                onPress={() => setViewerOpen(true)}
-              >
-                <Image
-                  testID="diagnosis-preview"
-                  source={{ uri: photo.uri }}
-                  style={styles.thumbnail}
-                  resizeMode="cover"
-                />
-              </Pressable>
-              <View style={styles.compactButtons}>
-                <Pressable
-                  style={[styles.secondaryButton, styles.compactButton]}
-                  onPress={() => void pickPhoto(true)}
-                >
-                  <Ionicons
-                    name="camera-outline"
-                    size={18}
-                    color={Colors.light.primaryDark}
-                  />
-                  <Text style={styles.secondaryButtonText}>
-                    {t('diagnosis.takePhoto')}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.secondaryButton, styles.compactButton]}
-                  onPress={() => void pickPhoto(false)}
-                >
-                  <Ionicons
-                    name="images-outline"
-                    size={18}
-                    color={Colors.light.primaryDark}
-                  />
-                  <Text style={styles.secondaryButtonText}>
-                    {t('diagnosis.choosePhoto')}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.card}>
-              {photo && !imageFailed ? (
+          <View style={isDesktop ? responsiveStyles.columns : null}>
+            {result && photo && !isDesktop ? (
+              <View style={[styles.card, styles.compactCard]}>
                 <Pressable
                   testID="diagnosis-open-photo"
                   accessibilityRole="imagebutton"
@@ -205,195 +168,254 @@ export default function DiagnosisScreen() {
                   <Image
                     testID="diagnosis-preview"
                     source={{ uri: photo.uri }}
-                    style={[
-                      styles.preview,
-                      loading ? styles.previewSmall : null,
-                    ]}
+                    style={styles.thumbnail}
                     resizeMode="cover"
-                    onError={() => setImageFailed(true)}
                   />
                 </Pressable>
-              ) : (
-                <View style={styles.placeholder}>
-                  <PlantIllustration />
-                  <Text style={styles.placeholderText}>
-                    {imageFailed
-                      ? t('diagnosis.previewError')
-                      : t('diagnosis.placeholder')}
-                  </Text>
+                <View style={styles.compactButtons}>
+                  <Pressable
+                    style={[styles.secondaryButton, styles.compactButton]}
+                    onPress={() => void pickPhoto(true)}
+                  >
+                    <Ionicons
+                      name="camera-outline"
+                      size={18}
+                      color={Colors.light.primaryDark}
+                    />
+                    <Text style={styles.secondaryButtonText}>
+                      {t('diagnosis.takePhoto')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.secondaryButton, styles.compactButton]}
+                    onPress={() => void pickPhoto(false)}
+                  >
+                    <Ionicons
+                      name="images-outline"
+                      size={18}
+                      color={Colors.light.primaryDark}
+                    />
+                    <Text style={styles.secondaryButtonText}>
+                      {t('diagnosis.choosePhoto')}
+                    </Text>
+                  </Pressable>
                 </View>
-              )}
-
-              <View style={styles.buttonRow}>
-                <Pressable
-                  style={styles.secondaryButton}
-                  onPress={() => void pickPhoto(true)}
-                  disabled={loading}
-                >
-                  <Ionicons
-                    name="camera-outline"
-                    size={18}
-                    color={Colors.light.primaryDark}
-                  />
-                  <Text style={styles.secondaryButtonText}>
-                    {t('diagnosis.takePhoto')}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={styles.secondaryButton}
-                  onPress={() => void pickPhoto(false)}
-                  disabled={loading}
-                >
-                  <Ionicons
-                    name="images-outline"
-                    size={18}
-                    color={Colors.light.primaryDark}
-                  />
-                  <Text style={styles.secondaryButtonText}>
-                    {t('diagnosis.choosePhoto')}
-                  </Text>
-                </Pressable>
               </View>
-
-              <Pressable
+            ) : (
+              <View
                 style={[
-                  styles.primaryButton,
-                  !photo || loading ? styles.primaryButtonDisabled : null,
+                  styles.card,
+                  isDesktop ? responsiveStyles.column : null,
                 ]}
-                onPress={() => void analyse()}
-                disabled={!photo || loading}
               >
-                <Ionicons name="search-outline" size={18} color="#FFFFFF" />
-                <Text style={styles.primaryButtonText}>
-                  {errorMessage && photo
-                    ? t('diagnosis.retry')
-                    : t('diagnosis.analyse')}
-                </Text>
-              </Pressable>
-
-              {loading ? (
-                <View style={styles.loadingRow}>
-                  <ActivityIndicator color={Colors.light.primary} />
-                  <Text style={styles.loadingText}>
-                    {t('diagnosis.loading')}
-                  </Text>
-                </View>
-              ) : null}
-
-              {errorMessage ? (
-                <View style={styles.errorBox}>
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={20}
-                    color={Colors.light.dangerText}
-                  />
-                  <Text style={styles.errorText}>{errorMessage}</Text>
-                </View>
-              ) : null}
-
-              {permissionBlocked && Platform.OS !== 'web' ? (
-                <Pressable
-                  testID="diagnosis-open-settings"
-                  style={styles.settingsButton}
-                  onPress={() => void Linking.openSettings()}
-                >
-                  <Ionicons
-                    name="settings-outline"
-                    size={18}
-                    color={Colors.light.primaryDark}
-                  />
-                  <Text style={styles.secondaryButtonText}>
-                    {t('diagnosis.openSettings')}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
-          )}
-
-          {result ? (
-            <>
-              <View style={styles.card}>
-                <View style={styles.resultHeader}>
-                  <Ionicons
-                    name={result.healthy ? 'leaf' : 'bug-outline'}
-                    size={24}
-                    color={
-                      result.healthy
-                        ? Colors.light.primary
-                        : Colors.light.dangerText
-                    }
-                  />
-                  <Text style={styles.resultName}>{result.name}</Text>
-                </View>
-
-                {result.healthy == null ? null : (
+                {photo && !imageFailed ? (
+                  <Pressable
+                    testID="diagnosis-open-photo"
+                    accessibilityRole="imagebutton"
+                    accessibilityLabel={t('diagnosis.enlarge')}
+                    onPress={() => setViewerOpen(true)}
+                  >
+                    <Image
+                      testID="diagnosis-preview"
+                      source={{ uri: photo.uri }}
+                      style={[
+                        styles.preview,
+                        isWide ? styles.previewWide : null,
+                        isCompactLandscape ? styles.previewCompact : null,
+                        loading ? styles.previewSmall : null,
+                      ]}
+                      resizeMode="cover"
+                      onError={() => setImageFailed(true)}
+                    />
+                  </Pressable>
+                ) : (
                   <View
                     style={[
-                      styles.badge,
-                      result.healthy
-                        ? styles.badgeHealthy
-                        : styles.badgeProblem,
+                      styles.placeholder,
+                      isWide ? styles.placeholderWide : null,
+                      isCompactLandscape ? styles.previewCompact : null,
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.badgeText,
-                        result.healthy
-                          ? styles.badgeTextHealthy
-                          : styles.badgeTextProblem,
-                      ]}
-                    >
-                      {result.healthy
-                        ? t('diagnosis.healthy')
-                        : t('diagnosis.problem')}
+                    <PlantIllustration />
+                    <Text style={styles.placeholderText}>
+                      {imageFailed
+                        ? t('diagnosis.previewError')
+                        : t('diagnosis.placeholder')}
                     </Text>
                   </View>
                 )}
 
-                {result.confidence == null ? null : (
-                  <Text style={styles.confidence}>
-                    {t('diagnosis.confidence', {
-                      value: Math.round(result.confidence * 100),
-                    })}
-                  </Text>
-                )}
+                <View style={styles.buttonRow}>
+                  <Pressable
+                    style={styles.secondaryButton}
+                    onPress={() => void pickPhoto(true)}
+                    disabled={loading}
+                  >
+                    <Ionicons
+                      name="camera-outline"
+                      size={18}
+                      color={Colors.light.primaryDark}
+                    />
+                    <Text style={styles.secondaryButtonText}>
+                      {t('diagnosis.takePhoto')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.secondaryButton}
+                    onPress={() => void pickPhoto(false)}
+                    disabled={loading}
+                  >
+                    <Ionicons
+                      name="images-outline"
+                      size={18}
+                      color={Colors.light.primaryDark}
+                    />
+                    <Text style={styles.secondaryButtonText}>
+                      {t('diagnosis.choosePhoto')}
+                    </Text>
+                  </Pressable>
+                </View>
 
-                {result.advice ? (
-                  <Text style={styles.advice}>{result.advice}</Text>
+                <Pressable
+                  style={[
+                    styles.primaryButton,
+                    !photo || loading ? styles.primaryButtonDisabled : null,
+                  ]}
+                  onPress={() => void analyse()}
+                  disabled={!photo || loading}
+                >
+                  <Ionicons name="search-outline" size={18} color="#FFFFFF" />
+                  <Text style={styles.primaryButtonText}>
+                    {errorMessage && photo
+                      ? t('diagnosis.retry')
+                      : t('diagnosis.analyse')}
+                  </Text>
+                </Pressable>
+
+                {loading ? (
+                  <View style={styles.loadingRow}>
+                    <ActivityIndicator color={Colors.light.primary} />
+                    <Text style={styles.loadingText}>
+                      {t('diagnosis.loading')}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {errorMessage ? (
+                  <View style={styles.errorBox}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={20}
+                      color={Colors.light.dangerText}
+                    />
+                    <Text style={styles.errorText}>{errorMessage}</Text>
+                  </View>
+                ) : null}
+
+                {permissionBlocked && Platform.OS !== 'web' ? (
+                  <Pressable
+                    testID="diagnosis-open-settings"
+                    style={styles.settingsButton}
+                    onPress={() => void Linking.openSettings()}
+                  >
+                    <Ionicons
+                      name="settings-outline"
+                      size={18}
+                      color={Colors.light.primaryDark}
+                    />
+                    <Text style={styles.secondaryButtonText}>
+                      {t('diagnosis.openSettings')}
+                    </Text>
+                  </Pressable>
                 ) : null}
               </View>
+            )}
 
-              <View style={styles.card}>
-                <Text style={styles.sectionTitle}>
-                  {t('diagnosis.statusTitle')}
-                </Text>
-                <View style={styles.statusRow}>
-                  <StatusItem
-                    icon="water-outline"
-                    label={t('diagnosis.waterLabel')}
-                    value={t(`diagnosis.water.${result.water}`)}
-                    warning={
-                      result.water === 'lack' || result.water === 'excess'
-                    }
-                  />
-                  <StatusItem
-                    icon="sunny-outline"
-                    label={t('diagnosis.lightLabel')}
-                    value={t(`diagnosis.light.${result.light}`)}
-                    warning={
-                      result.light === 'lack' || result.light === 'excess'
-                    }
-                  />
-                  <StatusItem
-                    icon="basket-outline"
-                    label={t('diagnosis.harvestLabel')}
-                    value={t(`diagnosis.harvest.${result.harvest}`)}
-                    warning={false}
-                  />
+            {result ? (
+              <View style={isDesktop ? responsiveStyles.column : null}>
+                <View style={styles.card}>
+                  <View style={styles.resultHeader}>
+                    <Ionicons
+                      name={result.healthy ? 'leaf' : 'bug-outline'}
+                      size={24}
+                      color={
+                        result.healthy
+                          ? Colors.light.primary
+                          : Colors.light.dangerText
+                      }
+                    />
+                    <Text style={styles.resultName}>{result.name}</Text>
+                  </View>
+
+                  {result.healthy == null ? null : (
+                    <View
+                      style={[
+                        styles.badge,
+                        result.healthy
+                          ? styles.badgeHealthy
+                          : styles.badgeProblem,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.badgeText,
+                          result.healthy
+                            ? styles.badgeTextHealthy
+                            : styles.badgeTextProblem,
+                        ]}
+                      >
+                        {result.healthy
+                          ? t('diagnosis.healthy')
+                          : t('diagnosis.problem')}
+                      </Text>
+                    </View>
+                  )}
+
+                  {result.confidence == null ? null : (
+                    <Text style={styles.confidence}>
+                      {t('diagnosis.confidence', {
+                        value: Math.round(result.confidence * 100),
+                      })}
+                    </Text>
+                  )}
+
+                  {result.advice ? (
+                    <Text style={styles.advice}>{result.advice}</Text>
+                  ) : null}
+                </View>
+
+                <View style={styles.card}>
+                  <Text style={styles.sectionTitle}>
+                    {t('diagnosis.statusTitle')}
+                  </Text>
+                  <View style={styles.statusRow}>
+                    <StatusItem
+                      icon="water-outline"
+                      label={t('diagnosis.waterLabel')}
+                      value={t(`diagnosis.water.${result.water}`)}
+                      warning={
+                        result.water === 'lack' || result.water === 'excess'
+                      }
+                    />
+                    <StatusItem
+                      icon="sunny-outline"
+                      label={t('diagnosis.lightLabel')}
+                      value={t(`diagnosis.light.${result.light}`)}
+                      warning={
+                        result.light === 'lack' || result.light === 'excess'
+                      }
+                    />
+                    <StatusItem
+                      icon="basket-outline"
+                      label={t('diagnosis.harvestLabel')}
+                      value={t(`diagnosis.harvest.${result.harvest}`)}
+                      warning={false}
+                    />
+                  </View>
                 </View>
               </View>
-            </>
-          ) : null}
+            ) : null}
+          </View>
         </View>
       </ScrollView>
 

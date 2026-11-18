@@ -10,6 +10,7 @@ import { FieldPhoto } from '@/components/FieldPhoto';
 import GardenPickerOverlay from '@/components/GardenPickerOverlay';
 import { gardenPhotoAt } from '@/constants/gardenPhotos';
 import { useCachedQuery, useRefreshOnFocus } from '@/hooks/use-cached-query';
+import { useScreenSize } from '@/hooks/use-screen-size';
 import { Colors } from '@/constants/theme';
 import { deleteField, isAuthError, type Field } from '@/services/api';
 import { clearAuth } from '@/services/auth';
@@ -26,7 +27,12 @@ import {
 import { loadGardenPickerFields } from '@/services/gardenPicker';
 import { fieldsQuery, prefetchFieldData, queryKeys } from '@/services/queries';
 import { queryClient } from '@/services/queryClient';
-import { styles } from '@/styles/field-selection.styles';
+import {
+  GRID_GAP,
+  GRID_PADDING,
+  MIN_TILE_WIDTH,
+  styles,
+} from '@/styles/field-selection.styles';
 
 export default function FieldSelectionScreen() {
   const { t } = useTranslation();
@@ -56,6 +62,14 @@ export default function FieldSelectionScreen() {
     }
     void logOut();
   }, [sessionExpired]);
+  const { width, pagePadding, contentWidth } = useScreenSize();
+  const gridWidth =
+    Math.min(width - pagePadding * 2, contentWidth) - GRID_PADDING * 2;
+  const columns = Math.max(
+    2,
+    Math.floor((gridWidth + GRID_GAP) / (MIN_TILE_WIDTH + GRID_GAP)),
+  );
+  const tileStyle = [styles.tile, { width: `${100 / columns}%` as const }];
 
   useFocusEffect(
     useCallback(() => {
@@ -145,9 +159,12 @@ export default function FieldSelectionScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: pagePadding },
+        ]}
       >
-        <View style={styles.container}>
+        <View style={[styles.container, { maxWidth: contentWidth }]}>
           <View style={styles.header}>
             <View style={styles.headerText}>
               <Text style={styles.eyebrow}>{t('fieldSelection.eyebrow')}</Text>
@@ -194,7 +211,7 @@ export default function FieldSelectionScreen() {
                     field.devices_online ?? 0,
                   ) === 'ok';
                 return (
-                  <View key={field.id} style={styles.tile}>
+                  <View key={field.id} style={tileStyle}>
                     <Pressable
                       testID={`field-tile-${field.id}`}
                       accessibilityRole="button"
@@ -278,7 +295,7 @@ export default function FieldSelectionScreen() {
                 );
               })}
 
-              <View style={styles.tile}>
+              <View style={tileStyle}>
                 <Pressable
                   testID="field-selection-add"
                   accessibilityRole="button"

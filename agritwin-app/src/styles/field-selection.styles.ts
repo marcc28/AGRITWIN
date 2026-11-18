@@ -2,6 +2,10 @@ import { Platform, StyleSheet } from 'react-native';
 
 import { Colors } from '../constants/theme';
 
+export const GRID_PADDING = 14;
+export const GRID_GAP = 16;
+export const MIN_TILE_WIDTH = 160;
+
 export const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -23,7 +27,6 @@ export const styles = StyleSheet.create({
 
   container: {
     width: '100%',
-    maxWidth: 360,
   },
 
   eyebrow: {
@@ -91,12 +94,12 @@ export const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
-    paddingHorizontal: 14,
+    rowGap: GRID_GAP,
+    paddingHorizontal: GRID_PADDING - GRID_GAP / 2,
   },
 
   tile: {
-    width: '46%',
+    paddingHorizontal: GRID_GAP / 2,
   },
 
   photoBox: {
@@ -176,7 +179,7 @@ export const styles = StyleSheet.create({
   deleteButton: {
     position: 'absolute',
     top: -8,
-    right: -8,
+    right: 0,
     width: 30,
     height: 30,
     borderRadius: 15,

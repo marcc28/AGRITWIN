@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { WeatherDetails } from '../components/WeatherDetails';
 import { Colors } from '../constants/theme';
 import { useFieldWeather } from '../hooks/use-field-weather';
+import { useScreenSize } from '../hooks/use-screen-size';
 import { styles } from '../styles/field-detail.styles';
 import { weatherStyles } from '../styles/weather.styles';
 import { parseId } from '../utils/parseId';
@@ -24,6 +25,7 @@ function goHome() {
 
 export default function WeatherScreen() {
   const { t, i18n } = useTranslation();
+  const { pagePadding, contentWidth } = useScreenSize();
   const params = useLocalSearchParams<{ id: string | string[] }>();
   const fieldId = parseId(params.id);
   const { state, retry } = useFieldWeather(
@@ -33,7 +35,15 @@ export default function WeatherScreen() {
 
   return (
     <View testID="weather-screen" style={styles.screen}>
-      <View style={styles.dataHeader}>
+      <View
+        style={[
+          styles.dataHeader,
+          {
+            maxWidth: contentWidth + pagePadding * 2,
+            paddingHorizontal: pagePadding,
+          },
+        ]}
+      >
         <Pressable
           testID="weather-back"
           accessibilityRole="button"
