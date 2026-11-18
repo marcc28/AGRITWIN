@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, Platform } from 'react-native';
+import { Linking, Platform, StyleSheet } from 'react-native';
 import {
   fireEvent,
   render,
@@ -15,6 +15,7 @@ import {
 } from '../../../src/services/api_diagnosis';
 import { clearAuth } from '../../../src/services/auth';
 import { choosePhoto } from '../../../src/services/photoPicker';
+import { resetWindowSize, setWindowSize } from '../helpers/screenSize';
 
 const mockRouter = { replace: jest.fn() };
 
@@ -50,6 +51,11 @@ jest.mock('../../../src/services/auth', () => ({
   clearAuth: jest.fn(),
 }));
 
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const mockedChoose = choosePhoto as jest.MockedFunction<typeof choosePhoto>;
 const mockedDiagnose = diagnosePlant as jest.MockedFunction<
   typeof diagnosePlant
@@ -79,6 +85,7 @@ describe('DiagnosisScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetWindowSize();
     mockedChoose.mockResolvedValue(null);
     jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined);
   });
@@ -208,5 +215,40 @@ describe('DiagnosisScreen', () => {
     await waitFor(() =>
       expect(screen.queryByTestId('diagnosis-viewer')).toBeNull(),
     );
+  });
+
+  describe('on different screen sizes', () => {
+    it('shows a small photo above the result on a phone', async () => {
+      mockedDiagnose.mockResolvedValue(diagnosis);
+      await renderWithPhoto();
+
+      fireEvent.press(screen.getByText('diagnosis.analyse'));
+
+      expect(await screen.findByText('Míldiu')).toBeTruthy();
+      expect(screen.queryByText('diagnosis.analyse')).toBeNull();
+    });
+
+    it('keeps the photo next to the result on a desktop screen', async () => {
+      setWindowSize(1280, 800);
+      mockedDiagnose.mockResolvedValue(diagnosis);
+      await renderWithPhoto();
+
+      fireEvent.press(screen.getByText('diagnosis.analyse'));
+
+      expect(await screen.findByText('Míldiu')).toBeTruthy();
+      expect(screen.getByText('diagnosis.analyse')).toBeTruthy();
+      expect(
+        StyleSheet.flatten(screen.getByTestId('diagnosis-preview').props.style),
+      ).toMatchObject({ height: 320 });
+    });
+
+    it('makes the photo shorter on a phone turned sideways', async () => {
+      setWindowSize(812, 375);
+      await renderWithPhoto();
+
+      expect(
+        StyleSheet.flatten(screen.getByTestId('diagnosis-preview').props.style),
+      ).toMatchObject({ height: 160 });
+    });
   });
 });
