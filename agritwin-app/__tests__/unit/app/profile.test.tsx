@@ -2,6 +2,7 @@ import React from 'react';
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { Dimensions } from 'react-native';
 
 import ProfileScreen from '../../../src/app/profile';
 import { Colors } from '../../../src/constants/theme';
@@ -86,5 +87,34 @@ describe('ProfileScreen', () => {
 
     fireEvent.press(screen.getByTestId('profile-back'));
     expect(router.replace).toHaveBeenCalledWith('/field-selection');
+  });
+
+  it('keeps the phone column and widens it on a desktop', () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    function show(width: number, height: number) {
+      Dimensions.set({
+        window: { width, height, scale: 2, fontScale: 1 },
+        screen: { width, height, scale: 2, fontScale: 1 },
+      });
+      render(<ProfileScreen />);
+    }
+
+    try {
+      show(390, 844);
+      expect(screen.getByTestId('profile-content').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 360 })]),
+      );
+      screen.unmount();
+
+      show(1280, 800);
+      expect(screen.getByTestId('profile-content').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 880 })]),
+      );
+    } finally {
+      Dimensions.set(previous);
+    }
   });
 });

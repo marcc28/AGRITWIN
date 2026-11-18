@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +16,7 @@ import { TaskGroups } from '@/components/tasks/TaskGroups';
 import { useGardenTasks } from '@/hooks/use-garden-tasks';
 import { useTaskEditor } from '@/hooks/use-task-editor';
 import { styles } from '@/styles/tasks.styles';
+import { CALENDAR_PHONE, getPageFrame } from '@/styles/responsive';
 import { moonPhase } from '@/utils/moon';
 import { addDays, dayRelation, formatDay, isIsoDay } from '@/utils/tasks';
 
@@ -19,6 +26,8 @@ import { addDays, dayRelation, formatDay, isIsoDay } from '@/utils/tasks';
  */
 export default function TaskDayScreen() {
   const { t, i18n } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const frame = getPageFrame(width, height, CALENDAR_PHONE);
   const params = useLocalSearchParams<{ date?: string | string[] }>();
   const garden = useGardenTasks();
   const editor = useTaskEditor(garden);
@@ -37,10 +46,16 @@ export default function TaskDayScreen() {
   return (
     <View style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: frame.horizontalInset },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>
+        <View
+          testID="task-day-content"
+          style={[styles.content, { maxWidth: frame.maxWidth }]}
+        >
           <Pressable
             testID="task-day-back"
             accessibilityRole="button"

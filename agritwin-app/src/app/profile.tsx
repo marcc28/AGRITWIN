@@ -1,4 +1,10 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -8,9 +14,12 @@ import AppHeader from '@/components/AppHeader';
 import GardenPickerOverlay from '@/components/GardenPickerOverlay';
 import { Colors } from '@/constants/theme';
 import { styles } from '@/styles/profile.styles';
+import { getPageFrame, PROFILE_PHONE } from '@/styles/responsive';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const frame = getPageFrame(width, height, PROFILE_PHONE);
 
   function goBack() {
     if (router.canGoBack()) {
@@ -26,9 +35,15 @@ export default function ProfileScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: frame.horizontalInset },
+        ]}
       >
-        <View style={styles.container}>
+        <View
+          testID="profile-content"
+          style={[styles.container, { maxWidth: frame.maxWidth }]}
+        >
           <Pressable
             testID="profile-back"
             style={styles.backRow}
