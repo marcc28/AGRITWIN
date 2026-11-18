@@ -6,14 +6,10 @@ import { useTranslation } from 'react-i18next';
 
 import { OptionChip } from '@/components/OptionChip';
 import { Colors } from '@/constants/theme';
-import {
-  getMe,
-  isAuthError,
-  updateMe,
-  updateMyEmail,
-  type Me,
-} from '@/services/api';
+import { isAuthError, updateMe, updateMyEmail, type Me } from '@/services/api';
 import { clearAuth } from '@/services/auth';
+import { meQuery, queryKeys } from '@/services/queries';
+import { queryClient } from '@/services/queryClient';
 import { styles } from '@/styles/settings.styles';
 
 const LANGUAGES = [
@@ -25,7 +21,15 @@ const LANGUAGES = [
 
 export function AccountCard() {
   const { t, i18n } = useTranslation();
-  const [me, setMe] = useState<Me | null>(null);
+  // The profile from the cache is shown at once, then refreshed below.
+  const [me, setLocalMe] = useState<Me | null>(
+    () => queryClient.getQueryData<Me>(queryKeys.me) ?? null,
+  );
+
+  function setMe(next: Me) {
+    setLocalMe(next);
+    queryClient.setQueryData(queryKeys.me, next);
+  }
   const [errorMessage, setErrorMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [editingEmail, setEditingEmail] = useState(false);
@@ -36,7 +40,10 @@ export function AccountCard() {
   useEffect(() => {
     async function loadMe() {
       try {
-        const data = await getMe();
+        const data = await queryClient.fetchQuery({
+          ...meQuery(),
+          staleTime: 0,
+        });
         setMe(data);
         if (data.language && data.language !== i18n.language) {
           await i18n.changeLanguage(data.language);

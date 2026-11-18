@@ -6,17 +6,15 @@ import { useTranslation } from 'react-i18next';
 
 import { FieldPhoto } from '../components/FieldPhoto';
 import { SensorCard } from '../components/SensorCard';
-import { getFieldCrops, type FieldCrop } from '../services/api_fieldCrops';
-import { getCrops, type Crop } from '../services/api_crops';
+import { useCachedQuery } from '../hooks/use-cached-query';
+import { isAuthError, type FieldDevice } from '../services/api';
+import { clearAuth } from '../services/auth';
 import {
-  getDashboard,
-  getField,
-  isAuthError,
-  type Dashboard,
-  type FieldDetail,
-  type FieldDevice,
-} from '../services/api';
-import { clearAuth, getAuth } from '../services/auth';
+  cropCatalogQuery,
+  dashboardQuery,
+  fieldCropsQuery,
+  fieldDetailQuery,
+} from '../services/queries';
 import { styles } from '../styles/field-detail.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
@@ -26,6 +24,10 @@ function dash(value: string | number | null | undefined): string {
     return '—';
   }
   return String(value);
+}
+
+function errorText(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
 function goToProfile() {
@@ -48,85 +50,71 @@ export default function FieldDetailScreen() {
   const params = useLocalSearchParams<{ id: string | string[] }>();
   const fieldId = parseId(params.id);
 
-  const [field, setField] = useState<FieldDetail | null>(null);
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [dashboardError, setDashboardError] = useState('');
-  const [loading, setLoading] = useState(true);
   const [selectedDevice, setSelectedDevice] = useState<FieldDevice | null>(
     null,
   );
-  const [fieldCrops, setFieldCrops] = useState<FieldCrop[]>([]);
-  const [cropCatalog, setCropCatalog] = useState<Crop[]>([]);
-  const [cropsError, setCropsError] = useState('');
+
+  // Garden, crops and sensor data load in parallel. What is in the cache is
+  // shown at once and refreshed in the background.
+  const validId = Number.isFinite(fieldId);
+  const fieldResult = useCachedQuery({
+    ...fieldDetailQuery(fieldId),
+    enabled: validId,
+  });
+  const cropsResult = useCachedQuery({
+    ...fieldCropsQuery(fieldId),
+    enabled: validId,
+  });
+  const catalogResult = useCachedQuery({
+    ...cropCatalogQuery(),
+    enabled: validId,
+  });
+  const dashboardResult = useCachedQuery({
+    ...dashboardQuery(fieldId),
+    enabled: validId,
+  });
+
+  const field = fieldResult.data ?? null;
+  const dashboard = dashboardResult.data ?? null;
+  const fieldCrops = cropsResult.data ?? [];
+  const cropCatalog = catalogResult.data ?? [];
+
+  let errorMessage = '';
+  if (!validId) {
+    errorMessage = t('settings.errors.invalidId');
+  } else if (!field && fieldResult.isError) {
+    errorMessage = errorText(
+      fieldResult.error,
+      t('settings.errors.loadGarden'),
+    );
+  }
+  const loading = validId && !field && !fieldResult.isError;
+
+  const cropsFailure =
+    (!cropsResult.data && cropsResult.error) ||
+    (!catalogResult.data && catalogResult.error);
+  const cropsError = cropsFailure
+    ? errorText(cropsFailure, t('settings.errors.loadCrops'))
+    : '';
+  const dashboardError =
+    !dashboard && dashboardResult.isError
+      ? errorText(dashboardResult.error, t('settings.errors.loadData'))
+      : '';
+
+  const sessionExpired = [fieldResult, cropsResult, catalogResult].some(
+    (result) => isAuthError(result.error),
+  );
 
   useEffect(() => {
-    async function load() {
-      if (!Number.isFinite(fieldId)) {
-        setErrorMessage(t('settings.errors.invalidId'));
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const nextField = await getField(fieldId);
-        setField(nextField);
-      } catch (error) {
-        if (isAuthError(error)) {
-          await clearAuth();
-          router.replace('/auth/login');
-          return;
-        }
-        const message =
-          error instanceof Error
-            ? error.message
-            : t('settings.errors.loadGarden');
-        setErrorMessage(message);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const auth = await getAuth();
-        if (!auth?.token) {
-          throw new Error('Not authenticated');
-        }
-
-        const [nextFieldCrops, nextCropCatalog] = await Promise.all([
-          getFieldCrops(0, 100, auth.token, { field_id: fieldId }),
-          getCrops(0, 100, auth.token),
-        ]);
-        setFieldCrops(nextFieldCrops);
-        setCropCatalog(nextCropCatalog);
-      } catch (error) {
-        if (isAuthError(error)) {
-          await clearAuth();
-          router.replace('/auth/login');
-          return;
-        }
-        setCropsError(
-          error instanceof Error
-            ? error.message
-            : t('settings.errors.loadCrops'),
-        );
-      }
-
-      try {
-        const nextDashboard = await getDashboard(fieldId);
-        setDashboard(nextDashboard);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : t('settings.errors.loadData');
-        setDashboardError(message);
-      } finally {
-        setLoading(false);
-      }
+    if (!sessionExpired) {
+      return;
     }
-
-    void load();
-  }, [fieldId, t]);
+    async function logOut() {
+      await clearAuth();
+      router.replace('/auth/login');
+    }
+    void logOut();
+  }, [sessionExpired]);
 
   function goToEdit() {
     router.push({

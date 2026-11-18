@@ -15,7 +15,20 @@ import {
   type GardenTaskList,
   type TaskChanges,
 } from '@/services/api';
+import { queryKeys } from '@/services/queryKeys';
+import { queryClient } from '@/services/queryClient';
 import { isoDate, type TaskValues } from '@/utils/tasks';
+
+function cachedTasks(
+  fieldId: number | null,
+  language: string,
+): GardenTaskList | undefined {
+  return fieldId === null
+    ? undefined
+    : queryClient.getQueryData<GardenTaskList>(
+        queryKeys.tasks(fieldId, language),
+      );
+}
 
 // The server may be reviewing the garden when the screen opens. Ask again a
 // little later, a couple of times at most.
@@ -37,14 +50,21 @@ export function useGardenTasks() {
   const fieldId = field ? field.id : null;
   const language = i18n.language;
 
-  const [tasks, setTasks] = useState<GardenTask[]>([]);
+  // The list saved in the cache (prefetched, or from the last visit) is
+  // shown at once; the server is asked again below as before.
+  const [initial] = useState(() => cachedTasks(fieldId, language));
+  const [tasks, setTasks] = useState<GardenTask[]>(initial?.tasks ?? []);
   const [recommendations, setRecommendations] = useState<
     GardenRecommendation[]
-  >([]);
+  >(initial?.recommendations ?? []);
   // The server's day, because it is the one that decides what is "today".
-  const [today, setToday] = useState(() => isoDate(new Date()));
-  const [hasSensors, setHasSensors] = useState(true);
-  const [loadedFor, setLoadedFor] = useState<number | null>(null);
+  const [today, setToday] = useState(
+    () => initial?.today ?? isoDate(new Date()),
+  );
+  const [hasSensors, setHasSensors] = useState(initial?.has_sensors ?? true);
+  const [loadedFor, setLoadedFor] = useState<number | null>(
+    initial ? fieldId : null,
+  );
   const [error, setError] = useState<TaskErrorKey | null>(null);
 
   const apply = useCallback((data: GardenTaskList) => {
@@ -55,13 +75,40 @@ export function useGardenTasks() {
     setError(null);
   }, []);
 
-  // Never show the tasks of the previous garden.
+  // Never show the tasks of the previous garden (the new garden's cached
+  // list, if any, is shown instead while it loads).
   useEffect(() => {
+    const cached = cachedTasks(fieldId, language);
+    if (cached) {
+      apply(cached);
+      setLoadedFor(fieldId);
+      return;
+    }
     setTasks([]);
     setRecommendations([]);
     setLoadedFor(null);
     setError(null);
+    // Only a change of garden resets the list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fieldId]);
+
+  // Keep the cache equal to what is on screen, also after a change, so the
+  // other screens (calendar / day) never show an old list.
+  useEffect(() => {
+    if (fieldId === null || loadedFor !== fieldId) {
+      return;
+    }
+    queryClient.setQueryData<GardenTaskList>(
+      queryKeys.tasks(fieldId, language),
+      {
+        tasks,
+        recommendations,
+        today,
+        has_sensors: hasSensors,
+        refresh: false,
+      },
+    );
+  }, [fieldId, language, loadedFor, tasks, recommendations, today, hasSensors]);
 
   useFocusEffect(
     useCallback(() => {

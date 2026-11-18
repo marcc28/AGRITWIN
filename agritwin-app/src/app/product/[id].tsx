@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
   View,
@@ -12,7 +12,12 @@ import {
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { getMarketProduct, type MarketProduct } from '@/services/api_market';
+import { type MarketProduct } from '@/services/api_market';
+import { useCachedQuery } from '@/hooks/use-cached-query';
+import {
+  findProductInMarketPages,
+  marketProductQuery,
+} from '@/services/queries';
 
 import CheckoutForm from '@/components/checkout-form';
 import { Colors } from '../../constants/theme';
@@ -70,66 +75,56 @@ export default function ProductScreen() {
 
   const productId = Array.isArray(id) ? id[0] : id;
 
-  const [product, setProduct] = useState<MarketProduct | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [quantityInput, setQuantityInput] = useState('1');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const formatQuantity = (value: number) =>
     Number(value.toFixed(2)).toString().replace('.', ',');
 
+  // Shown at once from the cache (or from the market list it was opened
+  // from); price and stock are always refreshed from the server.
+  const result = useCachedQuery({
+    ...marketProductQuery(String(productId)),
+    enabled: !!productId,
+    placeholderData: () =>
+      productId ? findProductInMarketPages(String(productId)) : undefined,
+  });
+
+  const product: MarketProduct | null = result.data ?? null;
+  const loading = !!productId && result.data === undefined && !result.isError;
+  let error: string | null = null;
+  if (!productId) {
+    error = 'No s’ha indicat cap producte.';
+  } else if (!product && result.isError) {
+    error =
+      result.error instanceof Error
+        ? result.error.message
+        : 'No s’ha pogut carregar el producte.';
+  }
+
   useEffect(() => {
-    let active = true;
-
-    async function loadProduct() {
-      setLoading(true);
-      setError(null);
-      setProduct(null);
-      setQuantity(1);
-      setQuantityInput('1');
-
-      try {
-        if (!productId) {
-          throw new Error('No s’ha indicat cap producte.');
-        }
-
-        const data = await getMarketProduct(String(productId));
-
-        if (active) {
-          if (!data) {
-            setProduct(null);
-            return;
-          }
-
-          const stock = Number(data.left_units);
-          const initialQuantity = Number.isFinite(stock)
-            ? Math.min(1, Math.max(0.01, Math.floor(stock * 100) / 100))
-            : 1;
-          setProduct(data);
-          setQuantity(initialQuantity);
-          setQuantityInput(formatQuantity(initialQuantity));
-        }
-      } catch (err) {
-        if (active) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'No s’ha pogut carregar el producte.',
-          );
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadProduct();
-
-    return () => {
-      active = false;
-    };
+    setQuantity(1);
+    setQuantityInput('1');
   }, [productId]);
+
+  // The starting quantity depends on the stock: it is set once per product,
+  // from the server's answer (not from the copy shown while it loads).
+  const quantityFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!product || result.isPlaceholderData) {
+      return;
+    }
+    const key = String(productId);
+    if (quantityFor.current === key) {
+      return;
+    }
+    quantityFor.current = key;
+    const stock = Number(product.left_units);
+    const initialQuantity = Number.isFinite(stock)
+      ? Math.min(1, Math.max(0.01, Math.floor(stock * 100) / 100))
+      : 1;
+    setQuantity(initialQuantity);
+    setQuantityInput(formatQuantity(initialQuantity));
+  }, [product, productId, result.isPlaceholderData]);
 
   const handleBack = () => router.back();
 

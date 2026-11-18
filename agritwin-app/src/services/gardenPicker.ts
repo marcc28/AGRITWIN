@@ -2,6 +2,8 @@ import { getFields, type Field } from './api';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { getAuth } from './auth';
+import { queryClient } from './queryClient';
+import { queryKeys } from './queryKeys';
 
 export type GardenPickerState = {
   open: boolean;
@@ -83,6 +85,18 @@ async function cacheFields(fields: Field[]): Promise<void> {
   }
 }
 
+/**
+ * Gardens already known without asking the server: the list in memory, or
+ * the one saved on the phone in the last session. `null` if there is none.
+ */
+export async function getCachedGardenPickerFields(): Promise<Field[] | null> {
+  const auth = await getAuth();
+  if (state.loaded && loadedUsername === (auth?.username ?? null)) {
+    return state.fields;
+  }
+  return readCachedFields();
+}
+
 export async function loadGardenPickerFields(
   forceRefresh = false,
 ): Promise<Field[]> {
@@ -139,6 +153,8 @@ export async function loadGardenPickerFields(
 
       notify();
       void cacheFields(fields);
+      // Same list for the screens that read it from the shared cache.
+      queryClient.setQueryData(queryKeys.fields, fields);
       return fields;
     })
     .catch((error) => {

@@ -17,11 +17,15 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/theme';
 import { getMarketStyles, getMarketPalette } from '../../styles/market.styles';
+import { searchMarketProducts } from '@/services/api_market';
+import { prefetchImages } from '@/services/imagePrefetch';
 import {
-  getcontentfeed,
-  searchMarketProducts,
-  getMarketProductsCount,
-} from '@/services/api_market';
+  MARKET_PAGE_SIZE,
+  marketCountQuery,
+  marketPageQuery,
+  queryKeys,
+} from '@/services/queries';
+import { queryClient } from '@/services/queryClient';
 import BannerAd from '@/components/adBanner/BannerAd';
 import MarketSkeleton from '@/components/market/MarketSkeleton';
 
@@ -36,11 +40,26 @@ type Product = {
   url_image?: string | null;
 };
 
-const configuredPageSize = Number(process.env.EXPO_PUBLIC_MARKET_PAGE_SIZE);
-const PAGE_SIZE =
-  Number.isInteger(configuredPageSize) && configuredPageSize > 0
-    ? configuredPageSize
-    : 5;
+const PAGE_SIZE = MARKET_PAGE_SIZE;
+
+function productImage(product: Product) {
+  return product.image_url ?? product.url_image;
+}
+
+/** Market data already in the cache (from this session or the last one). */
+function readCachedMarket() {
+  const total = queryClient.getQueryData<number>(queryKeys.marketCount);
+  const firstPage = queryClient.getQueryData<Product[]>(
+    queryKeys.marketPage(0, PAGE_SIZE),
+  );
+  const ready = typeof total === 'number' && Array.isArray(firstPage);
+  return {
+    ready,
+    total: total ?? 0,
+    products: Array.isArray(firstPage) ? firstPage : [],
+    hasMore: ready ? firstPage.length < total : true,
+  };
+}
 
 // Per sota d'aquest estoc avisem que en queden poques unitats
 const LOW_STOCK = 50;
@@ -479,12 +498,16 @@ export default function MarketScreen() {
     });
   };
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [currentItems, setCurrentItems] = useState<Product[]>([]);
-  const [productsTotal, setProductsTotal] = useState(0);
+  // The first page and the total saved from the last visit are shown at
+  // once; they are refreshed from the server right after.
+  const [cached] = useState(readCachedMarket);
 
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(cached.products);
+  const [allProducts, setAllProducts] = useState<Product[]>(cached.products);
+  const [currentItems, setCurrentItems] = useState<Product[]>(cached.products);
+  const [productsTotal, setProductsTotal] = useState(cached.total);
+
+  const [loading, setLoading] = useState(!cached.ready);
   const [loadingPage, setLoadingPage] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -493,7 +516,7 @@ export default function MarketScreen() {
 
   const isSearching = Boolean(searchQuery.trim());
   const loadingMoreRef = useRef(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(cached.hasMore);
   // Càrrega inicial
   useEffect(() => {
     let active = true;
@@ -501,16 +524,24 @@ export default function MarketScreen() {
     async function loadData() {
       try {
         const [productsCount, productsData] = await Promise.all([
-          getMarketProductsCount(),
-          getcontentfeed(0, PAGE_SIZE),
+          queryClient.fetchQuery(marketCountQuery()),
+          queryClient.fetchQuery(marketPageQuery(0, PAGE_SIZE)),
         ]);
 
         if (active) {
+          const firstPage = productsData as Product[];
+          // Fresh first page; pages already loaded further on are kept.
+          const merge = (previous: Product[]) => [
+            ...firstPage,
+            ...previous.slice(firstPage.length),
+          ];
+
           setProductsTotal(productsCount);
-          setAllProducts(productsData);
-          setCurrentItems(productsData);
-          setProducts(productsData);
-          setHasMore(productsData.length < productsCount);
+          setAllProducts(merge);
+          setCurrentItems(merge);
+          setProducts(merge);
+          setHasMore(firstPage.length < productsCount);
+          prefetchImages(firstPage.map(productImage));
         }
       } catch (error) {
         console.error('Error carregant les dades del mercat:', error);
@@ -593,7 +624,10 @@ export default function MarketScreen() {
     try {
       const offset = allProducts.length;
 
-      const batch = await getcontentfeed(offset, PAGE_SIZE);
+      const batch = (await queryClient.fetchQuery(
+        marketPageQuery(offset, PAGE_SIZE),
+      )) as Product[];
+      prefetchImages(batch.map(productImage));
 
       if (batch.length === 0) {
         setHasMore(false);

@@ -682,5 +682,8 @@
     "back": "Indietro",
     "eyebrow": "I MIEI ORTI",
     "allGardens": "Vedi tutti gli orti"
+  },
+  "startup": {
+    "loading": "Preparazione dei tuoi dati…"
   }
 }

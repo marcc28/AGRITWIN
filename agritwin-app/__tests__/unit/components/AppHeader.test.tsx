@@ -53,6 +53,7 @@ jest.mock('../../../src/services/auth', () => ({
 
 jest.mock('../../../src/services/currentField', () => ({
   getCurrentField: jest.fn(),
+  peekCurrentField: jest.fn(() => undefined),
   setCurrentField: jest.fn(),
   subscribeCurrentField: jest.fn(() => () => undefined),
 }));

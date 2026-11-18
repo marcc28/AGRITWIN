@@ -1,4 +1,5 @@
 import { authenticatedFetch } from './auth';
+import { invalidateFieldCrops } from './cacheInvalidation';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -188,6 +189,7 @@ export async function createFieldCrop(
     );
   }
 
+  invalidateFieldCrops(fieldCrop.field_id);
   return data as FieldCrop;
 }
 
@@ -219,6 +221,7 @@ export async function updateFieldCrop(
     );
   }
 
+  invalidateFieldCrops();
   return data as FieldCrop;
 }
 
@@ -247,4 +250,6 @@ export async function deleteFieldCrop(
         : 'Error eliminant el cultiu del camp',
     );
   }
+
+  invalidateFieldCrops();
 }
