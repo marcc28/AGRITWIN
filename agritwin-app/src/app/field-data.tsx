@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { SensorModal } from '../components/SensorModal';
 import { useCachedQuery } from '../hooks/use-cached-query';
 import { isAuthError } from '../services/api';
-import { dashboardQuery } from '../services/queries';
+import { dashboardQuery, SENSOR_REFRESH_MS } from '../services/queries';
 import { clearAuth } from '../services/auth';
 import { styles } from '../styles/field-detail.styles';
 import { Colors } from '../constants/theme';
@@ -18,11 +18,14 @@ export default function FieldDataScreen() {
   const params = useLocalSearchParams<{ id: string | string[] }>();
   const fieldId = parseId(params.id);
 
-  // Last readings from the cache at once; always refreshed from the server.
+  // Cached readings appear at once. While this screen stays open, new
+  // readings replace them without showing the loading text again.
+  const screenIsOpen = useIsFocused();
   const validId = Number.isFinite(fieldId);
   const result = useCachedQuery({
     ...dashboardQuery(fieldId),
     enabled: validId,
+    refetchInterval: screenIsOpen ? SENSOR_REFRESH_MS : false,
   });
   const dashboard = result.data ?? null;
   const loading = validId && !dashboard && !result.isError;

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -11,8 +12,10 @@ import { router } from 'expo-router';
 import FieldDataScreen from '../../../src/app/field-data';
 import { getDashboard } from '../../../src/services/api';
 import { clearAuth } from '../../../src/services/auth';
+import { SENSOR_REFRESH_MS } from '../../../src/services/queries';
 
 const mockUseLocalSearchParams = jest.fn(() => ({ id: '3' }));
+const mockIsFocused = jest.fn(() => true);
 const mockIsAuthError = jest.fn((_error?: unknown) => false);
 const mockTranslate = (key: string) => key;
 
@@ -27,6 +30,7 @@ jest.mock('expo-router', () => ({
     replace: jest.fn(),
   },
   useLocalSearchParams: () => mockUseLocalSearchParams(),
+  useIsFocused: () => mockIsFocused(),
 }));
 
 jest.mock('../../../src/services/api', () => ({
@@ -39,11 +43,20 @@ jest.mock('../../../src/services/auth', () => ({
 }));
 
 jest.mock('../../../src/components/SensorModal', () => ({
-  SensorModal: () => {
+  SensorModal: ({
+    dashboard,
+  }: {
+    dashboard: { latest: { temperature: number } | null };
+  }) => {
     const React = jest.requireActual<typeof import('react')>('react');
     const { Text } =
       jest.requireActual<typeof import('react-native')>('react-native');
-    return <Text>sensor-modal</Text>;
+    return (
+      <>
+        <Text>sensor-modal</Text>
+        <Text>{`temp-${dashboard.latest?.temperature}`}</Text>
+      </>
+    );
   },
 }));
 
@@ -56,12 +69,30 @@ const mockedRouterReplace = router.replace as jest.MockedFunction<
 >;
 
 describe('FieldDataScreen', () => {
+  const reading = (temperature: number) => ({
+    field_name: 'Hort',
+    device_ids: ['dev-1'],
+    latest: {
+      timestamp: '2026-01-01T00:00:00Z',
+      temperature,
+      air_humidity: 40,
+      soil_humidity: 30,
+      light: 100,
+    },
+    history: [],
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetDashboard.mockReset();
     mockUseLocalSearchParams.mockReturnValue({ id: '3' });
+    mockIsFocused.mockReturnValue(true);
     mockIsAuthError.mockReset();
     mockIsAuthError.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('shows the sensor screen when there is a reading', async () => {
@@ -158,6 +189,48 @@ describe('FieldDataScreen', () => {
       expect(mockedRouterReplace).toHaveBeenCalledWith('/auth/login');
     });
     expect(mockedClearAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces the readings every 10 seconds without the loading text', async () => {
+    expect(SENSOR_REFRESH_MS).toBe(10 * 1000);
+    jest.useFakeTimers();
+    mockedGetDashboard
+      .mockResolvedValueOnce(reading(20))
+      .mockResolvedValueOnce(reading(21));
+
+    render(<FieldDataScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('temp-20')).toBeTruthy();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(SENSOR_REFRESH_MS);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('temp-21')).toBeTruthy();
+    });
+    expect(screen.queryByText('settings.loading')).toBeNull();
+    expect(mockedGetDashboard).toHaveBeenCalledTimes(2);
+  });
+
+  it('stops asking when the screen is no longer open', async () => {
+    jest.useFakeTimers();
+    mockIsFocused.mockReturnValue(false);
+    mockedGetDashboard.mockResolvedValue(reading(20));
+
+    render(<FieldDataScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('temp-20')).toBeTruthy();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(SENSOR_REFRESH_MS * 3);
+    });
+
+    expect(mockedGetDashboard).toHaveBeenCalledTimes(1);
   });
 
   it('returns to the field detail when the back button is pressed', async () => {
