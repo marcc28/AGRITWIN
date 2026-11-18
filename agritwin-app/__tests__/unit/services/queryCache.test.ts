@@ -10,6 +10,7 @@ import {
   MARKET_PAGE_SIZE,
   NOT_AUTHENTICATED,
   cropCatalogQuery,
+  cropCatalogPageQuery,
   fieldCropsQuery,
   findProductInMarketPages,
   marketCountQuery,
@@ -85,6 +86,54 @@ describe('query cache', () => {
   });
 
   describe('queries', () => {
+    const catalog = Array.from({ length: 100 }, (_, id) => ({
+      id,
+      name: `Crop ${id}`,
+      scientific_name: '',
+      category: 'vegetable',
+    }));
+
+    it('reuses complete preloaded catalogue pages without another request', async () => {
+      queryClient.setQueryData(queryKeys.cropCatalog, catalog);
+
+      await expect(
+        queryClient.query(cropCatalogPageQuery(0, 50)),
+      ).resolves.toEqual(catalog.slice(0, 50));
+      await expect(
+        queryClient.query(cropCatalogPageQuery(50, 50)),
+      ).resolves.toEqual(catalog.slice(50));
+      expect(getCrops).not.toHaveBeenCalled();
+
+      (getCrops as jest.Mock).mockResolvedValue([]);
+      await expect(
+        queryClient.query(cropCatalogPageQuery(100, 50)),
+      ).resolves.toEqual([]);
+      expect(getCrops).toHaveBeenCalledWith(100, 50, 'token-1');
+    });
+
+    it('refetches catalogue pages when their preloaded source is stale', async () => {
+      queryClient.setQueryData(queryKeys.cropCatalog, catalog, {
+        updatedAt: Date.now() - 2 * 60 * 60 * 1000,
+      });
+      (getCrops as jest.Mock).mockResolvedValue(catalog.slice(1, 51));
+
+      await expect(
+        queryClient.query(cropCatalogPageQuery(0, 50)),
+      ).resolves.toEqual(catalog.slice(1, 51));
+      expect(getCrops).toHaveBeenCalledWith(0, 50, 'token-1');
+    });
+
+    it('does not reuse an invalidated catalogue and invalidates paginated choices', async () => {
+      queryClient.setQueryData(queryKeys.cropCatalog, catalog);
+      invalidateCropCatalog();
+      (getCrops as jest.Mock).mockResolvedValue([]);
+
+      await queryClient.query(cropCatalogPageQuery(0, 50));
+      expect(getCrops).toHaveBeenCalledWith(0, 50, 'token-1');
+      invalidateCropCatalog();
+      expect(isInvalidated(queryKeys.cropCatalogPage(0, 50))).toBe(true);
+    });
+
     it('asks the crops of a garden with the session token', async () => {
       (getFieldCrops as jest.Mock).mockResolvedValue([]);
 

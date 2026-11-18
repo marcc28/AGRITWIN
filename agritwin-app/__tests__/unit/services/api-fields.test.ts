@@ -1,4 +1,6 @@
 import { getAuth } from '../../../src/services/auth';
+import { queryClient } from '../../../src/services/queryClient';
+import { queryKeys } from '../../../src/services/queryKeys';
 import {
   createDevice,
   createField,
@@ -38,6 +40,47 @@ describe('fields api', () => {
       refreshToken: null,
       username: 'ainhoa',
     });
+  });
+
+  it('invalidates field lists and detail only after an accepted update', async () => {
+    queryClient.setQueryData(queryKeys.fields, [{ id: 3 }]);
+    queryClient.setQueryData(queryKeys.fieldDetail(3), {
+      id: 3,
+      name: 'Before',
+    });
+    const payload = {
+      name: 'After',
+      location: 'Lleida',
+      field_type: 'open_field',
+      soil_type: null,
+      size_m2: 100,
+    };
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ detail: 'Unavailable' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 3, ...payload }),
+      }) as jest.Mock;
+
+    await expect(updateField(3, payload)).rejects.toThrow('Unavailable');
+    expect(queryClient.getQueryState(queryKeys.fields)?.isInvalidated).toBe(
+      false,
+    );
+    expect(
+      queryClient.getQueryState(queryKeys.fieldDetail(3))?.isInvalidated,
+    ).toBe(false);
+
+    await updateField(3, payload);
+    expect(queryClient.getQueryState(queryKeys.fields)?.isInvalidated).toBe(
+      true,
+    );
+    expect(
+      queryClient.getQueryState(queryKeys.fieldDetail(3))?.isInvalidated,
+    ).toBe(true);
   });
 
   it('signs up with policy acceptance and returns the created account', async () => {

@@ -57,8 +57,13 @@ import {
   type FieldCrop,
 } from '../services/api_fieldCrops';
 
-import { getCrops, type Crop } from '../services/api_crops';
-import { fieldCropsQuery, fieldDetailQuery } from '../services/queries';
+import type { Crop } from '../services/api_crops';
+import {
+  cropCatalogPageQuery,
+  fieldCropsQuery,
+  fieldDetailQuery,
+} from '../services/queries';
+import { useCachedQuery } from '../hooks/use-cached-query';
 import { queryClient } from '../services/queryClient';
 
 const CROP_PAGE_SIZE = 50;
@@ -162,75 +167,143 @@ export default function EditFieldScreen() {
       params: { id: String(fieldId) },
     });
   }
+  const validFieldId = Number.isFinite(fieldId);
+  const [relatedFieldId, setRelatedFieldId] = useState<number | null>(null);
+  const initializedFieldId = useRef<number | null>(null);
+  const activeFieldId = useRef(fieldId);
+  activeFieldId.current = fieldId;
+  const mounted = useRef(true);
+  const fieldRequest = useCachedQuery({
+    ...fieldDetailQuery(fieldId),
+    staleTime: FORM_DATA_MAX_AGE_MS,
+    enabled: validFieldId,
+  });
+  const cropsRequest = useCachedQuery({
+    ...fieldCropsQuery(fieldId),
+    staleTime: FORM_DATA_MAX_AGE_MS,
+    enabled: validFieldId && relatedFieldId === fieldId,
+  });
+  const catalogRequest = useCachedQuery({
+    ...cropCatalogPageQuery(0, CROP_PAGE_SIZE),
+    enabled: validFieldId && relatedFieldId === fieldId,
+  });
+  const loadError = [fieldRequest, cropsRequest, catalogRequest].find(
+    (request) => request.error && (!request.data || isAuthError(request.error)),
+  )?.error;
+  const { refetch: refetchField } = fieldRequest;
+
   useEffect(() => {
-    async function loadField() {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!validFieldId) {
+      setErrorMessage(t('settings.errors.invalidId'));
+      setLoading(false);
+      return;
+    }
+    const field = fieldRequest.data;
+    if (!field || initializedFieldId.current === fieldId) return;
+    initializedFieldId.current = fieldId;
+    setLoading(true);
+    // Hydrate the editable draft once. Background cache refreshes must never
+    // overwrite a name, boundary, unit or address the user is editing.
+    setName(field.name);
+    setLocation(field.location ?? '');
+    setFieldType(field.field_type ?? '');
+    setSoilType(field.soil_type ?? '');
+    setSizeValue(field.size_m2 != null ? String(field.size_m2) : '');
+    setBoundary(field.boundary ?? null);
+    setExcludedZones(field.excluded_zones ?? []);
+    setAreaUnit('m2');
+    setBoundaryChanged(false);
+    setPoint(
+      field.lat != null && field.lon != null
+        ? { lat: field.lat, lon: field.lon }
+        : null,
+    );
+
+    async function loadLocalPreferences() {
       try {
-        // A copy loaded a few seconds ago (e.g. by the garden screen that
-        // was just open) is reused at once instead of asking the server.
-        const field = await queryClient.query({
-          ...fieldDetailQuery(fieldId),
-          staleTime: FORM_DATA_MAX_AGE_MS,
-        });
-
-        setName(field.name);
-        setLocation(field.location ?? '');
-        setFieldType(field.field_type ?? '');
-        setSoilType(field.soil_type ?? '');
-        setSizeValue(field.size_m2 != null ? String(field.size_m2) : '');
-        setBoundary(field.boundary ?? null);
-        setExcludedZones(field.excluded_zones ?? []);
-        setAreaUnit('m2');
-        setBoundaryChanged(false);
-        setPoint(
-          field.lat != null && field.lon != null
-            ? { lat: field.lat, lon: field.lon }
-            : null,
-        );
-        setExistingDevices(field.devices);
-        setPhotoIndex(await getFieldPhotoIndex(fieldId));
+        const photo = await getFieldPhotoIndex(fieldId);
         const auth = await getAuth();
-
-        if (!auth?.token) {
+        if (!mounted.current || activeFieldId.current !== fieldId) return;
+        if (!auth?.token)
           throw new Error('No s’ha trobat el token d’autenticació');
-        }
-
-        const [fieldCrops, crops] = await Promise.all([
-          queryClient.query({
-            ...fieldCropsQuery(fieldId),
-            staleTime: FORM_DATA_MAX_AGE_MS,
-          }),
-          getCrops(0, CROP_PAGE_SIZE, auth.token),
-        ]);
-
-        setExistingCrops(fieldCrops);
-        setAvailableCrops(crops);
-        setCropOffset(crops.length);
-        setHasMoreCrops(crops.length === CROP_PAGE_SIZE);
+        setPhotoIndex(photo);
+        setRelatedFieldId(fieldId);
       } catch (error) {
+        if (!mounted.current || activeFieldId.current !== fieldId) return;
         if (isAuthError(error)) {
           await clearAuth();
           router.replace('/auth/login');
           return;
         }
-        const message =
+        setErrorMessage(
           error instanceof Error
             ? error.message
-            : t('settings.errors.loadGarden');
-        setErrorMessage(message);
-      } finally {
+            : t('settings.errors.loadGarden'),
+        );
         setLoadingCrops(false);
         setLoading(false);
       }
     }
+    void loadLocalPreferences();
+  }, [fieldId, validFieldId, fieldRequest.data, t]);
 
-    if (!Number.isFinite(fieldId)) {
-      setErrorMessage(t('settings.errors.invalidId'));
+  useEffect(() => {
+    if (fieldRequest.data) setExistingDevices(fieldRequest.data.devices);
+  }, [fieldRequest.data]);
+
+  useEffect(() => {
+    if (cropsRequest.data) setExistingCrops(cropsRequest.data);
+  }, [cropsRequest.data]);
+
+  useEffect(() => {
+    if (!catalogRequest.data || cropPage !== 0) return;
+    setAvailableCrops(catalogRequest.data);
+    setCropOffset(catalogRequest.data.length);
+    setHasMoreCrops(catalogRequest.data.length === CROP_PAGE_SIZE);
+  }, [catalogRequest.data, cropPage]);
+
+  useEffect(() => {
+    const error = loadError;
+    if (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : t('settings.errors.loadGarden'),
+      );
+      setLoadingCrops(false);
       setLoading(false);
+      if (isAuthError(error)) {
+        async function returnToLogin() {
+          await clearAuth();
+          router.replace('/auth/login');
+        }
+        void returnToLogin();
+      }
       return;
     }
-
-    void loadField();
-  }, [fieldId, t]);
+    if (
+      relatedFieldId === fieldId &&
+      cropsRequest.isSuccess &&
+      catalogRequest.isSuccess
+    ) {
+      setLoadingCrops(false);
+      setLoading(false);
+    }
+  }, [
+    loadError,
+    relatedFieldId,
+    fieldId,
+    cropsRequest.isSuccess,
+    catalogRequest.isSuccess,
+    t,
+  ]);
 
   async function loadNextCropPage() {
     if (cropPageLoading.current || loadingCrops || !hasMoreCrops) return;
@@ -241,7 +314,9 @@ export default function EditFieldScreen() {
       const auth = await getAuth();
       if (!auth?.token) throw new Error('No s’ha trobat el token');
 
-      const nextPage = await getCrops(cropOffset, CROP_PAGE_SIZE, auth.token);
+      const nextPage = await queryClient.query(
+        cropCatalogPageQuery(cropOffset, CROP_PAGE_SIZE),
+      );
       setAvailableCrops(nextPage);
       setCropOffset((offset) => offset + nextPage.length);
       setCropPage((page) => page + 1);
@@ -269,22 +344,11 @@ export default function EditFieldScreen() {
       if (!Number.isFinite(fieldId)) {
         return undefined;
       }
-      let active = true;
-      // Always asked to the server: a board may have just been added.
-      queryClient
-        .query({ ...fieldDetailQuery(fieldId), staleTime: 0 })
-        .then((field) => {
-          if (active) {
-            setExistingDevices(field.devices);
-          }
-        })
-        .catch(() => {
-          // Keep the list the user already sees.
-        });
-      return () => {
-        active = false;
-      };
-    }, [fieldId]),
+      // Revalidate on return from device setup; the query observer updates
+      // devices without reinitializing the editable form draft.
+      void refetchField();
+      return undefined;
+    }, [fieldId, refetchField]),
   );
 
   function handleAddDevice() {
@@ -437,7 +501,11 @@ export default function EditFieldScreen() {
         auth.token,
       );
 
-      setExistingCrops((current) => [...current, newCrop]);
+      setExistingCrops((current) =>
+        current.some((crop) => crop.id === newCrop.id)
+          ? current.map((crop) => (crop.id === newCrop.id ? newCrop : crop))
+          : [...current, newCrop],
+      );
       setSelectedCropId('');
       setSelectedCropName('');
       setPlantedAt('');

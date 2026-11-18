@@ -26,6 +26,8 @@ import {
 } from '../../../src/services/api_fieldCrops';
 import { getCrops } from '../../../src/services/api_crops';
 import { router } from 'expo-router';
+import { queryClient } from '../../../src/services/queryClient';
+import { queryKeys } from '../../../src/services/queryKeys';
 
 jest.mock('react-i18next', () => {
   const t = (key: string) => key;
@@ -252,6 +254,9 @@ describe('EditFieldScreen', () => {
 
   it('loads the garden to edit', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -263,6 +268,63 @@ describe('EditFieldScreen', () => {
       { timeout: 10000 },
     );
     expect(onStep(1, () => screen.getByDisplayValue('Andorra'))).toBeTruthy();
+  });
+
+  it('reuses prefetched data without repeating server requests', async () => {
+    queryClient.setQueryData(queryKeys.fieldDetail(3), await mockedGetField(3));
+    queryClient.setQueryData(queryKeys.fieldCrops(3), []);
+    queryClient.setQueryData(
+      queryKeys.cropCatalog,
+      await mockedGetCrops(0, 100, 'token'),
+    );
+    jest.clearAllMocks();
+
+    render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+
+    expect(screen.getByDisplayValue('Hort')).toBeTruthy();
+    expect(mockedGetField).not.toHaveBeenCalled();
+    expect(mockedGetFieldCrops).not.toHaveBeenCalled();
+    expect(mockedGetCrops).not.toHaveBeenCalled();
+  });
+
+  it('refreshes devices without overwriting the edited name, area or display unit', async () => {
+    render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await waitFor(() =>
+      expect(screen.queryByText('settings.loading')).toBeNull(),
+    );
+    fireEvent.changeText(
+      screen.getByDisplayValue('Hort'),
+      'Unsaved field name',
+    );
+    goToStep(2);
+    fireEvent.changeText(screen.getByDisplayValue('40'), '20000');
+    fireEvent.press(screen.getByText('settings.createField.areaUnits.ha'));
+
+    await act(async () => {
+      queryClient.setQueryData(queryKeys.fieldDetail(3), {
+        ...queryClient.getQueryData<Awaited<ReturnType<typeof getField>>>(
+          queryKeys.fieldDetail(3),
+        ),
+        name: 'Server name',
+        size_m2: 7,
+        devices: [{ id: 'new-device', battery_status: true }],
+      });
+    });
+
+    expect(screen.getByDisplayValue('2')).toBeTruthy();
+    expect(
+      onStep(0, () => screen.getByDisplayValue('Unsaved field name')),
+    ).toBeTruthy();
+    expect(onStep(4, () => screen.getByText('new-device'))).toBeTruthy();
   });
 
   it('saves the garden', async () => {
@@ -277,6 +339,9 @@ describe('EditFieldScreen', () => {
     });
 
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -303,6 +368,9 @@ describe('EditFieldScreen', () => {
 
   it('rejects an empty name', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -319,6 +387,9 @@ describe('EditFieldScreen', () => {
 
   it('goes back without saving', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -338,6 +409,9 @@ describe('EditFieldScreen', () => {
       from: 'field-selection',
     });
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -350,6 +424,9 @@ describe('EditFieldScreen', () => {
 
   it('rejects an invalid size', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -366,6 +443,9 @@ describe('EditFieldScreen', () => {
 
   it('shows the linked devices and a button to add another one', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -387,6 +467,9 @@ describe('EditFieldScreen', () => {
 
   it('shows the new boards when the user comes back from adding one', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -419,6 +502,9 @@ describe('EditFieldScreen', () => {
 
   it('keeps the list when it cannot be refreshed', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -437,6 +523,9 @@ describe('EditFieldScreen', () => {
 
   it('does not refresh the list on the first focus', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -459,6 +548,9 @@ describe('EditFieldScreen', () => {
     });
 
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -486,6 +578,9 @@ describe('EditFieldScreen', () => {
       devices: [],
     });
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -503,6 +598,9 @@ describe('EditFieldScreen', () => {
   it('removes an existing Arduino', async () => {
     mockedDeleteDevice.mockResolvedValue(undefined);
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -522,6 +620,9 @@ describe('EditFieldScreen', () => {
   it('shows when removing a device fails', async () => {
     mockedDeleteDevice.mockRejectedValue(new Error('cannot delete'));
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -541,6 +642,9 @@ describe('EditFieldScreen', () => {
   it('shows when saving fails', async () => {
     mockedUpdateField.mockRejectedValue(new Error('cannot save'));
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -558,6 +662,9 @@ describe('EditFieldScreen', () => {
     mockedDeleteFieldCrop.mockResolvedValue(undefined);
 
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -581,6 +688,9 @@ describe('EditFieldScreen', () => {
       crop_name: 'Tomàquet',
     });
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -618,6 +728,9 @@ describe('EditFieldScreen', () => {
   it('rejects invalid crop dates and harvests before planting', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -675,6 +788,9 @@ describe('EditFieldScreen', () => {
         },
       ]);
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -703,6 +819,9 @@ describe('EditFieldScreen', () => {
       )
       .mockRejectedValueOnce(new Error('catalog unavailable'));
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -720,6 +839,9 @@ describe('EditFieldScreen', () => {
   it('shows auth failures while loading and adding a crop', async () => {
     mockedGetAuth.mockResolvedValueOnce(null);
     const loadingView = render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -748,6 +870,9 @@ describe('EditFieldScreen', () => {
     ]);
     mockedGetFieldCrops.mockResolvedValue([]);
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -773,6 +898,9 @@ describe('EditFieldScreen', () => {
       new Error('remove unavailable'),
     );
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -800,6 +928,9 @@ describe('EditFieldScreen', () => {
   it('closes the crop picker and form, then reopens crop entry', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: '3', addCrop: 'true' });
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -830,6 +961,9 @@ describe('EditFieldScreen', () => {
   it('shows a missing-auth error when removing a crop', async () => {
     mockedGetFieldCrops.mockResolvedValue([fieldCrop]);
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -850,6 +984,9 @@ describe('EditFieldScreen', () => {
     mockIsAuthError.mockReturnValue(true);
     mockedGetField.mockRejectedValue(new Error('Not authenticated'));
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -862,6 +999,9 @@ describe('EditFieldScreen', () => {
   it('shows an invalid id', async () => {
     mockUseLocalSearchParams.mockReturnValue({ id: 'nope' });
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -879,6 +1019,9 @@ describe('EditFieldScreen', () => {
   it('shows when the garden cannot be loaded', async () => {
     mockedGetField.mockRejectedValue(new Error('missing garden'));
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -930,6 +1073,9 @@ describe('Editing field geometry', () => {
   });
   it('changes display units and saves the canonical area with its boundary', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -955,6 +1101,9 @@ describe('Editing field geometry', () => {
   });
   it('displays the stored boundary without permitting edits in view mode', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -971,6 +1120,9 @@ describe('Editing field geometry', () => {
   });
   it('can cancel a redraw without losing the saved area', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -986,6 +1138,9 @@ describe('Editing field geometry', () => {
   });
   it('removes the old area when switching to manual entry', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
@@ -1013,6 +1168,9 @@ describe('Editing field geometry', () => {
   });
   it('replaces a boundary only after a valid outline is confirmed', async () => {
     render(<EditFieldScreen />);
+    await act(async () => {
+      await Promise.resolve();
+    });
     await waitFor(() =>
       expect(screen.queryByText('settings.loading')).toBeNull(),
     );
