@@ -33,7 +33,7 @@ SPRINT 2,Final documentation,8,flaviaserret04 & Tigre44 & ainhoaaf & marcc28 & a
 SPRINT 2,Google sign-in: Let the user sign in or sign up with a Google account,11,flaviaserret04,13,100%,165,195,165,-30,,,,,,,,
 SPRINT 2,Implement Arduino/ESP32 IoT Sensor Node,45,Tigre44 & marcc28,50,100%,675,750,675,-75,,,,,,,,
 SPRINT 2,IoT device status,12,ainhoaaf,11,100%,180,165,180,15,,,,,,,,
-SPRINT 2,Load the app in one go,16,Tigre44,10,100%,240,150,240,90,,,,,,,,
+SPRINT 2,Load the app in one go,16,Tigre44,16,100%,240,240,240,0,,,,,,,,
 SPRINT 2,"Login improvements, password recovery and menu clean-up",1,flaviaserret04,1,100%,15,15,15,0,,,,,,,,
 SPRINT 2,Marked redirection,9.2,flaviaserret04,9.2,100%,138,138,138,0,,,,,,,,
 SPRINT 2,Market infinite scroll,1,flaviaserret04,0.7,100%,15,10.5,15,4.5,,,,,,,,
@@ -44,4 +44,4 @@ SPRINT 2,"Security of the data, the broker and the API",17,marcc28,0,0%,255,0,0,
 SPRINT 2,Task list for the current garden,22,ainhoaaf,18.5,100%,330,277.5,330,52.5,,,,,,,,
 SPRINT 2,Weather alerts for the current garden,9,atnic15,7.5,100%,135,112.5,135,22.5,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,221.4,,187,,3321,2805,2875.5,516,10168,1.025134,0.865854,70.5,-445.5,9918.706312,7113.706312,249.293688
+SPRINT 2,TOTAL SPRINT 2,221.4,,193,,3321,2895,2875.5,426,10168,0.993264,0.865854,-19.5,-445.5,10236.953573,7341.953573,-68.953573
