@@ -10,13 +10,15 @@ from sqlalchemy.orm import aliased
 
 from db.schema import Crop, Field, FieldCrop, FieldRecommendation
 from prompts.field_recommendation_prompt import build_recommendation_prompt
+from services.ai_dependencies import translation_service as default_translation_service
+from services.translation_service import TranslationService
 
 
 def _read_env_setting(name: str) -> str:
-    """Read a configuration value without surrounding whitespace."""
     return os.getenv(name, "").strip()
 
 
+# Environment configuration
 api_key = _read_env_setting("GEMINI_API_KEY")
 model_gemini = _read_env_setting("MODEL_USE_IN_RECOMENDATION")
 
@@ -43,8 +45,77 @@ def serialize_rows(rows):
 
 
 class FieldRecommendationService:
-    def __init__(self, session: AsyncSession):
+    def __init__(
+        self,
+        session: AsyncSession,
+        translation_service: TranslationService | None = None,
+    ):
         self._db = session
+        self._translation_service = translation_service or default_translation_service
+
+    async def _translate_recommendations(
+        self,
+        recommendations: list[FieldRecommendation],
+        language: str,
+    ) -> list[FieldRecommendation] | list[dict]:
+        language = language.strip().replace("_", "-").lower()
+        if language.split("-")[0] == "ca":
+            return recommendations
+
+        translatable_content = [
+            {
+                "title": recommendation.title,
+                "description": recommendation.description,
+                "based_on": recommendation.based_on or {},
+            }
+            for recommendation in recommendations
+        ]
+        translated_content = await self._translation_service.translate(
+            content=translatable_content,
+            language=language,
+        )
+
+        if (
+            not isinstance(translated_content, list)
+            or len(translated_content) != len(recommendations)
+            or any(not isinstance(item, dict) for item in translated_content)
+        ):
+            raise RuntimeError("Translation returned an invalid recommendations structure")
+
+        translated_recommendations = []
+        for recommendation, translated in zip(
+            recommendations,
+            translated_content,
+            strict=True,
+        ):
+            title = translated.get("title")
+            description = translated.get("description")
+            based_on = translated.get("based_on")
+            if (
+                not isinstance(title, str)
+                or not title.strip()
+                or not isinstance(description, str)
+                or not description.strip()
+                or not isinstance(based_on, dict)
+            ):
+                raise RuntimeError("Translation returned invalid recommendation text")
+
+            translated_recommendations.append(
+                {
+                    "id": recommendation.id,
+                    "field_id": recommendation.field_id,
+                    "category": recommendation.category,
+                    "title": title.strip(),
+                    "description": description.strip(),
+                    "severity": recommendation.severity,
+                    "based_on": based_on,
+                    "model": recommendation.model,
+                    "generated_at": recommendation.generated_at,
+                    "expires_at": recommendation.expires_at,
+                }
+            )
+
+        return translated_recommendations
 
     async def field_belongs_to_user(
         self,
@@ -66,7 +137,6 @@ class FieldRecommendationService:
         offset: int = 0,
         limit: int = 10,
     ) -> list[FieldRecommendation]:
-
         query = (
             select(FieldRecommendation)
             .join(
@@ -90,7 +160,6 @@ class FieldRecommendationService:
         recommendation_id: UUID,
         user_id: UUID,
     ) -> FieldRecommendation | None:
-
         result = await self._db.execute(
             select(FieldRecommendation)
             .join(
@@ -109,7 +178,6 @@ class FieldRecommendationService:
         self,
         data: dict,
     ) -> FieldRecommendation:
-
         recommendation = FieldRecommendation(**data)
 
         self._db.add(recommendation)
@@ -124,7 +192,6 @@ class FieldRecommendationService:
         user_id: UUID,
         data: dict,
     ) -> FieldRecommendation | None:
-
         recommendation = await self.get_recommendation(
             recommendation_id,
             user_id,
@@ -146,7 +213,6 @@ class FieldRecommendationService:
         recommendation_id: UUID,
         user_id: UUID,
     ) -> bool:
-
         recommendation = await self.get_recommendation(
             recommendation_id,
             user_id,
@@ -165,7 +231,6 @@ class FieldRecommendationService:
         user_id: UUID,
         field_id: int | None = None,
     ) -> int:
-
         query = (
             select(func.count())
             .select_from(FieldRecommendation)
@@ -244,7 +309,6 @@ class FieldRecommendationService:
         field_id: int,
         now: datetime,
     ) -> list[FieldRecommendation]:
-
         latest_generation_expiry = (
             select(func.max(FieldRecommendation.expires_at))
             .where(
@@ -306,8 +370,8 @@ class FieldRecommendationService:
         user_id: UUID,
         radius_meters: int = 1000,
         force_refresh: bool = False,
-    ) -> list[FieldRecommendation] | None:
-
+        language: str = "ca",
+    ) -> list[FieldRecommendation] | list[dict] | None:
         # --------------------------------------------------
         # 1. Comprovar que el camp pertany a l'usuari
         # --------------------------------------------------
@@ -332,7 +396,10 @@ class FieldRecommendationService:
                 now=now,
             )
             if existing_recommendations:
-                return existing_recommendations
+                return await self._translate_recommendations(
+                    existing_recommendations,
+                    language,
+                )
         # --------------------------------------------------
         # 3. Recuperar les dades del camp principal
         # --------------------------------------------------
@@ -392,13 +459,13 @@ class FieldRecommendationService:
         # --------------------------------------------------
         # 8. Preparar la petició a Gemini Flash
         # --------------------------------------------------
-        client = genai.Client(api_key=api_key)
 
         prompt = build_recommendation_prompt(context)
         # --------------------------------------------------
         # 9. Cridar Gemini Flash
         # --------------------------------------------------
 
+        client = genai.Client(api_key=api_key)
         response = await client.aio.interactions.create(
             model=model_gemini,
             input=prompt,
@@ -422,7 +489,11 @@ class FieldRecommendationService:
             raise RuntimeError("Invalid Gemini response structure")
 
         # --------------------------------------------------
-        # 10. Validar i guardar les recomanacions
+        # 10. Validate and persist the canonical Catalan recommendations.
+        # --------------------------------------------------
+
+        # --------------------------------------------------
+        # 11. Validar i guardar les recomanacions
         # --------------------------------------------------
 
         valid_categories = {
@@ -490,4 +561,7 @@ class FieldRecommendationService:
         if not saved_recommendations:
             raise RuntimeError("Gemini did not generate any valid recommendations")
 
-        return saved_recommendations
+        return await self._translate_recommendations(
+            saved_recommendations,
+            language,
+        )

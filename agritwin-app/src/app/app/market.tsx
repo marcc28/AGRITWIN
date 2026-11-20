@@ -47,10 +47,10 @@ function productImage(product: Product) {
 }
 
 /** Market data already in the cache (from this session or the last one). */
-function readCachedMarket() {
+function readCachedMarket(language: string) {
   const total = queryClient.getQueryData<number>(queryKeys.marketCount);
   const firstPage = queryClient.getQueryData<Product[]>(
-    queryKeys.marketPage(0, PAGE_SIZE),
+    queryKeys.marketPage(0, PAGE_SIZE, language),
   );
   const ready = typeof total === 'number' && Array.isArray(firstPage);
   return {
@@ -64,13 +64,22 @@ function readCachedMarket() {
 // Per sota d'aquest estoc avisem que en queden poques unitats
 const LOW_STOCK = 50;
 
-const euros = (value: number) => Number(value).toFixed(2).replace('.', ',');
+const euros = (value: number, language: string) =>
+  new Intl.NumberFormat(language, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value));
 
 type ProductCardProps = {
   product: Product;
+  language: string;
   styles: ReturnType<typeof getMarketStyles>;
   palette: ReturnType<typeof getMarketPalette>;
   buyLabel: string;
+  outOfStockLabel: string;
+  lowStockLabel: (units: number) => string;
+  availableLabel: (units: number) => string;
+  viewProductLabel: (name: string) => string;
   onPress: () => void;
 };
 
@@ -125,10 +134,12 @@ function HeartbeatBuyButton({
   product,
   label,
   styles,
+  outOfStockLabel,
 }: {
   product: Product;
   label: string;
   styles: ReturnType<typeof getMarketStyles>;
+  outOfStockLabel: string;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -189,7 +200,7 @@ function HeartbeatBuyButton({
           testID={`buy-text-${product.id}`}
           style={[styles.buyText, outOfStock && styles.buyTextDisabled]}
         >
-          {outOfStock ? 'Esgotat' : label}
+          {outOfStock ? outOfStockLabel : label}
         </Text>
       </View>
     </Animated.View>
@@ -198,9 +209,14 @@ function HeartbeatBuyButton({
 
 function ProductCard({
   product,
+  language,
   styles,
   palette,
   buyLabel,
+  outOfStockLabel,
+  lowStockLabel,
+  availableLabel,
+  viewProductLabel,
   onPress,
   onHover,
   onHoverOut,
@@ -222,10 +238,10 @@ function ProductCard({
       : palette.ok;
 
   const stockLabel = outOfStock
-    ? 'Esgotat'
+    ? outOfStockLabel
     : lowStock
-      ? `Només en queden ${units} kg`
-      : `${units} kg disponibles`;
+      ? lowStockLabel(units)
+      : availableLabel(units);
 
   return (
     <ProductPreview
@@ -233,7 +249,7 @@ function ProductCard({
       imageUrl={imageUrl}
       styles={styles}
       testID={`product-item-${product.id}`}
-      accessibilityLabel={`Veure producte ${product.product}`}
+      accessibilityLabel={viewProductLabel(product.product)}
       onHover={onHover}
       onHoverOut={onHoverOut}
       onPress={onPress}
@@ -288,7 +304,7 @@ function ProductCard({
             testID={`product-price-${product.id}`}
             style={styles.priceValue}
           >
-            {euros(product.price)} €
+            {euros(product.price, language)} €
           </Text>
         </View>
       </View>
@@ -298,13 +314,14 @@ function ProductCard({
           testID={`product-price-kg-${product.id}`}
           style={styles.smallInfo}
         >
-          {euros(product.price_per_kg)} €/kg
+          {euros(product.price_per_kg, language)} €/kg
         </Text>
 
         <HeartbeatBuyButton
           product={product}
           label={buyLabel}
           styles={styles}
+          outOfStockLabel={outOfStockLabel}
         />
       </View>
     </ProductPreview>
@@ -316,6 +333,7 @@ type MarketListContentProps = {
   searching: boolean;
   searchError: string;
   products: Product[];
+  language: string;
   isSearching: boolean;
   searchQuery: string;
   hasMore: boolean;
@@ -326,6 +344,13 @@ type MarketListContentProps = {
   skeletonGap: number;
   compactSkeleton: boolean;
   buyLabel: string;
+  outOfStockLabel: string;
+  lowStockLabel: (units: number) => string;
+  availableLabel: (units: number) => string;
+  noMatchLabel: (query: string) => string;
+  noProductsLabel: string;
+  viewProductLabel: (name: string) => string;
+  loadMoreAccessibilityLabel: string;
   loadingLabel: string;
   loadMoreLabel: string;
   onLoadMore: () => void;
@@ -344,6 +369,7 @@ function MarketListContent({
   searching,
   searchError,
   products,
+  language,
   isSearching,
   searchQuery,
   hasMore,
@@ -354,6 +380,13 @@ function MarketListContent({
   skeletonGap,
   compactSkeleton,
   buyLabel,
+  outOfStockLabel,
+  lowStockLabel,
+  availableLabel,
+  noMatchLabel,
+  noProductsLabel,
+  viewProductLabel,
+  loadMoreAccessibilityLabel,
   loadingLabel,
   loadMoreLabel,
   onLoadMore,
@@ -378,8 +411,8 @@ function MarketListContent({
 
   if (products.length === 0) {
     const emptyMessage = isSearching
-      ? `Cap producte coincideix amb «${searchQuery.trim()}».`
-      : 'Encara no hi ha productes al mercat.';
+      ? noMatchLabel(searchQuery.trim())
+      : noProductsLabel;
     return <Text style={styles.statusText}>{emptyMessage}</Text>;
   }
 
@@ -389,9 +422,14 @@ function MarketListContent({
         <ProductCard
           key={product.id}
           product={product}
+          language={language}
           styles={styles}
           palette={palette}
           buyLabel={buyLabel}
+          outOfStockLabel={outOfStockLabel}
+          lowStockLabel={lowStockLabel}
+          availableLabel={availableLabel}
+          viewProductLabel={viewProductLabel}
           onPress={() => onOpenProduct(product.id)}
           onHover={(pageX, pageY) =>
             onHover(
@@ -409,7 +447,7 @@ function MarketListContent({
           <Pressable
             testID="market-load-more"
             accessibilityRole="button"
-            accessibilityLabel="Carregar més productes"
+            accessibilityLabel={loadMoreAccessibilityLabel}
             disabled={loadingPage}
             onPress={onLoadMore}
             style={({ pressed }) => [
@@ -436,7 +474,8 @@ function MarketListContent({
 }
 
 export default function MarketScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage || i18n.language || 'ca';
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
   const colors = Colors[isDark ? 'dark' : 'light'];
@@ -500,7 +539,7 @@ export default function MarketScreen() {
 
   // The first page and the total saved from the last visit are shown at
   // once; they are refreshed from the server right after.
-  const [cached] = useState(readCachedMarket);
+  const [cached] = useState(() => readCachedMarket(language));
 
   const [products, setProducts] = useState<Product[]>(cached.products);
   const [allProducts, setAllProducts] = useState<Product[]>(cached.products);
@@ -520,21 +559,29 @@ export default function MarketScreen() {
   // Càrrega inicial
   useEffect(() => {
     let active = true;
+    const localeCache = readCachedMarket(language);
+    setProducts(localeCache.products);
+    setAllProducts(localeCache.products);
+    setCurrentItems(localeCache.products);
+    setProductsTotal(localeCache.total);
+    setHasMore(localeCache.hasMore);
+    setLoading(!localeCache.ready);
 
     async function loadData() {
       try {
         const [productsCount, productsData] = await Promise.all([
           queryClient.query(marketCountQuery()),
-          queryClient.query(marketPageQuery(0, PAGE_SIZE)),
+          queryClient.query(marketPageQuery(0, PAGE_SIZE, language)),
         ]);
 
         if (active) {
           const firstPage = productsData as Product[];
           // Fresh first page; pages already loaded further on are kept.
-          const merge = (previous: Product[]) => [
-            ...firstPage,
-            ...previous.slice(firstPage.length),
-          ];
+          const previous =
+            queryClient.getQueryData<Product[]>(
+              queryKeys.marketPage(PAGE_SIZE, PAGE_SIZE, language),
+            ) ?? [];
+          const merge = [...firstPage, ...previous];
 
           setProductsTotal(productsCount);
           setAllProducts(merge);
@@ -555,7 +602,7 @@ export default function MarketScreen() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [language]);
 
   // Cerca amb debounce
   useEffect(() => {
@@ -580,7 +627,7 @@ export default function MarketScreen() {
       setSearching(true);
 
       try {
-        const results = await searchMarketProducts(query);
+        const results = await searchMarketProducts(query, language);
 
         if (active) {
           setProducts(results);
@@ -590,7 +637,7 @@ export default function MarketScreen() {
         console.error('Error en la cerca:', error);
 
         if (active) {
-          setSearchError('No s’ha pogut fer la cerca. Torna-ho a provar.');
+          setSearchError(t('market.errors.searchFailed'));
           setProducts([]);
           setCurrentItems([]);
         }
@@ -603,7 +650,7 @@ export default function MarketScreen() {
       active = false;
       clearTimeout(timeout);
     };
-  }, [searchQuery, loading, allProducts]);
+  }, [searchQuery, loading, allProducts, language, t]);
 
   useEffect(() => {}, [searchQuery]);
 
@@ -625,7 +672,7 @@ export default function MarketScreen() {
       const offset = allProducts.length;
 
       const batch = (await queryClient.query(
-        marketPageQuery(offset, PAGE_SIZE),
+        marketPageQuery(offset, PAGE_SIZE, language),
       )) as Product[];
       prefetchImages(batch.map(productImage));
 
@@ -697,7 +744,7 @@ export default function MarketScreen() {
 
         <TextInput
           style={styles.searchInput}
-          placeholder={t('market.searchPlaceholder', 'Cerca productes')}
+          placeholder={t('market.searchPlaceholder')}
           placeholderTextColor={palette.muted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -708,7 +755,7 @@ export default function MarketScreen() {
           <Pressable
             style={styles.clearButton}
             accessibilityRole="button"
-            accessibilityLabel="Esborra la cerca"
+            accessibilityLabel={t('market.clearSearch')}
             onPress={() => setSearchQuery('')}
           >
             <Text style={styles.clearText}>×</Text>
@@ -729,6 +776,7 @@ export default function MarketScreen() {
           searching={searching}
           searchError={searchError}
           products={products}
+          language={language}
           isSearching={isSearching}
           searchQuery={searchQuery}
           hasMore={hasMore}
@@ -739,8 +787,17 @@ export default function MarketScreen() {
           skeletonGap={skeletonGap}
           compactSkeleton={compactSkeleton}
           buyLabel={t('market.buy')}
-          loadingLabel={t('common.loading', 'Carregant...')}
-          loadMoreLabel={t('market.loadMore', 'Carregar més productes')}
+          outOfStockLabel={t('market.stock.outOfStock')}
+          lowStockLabel={(units) => t('market.stock.low', { count: units })}
+          availableLabel={(units) =>
+            t('market.stock.available', { count: units })
+          }
+          noMatchLabel={(query) => t('market.noMatch', { query })}
+          noProductsLabel={t('market.noProducts')}
+          viewProductLabel={(name) => t('market.viewProduct', { name })}
+          loadMoreAccessibilityLabel={t('market.loadMore')}
+          loadingLabel={t('market.loading')}
+          loadMoreLabel={t('market.loadMore')}
           onLoadMore={loadMoreProducts}
           onOpenProduct={openProduct}
           onHover={showImagePreview}

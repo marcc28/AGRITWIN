@@ -40,11 +40,24 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, fallback?: string) => fallback ?? key,
-  }),
-}));
+jest.mock('react-i18next', () => {
+  const locale = jest.requireActual('../../../i18n/locales/ca.json');
+  const t = (key: string, options?: Record<string, unknown>) => {
+    const value = key
+      .split('.')
+      .reduce((current: any, part) => current?.[part], locale);
+    if (typeof value !== 'string') return key;
+    return value.replace(/{{(\w+)}}/g, (_match, name) =>
+      String(options?.[name] ?? `{{${name}}}`),
+    );
+  };
+  return {
+    useTranslation: () => ({
+      t,
+      i18n: { language: 'ca', resolvedLanguage: 'ca' },
+    }),
+  };
+});
 
 const mockProducts = Array.from({ length: 6 }, (_, index) => ({
   id: index + 1,
@@ -133,7 +146,7 @@ describe('MarketScreen', () => {
       });
 
       expect(getMarketProductsCount).toHaveBeenCalledTimes(1);
-      expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
+      expect(getcontentfeed).toHaveBeenCalledWith(0, 5, 'ca');
     });
 
     it('shows the loading skeleton while data is pending', async () => {
@@ -183,7 +196,7 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('buy-text-1')).toHaveTextContent('Esgotat');
       });
 
-      expect(screen.getByTestId('buy-text-2')).toHaveTextContent('market.buy');
+      expect(screen.getByTestId('buy-text-2')).toHaveTextContent('Compra');
     });
 
     it('does not render more than five products initially', async () => {
@@ -278,7 +291,7 @@ describe('MarketScreen', () => {
 
       await waitFor(
         () => {
-          expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+          expect(searchMarketProducts).toHaveBeenCalledWith('tomata', 'ca');
         },
         { timeout: 3000 },
       );
@@ -294,7 +307,7 @@ describe('MarketScreen', () => {
       fireEvent.changeText(searchInput(screen), '  tomata  ');
 
       await waitFor(() => {
-        expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+        expect(searchMarketProducts).toHaveBeenCalledWith('tomata', 'ca');
       });
     });
 
@@ -331,9 +344,12 @@ describe('MarketScreen', () => {
 
       fireEvent.changeText(searchInput(screen), 'tomata');
 
-      await waitFor(() => {
-        expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
-      });
+      await waitFor(
+        () => {
+          expect(searchMarketProducts).toHaveBeenCalledWith('tomata', 'ca');
+        },
+        { timeout: 3000 },
+      );
 
       expect(screen.queryByTestId('product-item-1')).toBeNull();
 
@@ -356,7 +372,7 @@ describe('MarketScreen', () => {
       fireEvent.changeText(searchInput(screen), 'tomata');
 
       await waitFor(() => {
-        expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+        expect(searchMarketProducts).toHaveBeenCalledWith('tomata', 'ca');
       });
 
       fireEvent.press(screen.getByLabelText('Esborra la cerca'));
@@ -465,7 +481,7 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-6')).toBeTruthy();
       });
 
-      expect(getcontentfeed).toHaveBeenLastCalledWith(5, 5);
+      expect(getcontentfeed).toHaveBeenLastCalledWith(5, 5, 'ca');
     });
 
     it('does not load more products when all products are loaded', async () => {
@@ -543,7 +559,7 @@ describe('MarketScreen', () => {
       });
 
       await waitFor(() => {
-        expect(getcontentfeed).toHaveBeenCalledWith(5, 5);
+        expect(getcontentfeed).toHaveBeenCalledWith(5, 5, 'ca');
       });
 
       await act(async () => {
@@ -642,7 +658,7 @@ describe('MarketScreen', () => {
       fireEvent.changeText(searchInput(screen), 'tomata');
 
       await waitFor(() => {
-        expect(searchMarketProducts).toHaveBeenCalledWith('tomata');
+        expect(searchMarketProducts).toHaveBeenCalledWith('tomata', 'ca');
       });
 
       const callsBeforeScroll = (getcontentfeed as jest.Mock).mock.calls.length;
@@ -671,7 +687,7 @@ describe('MarketScreen', () => {
         expect(screen.getByTestId('product-item-6')).toBeTruthy();
       });
 
-      expect(getcontentfeed).toHaveBeenLastCalledWith(5, 5);
+      expect(getcontentfeed).toHaveBeenLastCalledWith(5, 5, 'ca');
     });
 
     it('hides the web button after all products are loaded', async () => {
@@ -752,7 +768,7 @@ describe('MarketScreen', () => {
       });
 
       expect(getMarketProductsCount).toHaveBeenCalledTimes(1);
-      expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
+      expect(getcontentfeed).toHaveBeenCalledWith(0, 5, 'ca');
       expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
@@ -776,7 +792,7 @@ describe('MarketScreen', () => {
       });
 
       expect(getMarketProductsCount).toHaveBeenCalledTimes(1);
-      expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
+      expect(getcontentfeed).toHaveBeenCalledWith(0, 5, 'ca');
       expect(consoleSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
@@ -957,7 +973,7 @@ describe('MarketScreen', () => {
       const screen = await renderScreen();
 
       await waitFor(() => {
-        expect(getcontentfeed).toHaveBeenCalledWith(0, 5);
+        expect(getcontentfeed).toHaveBeenCalledWith(0, 5, 'ca');
       });
 
       screen.unmount();

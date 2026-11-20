@@ -55,9 +55,20 @@ export type MarketProduct = {
   image_url?: string | null;
 };
 
-export async function getMarketProduct(id: string): Promise<MarketProduct> {
+const marketLanguageQuery = (language: string) => {
+  const normalizedLanguage = language || 'ca';
+  return normalizedLanguage.toLowerCase().split('-')[0] === 'ca'
+    ? ''
+    : `language=${encodeURIComponent(normalizedLanguage)}`;
+};
+
+export async function getMarketProduct(
+  id: string,
+  language = 'ca',
+): Promise<MarketProduct> {
+  const languageQuery = marketLanguageQuery(language);
   const response = await fetch(
-    `${API_URL}/api/v1/conte_mercat/${encodeURIComponent(id)}`,
+    `${API_URL}/api/v1/conte_mercat/${encodeURIComponent(id)}${languageQuery ? `?${languageQuery}` : ''}`,
     {
       method: 'GET',
       headers: {
@@ -99,9 +110,14 @@ export async function getnews(offset: number, limit: number): Promise<News[]> {
   return data;
 }
 
-export async function getcontentfeed(offset: number, limit: number) {
+export async function getcontentfeed(
+  offset: number,
+  limit: number,
+  language = 'ca',
+) {
+  const languageQuery = marketLanguageQuery(language);
   const response = await fetch(
-    `${API_URL}/api/v1/conte_mercat?offset=${offset}&limit=${limit}`,
+    `${API_URL}/api/v1/conte_mercat?offset=${offset}&limit=${limit}${languageQuery ? `&${languageQuery}` : ''}`,
     {
       method: 'GET',
       headers: {
@@ -143,9 +159,10 @@ export async function getNewsById(id: string): Promise<News> {
   return data as News;
 }
 
-export async function searchMarketProducts(product: string) {
+export async function searchMarketProducts(product: string, language = 'ca') {
+  const languageQuery = marketLanguageQuery(language);
   const response = await fetch(
-    `${API_URL}/api/v1/conte_mercat/search?product=${encodeURIComponent(product)}`,
+    `${API_URL}/api/v1/conte_mercat/search?product=${encodeURIComponent(product)}${languageQuery ? `&${languageQuery}` : ''}`,
     {
       method: 'GET',
       headers: {

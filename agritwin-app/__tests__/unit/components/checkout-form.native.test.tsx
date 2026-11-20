@@ -9,6 +9,20 @@ jest.mock('@stripe/stripe-react-native', () => ({
   useStripe: jest.fn(),
 }));
 
+jest.mock('react-i18next', () => {
+  const locale = jest.requireActual('../../../i18n/locales/ca.json');
+  const t = (key: string, options?: Record<string, unknown>) => {
+    const value = key
+      .split('.')
+      .reduce((current: any, part) => current?.[part], locale);
+    if (typeof value !== 'string') return key;
+    return value.replace(/{{(\w+)}}/g, (_match, name) =>
+      String(options?.[name] ?? `{{${name}}}`),
+    );
+  };
+  return { useTranslation: () => ({ t }) };
+});
+
 const mockInitPaymentSheet = jest.fn();
 const mockPresentPaymentSheet = jest.fn();
 const mockFetch = jest.fn();
@@ -92,7 +106,7 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
 
     await waitFor(() =>
       expect(mockAlert).toHaveBeenCalledWith(
-        'Error',
+        'Error de pagament',
         'Falta configurar l’URL de l’API.',
       ),
     );
@@ -250,7 +264,7 @@ describe('CheckoutForm native (Stripe PaymentSheet)', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Comprar' }));
     fireEvent.press(
-      screen.getByRole('button', { name: 'Preparant pagament...' }),
+      screen.getByRole('button', { name: 'Preparant pagament…' }),
     );
 
     expect(mockFetch).toHaveBeenCalledTimes(1);

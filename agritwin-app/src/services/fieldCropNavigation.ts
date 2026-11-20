@@ -1,8 +1,8 @@
 type FieldReference = { id: string | number } | null | undefined;
 
 type AddCropRoute = {
-  pathname: '/edit-field';
-  params: { id: string; addCrop: 'true' };
+  pathname: '/editar_crops';
+  params: { id: string };
 };
 
 type Navigate = (route: AddCropRoute) => void;
@@ -14,8 +14,8 @@ export function createAddCropHandler(
   if (!field) return () => undefined;
 
   const route: AddCropRoute = {
-    pathname: '/edit-field',
-    params: { id: String(field.id), addCrop: 'true' },
+    pathname: '/editar_crops',
+    params: { id: String(field.id) },
   };
   return () => navigate(route);
 }

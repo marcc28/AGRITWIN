@@ -619,7 +619,7 @@ export async function deleteField(id: number): Promise<void> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${id}`, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${auth.token}`,
@@ -861,7 +861,7 @@ async function taskRequest(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/tasks${path}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/tasks${path}`, {
     method: init.method ?? 'GET',
     headers: {
       Authorization: `Bearer ${auth.token}`,

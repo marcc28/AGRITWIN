@@ -9,7 +9,7 @@ import AgritwinLoadingScreen from '../components/AgritwinLoadingScreen';
 
 import { isAuthError } from '../services/api';
 import { setupAppFocusRefetch } from '../services/appFocus';
-import { clearAuth, getAuth } from '../services/auth';
+import { clearAuth, getAuth, refreshAuth } from '../services/auth';
 import { getCurrentField } from '../services/currentField';
 import {
   getCachedGardenPickerFields,
@@ -43,7 +43,18 @@ export default function RootLayout() {
     }
 
     async function routeBySession() {
-      const auth = await getAuth();
+      let auth = await getAuth();
+
+      if (!auth?.token && auth?.refreshToken) {
+        try {
+          await refreshAuth();
+          auth = await getAuth();
+        } catch {
+          await clearAuth();
+          router.replace('/auth/login');
+          return;
+        }
+      }
 
       if (!active) return;
 

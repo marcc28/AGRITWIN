@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { type MarketProduct } from '@/services/api_market';
 import { useCachedQuery } from '@/hooks/use-cached-query';
@@ -27,10 +28,14 @@ type ProductStyles = ReturnType<typeof getProductStyles>;
 
 function ProductUnavailable({
   message,
+  title,
+  backLabel,
   onBack,
   styles,
 }: {
   message: string;
+  title: string;
+  backLabel: string;
   onBack: () => void;
   styles: ProductStyles;
 }) {
@@ -40,7 +45,7 @@ function ProductUnavailable({
 
       <View style={styles.scrollContent}>
         <View style={styles.card}>
-          <Text style={styles.title}>Producte no disponible</Text>
+          <Text style={styles.title}>{title}</Text>
 
           <Text style={styles.description}>{message}</Text>
 
@@ -51,10 +56,10 @@ function ProductUnavailable({
             ]}
             onPress={onBack}
             accessibilityRole="button"
-            accessibilityLabel="Tornar al mercat"
+            accessibilityLabel={backLabel}
           >
             <Text style={styles.backArrow}>‹</Text>
-            <Text style={styles.backButtonText}>Tornar al mercat</Text>
+            <Text style={styles.backButtonText}>{backLabel}</Text>
           </Pressable>
         </View>
       </View>
@@ -62,8 +67,8 @@ function ProductUnavailable({
   );
 }
 
-const formatQuantity = (value: number) =>
-  Number(value.toFixed(2)).toString().replace('.', ',');
+const formatQuantity = (value: number, language = 'ca') =>
+  new Intl.NumberFormat(language, { maximumFractionDigits: 2 }).format(value);
 
 /** Starting quantity: 1, or less when there is less than 1 unit in stock. */
 function initialQuantityFor(product: MarketProduct) {
@@ -77,16 +82,16 @@ function loadError(
   productId: string | undefined,
   hasProduct: boolean,
   failure: unknown,
+  missingProductMessage: string,
+  fallbackMessage: string,
 ): string | null {
   if (!productId) {
-    return 'No s’ha indicat cap producte.';
+    return missingProductMessage;
   }
   if (hasProduct || !failure) {
     return null;
   }
-  return failure instanceof Error
-    ? failure.message
-    : 'No s’ha pogut carregar el producte.';
+  return failure instanceof Error ? failure.message : fallbackMessage;
 }
 
 /**
@@ -94,20 +99,33 @@ function loadError(
  * (or from the market list it was opened from); price and stock are always
  * refreshed from the server.
  */
-function useMarketProduct(productId: string | undefined) {
+function useMarketProduct(
+  productId: string | undefined,
+  language: string,
+  missingProductMessage: string,
+  fallbackMessage: string,
+) {
   const [quantity, setQuantity] = useState(1);
   const [quantityInput, setQuantityInput] = useState('1');
 
   const result = useCachedQuery({
-    ...marketProductQuery(String(productId)),
+    ...marketProductQuery(String(productId), language),
     enabled: !!productId,
     placeholderData: () =>
-      productId ? findProductInMarketPages(String(productId)) : undefined,
+      productId
+        ? findProductInMarketPages(String(productId), language)
+        : undefined,
   });
 
   const product: MarketProduct | null = result.data ?? null;
   const loading = !!productId && result.data === undefined && !result.isError;
-  const error = loadError(productId, !!product, result.error);
+  const error = loadError(
+    productId,
+    !!product,
+    result.error,
+    missingProductMessage,
+    fallbackMessage,
+  );
 
   useEffect(() => {
     setQuantity(1);
@@ -125,8 +143,8 @@ function useMarketProduct(productId: string | undefined) {
     quantityFor.current = key;
     const initialQuantity = initialQuantityFor(product);
     setQuantity(initialQuantity);
-    setQuantityInput(formatQuantity(initialQuantity));
-  }, [product, productId, result.isPlaceholderData]);
+    setQuantityInput(formatQuantity(initialQuantity, language));
+  }, [product, productId, result.isPlaceholderData, language]);
 
   return {
     product,
@@ -141,6 +159,8 @@ function useMarketProduct(productId: string | undefined) {
 
 export default function ProductScreen() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage || i18n.language || 'ca';
 
   const { width, height } = useWindowDimensions();
 
@@ -160,7 +180,12 @@ export default function ProductScreen() {
     setQuantity,
     quantityInput,
     setQuantityInput,
-  } = useMarketProduct(productId);
+  } = useMarketProduct(
+    productId,
+    language,
+    t('market.detail.missingProductId'),
+    t('market.detail.loadError'),
+  );
 
   const handleBack = () => router.back();
 
@@ -173,10 +198,10 @@ export default function ProductScreen() {
           <View style={styles.card}>
             <Text style={styles.eyebrow}>AGRITWIN · MERCAT</Text>
 
-            <Text style={styles.title}>Carregant producte...</Text>
+            <Text style={styles.title}>{t('market.detail.loading')}</Text>
 
             <Text style={styles.description}>
-              Estem obtenint les dades del mercat.
+              {t('market.detail.loadingDescription')}
             </Text>
           </View>
         </View>
@@ -186,14 +211,22 @@ export default function ProductScreen() {
 
   if (error !== null) {
     return (
-      <ProductUnavailable message={error} onBack={handleBack} styles={styles} />
+      <ProductUnavailable
+        message={error}
+        title={t('market.detail.unavailable')}
+        backLabel={t('market.detail.back')}
+        onBack={handleBack}
+        styles={styles}
+      />
     );
   }
 
   if (product === null) {
     return (
       <ProductUnavailable
-        message="No s’han pogut carregar les dades del producte."
+        message={t('market.detail.loadError')}
+        title={t('market.detail.unavailable')}
+        backLabel={t('market.detail.back')}
         onBack={handleBack}
         styles={styles}
       />
@@ -225,11 +258,11 @@ export default function ProductScreen() {
     if (Number.isFinite(parsed) && parsed >= 0.01) {
       const nextQuantity = Math.min(maxQuantity, parsed);
       if (nextQuantity >= 0.01) setQuantity(nextQuantity);
-      setQuantityInput(formatQuantity(nextQuantity));
+      setQuantityInput(formatQuantity(nextQuantity, language));
       return;
     }
 
-    setQuantityInput(formatQuantity(quantity));
+    setQuantityInput(formatQuantity(quantity, language));
   };
 
   const changeQuantity = (nextQuantity: number) => {
@@ -237,11 +270,14 @@ export default function ProductScreen() {
       Math.min(maxQuantity, Math.max(0.01, nextQuantity)).toFixed(2),
     );
     setQuantity(boundedQuantity);
-    setQuantityInput(formatQuantity(boundedQuantity));
+    setQuantityInput(formatQuantity(boundedQuantity, language));
   };
 
   const formatPrice = (value: number) =>
-    `${value.toFixed(2).replace('.', ',')} €`;
+    new Intl.NumberFormat(language, {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(value);
 
   const incrementDisabled = outOfStock || quantity >= maxQuantity;
 
@@ -276,7 +312,7 @@ export default function ProductScreen() {
 
             {/* Capçalera */}
             <View style={styles.header}>
-              <Text style={styles.eyebrow}>AGRITWIN · MERCAT</Text>
+              <Text style={styles.eyebrow}>{t('market.detail.eyebrow')}</Text>
 
               <Text style={styles.title}>{product.product}</Text>
 
@@ -289,11 +325,11 @@ export default function ProductScreen() {
           {/* Preu i disponibilitat */}
           <View style={styles.priceSection}>
             <View style={styles.priceInfo}>
-              <Text style={styles.priceLabel}>PREU DEL PRODUCTE</Text>
+              <Text style={styles.priceLabel}>{t('market.detail.price')}</Text>
 
               <Text style={styles.price}>{formatPrice(unitPrice)}</Text>
 
-              <Text style={styles.priceUnit}>per kg</Text>
+              <Text style={styles.priceUnit}>{t('market.detail.perKg')}</Text>
             </View>
 
             <View
@@ -307,8 +343,10 @@ export default function ProductScreen() {
                 style={[styles.stockText, outOfStock && styles.stockTextEmpty]}
               >
                 {outOfStock
-                  ? 'Sense estoc'
-                  : `${formatQuantity(available)} kg disponibles`}
+                  ? t('market.detail.noStock')
+                  : t('market.detail.available', {
+                      value: formatQuantity(available, language),
+                    })}
               </Text>
             </View>
           </View>
@@ -326,7 +364,7 @@ export default function ProductScreen() {
 
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>
-                  Disponibilitat del producte
+                  {t('market.detail.availability')}
                 </Text>
 
                 <Text
@@ -336,23 +374,25 @@ export default function ProductScreen() {
                   ]}
                 >
                   {outOfStock
-                    ? 'Actualment no disponible'
-                    : 'Disponible per comprar'}
+                    ? t('market.detail.unavailableNow')
+                    : t('market.detail.availableToBuy')}
                 </Text>
               </View>
             </View>
           </View>
 
           {/* Quantitat */}
-          <Text style={styles.sectionTitle}>La teva comanda</Text>
+          <Text style={styles.sectionTitle}>{t('market.detail.order')}</Text>
 
           <View style={styles.quantityPanel}>
             <View style={styles.quantityHeader}>
               <View>
-                <Text style={styles.quantityTitle}>Quantitat</Text>
+                <Text style={styles.quantityTitle}>
+                  {t('market.detail.quantity')}
+                </Text>
 
                 <Text style={styles.quantityHint}>
-                  Selecciona els kg que vols
+                  {t('market.detail.quantityHint')}
                 </Text>
               </View>
 
@@ -362,7 +402,7 @@ export default function ProductScreen() {
             <View style={styles.quantityRow}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Reduir quantitat"
+                accessibilityLabel={t('market.detail.reduceQuantity')}
                 disabled={quantity <= 0.01}
                 style={[
                   styles.quantityButton,
@@ -375,7 +415,7 @@ export default function ProductScreen() {
 
               <View style={styles.quantityValueContainer}>
                 <TextInput
-                  accessibilityLabel="Quantitat en quilograms"
+                  accessibilityLabel={t('market.detail.quantityInKg')}
                   keyboardType="decimal-pad"
                   value={quantityInput}
                   editable={!outOfStock}
@@ -390,7 +430,7 @@ export default function ProductScreen() {
 
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Augmentar quantitat"
+                accessibilityLabel={t('market.detail.increaseQuantity')}
                 disabled={incrementDisabled}
                 style={[
                   styles.quantityButton,
@@ -406,11 +446,15 @@ export default function ProductScreen() {
           {/* Resum de la comanda */}
           <View style={styles.totalPanel}>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.totalLabel}>TOTAL DE LA COMANDA</Text>
+              <Text style={styles.totalLabel}>{t('market.detail.total')}</Text>
 
               <Text style={styles.totalHint}>
-                {formatQuantity(quantity)} kg ×{' '}
-                {unitPrice.toFixed(2).replace('.', ',')} €/kg
+                {formatQuantity(quantity, language)} kg ×{' '}
+                {new Intl.NumberFormat(language, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(unitPrice)}{' '}
+                €/kg
               </Text>
             </View>
 
@@ -424,9 +468,7 @@ export default function ProductScreen() {
             disabled={outOfStock}
           />
 
-          <Text style={styles.footerText}>
-            AgriTwin · Agricultura intel·ligent
-          </Text>
+          <Text style={styles.footerText}>{t('market.detail.footer')}</Text>
         </View>
       </ScrollView>
     </View>

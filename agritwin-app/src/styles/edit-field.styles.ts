@@ -250,6 +250,15 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
   },
 
+  dateFieldsRow: {
+    flexDirection: 'column',
+    gap: 0,
+  },
+
+  dateField: {
+    width: '100%',
+  },
+
   cropPicker: {
     minHeight: 48,
     paddingHorizontal: 14,

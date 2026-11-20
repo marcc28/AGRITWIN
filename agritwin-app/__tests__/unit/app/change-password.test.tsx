@@ -165,7 +165,7 @@ describe('ChangePasswordScreen', () => {
       ).toBeTruthy();
     });
     fireEvent.press(screen.getByText('settings.passwordScreen.backToAccount'));
-    expect(router.replace).toHaveBeenCalledWith('/app/settings');
+    expect(router.replace).toHaveBeenCalledWith('/profile');
   });
 
   it('maps api errors', async () => {
@@ -186,7 +186,7 @@ describe('ChangePasswordScreen', () => {
   it('goes back from cancel', () => {
     render(<ChangePasswordScreen />);
     fireEvent.press(screen.getByText('settings.passwordScreen.cancel'));
-    expect(router.replace).toHaveBeenCalledWith('/app/settings');
+    expect(router.replace).toHaveBeenCalledWith('/profile');
   });
 
   // --------------------------------------------------
@@ -384,7 +384,7 @@ describe('ChangePasswordScreen', () => {
 
     fireEvent.press(screen.getByText('settings.passwordScreen.back'));
 
-    expect(router.replace).toHaveBeenCalledWith('/app/settings');
+    expect(router.replace).toHaveBeenCalledWith('/profile');
   });
 
   it('does not display the form after a successful password change', async () => {

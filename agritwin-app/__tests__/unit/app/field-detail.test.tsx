@@ -12,6 +12,7 @@ import { getDashboard, getField } from '../../../src/services/api';
 import { clearAuth, getAuth } from '../../../src/services/auth';
 import { getFieldCrops } from '../../../src/services/api_fieldCrops';
 import { getCrops } from '../../../src/services/api_crops';
+import { queryClient } from '../../../src/services/queryClient';
 import { router } from 'expo-router';
 
 jest.mock('react-i18next', () => {
@@ -81,9 +82,15 @@ const mockedGetCrops = getCrops as jest.MockedFunction<typeof getCrops>;
 describe('FieldDetailScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    queryClient.clear();
     jest.mocked(router.canGoBack).mockReturnValue(true);
     mockUseLocalSearchParams.mockReturnValue({ id: '3' });
     mockIsAuthError.mockReturnValue(false);
+    mockedGetAuth.mockResolvedValue({
+      token: 'field-token',
+      refreshToken: null,
+      username: 'cinta',
+    });
     mockedGetField.mockResolvedValue({
       id: 3,
       name: 'Hort',
@@ -193,7 +200,7 @@ describe('FieldDetailScreen', () => {
     });
     fireEvent.press(screen.getByText('settings.fieldDetail.back'));
     expect(router.back).toHaveBeenCalled();
-    expect(router.replace).not.toHaveBeenCalledWith('/app/settings');
+    expect(router.replace).not.toHaveBeenCalledWith('/profile');
     fireEvent.press(screen.getByText('settings.fieldDetail.sensorTitle'));
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/field-data',
@@ -319,7 +326,7 @@ describe('FieldDetailScreen', () => {
   });
 
   it('shows an error when crop loading has no auth token', async () => {
-    mockedGetAuth.mockResolvedValueOnce(
+    mockedGetAuth.mockResolvedValue(
       null as Awaited<ReturnType<typeof getAuth>>,
     );
     render(<FieldDetailScreen />);

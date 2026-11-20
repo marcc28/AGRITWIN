@@ -19,14 +19,17 @@ export const queryKeys = {
     ['field', fieldId, 'weather', lang] as const,
   tasks: (fieldId: number, lang: string) =>
     ['field', fieldId, 'tasks', lang] as const,
-  recommendations: (fieldId: number | string) =>
-    ['field', toFieldKey(fieldId), 'recommendations'] as const,
+  recommendations: (fieldId: number | string, language?: string) =>
+    language
+      ? (['field', toFieldKey(fieldId), 'recommendations', language] as const)
+      : (['field', toFieldKey(fieldId), 'recommendations'] as const),
   cropCatalog: ['crops', 'catalog'] as const,
   cropCatalogPage: (offset: number, limit: number) =>
     ['crops', 'catalog', 'page', offset, limit] as const,
   market: ['market'] as const,
   marketCount: ['market', 'count'] as const,
-  marketPage: (offset: number, limit: number) =>
-    ['market', 'page', offset, limit] as const,
-  marketProduct: (id: string) => ['market', 'product', id] as const,
+  marketPage: (offset: number, limit: number, language = 'ca') =>
+    ['market', 'page', offset, limit, language] as const,
+  marketProduct: (id: string, language = 'ca') =>
+    ['market', 'product', id, language] as const,
 };

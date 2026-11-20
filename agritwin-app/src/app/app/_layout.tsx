@@ -22,9 +22,12 @@ export default function Layout() {
     loadGardenPickerFields().catch((error) => {
       console.error('Error carregant els camps:', error);
     });
-    // Market, profile and crop types ready before their tab is opened.
-    prefetchAppData();
   }, []);
+
+  useEffect(() => {
+    // Market, profile and crop types ready before their tab is opened.
+    prefetchAppData(i18n.resolvedLanguage || i18n.language);
+  }, [i18n, i18n.language]);
 
   useEffect(() => {
     // Everything the tabs show for the selected garden, loaded in advance.
@@ -84,12 +87,12 @@ export default function Layout() {
             />
           </NativeTabs.Trigger>
 
-          <NativeTabs.Trigger name="settings">
+          <NativeTabs.Trigger name="crops">
             <NativeTabs.Trigger.Label>
-              {t('tabs.profile')}
+              {t('tabs.Crops')}
             </NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
-              src={require('@assets/images/tabIcons/settings.png')}
+              src={require('@assets/images/brote.png')}
               renderingMode="template"
             />
           </NativeTabs.Trigger>

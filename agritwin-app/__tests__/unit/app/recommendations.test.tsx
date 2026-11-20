@@ -79,7 +79,7 @@ describe('RecommendationsScreen', () => {
       screen.getByText('recommendations.field Camp de prova'),
     ).toBeTruthy();
     expect(screen.getByText('recommendations.loading')).toBeTruthy();
-    expect(mockedUseRecommendations).toHaveBeenCalledWith('7');
+    expect(mockedUseRecommendations).toHaveBeenCalledWith('7', 'ca');
   });
 
   it('shows an error and retries loading', () => {

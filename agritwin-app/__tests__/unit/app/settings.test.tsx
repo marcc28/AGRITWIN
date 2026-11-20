@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import SettingsScreen from '../../../src/app/app/settings';
+import SettingsScreen from '../../../src/app/app/crops';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -43,8 +43,8 @@ describe('SettingsScreen', () => {
 
     fireEvent.press(screen.getByLabelText('settings.manageCrops.addCrop'));
     expect(router.push).toHaveBeenCalledWith({
-      pathname: '/edit-field',
-      params: { id: '3', addCrop: 'true' },
+      pathname: '/editar_crops',
+      params: { id: '3' },
     });
   });
 });

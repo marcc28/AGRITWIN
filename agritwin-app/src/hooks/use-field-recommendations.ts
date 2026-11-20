@@ -10,9 +10,12 @@ type RecommendationsState = {
 };
 
 /** AI crop recommendations of a field, shown from the cache when available. */
-export function useFieldRecommendations(fieldId: string | number | null) {
+export function useFieldRecommendations(
+  fieldId: string | number | null,
+  language = 'ca',
+) {
   const { data, isError, isFetching, refetch } = useCachedQuery({
-    ...recommendationsQuery(fieldId ?? -1),
+    ...recommendationsQuery(fieldId ?? -1, language),
     enabled: fieldId != null,
   });
 

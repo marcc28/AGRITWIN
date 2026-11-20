@@ -1,11 +1,31 @@
+import re
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 
 from db import AsyncSessionLocal
 from models.content_market import ConteMercatRead
 from services.content_market_service import ConteMercatService
 from services.supabase_storage_service import SupabaseService
+
+LANGUAGE_PATTERN = r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$"
+LANGUAGE_RE = re.compile(LANGUAGE_PATTERN)
+
+
+def _normalize_language(language: str) -> str:
+    normalized = language.strip().replace("_", "-")
+    if len(normalized) > 35 or not LANGUAGE_RE.fullmatch(normalized):
+        raise HTTPException(status_code=422, detail="Invalid language tag")
+    return normalized.lower()
+
+
+def _get_translation_service():
+    # Keep market endpoints usable when optional AI configuration is absent.
+    from services.ai_dependencies import translation_service
+
+    return translation_service
+
 
 router = APIRouter(
     prefix="/conte_mercat",
@@ -25,12 +45,64 @@ async def get_conte_mercat_service():
 async def get_conte_mercat(
     offset: int = 0,
     limit: int = 10,
+    language: Annotated[
+        str, Query(min_length=2, max_length=35, pattern=LANGUAGE_PATTERN)
+    ] = "ca",
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
-    return await service.list_conte_mercat(
+    products = await service.list_conte_mercat(
         offset=offset,
         limit=limit,
     )
+    return await _translate_products(products, language)
+
+
+async def _translate_products(products, language: str):
+    """Translate market-facing names for this response without changing stored rows."""
+    normalized_language = _normalize_language(language)
+    if normalized_language.split("-")[0] == "ca" or not products:
+        return products
+
+    content = [{"product": item.product} for item in products]
+    try:
+        translated = await _get_translation_service().translate(
+            content, normalized_language, source_language="ca"
+        )
+        if (
+            not isinstance(translated, list)
+            or len(translated) != len(products)
+            or any(
+                not isinstance(item, dict)
+                or not isinstance(item.get("product"), str)
+                or not item["product"].strip()
+                for item in translated
+            )
+        ):
+            raise ValueError("Translation returned an invalid market product list")
+    except Exception:
+        return products
+
+    localized = []
+    for item, translation in zip(products, translated, strict=True):
+        result = ConteMercatRead.model_validate(item).model_dump()
+        result["product"] = translation["product"]
+        localized.append(result)
+    return localized
+
+
+async def _translate_search_term(product: str, language: str) -> str:
+    """Convert a localized search term to the Catalan source used in storage."""
+    normalized_language = _normalize_language(language)
+    if normalized_language.split("-")[0] == "ca":
+        return product
+    try:
+        translated = await _get_translation_service().translate(
+            {"query": product}, "ca", source_language=normalized_language
+        )
+        query = translated.get("query") if isinstance(translated, dict) else None
+        return query.strip() if isinstance(query, str) and query.strip() else product
+    except Exception:
+        return product
 
 
 @router.get("/count")
@@ -47,10 +119,15 @@ async def count_content_market(
     response_model=list[ConteMercatRead],
 )
 async def search_conte_mercat(
-    product: str,
+    product: Annotated[str, Query(min_length=1, max_length=120)],
+    language: Annotated[
+        str, Query(min_length=2, max_length=35, pattern=LANGUAGE_PATTERN)
+    ] = "ca",
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
-    return await service.get_conte_mercat_by_product(product)
+    source_query = await _translate_search_term(product, language)
+    products = await service.get_conte_mercat_by_product(source_query)
+    return await _translate_products(products, language)
 
 
 @router.get(
@@ -59,6 +136,9 @@ async def search_conte_mercat(
 )
 async def get_conte_mercat_by_id(
     conte_mercat_id: UUID,
+    language: Annotated[
+        str, Query(min_length=2, max_length=35, pattern=LANGUAGE_PATTERN)
+    ] = "ca",
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
     conte_mercat = await service.get_conte_mercat_by_id(conte_mercat_id)
@@ -69,7 +149,8 @@ async def get_conte_mercat_by_id(
             detail="Conte mercat not found",
         )
 
-    return conte_mercat
+    translated = await _translate_products([conte_mercat], language)
+    return translated[0]
 
 
 @router.post(

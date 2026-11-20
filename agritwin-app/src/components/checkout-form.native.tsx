@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 import { useState } from 'react';
 import { useStripe } from '@stripe/stripe-react-native';
+import { useTranslation } from 'react-i18next';
 import CheckoutButton from './checkout-button';
 
 type CheckoutFormProps = {
@@ -15,6 +16,7 @@ export default function CheckoutForm({
   disabled = false,
 }: CheckoutFormProps) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   async function openPaymentSheet(): Promise<void> {
@@ -23,7 +25,7 @@ export default function CheckoutForm({
     const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
 
     if (!apiUrl) {
-      Alert.alert('Error', 'Falta configurar l’URL de l’API.');
+      Alert.alert(t('market.checkout.error'), t('market.checkout.missingApi'));
       return;
     }
 
@@ -55,7 +57,7 @@ export default function CheckoutForm({
       const { paymentIntent, ephemeralKey, customer } = data;
 
       if (!paymentIntent || !ephemeralKey || !customer) {
-        throw new Error('La resposta del servidor és incompleta.');
+        throw new Error(t('market.checkout.incompleteResponse'));
       }
 
       const { error: initError } = await initPaymentSheet({
@@ -74,21 +76,24 @@ export default function CheckoutForm({
 
       if (paymentError) {
         if (paymentError.code !== 'Canceled') {
-          Alert.alert('Pagament no completat', paymentError.message);
+          Alert.alert(
+            t('market.checkout.paymentIncomplete'),
+            paymentError.message,
+          );
         }
         return;
       }
 
       Alert.alert(
-        'Pagament enviat',
-        'Stripe ha completat el flux de pagament. La confirmació definitiva de la comanda arribarà del servidor.',
+        t('market.checkout.paymentSent'),
+        t('market.checkout.paymentConfirmation'),
       );
     } catch (error) {
       Alert.alert(
-        'Error de pagament',
+        t('market.checkout.error'),
         error instanceof Error
           ? error.message
-          : 'No s’ha pogut iniciar el pagament.',
+          : t('market.checkout.startFailed'),
       );
     } finally {
       setLoading(false);
@@ -99,7 +104,9 @@ export default function CheckoutForm({
     <CheckoutButton
       onPress={openPaymentSheet}
       disabled={disabled || loading}
-      title={loading ? 'Preparant pagament...' : 'Comprar'}
+      title={
+        loading ? t('market.checkout.preparing') : t('market.checkout.buy')
+      }
     />
   );
 }

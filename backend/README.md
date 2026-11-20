@@ -18,6 +18,11 @@
    uv run uvicorn main:app --reload
    ```
 
+Per traduir les recomanacions, configura `MODEL_USE_IN_TRANSLATION` al fitxer
+`backend/.env` amb el model de Gemini destinat a traduccions. El text original
+es genera i es desa en català; cada resposta es tradueix a l'idioma demanat
+amb aquest model.
+
 ## Límits d'ús
 
 Configura aquests valors al fitxer `backend/.env`:

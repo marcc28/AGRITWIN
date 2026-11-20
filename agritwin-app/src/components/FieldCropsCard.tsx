@@ -1,16 +1,19 @@
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
   Pressable,
-  ScrollView,
   Text,
   View,
+  useWindowDimensions,
+  type LayoutChangeEvent,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { router, type Href } from 'expo-router';
 
 import type { FieldCrop } from '../services/api_fieldCrops';
-import { styles } from '@/styles/fieldcrops.styles';
+import { getFieldCropsStyles } from '@/styles/fieldcrops.styles';
 import { FieldCropDetails } from './FieldCropDetails';
 
 type Props = {
@@ -21,34 +24,60 @@ type Props = {
   };
   onRetry: () => void;
   onAdd: () => void;
+  onEdit?: () => void;
   addDisabled?: boolean;
+  loadingMore?: boolean;
 };
 
 export function FieldCropsCard({
   state,
   onRetry,
   onAdd,
+  onEdit,
   addDisabled = false,
+  loadingMore = false,
 }: Props) {
   const { t } = useTranslation();
+  const dimensions = useWindowDimensions();
+  const [cardWidth, setCardWidth] = useState(0);
+  const availableWidth = cardWidth || Math.max(320, dimensions.width - 32);
+  const styles = getFieldCropsStyles(availableWidth, dimensions.height);
+
+  function onCardLayout(event: LayoutChangeEvent) {
+    setCardWidth(event.nativeEvent.layout.width);
+  }
 
   return (
-    <View style={styles.card}>
+    <View style={styles.card} onLayout={onCardLayout}>
       <View style={styles.titleRow}>
         <Text style={styles.title}>{t('fieldCrops.title')}</Text>
-        <Pressable
-          onPress={onAdd}
-          disabled={addDisabled}
-          style={styles.addButton}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.manageCrops.addCrop')}
-        >
-          <Image
-            source={require('@assets/images/add_circle.png')}
-            style={styles.addIcon}
-          />
-        </Pressable>
+        <View style={styles.headerActions}>
+          {onEdit ? (
+            <Pressable
+              onPress={onEdit}
+              disabled={addDisabled}
+              style={styles.headerActionButton}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('settings.manageCrops.editCrops')}
+            >
+              <Ionicons name="create-outline" size={25} color="#3D8B55" />
+            </Pressable>
+          ) : null}
+          <Pressable
+            onPress={onAdd}
+            disabled={addDisabled}
+            style={styles.addButton}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('settings.manageCrops.addCrop')}
+          >
+            <Image
+              source={require('@assets/images/add_circle.png')}
+              style={styles.addIcon}
+            />
+          </Pressable>
+        </View>
       </View>
 
       {state.status === 'loading' && (
@@ -66,11 +95,7 @@ export function FieldCropsCard({
       )}
 
       {state.status === 'success' && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.cropsRow}
-        >
+        <View style={styles.cropsGrid}>
           {state.data.length === 0 ? (
             <Text style={styles.emptyText}>{t('fieldCrops.empty')}</Text>
           ) : (
@@ -78,6 +103,7 @@ export function FieldCropsCard({
               <FieldCropDetails
                 key={crop.id}
                 crop={crop}
+                availableWidth={availableWidth}
                 action={
                   <Pressable
                     onPress={() =>
@@ -94,17 +120,24 @@ export function FieldCropsCard({
                     accessibilityRole="button"
                     accessibilityLabel={t('recommendations.open')}
                   >
-                    <Image
-                      source={require('@assets/images/target.png')}
-                      style={styles.target}
-                    />
+                    <Text style={styles.targetButtonText}>
+                      {t('recommendations.view')}
+                    </Text>
                   </Pressable>
                 }
               />
             ))
           )}
-        </ScrollView>
+        </View>
       )}
+
+      {state.status === 'success' && loadingMore ? (
+        <ActivityIndicator
+          style={styles.loadMoreIndicator}
+          size="small"
+          color="#3D8B55"
+        />
+      ) : null}
     </View>
   );
 }

@@ -161,7 +161,11 @@ describe('query cache', () => {
         queryClient.query(recommendationsQuery('5')),
       ).resolves.toEqual(['r']);
       await expect(queryClient.query(marketCountQuery())).resolves.toBe(12);
-      expect(getFieldRecommendations).toHaveBeenCalledWith('5', 'token-1');
+      expect(getFieldRecommendations).toHaveBeenCalledWith(
+        '5',
+        'token-1',
+        undefined,
+      );
     });
 
     it('finds a product already loaded with a market page', () => {
@@ -207,7 +211,7 @@ describe('query cache', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 0));
       expect(getMe).not.toHaveBeenCalled();
-      expect(getcontentfeed).toHaveBeenCalledWith(0, MARKET_PAGE_SIZE);
+      expect(getcontentfeed).toHaveBeenCalledWith(0, MARKET_PAGE_SIZE, 'ca');
     });
   });
 

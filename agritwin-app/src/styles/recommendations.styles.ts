@@ -1,8 +1,63 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/constants/theme';
+import {
+  getResponsiveProfile,
+  responsiveValue,
+  valueAtWidth,
+} from './responsiveLayout';
 
-export const createRecommendationsStyles = (isDark: boolean) => {
-  const colors = isDark ? Colors.dark : Colors.light;
+function getThemeColors(isDark: boolean) {
+  return isDark ? Colors.dark : Colors.light;
+}
+
+export const createRecommendationsStyles = (
+  isDark: boolean,
+  width = 390,
+  height = 844,
+) => {
+  const colors = getThemeColors(isDark);
+  const profile = getResponsiveProfile(width, height);
+  const topMargin = responsiveValue(profile, {
+    compactLandscape: 12,
+    shortScreen: 22,
+    wideTablet: 32,
+    default: 24,
+  });
+  const columns = valueAtWidth(
+    width,
+    [
+      [1500, 3],
+      [680, 2],
+    ],
+    1,
+  );
+  const maxWidth = valueAtWidth(
+    width,
+    [
+      [1600, 1320],
+      [1024, 1200],
+      [680, 960],
+    ],
+    560,
+  );
+  const horizontalInset = responsiveValue(profile, {
+    compact: 12,
+    wideTablet: 24,
+    default: 16,
+  });
+  const gap = responsiveValue(profile, {
+    compactLandscape: 8,
+    wideTablet: 16,
+    default: 12,
+  });
+  const contentWidth = Math.min(width, maxWidth) - horizontalInset * 2;
+  const cardWidth = Math.max(0, (contentWidth - gap * (columns - 1)) / columns);
+  const cardPadding = responsiveValue(profile, {
+    compactLandscape: 10,
+    compact: 14,
+    wideTablet: 20,
+    default: 18,
+  });
 
   return StyleSheet.create({
     container: {
@@ -11,8 +66,26 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     scrollContent: {
-      padding: 20,
-      paddingBottom: 40,
+      flexGrow: 1,
+      alignItems: 'center',
+      paddingHorizontal: horizontalInset,
+      paddingTop: topMargin,
+      paddingBottom: responsiveValue(profile, {
+        compactLandscape: 16,
+        default: 40,
+      }),
+    },
+
+    content: {
+      width: '100%',
+      maxWidth,
+    },
+
+    recommendationGrid: {
+      width: '100%',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap,
     },
 
     backButton: {
@@ -29,7 +102,11 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     header: {
-      marginBottom: 24,
+      marginBottom: responsiveValue(profile, {
+        compactLandscape: 12,
+        wideTablet: 20,
+        default: 24,
+      }),
     },
 
     headerTitleRow: {
@@ -40,7 +117,11 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     title: {
-      fontSize: 26,
+      fontSize: responsiveValue(profile, {
+        compact: 23,
+        wideTablet: 30,
+        default: 26,
+      }),
       fontWeight: '700',
       color: colors.text,
       marginBottom: 8,
@@ -79,10 +160,13 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     recommendationCard: {
+      width: cardWidth,
       backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 18,
-      marginBottom: 16,
+      borderRadius: responsiveValue(profile, {
+        compactLandscape: 13,
+        default: 16,
+      }),
+      padding: cardPadding,
       elevation: 2,
       shadowColor: colors.shadow,
       shadowOffset: {
@@ -95,6 +179,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
 
     cardHeader: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: 14,
@@ -128,7 +213,11 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     recommendationTitle: {
-      fontSize: 18,
+      fontSize: responsiveValue(profile, {
+        compact: 16,
+        wideTablet: 19,
+        default: 18,
+      }),
       fontWeight: '700',
       color: colors.text,
       marginBottom: 10,
@@ -136,8 +225,8 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     description: {
-      fontSize: 14,
-      lineHeight: 22,
+      fontSize: responsiveValue(profile, { compact: 13, default: 14 }),
+      lineHeight: responsiveValue(profile, { compact: 19, default: 22 }),
       color: colors.textSecondary,
     },
 
@@ -181,6 +270,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     centerContainer: {
+      width: '100%',
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 50,
@@ -212,6 +302,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     emptyContainer: {
+      width: '100%',
       alignItems: 'center',
       paddingVertical: 50,
       paddingHorizontal: 20,

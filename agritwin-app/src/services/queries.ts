@@ -119,10 +119,14 @@ export const gardenTasksQuery = (fieldId: number, lang: string) =>
     staleTime: 30 * SECOND,
   });
 
-export const recommendationsQuery = (fieldId: number | string) =>
+export const recommendationsQuery = (
+  fieldId: number | string,
+  language?: string,
+) =>
   queryOptions({
-    queryKey: queryKeys.recommendations(fieldId),
-    queryFn: async () => getFieldRecommendations(fieldId, await requireToken()),
+    queryKey: queryKeys.recommendations(fieldId, language),
+    queryFn: async () =>
+      getFieldRecommendations(fieldId, await requireToken(), language),
     staleTime: 5 * MINUTE,
   });
 
@@ -175,29 +179,35 @@ export const marketCountQuery = () =>
     staleTime: 5 * MINUTE,
   });
 
-export const marketPageQuery = (offset: number, limit: number) =>
+export const marketPageQuery = (
+  offset: number,
+  limit: number,
+  language = 'ca',
+) =>
   queryOptions({
-    queryKey: queryKeys.marketPage(offset, limit),
-    queryFn: () => getcontentfeed(offset, limit),
+    queryKey: queryKeys.marketPage(offset, limit, language),
+    queryFn: () => getcontentfeed(offset, limit, language),
     staleTime: 5 * MINUTE,
   });
 
 /** Product detail: price and stock are always revalidated before buying. */
-export const marketProductQuery = (id: string) =>
+export const marketProductQuery = (id: string, language = 'ca') =>
   queryOptions({
-    queryKey: queryKeys.marketProduct(id),
-    queryFn: () => getMarketProduct(id),
+    queryKey: queryKeys.marketProduct(id, language),
+    queryFn: () => getMarketProduct(id, language),
     staleTime: ALWAYS_REVALIDATE,
   });
 
 /** A product already downloaded with a market page, if any. */
 export function findProductInMarketPages(
   id: string,
+  language = 'ca',
 ): MarketProduct | undefined {
   const pages = queryClient.getQueriesData<MarketProduct[]>({
     queryKey: [...queryKeys.market, 'page'],
   });
-  for (const [, items] of pages) {
+  for (const [key, items] of pages) {
+    if (key[4] !== language) continue;
     const found = Array.isArray(items)
       ? items.find((item) => String(item.id) === id)
       : undefined;
@@ -224,12 +234,12 @@ function fieldQueries(fieldId: number, lang: string) {
   ] as AnyQuery[];
 }
 
-function appQueries() {
+function appQueries(language = 'ca') {
   return [
     meQuery(),
     cropCatalogQuery(),
     marketCountQuery(),
-    marketPageQuery(0, MARKET_PAGE_SIZE),
+    marketPageQuery(0, MARKET_PAGE_SIZE, language),
   ] as AnyQuery[];
 }
 
@@ -250,8 +260,8 @@ export function prefetchFieldData(fieldId: number, lang: string) {
 }
 
 /** Data of the app that does not depend on the garden. */
-export function prefetchAppData() {
-  appQueries().forEach((options) => void prefetch(options));
+export function prefetchAppData(language = 'ca') {
+  appQueries(language).forEach((options) => void prefetch(options));
 }
 
 /** Longest wait on the start-up loading screen (a sleeping server). */
@@ -269,7 +279,7 @@ export async function preloadAppData(
   timeoutMs = STARTUP_PRELOAD_TIMEOUT_MS,
 ): Promise<void> {
   const requests = [
-    ...appQueries(),
+    ...appQueries(lang),
     ...(fieldId === null ? [] : fieldQueries(fieldId, lang)),
   ].map(prefetch);
 
