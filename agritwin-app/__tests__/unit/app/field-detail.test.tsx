@@ -26,6 +26,8 @@ jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
     replace: jest.fn(),
+    back: jest.fn(),
+    canGoBack: jest.fn(() => true),
   },
   useLocalSearchParams: () => mockUseLocalSearchParams(),
 }));
@@ -79,6 +81,7 @@ const mockedGetCrops = getCrops as jest.MockedFunction<typeof getCrops>;
 describe('FieldDetailScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(router.canGoBack).mockReturnValue(true);
     mockUseLocalSearchParams.mockReturnValue({ id: '3' });
     mockIsAuthError.mockReturnValue(false);
     mockedGetField.mockResolvedValue({
@@ -182,19 +185,32 @@ describe('FieldDetailScreen', () => {
     });
   });
 
-  it('goes back to profile and opens the data page', async () => {
+  it('goes back to the previous screen and opens the data page', async () => {
     render(<FieldDetailScreen />);
 
     await waitFor(() => {
       expect(screen.getByText('settings.fieldDetail.back')).toBeTruthy();
     });
     fireEvent.press(screen.getByText('settings.fieldDetail.back'));
-    expect(router.replace).toHaveBeenCalledWith('/app/settings');
+    expect(router.back).toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalledWith('/app/settings');
     fireEvent.press(screen.getByText('settings.fieldDetail.sensorTitle'));
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/field-data',
       params: { id: '3' },
     });
+  });
+
+  it('opens the home tab when there is no previous screen', async () => {
+    jest.mocked(router.canGoBack).mockReturnValue(false);
+    render(<FieldDetailScreen />);
+
+    await waitFor(() => {
+      expect(screen.getByText('settings.fieldDetail.back')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText('settings.fieldDetail.back'));
+    expect(router.back).not.toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith('/app/home');
   });
 
   it('shows a disconnected device and empty types', async () => {

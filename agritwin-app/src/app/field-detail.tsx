@@ -30,8 +30,14 @@ function errorText(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
-function goToProfile() {
-  router.replace('/app/settings');
+function goBack() {
+  // Home, the profile and the forms all open this screen. Go back to the one
+  // that opened it. With no history, the home tab is the safe place.
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+  router.replace('/app/home');
 }
 
 function optionLabel(
@@ -144,7 +150,7 @@ export default function FieldDetailScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.container}>
-          <Pressable style={styles.backRow} onPress={goToProfile}>
+          <Pressable style={styles.backRow} onPress={goBack}>
             <Ionicons
               name="chevron-back"
               size={18}
