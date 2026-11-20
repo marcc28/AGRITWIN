@@ -1,4 +1,3 @@
-import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -7,8 +6,6 @@ from db import AsyncSessionLocal
 from models.content_market import ConteMercatRead
 from services.content_market_service import ConteMercatService
 from services.supabase_storage_service import SupabaseService
-
-logger = logging.getLogger(__name__)
 
 
 def _get_translation_service():
@@ -69,7 +66,6 @@ async def _translate_products(products, language: str):
         ):
             raise ValueError("Translation returned an invalid market product list")
     except Exception:
-        logger.exception("Could not translate market products into %s", language)
         return products
 
     localized = []
@@ -92,7 +88,6 @@ async def _translate_search_term(product: str, language: str) -> str:
         query = translated.get("query") if isinstance(translated, dict) else None
         return query.strip() if isinstance(query, str) and query.strip() else product
     except Exception:
-        logger.exception("Could not translate market search term from %s", language)
         return product
 
 
