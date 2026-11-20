@@ -105,7 +105,15 @@ class FieldCropService:
         notes: str | None = None,
     ) -> FieldCrop:
 
-        if not await self.field_belongs_to_user(field_id, user_id):
+        field_result = await self._db.execute(
+            select(Field).where(
+                Field.id == field_id,
+                Field.user_id == user_id,
+            )
+        )
+        field = field_result.scalar_one_or_none()
+
+        if field is None:
             raise ValueError("Field not found")
 
         result = await self._db.execute(select(Crop).where(Crop.id == crop_id))
@@ -117,6 +125,7 @@ class FieldCropService:
         field_crop = FieldCrop(
             field_id=field_id,
             crop_id=crop_id,
+            field=field,
             crop=crop,
             planted_at=planted_at,
             expected_harvest_at=expected_harvest_at,
@@ -128,13 +137,18 @@ class FieldCropService:
 
         try:
             await self._db.commit()
-            await self._db.refresh(field_crop)
-            field_crop.crop = crop
+            result = await self._db.execute(
+                select(FieldCrop)
+                .options(
+                    selectinload(FieldCrop.field),
+                    selectinload(FieldCrop.crop),
+                )
+                .where(FieldCrop.id == field_crop.id)
+            )
+            return result.scalar_one()
         except IntegrityError:
             await self._db.rollback()
             raise ValueError("Invalid field crop data")
-
-        return field_crop
 
     async def update_field_crop(
         self,

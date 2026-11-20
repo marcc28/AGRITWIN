@@ -20,6 +20,7 @@ import {
   createFieldCrop,
   deleteFieldCrop,
   type FieldCrop,
+  type FieldCropCreate,
 } from '@/services/api_fieldCrops';
 import { getCrops, type Crop } from '@/services/api_crops';
 import { fieldCropsQuery } from '@/services/queries';
@@ -144,11 +145,9 @@ export default function ManageFieldCropsScreen() {
     }
 
     const tempId = `temp-${Date.now()}`;
-    const fieldName = existingCrops[0]?.field_name ?? '';
-    const cropData = {
+    const cropData: FieldCropCreate = {
       field_id: fieldId,
       crop_id: Number(selectedCropId),
-      field_name: fieldName, 
       planted_at: plantedAt || null,
       expected_harvest_at: expectedHarvestAt || null,
       status: 'planted',
@@ -168,6 +167,8 @@ export default function ManageFieldCropsScreen() {
         {
           id: tempId,
           ...cropData,
+          crop_name: selectedCropName,
+          field_name: current[0]?.field_name ?? '',
         },
       ]);
 
