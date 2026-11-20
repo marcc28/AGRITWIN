@@ -6,7 +6,7 @@
 
 ## Validation
 
-1,173 frontend tests passed across 130 suites, including new progress semantics, reduced-motion behavior and market search restoration regressions. TypeScript passed. ESLint reported zero errors and 41 existing warnings. Android export passed. Browser verification used dummy local accounts and catalogue fixtures; no payment was initiated. No native-device run is claimed.
+1,173 frontend tests passed across 130 suites, including new progress semantics, reduced-motion behavior and market search restoration regressions. The first PR frontend-quality run identified a formatting omission in `scripts/test-security-dependencies.cjs`. The script was formatted without changing its logic; the exact CI command `npm run format:check` then passed across the whole frontend ([output](format-check.txt)). The consumer compatibility checks were rerun and passed. TypeScript passed. ESLint reported zero errors and 41 existing warnings. Android export passed. Browser verification used dummy local accounts and catalogue fixtures; no payment was initiated. No native-device run is claimed.
 
 - [Test summary](test-summary.json)
 - [TypeScript output](typecheck.txt)
