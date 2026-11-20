@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.exc import IntegrityError
 
+from db.schema import Crop, Field
 from services.field_crops_service import FieldCropService
 
 
@@ -78,8 +79,17 @@ async def test_get_field_crop_by_id_returns_none_when_not_found(service, db):
 @pytest.mark.asyncio
 async def test_create_field_crop_saves_association(service, db):
     user_id = uuid4()
-    crop = SimpleNamespace(id=3, name="Tomàquet")
-    db.execute.side_effect = [result(one=7), result(one=crop)]
+    field = Field(id=7, user_id=user_id, name="Hort")
+    crop = Crop(id=3, name="Tomàquet")
+
+    async def execute(_statement):
+        if db.execute.await_count == 1:
+            return result(one=field)
+        if db.execute.await_count == 2:
+            return result(one=crop)
+        return result(one=db.add.call_args.args[0])
+
+    db.execute.side_effect = execute
 
     created = await service.create_field_crop(
         user_id=user_id,
@@ -96,7 +106,7 @@ async def test_create_field_crop_saves_association(service, db):
     assert created.status == "planted"
     db.add.assert_called_once_with(created)
     db.commit.assert_awaited_once()
-    db.refresh.assert_awaited_once_with(created)
+    assert db.execute.await_count == 3
 
 
 @pytest.mark.asyncio
@@ -122,8 +132,10 @@ async def test_create_field_crop_rejects_unknown_crop(service, db):
 
 @pytest.mark.asyncio
 async def test_create_field_crop_rolls_back_invalid_data(service, db):
-    crop = SimpleNamespace(id=3, name="Tomàquet")
-    db.execute.side_effect = [result(one=7), result(one=crop)]
+    user_id = uuid4()
+    field = Field(id=7, user_id=user_id, name="Hort")
+    crop = Crop(id=3, name="Tomàquet")
+    db.execute.side_effect = [result(one=field), result(one=crop)]
     db.commit.side_effect = IntegrityError("insert", {}, Exception("constraint"))
 
     with pytest.raises(ValueError, match="Invalid field crop data"):

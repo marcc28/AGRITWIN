@@ -101,7 +101,9 @@ async def test_recommendation_service_dependency_closes_session(monkeypatch):
 
     monkeypatch.setattr(field_recommendations, "AsyncSessionLocal", session_context)
     monkeypatch.setattr(
-        field_recommendations, "FieldRecommendationService", lambda session: service
+        field_recommendations,
+        "FieldRecommendationService",
+        lambda session, translation_service: service,
     )
     dependency = get_field_recommendation_service()
     assert await anext(dependency) is service

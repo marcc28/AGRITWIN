@@ -1,5 +1,5 @@
-from uuid import UUID
 import logging
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
@@ -16,6 +16,7 @@ def _get_translation_service():
     from services.ai_dependencies import translation_service
 
     return translation_service
+
 
 router = APIRouter(
     prefix="/conte_mercat",

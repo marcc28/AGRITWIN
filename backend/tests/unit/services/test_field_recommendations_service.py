@@ -45,6 +45,23 @@ def service(db):
     return FieldRecommendationService(db)
 
 
+def recommendation_row(**overrides):
+    values = {
+        "id": uuid4(),
+        "field_id": 7,
+        "category": "crops",
+        "title": "Plantar tomàquet",
+        "description": "Preparar el sòl",
+        "severity": "medium",
+        "based_on": None,
+        "model": "test-model",
+        "generated_at": datetime.now(UTC),
+        "expires_at": datetime.now(UTC) + timedelta(days=7),
+    }
+    values.update(overrides)
+    return SimpleNamespace(**values)
+
+
 def test_read_env_setting_strips_trailing_newline(monkeypatch):
     monkeypatch.setenv("MODEL_USE_IN_RECOMENDATION", "gemini-3.5-flash-lite\n")
 
@@ -78,6 +95,76 @@ def test_module_rejects_missing_ai_configuration(monkeypatch, missing_name, expe
         else:
             monkeypatch.setenv("MODEL_USE_IN_RECOMENDATION", original_model)
         importlib.reload(recommendation_module)
+
+
+@pytest.mark.asyncio
+async def test_translate_recommendations_returns_catalan_records_unchanged(service):
+    records = [recommendation_row()]
+
+    assert await service._translate_recommendations(records, "ca-ES") is records
+
+
+@pytest.mark.asyncio
+async def test_translate_recommendations_preserves_metadata_and_translates_text(service):
+    record = recommendation_row(based_on=None)
+    translator = SimpleNamespace(
+        translate=AsyncMock(
+            return_value=[
+                {
+                    "title": "Plant tomatoes",
+                    "description": "Prepare the soil",
+                    "based_on": {"reason": "Spring"},
+                }
+            ]
+        )
+    )
+    service._translation_service = translator
+
+    translated = await service._translate_recommendations([record], "en-US")
+
+    assert translated == [
+        {
+            "id": record.id,
+            "field_id": record.field_id,
+            "category": record.category,
+            "title": "Plant tomatoes",
+            "description": "Prepare the soil",
+            "severity": record.severity,
+            "based_on": {"reason": "Spring"},
+            "model": record.model,
+            "generated_at": record.generated_at,
+            "expires_at": record.expires_at,
+        }
+    ]
+    translator.translate.assert_awaited_once_with(
+        content=[{"title": record.title, "description": record.description, "based_on": {}}],
+        language="en-us",
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("translated", [None, [], [None]])
+async def test_translate_recommendations_rejects_invalid_structure(service, translated):
+    service._translation_service = SimpleNamespace(translate=AsyncMock(return_value=translated))
+
+    with pytest.raises(RuntimeError, match="invalid recommendations structure"):
+        await service._translate_recommendations([recommendation_row()], "es")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "translated",
+    [
+        {"title": " ", "description": "Text", "based_on": {}},
+        {"title": "Valid", "description": " ", "based_on": {}},
+        {"title": "Valid", "description": "Text", "based_on": None},
+    ],
+)
+async def test_translate_recommendations_rejects_invalid_translated_text(service, translated):
+    service._translation_service = SimpleNamespace(translate=AsyncMock(return_value=[translated]))
+
+    with pytest.raises(RuntimeError, match="invalid recommendation text"):
+        await service._translate_recommendations([recommendation_row()], "es")
 
 
 # --------------------------------------------------

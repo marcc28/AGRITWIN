@@ -4,23 +4,9 @@ import re
 
 from google import genai
 
-logger = logging.getLogger(__name__)
+from prompts.field_recommendation_translation_prompt import build_translation_prompt
 
-SUPPORTED_LANGUAGES = {
-    "ca": "Catalan",
-    "es": "Spanish",
-    "en": "English",
-    "it": "Italian",
-    "fr": "French",
-    "de": "German",
-    "pt": "Portuguese",
-    "nl": "Dutch",
-    "zh": "Chinese",
-    "ja": "Japanese",
-    "ko": "Korean",
-    "ar": "Arabic",
-    "ru": "Russian",
-}
+logger = logging.getLogger(__name__)
 
 
 class TranslationService:
@@ -51,9 +37,7 @@ class TranslationService:
         base_language = language.split("-")[0]
         if source_language is not None:
             source_language = source_language.strip().replace("_", "-").lower()
-            if not re.fullmatch(
-                r"[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*", source_language
-            ):
+            if not re.fullmatch(r"[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*", source_language):
                 raise ValueError(f"Invalid source language tag: {source_language}")
 
         if base_language == "ca" and (
@@ -64,7 +48,11 @@ class TranslationService:
         if not self._model:
             raise RuntimeError("MODEL_USE_IN_TRANSLATION is not configured")
 
-        prompt = self._build_prompt(content, language, source_language)
+        prompt = build_translation_prompt(
+            content=content,
+            language=language,
+            source_language=source_language,
+        )
 
         try:
             response = await self._client.aio.interactions.create(
@@ -91,53 +79,3 @@ class TranslationService:
         except Exception:
             logger.exception("Translation failed")
             raise
-
-    @staticmethod
-    def _build_prompt(
-        content: dict | list,
-        language: str,
-        source_language: str | None = None,
-    ) -> str:
-        normalized_language = language.lower().replace("_", "-")
-        base_language = normalized_language.split("-")[0]
-        target_language = SUPPORTED_LANGUAGES.get(
-            base_language,
-            f"the language identified by the BCP 47 tag {normalized_language}",
-        )
-        if normalized_language != base_language:
-            target_language = f"{target_language} ({normalized_language})"
-
-        source_instruction = ""
-        if source_language:
-            normalized_source = source_language.lower().replace("_", "-")
-            source_base = normalized_source.split("-")[0]
-            source_name = SUPPORTED_LANGUAGES.get(
-                source_base,
-                f"the language identified by the BCP 47 tag {normalized_source}",
-            )
-            source_instruction = f"- The source content is in {source_name}.\n"
-
-        return f"""
-You are a professional agricultural translator.
-
-TASK:
-Translate the following JSON content into {target_language}.
-{source_instruction}
-
-RULES:
-- Translate all user-facing text.
-- Preserve the original meaning exactly.
-- Use accurate agricultural terminology.
-- Do not add, remove or invent information.
-- Preserve all JSON keys and the JSON structure.
-- Preserve all data types.
-- Preserve numerical values, dates and measurements.
-- Preserve scientific names and technical identifiers.
-- Do not translate enum values, IDs, categories or status codes.
-- Do not modify URLs or email addresses.
-- Return valid JSON only.
-- Do not include Markdown or explanations.
-
-CONTENT:
-{json.dumps(content, ensure_ascii=False, default=str)}
-"""

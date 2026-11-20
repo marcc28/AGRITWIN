@@ -10,7 +10,6 @@ from sqlalchemy.orm import aliased
 
 from db.schema import Crop, Field, FieldCrop, FieldRecommendation
 from prompts.field_recommendation_prompt import build_recommendation_prompt
-from services.ai_dependencies import model_gemini
 from services.ai_dependencies import translation_service as default_translation_service
 from services.translation_service import TranslationService
 
@@ -21,6 +20,7 @@ def _read_env_setting(name: str) -> str:
 
 # Environment configuration
 api_key = _read_env_setting("GEMINI_API_KEY")
+model_gemini = _read_env_setting("MODEL_USE_IN_RECOMENDATION")
 
 if not api_key:
     raise RuntimeError("GEMINI_API_KEY is not configured")
