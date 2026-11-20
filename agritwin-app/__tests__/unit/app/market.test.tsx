@@ -344,9 +344,12 @@ describe('MarketScreen', () => {
 
       fireEvent.changeText(searchInput(screen), 'tomata');
 
-      await waitFor(() => {
-        expect(searchMarketProducts).toHaveBeenCalledWith('tomata', 'ca');
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(searchMarketProducts).toHaveBeenCalledWith('tomata', 'ca');
+        },
+        { timeout: 3000 },
+      );
 
       expect(screen.queryByTestId('product-item-1')).toBeNull();
 

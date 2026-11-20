@@ -76,7 +76,10 @@ export default function CheckoutForm({
 
       if (paymentError) {
         if (paymentError.code !== 'Canceled') {
-          Alert.alert(t('market.checkout.paymentIncomplete'), paymentError.message);
+          Alert.alert(
+            t('market.checkout.paymentIncomplete'),
+            paymentError.message,
+          );
         }
         return;
       }

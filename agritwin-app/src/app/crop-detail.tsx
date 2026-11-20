@@ -62,7 +62,9 @@ export default function CropDetailScreen() {
               size={18}
               color={Colors.light.textSecondary}
             />
-            <Text style={styles.backText}>{t('settings.manageCrops.back')}</Text>
+            <Text style={styles.backText}>
+              {t('settings.manageCrops.back')}
+            </Text>
           </Pressable>
 
           <Text style={styles.eyebrow}>{t('settings.manageCrops.title')}</Text>

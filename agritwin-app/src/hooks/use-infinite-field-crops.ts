@@ -13,11 +13,7 @@ const PAGE_SIZE = 20;
 export function useInfiniteFieldCrops(fieldId: number | null) {
   const query = useInfiniteQuery(
     {
-      queryKey: [
-        ...queryKeys.fieldCrops(fieldId ?? -1),
-        'infinite',
-        PAGE_SIZE,
-      ],
+      queryKey: [...queryKeys.fieldCrops(fieldId ?? -1), 'infinite', PAGE_SIZE],
       enabled: fieldId != null && Number.isFinite(fieldId),
       initialPageParam: 0,
       queryFn: async ({ pageParam }) => {

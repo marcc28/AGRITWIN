@@ -326,7 +326,9 @@ describe('FieldDetailScreen', () => {
   });
 
   it('shows an error when crop loading has no auth token', async () => {
-    mockedGetAuth.mockResolvedValue(null as Awaited<ReturnType<typeof getAuth>>);
+    mockedGetAuth.mockResolvedValue(
+      null as Awaited<ReturnType<typeof getAuth>>,
+    );
     render(<FieldDetailScreen />);
     await waitFor(() =>
       expect(screen.getByText('Not authenticated')).toBeTruthy(),

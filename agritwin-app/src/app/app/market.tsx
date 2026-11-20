@@ -577,9 +577,10 @@ export default function MarketScreen() {
         if (active) {
           const firstPage = productsData as Product[];
           // Fresh first page; pages already loaded further on are kept.
-          const previous = queryClient.getQueryData<Product[]>(
-            queryKeys.marketPage(PAGE_SIZE, PAGE_SIZE, language),
-          ) ?? [];
+          const previous =
+            queryClient.getQueryData<Product[]>(
+              queryKeys.marketPage(PAGE_SIZE, PAGE_SIZE, language),
+            ) ?? [];
           const merge = [...firstPage, ...previous];
 
           setProductsTotal(productsCount);
@@ -788,7 +789,9 @@ export default function MarketScreen() {
           buyLabel={t('market.buy')}
           outOfStockLabel={t('market.stock.outOfStock')}
           lowStockLabel={(units) => t('market.stock.low', { count: units })}
-          availableLabel={(units) => t('market.stock.available', { count: units })}
+          availableLabel={(units) =>
+            t('market.stock.available', { count: units })
+          }
           noMatchLabel={(query) => t('market.noMatch', { query })}
           noProductsLabel={t('market.noProducts')}
           viewProductLabel={(name) => t('market.viewProduct', { name })}

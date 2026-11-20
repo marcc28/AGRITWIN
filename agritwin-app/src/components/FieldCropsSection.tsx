@@ -1,12 +1,8 @@
-
 import { Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { useCachedQuery } from '../hooks/use-cached-query';
-import {
-  cropCatalogQuery,
-  fieldCropsQuery,
-} from '../services/queries';
+import { cropCatalogQuery, fieldCropsQuery } from '../services/queries';
 import { getCropDetailStyles } from '../styles/crop-detail.styles';
 
 interface FieldCropsSectionProps {
@@ -52,9 +48,7 @@ export function FieldCropsSection({
 
   return (
     <View style={styles.card}>
-      <Text style={styles.sectionTitle}>
-        {t('settings.fieldDetail.crops')}
-      </Text>
+      <Text style={styles.sectionTitle}>{t('settings.fieldDetail.crops')}</Text>
 
       {cropsError ? (
         <Text style={styles.emptyText}>{cropsError}</Text>

@@ -217,7 +217,9 @@ export function getFieldCropsStyles(width: number, height: number) {
       fontSize: compact ? 11 : 12,
       lineHeight: compact ? 15 : 17,
       color: Colors.light.textMuted,
-      ...(compactLayout ? { flexBasis: '47%', flexGrow: 1, minWidth: 110 } : {}),
+      ...(compactLayout
+        ? { flexBasis: '47%', flexGrow: 1, minWidth: 110 }
+        : {}),
     },
     cropStatus: {
       ...(compactLayout ? { width: '100%' } : {}),

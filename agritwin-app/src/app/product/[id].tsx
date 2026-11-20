@@ -91,9 +91,7 @@ function loadError(
   if (hasProduct || !failure) {
     return null;
   }
-  return failure instanceof Error
-    ? failure.message
-    : fallbackMessage;
+  return failure instanceof Error ? failure.message : fallbackMessage;
 }
 
 /**
@@ -455,7 +453,8 @@ export default function ProductScreen() {
                 {new Intl.NumberFormat(language, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                }).format(unitPrice)} €/kg
+                }).format(unitPrice)}{' '}
+                €/kg
               </Text>
             </View>
 
@@ -469,9 +468,7 @@ export default function ProductScreen() {
             disabled={outOfStock}
           />
 
-          <Text style={styles.footerText}>
-            {t('market.detail.footer')}
-          </Text>
+          <Text style={styles.footerText}>{t('market.detail.footer')}</Text>
         </View>
       </ScrollView>
     </View>

@@ -59,7 +59,11 @@ describe('useFieldRecommendations', () => {
         data: [recommendation],
       });
     });
-    expect(mockedGetRecommendations).toHaveBeenCalledWith(4, 'user-token', 'ca');
+    expect(mockedGetRecommendations).toHaveBeenCalledWith(
+      4,
+      'user-token',
+      'ca',
+    );
   });
 
   it('sets an error when there is no auth token', async () => {

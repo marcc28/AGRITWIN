@@ -339,13 +339,7 @@ export function getEditCropsStyles(width: number, height: number) {
   const compact = width < 360;
   const tablet = width >= 600;
   const compactLandscape = width > height && height < 600;
-  const topMargin = compactLandscape
-    ? 4
-    : height < 700
-      ? 14
-      : tablet
-        ? 30
-        : 22;
+  const topMargin = compactLandscape ? 4 : height < 700 ? 14 : tablet ? 30 : 22;
   const horizontalInset = compact ? 12 : tablet ? 24 : 16;
   const maxWidth =
     width >= 1600 ? 1000 : width >= 1024 ? 900 : tablet ? 760 : 560;
