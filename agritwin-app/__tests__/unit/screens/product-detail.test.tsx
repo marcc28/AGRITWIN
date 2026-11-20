@@ -11,6 +11,25 @@ jest.mock('@/services/api_market', () => ({
   getMarketProduct: jest.fn(),
 }));
 
+jest.mock('react-i18next', () => {
+  const locale = jest.requireActual('../../../i18n/locales/ca.json');
+  const t = (key: string, options?: Record<string, unknown>) => {
+    const value = key
+      .split('.')
+      .reduce((current: any, part) => current?.[part], locale);
+    if (typeof value !== 'string') return key;
+    return value.replace(/{{(\w+)}}/g, (_match, name) =>
+      String(options?.[name] ?? `{{${name}}}`),
+    );
+  };
+  return {
+    useTranslation: () => ({
+      t,
+      i18n: { language: 'ca', resolvedLanguage: 'ca' },
+    }),
+  };
+});
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     back: mockBack,
@@ -54,7 +73,7 @@ describe('ProductScreen', () => {
   it('carrega i mostra un producte', async () => {
     const screen = render(<ProductScreen />);
 
-    expect(screen.getByText('Carregant producte...')).toBeTruthy();
+    expect(screen.getByText('Carregant producte…')).toBeTruthy();
 
     await waitFor(
       () => {
@@ -63,7 +82,7 @@ describe('ProductScreen', () => {
       { timeout: 5000 },
     );
 
-    expect(getMarketProduct).toHaveBeenCalledWith('1');
+    expect(getMarketProduct).toHaveBeenCalledWith('1', 'ca');
     expect(screen.getByText('Solanum lycopersicum')).toBeTruthy();
     expect(screen.getAllByText('2,50 €')).toHaveLength(2);
     expect(screen.getByText('10 kg disponibles')).toBeTruthy();
@@ -198,7 +217,7 @@ describe('ProductScreen', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('No s’ha pogut carregar el producte.'),
+        screen.getByText('No s’han pogut carregar les dades del producte.'),
       ).toBeTruthy();
     });
   });
@@ -221,7 +240,7 @@ describe('ProductScreen', () => {
     render(<ProductScreen />);
 
     await waitFor(() => {
-      expect(getMarketProduct).toHaveBeenCalledWith('25');
+      expect(getMarketProduct).toHaveBeenCalledWith('25', 'ca');
     });
   });
 
@@ -267,6 +286,6 @@ describe('ProductScreen', () => {
 
     await act(async () => resolveProduct?.(mockProduct));
 
-    expect(getMarketProduct).toHaveBeenCalledWith('1');
+    expect(getMarketProduct).toHaveBeenCalledWith('1', 'ca');
   });
 });

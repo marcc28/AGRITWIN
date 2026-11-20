@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { FieldPhoto } from '../components/FieldPhoto';
+import { FieldCropsSection } from '../components/FieldCropsSection';
 import { SensorCard } from '../components/SensorCard';
 import { useCachedQuery } from '../hooks/use-cached-query';
 import { isAuthError, type FieldDevice } from '../services/api';
@@ -214,6 +215,8 @@ export default function FieldDetailScreen() {
                   </Text>
                 </View>
               </View>
+
+              <FieldCropsSection fieldId={fieldId} responsive />
 
               <View style={styles.card}>
                 <Text style={styles.sectionTitle}>

@@ -26,6 +26,7 @@ type Props = {
   onAdd: () => void;
   onEdit?: () => void;
   addDisabled?: boolean;
+  loadingMore?: boolean;
 };
 
 export function FieldCropsCard({
@@ -34,6 +35,7 @@ export function FieldCropsCard({
   onAdd,
   onEdit,
   addDisabled = false,
+  loadingMore = false,
 }: Props) {
   const { t } = useTranslation();
   const dimensions = useWindowDimensions();
@@ -128,6 +130,14 @@ export function FieldCropsCard({
           )}
         </View>
       )}
+
+      {state.status === 'success' && loadingMore ? (
+        <ActivityIndicator
+          style={styles.loadMoreIndicator}
+          size="small"
+          color="#3D8B55"
+        />
+      ) : null}
     </View>
   );
 }

@@ -43,8 +43,8 @@ describe('SettingsScreen', () => {
 
     fireEvent.press(screen.getByLabelText('settings.manageCrops.addCrop'));
     expect(router.push).toHaveBeenCalledWith({
-      pathname: '/edit-field',
-      params: { id: '3', addCrop: 'true' },
+      pathname: '/editar_crops',
+      params: { id: '3' },
     });
   });
 });

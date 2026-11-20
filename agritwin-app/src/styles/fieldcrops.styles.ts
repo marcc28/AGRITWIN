@@ -134,17 +134,20 @@ export const styles = StyleSheet.create({
 
 export function getFieldCropsStyles(width: number, height: number) {
   const compact = width < 360;
+  const compactPhone = width < 560;
+  const tablet = width >= 600;
   const compactLandscape = width > height && height < 600;
+  const compactLayout = compactPhone || compactLandscape;
   const columns = width >= 1000 ? 3 : width >= 560 ? 2 : 1;
-  const cardPadding = compact ? 12 : width >= 600 ? 20 : 16;
+  const cardPadding = compact ? 10 : width >= 600 ? 20 : 14;
   const gap = compactLandscape ? 8 : 12;
   const contentWidth = Math.max(0, width - cardPadding * 2);
   const cropWidth = Math.max(0, (contentWidth - gap * (columns - 1)) / columns);
 
   return StyleSheet.create({
     card: {
-      marginTop: compactLandscape ? 10 : 20,
-      padding: cardPadding,
+      marginTop: compactLandscape ? 8 : compactPhone ? 14 : 20,
+      padding: compact ? 10 : width >= 600 ? 20 : 14,
       borderRadius: compactLandscape ? 14 : 16,
       backgroundColor: Colors.light.surface,
       width: '100%',
@@ -154,7 +157,7 @@ export function getFieldCropsStyles(width: number, height: number) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 8,
-      marginBottom: compactLandscape ? 10 : 16,
+      marginBottom: compactLandscape ? 6 : compactPhone ? 10 : 16,
     },
     headerActions: {
       flexDirection: 'row',
@@ -182,8 +185,9 @@ export function getFieldCropsStyles(width: number, height: number) {
     crop: {
       alignSelf: 'flex-start',
       width: cropWidth,
+      minHeight: compactLandscape ? 136 : compact ? 160 : tablet ? 184 : 172,
       minWidth: 0,
-      padding: compact ? 10 : 14,
+      padding: compactLandscape ? 8 : compact ? 8 : 12,
       borderRadius: compactLandscape ? 12 : 16,
       borderWidth: 1,
       borderColor: Colors.light.border,
@@ -205,14 +209,18 @@ export function getFieldCropsStyles(width: number, height: number) {
       color: Colors.light.text,
     },
     cropInfo: {
-      gap: compactLandscape ? 3 : 5,
+      flexDirection: compactLayout ? 'row' : 'column',
+      flexWrap: compactLayout ? 'wrap' : 'nowrap',
+      gap: compactLandscape ? 4 : compactPhone ? 6 : 5,
     },
     cropDetail: {
       fontSize: compact ? 11 : 12,
       lineHeight: compact ? 15 : 17,
       color: Colors.light.textMuted,
+      ...(compactLayout ? { flexBasis: '47%', flexGrow: 1, minWidth: 110 } : {}),
     },
     cropStatus: {
+      ...(compactLayout ? { width: '100%' } : {}),
       fontSize: compact ? 12 : 13,
       fontWeight: '600',
       color: Colors.light.primary,
@@ -233,7 +241,7 @@ export function getFieldCropsStyles(width: number, height: number) {
     targetButton: {
       alignSelf: 'stretch',
       width: '100%',
-      minHeight: compactLandscape ? 36 : 42,
+      minHeight: compactLandscape ? 32 : compactPhone ? 34 : 42,
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 8,
@@ -265,6 +273,9 @@ export function getFieldCropsStyles(width: number, height: number) {
     },
     retryText: {
       color: Colors.light.primary,
+    },
+    loadMoreIndicator: {
+      marginTop: 12,
     },
     emptyText: {
       width: '100%',

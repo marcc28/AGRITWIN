@@ -10,6 +10,13 @@ export const createRecommendationsStyles = (
   const compact = width < 360;
   const tablet = width >= 680;
   const compactLandscape = width > height && height < 600;
+  const topMargin = compactLandscape
+    ? 12
+    : height < 700
+      ? 22
+      : tablet
+        ? 32
+        : 24;
   const columns = width >= 1500 ? 3 : tablet ? 2 : 1;
   const maxWidth =
     width >= 1600 ? 1320 : width >= 1024 ? 1200 : tablet ? 960 : 560;
@@ -29,7 +36,7 @@ export const createRecommendationsStyles = (
       flexGrow: 1,
       alignItems: 'center',
       paddingHorizontal: horizontalInset,
-      paddingTop: compactLandscape ? 8 : tablet ? 24 : 16,
+      paddingTop: topMargin,
       paddingBottom: compactLandscape ? 16 : 40,
     },
 
