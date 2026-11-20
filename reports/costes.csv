@@ -28,7 +28,7 @@ SPRINT 2,Add a device to a field,22,Tigre44 & ainhoaaf,24,100%,330,360,330,-30,,
 SPRINT 2,AI crop recommendation,11,flaviaserret04,11,100%,165,165,165,0,,,,,,,,
 SPRINT 2,Crop recommendation on the profile page,0.7,flaviaserret04,0.7,33.333333%,10.5,10.5,3.5,0,,,,,,,,
 SPRINT 2,Field location on a map,13,marcc28,13,100%,195,195,195,0,,,,,,,,
-SPRINT 2,Field selection screen and personal profile,8.5,atnic15,6,100%,127.5,90,127.5,37.5,,,,,,,,
+SPRINT 2,Field selection screen and personal profile,9.5,atnic15,9,100%,142.5,135,142.5,7.5,,,,,,,,
 SPRINT 2,Final documentation,8,flaviaserret04 & Tigre44 & ainhoaaf & marcc28 & atnic15,0,0%,120,0,0,120,,,,,,,,
 SPRINT 2,Google sign-in: Let the user sign in or sign up with a Google account,11,flaviaserret04,15,100%,165,225,165,-60,,,,,,,,
 SPRINT 2,Implement Arduino/ESP32 IoT Sensor Node,45,Tigre44 & marcc28,50,100%,675,750,675,-75,,,,,,,,
@@ -44,4 +44,4 @@ SPRINT 2,"Security of the data, the broker and the API",17,marcc28,0,0%,255,0,0,
 SPRINT 2,Task list for the current garden,22,ainhoaaf,18.5,100%,330,277.5,330,52.5,,,,,,,,
 SPRINT 2,Weather alerts for the current garden,9,atnic15,7.5,100%,135,112.5,135,22.5,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,221.4,,195.7,,3321,2935.5,2939,385.5,10168,1.001192,0.884974,3.5,-382,10155.891119,7220.391119,12.108881
+SPRINT 2,TOTAL SPRINT 2,222.4,,198.7,,3336,2980.5,2954,355.5,10168,0.991109,0.885492,-26.5,-382,10259.215978,7278.715978,-91.215978
