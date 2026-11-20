@@ -1,11 +1,23 @@
+import re
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 
 from db import AsyncSessionLocal
 from models.content_market import ConteMercatRead
 from services.content_market_service import ConteMercatService
 from services.supabase_storage_service import SupabaseService
+
+LANGUAGE_PATTERN = r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$"
+LANGUAGE_RE = re.compile(LANGUAGE_PATTERN)
+
+
+def _normalize_language(language: str) -> str:
+    normalized = language.strip().replace("_", "-")
+    if len(normalized) > 35 or not LANGUAGE_RE.fullmatch(normalized):
+        raise HTTPException(status_code=422, detail="Invalid language tag")
+    return normalized.lower()
 
 
 def _get_translation_service():
@@ -33,7 +45,9 @@ async def get_conte_mercat_service():
 async def get_conte_mercat(
     offset: int = 0,
     limit: int = 10,
-    language: str = "ca",
+    language: Annotated[
+        str, Query(min_length=2, max_length=35, pattern=LANGUAGE_PATTERN)
+    ] = "ca",
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
     products = await service.list_conte_mercat(
@@ -45,7 +59,7 @@ async def get_conte_mercat(
 
 async def _translate_products(products, language: str):
     """Translate market-facing names for this response without changing stored rows."""
-    normalized_language = language.strip().replace("_", "-").lower()
+    normalized_language = _normalize_language(language)
     if normalized_language.split("-")[0] == "ca" or not products:
         return products
 
@@ -78,7 +92,7 @@ async def _translate_products(products, language: str):
 
 async def _translate_search_term(product: str, language: str) -> str:
     """Convert a localized search term to the Catalan source used in storage."""
-    normalized_language = language.strip().replace("_", "-").lower()
+    normalized_language = _normalize_language(language)
     if normalized_language.split("-")[0] == "ca":
         return product
     try:
@@ -105,8 +119,10 @@ async def count_content_market(
     response_model=list[ConteMercatRead],
 )
 async def search_conte_mercat(
-    product: str,
-    language: str = "ca",
+    product: Annotated[str, Query(min_length=1, max_length=120)],
+    language: Annotated[
+        str, Query(min_length=2, max_length=35, pattern=LANGUAGE_PATTERN)
+    ] = "ca",
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
     source_query = await _translate_search_term(product, language)
@@ -120,7 +136,9 @@ async def search_conte_mercat(
 )
 async def get_conte_mercat_by_id(
     conte_mercat_id: UUID,
-    language: str = "ca",
+    language: Annotated[
+        str, Query(min_length=2, max_length=35, pattern=LANGUAGE_PATTERN)
+    ] = "ca",
     service: ConteMercatService = Depends(get_conte_mercat_service),
 ):
     conte_mercat = await service.get_conte_mercat_by_id(conte_mercat_id)
