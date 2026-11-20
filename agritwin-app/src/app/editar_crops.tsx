@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -26,12 +27,14 @@ import { getCrops, type Crop } from '@/services/api_crops';
 import { fieldCropsQuery } from '@/services/queries';
 import { queryClient } from '@/services/queryClient';
 import { parseId } from '@/utils/parseId';
-import { styles } from '@/styles/edit-field.styles';
+import { getEditCropsStyles } from '@/styles/edit-crops.styles';
 
 const CROP_PAGE_SIZE = 50;
 
 export default function ManageFieldCropsScreen() {
   const { t } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const styles = getEditCropsStyles(width, height);
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const fieldId = parseId(params.id);
 
@@ -55,7 +58,7 @@ export default function ManageFieldCropsScreen() {
 
   function goBack() {
     router.replace({
-      pathname: '/field-detail',
+      pathname: '/crop-detail',
       params: { id: String(fieldId) },
     });
   }
@@ -186,6 +189,10 @@ export default function ManageFieldCropsScreen() {
       setExpectedHarvestAt('');
       setCropNotes('');
       setShowCropForm(false);
+      router.replace({
+        pathname: '/crop-detail',
+        params: { id: String(fieldId) },
+      });
     } catch (error) {
       // Rollback: remove the temporary crop
       setExistingCrops((current) =>
@@ -249,7 +256,7 @@ export default function ManageFieldCropsScreen() {
               color={Colors.light.textSecondary}
             />
             <Text style={styles.backText}>
-              {t('settings.fieldDetail.dataBack')}
+              {t('settings.manageCrops.back')}
             </Text>
           </Pressable>
           <Text style={styles.eyebrow}>
@@ -405,26 +412,32 @@ export default function ManageFieldCropsScreen() {
                       </View>
                     </Modal>
 
-                    <Text style={styles.label}>
-                      {t('settings.manageCrops.plantedAt')}
-                    </Text>
-                    <DateField
-                      value={plantedAt}
-                      onChange={setPlantedAt}
-                      placeholder={t('settings.manageCrops.selectDate')}
-                      maximumDate={expectedHarvestAt || undefined}
-                      disabled={addingCrop || saving}
-                    />
-                    <Text style={styles.label}>
-                      {t('settings.manageCrops.expectedHarvestAt')}
-                    </Text>
-                    <DateField
-                      value={expectedHarvestAt}
-                      onChange={setExpectedHarvestAt}
-                      placeholder={t('settings.manageCrops.selectDate')}
-                      minimumDate={plantedAt || undefined}
-                      disabled={addingCrop || saving}
-                    />
+                    <View style={styles.dateFieldsRow}>
+                      <View style={styles.dateField}>
+                        <Text style={styles.label}>
+                          {t('settings.manageCrops.plantedAt')}
+                        </Text>
+                        <DateField
+                          value={plantedAt}
+                          onChange={setPlantedAt}
+                          placeholder={t('settings.manageCrops.selectDate')}
+                          maximumDate={expectedHarvestAt || undefined}
+                          disabled={addingCrop || saving}
+                        />
+                      </View>
+                      <View style={styles.dateField}>
+                        <Text style={styles.label}>
+                          {t('settings.manageCrops.expectedHarvestAt')}
+                        </Text>
+                        <DateField
+                          value={expectedHarvestAt}
+                          onChange={setExpectedHarvestAt}
+                          placeholder={t('settings.manageCrops.selectDate')}
+                          minimumDate={plantedAt || undefined}
+                          disabled={addingCrop || saving}
+                        />
+                      </View>
+                    </View>
                     <Text style={styles.label}>
                       {t('settings.manageCrops.notes')}
                     </Text>

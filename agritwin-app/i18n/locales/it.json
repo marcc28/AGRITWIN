@@ -369,6 +369,7 @@
     },
     "manageCrops": {
       "title": "Colture",
+      "back": "Torna alle colture",
       "hint": "Gestisci le colture di questo campo.",
       "cropType": "Tipo di coltura",
       "selectCrop": "Seleziona una coltura",
@@ -381,6 +382,7 @@
       "adding": "Aggiunta…",
       "saveCrop": "Salva coltura",
       "addCrop": "Aggiungi una coltura",
+      "editCrops": "Modifica colture",
       "removeCrop": "Rimuovi {{crop}}",
       "errors": {
         "selectCrop": "Seleziona prima una coltura",
@@ -561,6 +563,7 @@
     "basedOn": "Basato su",
     "generatedAt": "Generato",
     "expiresAt": "Scade",
+    "view": "Vedi consigli",
     "open": "Apri i consigli per il campo",
     "back": "Indietro",
     "categories": {

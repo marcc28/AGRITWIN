@@ -1,8 +1,23 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/constants/theme';
 
-export const createRecommendationsStyles = (isDark: boolean) => {
+export const createRecommendationsStyles = (
+  isDark: boolean,
+  width = 390,
+  height = 844,
+) => {
   const colors = isDark ? Colors.dark : Colors.light;
+  const compact = width < 360;
+  const tablet = width >= 680;
+  const compactLandscape = width > height && height < 600;
+  const columns = width >= 1500 ? 3 : tablet ? 2 : 1;
+  const maxWidth =
+    width >= 1600 ? 1320 : width >= 1024 ? 1200 : tablet ? 960 : 560;
+  const horizontalInset = compact ? 12 : tablet ? 24 : 16;
+  const gap = compactLandscape ? 8 : tablet ? 16 : 12;
+  const contentWidth = Math.min(width, maxWidth) - horizontalInset * 2;
+  const cardWidth = Math.max(0, (contentWidth - gap * (columns - 1)) / columns);
+  const cardPadding = compactLandscape ? 10 : compact ? 14 : tablet ? 20 : 18;
 
   return StyleSheet.create({
     container: {
@@ -11,8 +26,23 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     scrollContent: {
-      padding: 20,
-      paddingBottom: 40,
+      flexGrow: 1,
+      alignItems: 'center',
+      paddingHorizontal: horizontalInset,
+      paddingTop: compactLandscape ? 8 : tablet ? 24 : 16,
+      paddingBottom: compactLandscape ? 16 : 40,
+    },
+
+    content: {
+      width: '100%',
+      maxWidth,
+    },
+
+    recommendationGrid: {
+      width: '100%',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap,
     },
 
     backButton: {
@@ -29,7 +59,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     header: {
-      marginBottom: 24,
+      marginBottom: compactLandscape ? 12 : tablet ? 20 : 24,
     },
 
     headerTitleRow: {
@@ -40,7 +70,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     title: {
-      fontSize: 26,
+      fontSize: compact ? 23 : tablet ? 30 : 26,
       fontWeight: '700',
       color: colors.text,
       marginBottom: 8,
@@ -79,10 +109,10 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     recommendationCard: {
+      width: cardWidth,
       backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 18,
-      marginBottom: 16,
+      borderRadius: compactLandscape ? 13 : 16,
+      padding: cardPadding,
       elevation: 2,
       shadowColor: colors.shadow,
       shadowOffset: {
@@ -95,6 +125,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
 
     cardHeader: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: 14,
@@ -128,7 +159,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     recommendationTitle: {
-      fontSize: 18,
+      fontSize: compact ? 16 : tablet ? 19 : 18,
       fontWeight: '700',
       color: colors.text,
       marginBottom: 10,
@@ -136,8 +167,8 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     description: {
-      fontSize: 14,
-      lineHeight: 22,
+      fontSize: compact ? 13 : 14,
+      lineHeight: compact ? 19 : 22,
       color: colors.textSecondary,
     },
 
@@ -181,6 +212,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     centerContainer: {
+      width: '100%',
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 50,
@@ -212,6 +244,7 @@ export const createRecommendationsStyles = (isDark: boolean) => {
     },
 
     emptyContainer: {
+      width: '100%',
       alignItems: 'center',
       paddingVertical: 50,
       paddingHorizontal: 20,

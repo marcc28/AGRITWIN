@@ -113,10 +113,14 @@ export const gardenTasksQuery = (fieldId: number, lang: string) =>
     staleTime: 30 * SECOND,
   });
 
-export const recommendationsQuery = (fieldId: number | string) =>
+export const recommendationsQuery = (
+  fieldId: number | string,
+  language?: string,
+) =>
   queryOptions({
-    queryKey: queryKeys.recommendations(fieldId),
-    queryFn: async () => getFieldRecommendations(fieldId, await requireToken()),
+    queryKey: queryKeys.recommendations(fieldId, language),
+    queryFn: async () =>
+      getFieldRecommendations(fieldId, await requireToken(), language),
     staleTime: 5 * MINUTE,
   });
 

@@ -371,6 +371,7 @@
     },
     "manageCrops": {
       "title": "Cultius",
+      "back": "Tornar als cultius",
       "hint": "Gestiona els cultius d’aquest camp.",
       "cropType": "Tipus de cultiu",
       "selectCrop": "Selecciona un cultiu",
@@ -383,6 +384,7 @@
       "adding": "Afegint…",
       "saveCrop": "Desar cultiu",
       "addCrop": "Afegir un cultiu",
+      "editCrops": "Editar cultius",
       "removeCrop": "Eliminar {{crop}}",
       "errors": {
         "selectCrop": "Selecciona un cultiu primer",
@@ -563,6 +565,7 @@
     "basedOn": "Basat en",
     "generatedAt": "Generada",
     "expiresAt": "Caduca",
+    "view": "Veure recomanacions",
     "open": "Obre les recomanacions del camp",
     "back": "Enrere",
     "categories": {

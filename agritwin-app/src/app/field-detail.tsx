@@ -255,58 +255,6 @@ export default function FieldDetailScreen() {
                 </Pressable>
               </View>
 
-              <View style={styles.card}>
-                <Text style={styles.sectionTitle}>
-                  {t('settings.fieldDetail.crops')}
-                </Text>
-                {cropsError ? (
-                  <Text style={styles.emptyText}>{cropsError}</Text>
-                ) : fieldCrops.length === 0 ? (
-                  <Text style={styles.emptyText}>
-                    {t('settings.fieldDetail.noCrops')}
-                  </Text>
-                ) : (
-                  fieldCrops.map((fieldCrop) => {
-                    const crop = cropCatalog.find(
-                      (item) => String(item.id) === String(fieldCrop.crop_id),
-                    );
-                    const statusKey = [
-                      'planned',
-                      'planted',
-                      'harvested',
-                    ].includes(fieldCrop.status)
-                      ? fieldCrop.status
-                      : null;
-
-                    return (
-                      <View key={String(fieldCrop.id)} style={styles.cropRow}>
-                        <Text style={styles.cropName} numberOfLines={1}>
-                          {crop?.name ??
-                            fieldCrop.crop_name ??
-                            `Cultiu #${fieldCrop.crop_id}`}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.status,
-                            fieldCrop.status === 'planted'
-                              ? styles.statusOn
-                              : fieldCrop.status === 'harvested'
-                                ? styles.statusHarvested
-                                : styles.statusPlanned,
-                          ]}
-                        >
-                          {statusKey
-                            ? t(
-                                `settings.fieldDetail.cropStatuses.${statusKey}`,
-                              )
-                            : fieldCrop.status}
-                        </Text>
-                      </View>
-                    );
-                  })
-                )}
-              </View>
-
               <SensorCard
                 dashboard={dashboard}
                 errorMessage={dashboardError}

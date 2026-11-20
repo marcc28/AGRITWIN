@@ -10,6 +10,7 @@ from models.field_recommendations import (
     FieldRecommendationRead,
     FieldRecommendationUpdate,
 )
+from services.ai_dependencies import translation_service
 from services.field_recommendations_service import (
     FieldRecommendationService,
 )
@@ -23,7 +24,10 @@ router = APIRouter(
 
 async def get_field_recommendation_service():
     async with AsyncSessionLocal() as session:
-        yield FieldRecommendationService(session=session)
+        yield FieldRecommendationService(
+            session=session,
+            translation_service=translation_service,
+        )
 
 
 # --------------------------------------------------
@@ -41,12 +45,21 @@ async def get_field_recommendations(
     radius_meters: int = Query(1000, ge=100, le=10000),
     current_user: User = Depends(get_current_user),
     service: FieldRecommendationService = Depends(get_field_recommendation_service),
+    language: str | None = Query(
+        None,
+        min_length=2,
+        max_length=35,
+        pattern=r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$",
+    ),
 ):
-    recommendations = await service.get_or_generate_recommendations(
+    options = dict(
         field_id=field_id,
         user_id=current_user.id,
         radius_meters=radius_meters,
     )
+    if language is not None:
+        options["language"] = language
+    recommendations = await service.get_or_generate_recommendations(**options)
 
     if recommendations is None:
         raise HTTPException(
@@ -72,13 +85,22 @@ async def refresh_field_recommendations(
     radius_meters: int = Query(1000, ge=100, le=10000),
     current_user: User = Depends(get_current_user),
     service: FieldRecommendationService = Depends(get_field_recommendation_service),
+    language: str | None = Query(
+        None,
+        min_length=2,
+        max_length=35,
+        pattern=r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$",
+    ),
 ):
-    recommendations = await service.get_or_generate_recommendations(
+    options = dict(
         field_id=field_id,
         user_id=current_user.id,
         radius_meters=radius_meters,
         force_refresh=True,
     )
+    if language is not None:
+        options["language"] = language
+    recommendations = await service.get_or_generate_recommendations(**options)
 
     if recommendations is None:
         raise HTTPException(

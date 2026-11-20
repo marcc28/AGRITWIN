@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 import { Platform } from 'react-native';
 
 import { clearCurrentField } from './currentField';
@@ -32,6 +33,22 @@ async function removeItem(key: string) {
   } else {
     await SecureStore.deleteItemAsync(key);
   }
+}
+
+let expiredSessionCleanup: Promise<void> | null = null;
+
+async function expireSession() {
+  expiredSessionCleanup ??= (async () => {
+    try {
+      await clearAuth();
+    } finally {
+      router.replace('/auth/login');
+    }
+  })().finally(() => {
+    expiredSessionCleanup = null;
+  });
+
+  await expiredSessionCleanup;
 }
 
 export type Auth = {
@@ -113,6 +130,7 @@ export async function refreshAuth() {
   const refreshToken = await getItem(REFRESH_TOKEN_KEY);
 
   if (!refreshToken) {
+    await expireSession();
     throw new Error('No refresh token available');
   }
 
@@ -132,7 +150,7 @@ export async function refreshAuth() {
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      await clearAuth();
+      await expireSession();
     }
 
     throw new Error(`Token refresh failed: ${response.status}`);
@@ -141,6 +159,7 @@ export async function refreshAuth() {
   const data = await response.json();
 
   if (!data.access_token) {
+    await expireSession();
     throw new Error('Refresh response does not contain access_token');
   }
 
@@ -199,7 +218,11 @@ export async function authenticatedFetch(
   const currentAuth = await getAuth();
   if (currentAuth?.token && currentAuth.token !== token) {
     headers.set('Authorization', `Bearer ${currentAuth.token}`);
-    return fetch(input, { ...init, headers });
+    const response = await fetch(input, { ...init, headers });
+    if (response.status === 401) {
+      await expireSession();
+    }
+    return response;
   }
 
   try {
@@ -208,7 +231,11 @@ export async function authenticatedFetch(
     });
     const refreshed = await refreshInFlight;
     headers.set('Authorization', `Bearer ${refreshed.accessToken}`);
-    return await fetch(input, { ...init, headers });
+    const retryResponse = await fetch(input, { ...init, headers });
+    if (retryResponse.status === 401) {
+      await expireSession();
+    }
+    return retryResponse;
   } catch {
     // Keep the original 401 so the calling service can handle it as usual.
     return response;

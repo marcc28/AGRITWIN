@@ -369,6 +369,7 @@
     },
     "manageCrops": {
       "title": "Crops",
+      "back": "Back to crops",
       "hint": "Manage the crops in this field.",
       "cropType": "Crop type",
       "selectCrop": "Select a crop",
@@ -381,6 +382,7 @@
       "adding": "Adding…",
       "saveCrop": "Save crop",
       "addCrop": "Add a crop",
+      "editCrops": "Edit crops",
       "removeCrop": "Remove {{crop}}",
       "errors": {
         "selectCrop": "Select a crop first",
@@ -561,6 +563,7 @@
     "basedOn": "Based on",
     "generatedAt": "Generated",
     "expiresAt": "Expires",
+    "view": "View recommendations",
     "open": "Open field recommendations",
     "back": "Back",
     "categories": {

@@ -369,6 +369,7 @@
     },
     "manageCrops": {
       "title": "Cultivos",
+      "back": "Volver a los cultivos",
       "hint": "Gestiona los cultivos de este campo.",
       "cropType": "Tipo de cultivo",
       "selectCrop": "Selecciona un cultivo",
@@ -381,6 +382,7 @@
       "adding": "Añadiendo…",
       "saveCrop": "Guardar cultivo",
       "addCrop": "Añadir un cultivo",
+      "editCrops": "Editar cultivos",
       "removeCrop": "Eliminar {{crop}}",
       "errors": {
         "selectCrop": "Selecciona primero un cultivo",
@@ -561,6 +563,7 @@
     "basedOn": "Basado en",
     "generatedAt": "Generada",
     "expiresAt": "Caduca",
+    "view": "Ver recomendaciones",
     "open": "Abrir recomendaciones del campo",
     "back": "Atrás",
     "categories": {

@@ -35,9 +35,13 @@ export type Recommendation = {
 export async function getFieldRecommendations(
   fieldId: string | number,
   token: string,
+  language?: string,
 ): Promise<Recommendation[]> {
+  const languageQuery = language
+    ? `?language=${encodeURIComponent(language)}`
+    : '';
   const response = await authenticatedFetch(
-    `${API_URL}/api/v1/fields/${encodeURIComponent(fieldId)}/recommendations`,
+    `${API_URL}/api/v1/fields/${encodeURIComponent(fieldId)}/recommendations${languageQuery}`,
     {
       method: 'GET',
       headers: {
