@@ -39,6 +39,7 @@ export default function SettingsScreen() {
 
   function maybeLoadMore() {
     const { contentHeight, viewportHeight, offset } = scrollMetrics.current;
+    if (contentHeight <= 0 || viewportHeight <= 0) return;
     const remaining = contentHeight - viewportHeight - offset;
     if (
       crops.hasMore &&
@@ -63,6 +64,7 @@ export default function SettingsScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView
+        testID="crops-scroll-view"
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator

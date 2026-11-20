@@ -150,6 +150,27 @@ def test_get_field_recommendations_generates_for_current_user(client, service):
     )
 
 
+def test_get_field_recommendations_passes_requested_language(client, service):
+    service.get_or_generate_recommendations.return_value = [recommendation()]
+
+    response = client.get("/api/v1/fields/7/recommendations?language=ca-ES")
+
+    assert response.status_code == 200
+    service.get_or_generate_recommendations.assert_awaited_once_with(
+        field_id=7,
+        user_id=USER_ID,
+        radius_meters=1000,
+        language="ca-ES",
+    )
+
+
+def test_get_field_recommendations_rejects_invalid_language(client, service):
+    response = client.get("/api/v1/fields/7/recommendations?language=bad_tag")
+
+    assert response.status_code == 422
+    service.get_or_generate_recommendations.assert_not_awaited()
+
+
 def test_get_field_recommendations_not_found(client, service):
     service.get_or_generate_recommendations.return_value = None
 
@@ -178,6 +199,23 @@ def test_refresh_field_recommendations_forces_regeneration(client, service):
         user_id=USER_ID,
         radius_meters=500,
         force_refresh=True,
+    )
+
+
+def test_refresh_field_recommendations_passes_requested_language(client, service):
+    service.get_or_generate_recommendations.return_value = [recommendation()]
+
+    response = client.post(
+        "/api/v1/fields/7/recommendations/refresh?language=fr-CA"
+    )
+
+    assert response.status_code == 200
+    service.get_or_generate_recommendations.assert_awaited_once_with(
+        field_id=7,
+        user_id=USER_ID,
+        radius_meters=1000,
+        force_refresh=True,
+        language="fr-CA",
     )
 
 

@@ -1,30 +1,52 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/constants/theme';
+import {
+  getResponsiveProfile,
+  responsiveValue,
+  valueAtWidth,
+} from './responsiveLayout';
+
+function getThemeColors(isDark: boolean) {
+  return isDark ? Colors.dark : Colors.light;
+}
 
 export const createRecommendationsStyles = (
   isDark: boolean,
   width = 390,
   height = 844,
 ) => {
-  const colors = isDark ? Colors.dark : Colors.light;
-  const compact = width < 360;
-  const tablet = width >= 680;
-  const compactLandscape = width > height && height < 600;
-  const topMargin = compactLandscape
-    ? 12
-    : height < 700
-      ? 22
-      : tablet
-        ? 32
-        : 24;
-  const columns = width >= 1500 ? 3 : tablet ? 2 : 1;
-  const maxWidth =
-    width >= 1600 ? 1320 : width >= 1024 ? 1200 : tablet ? 960 : 560;
-  const horizontalInset = compact ? 12 : tablet ? 24 : 16;
-  const gap = compactLandscape ? 8 : tablet ? 16 : 12;
+  const colors = getThemeColors(isDark);
+  const profile = getResponsiveProfile(width, height);
+  const topMargin = responsiveValue(profile, {
+    compactLandscape: 12,
+    shortScreen: 22,
+    wideTablet: 32,
+    default: 24,
+  });
+  const columns = valueAtWidth(width, [[1500, 3], [680, 2]], 1);
+  const maxWidth = valueAtWidth(
+    width,
+    [[1600, 1320], [1024, 1200], [680, 960]],
+    560,
+  );
+  const horizontalInset = responsiveValue(profile, {
+    compact: 12,
+    wideTablet: 24,
+    default: 16,
+  });
+  const gap = responsiveValue(profile, {
+    compactLandscape: 8,
+    wideTablet: 16,
+    default: 12,
+  });
   const contentWidth = Math.min(width, maxWidth) - horizontalInset * 2;
   const cardWidth = Math.max(0, (contentWidth - gap * (columns - 1)) / columns);
-  const cardPadding = compactLandscape ? 10 : compact ? 14 : tablet ? 20 : 18;
+  const cardPadding = responsiveValue(profile, {
+    compactLandscape: 10,
+    compact: 14,
+    wideTablet: 20,
+    default: 18,
+  });
 
   return StyleSheet.create({
     container: {
@@ -37,7 +59,10 @@ export const createRecommendationsStyles = (
       alignItems: 'center',
       paddingHorizontal: horizontalInset,
       paddingTop: topMargin,
-      paddingBottom: compactLandscape ? 16 : 40,
+      paddingBottom: responsiveValue(profile, {
+        compactLandscape: 16,
+        default: 40,
+      }),
     },
 
     content: {
@@ -66,7 +91,11 @@ export const createRecommendationsStyles = (
     },
 
     header: {
-      marginBottom: compactLandscape ? 12 : tablet ? 20 : 24,
+      marginBottom: responsiveValue(profile, {
+        compactLandscape: 12,
+        wideTablet: 20,
+        default: 24,
+      }),
     },
 
     headerTitleRow: {
@@ -77,7 +106,11 @@ export const createRecommendationsStyles = (
     },
 
     title: {
-      fontSize: compact ? 23 : tablet ? 30 : 26,
+      fontSize: responsiveValue(profile, {
+        compact: 23,
+        wideTablet: 30,
+        default: 26,
+      }),
       fontWeight: '700',
       color: colors.text,
       marginBottom: 8,
@@ -118,7 +151,10 @@ export const createRecommendationsStyles = (
     recommendationCard: {
       width: cardWidth,
       backgroundColor: colors.surface,
-      borderRadius: compactLandscape ? 13 : 16,
+      borderRadius: responsiveValue(profile, {
+        compactLandscape: 13,
+        default: 16,
+      }),
       padding: cardPadding,
       elevation: 2,
       shadowColor: colors.shadow,
@@ -166,7 +202,11 @@ export const createRecommendationsStyles = (
     },
 
     recommendationTitle: {
-      fontSize: compact ? 16 : tablet ? 19 : 18,
+      fontSize: responsiveValue(profile, {
+        compact: 16,
+        wideTablet: 19,
+        default: 18,
+      }),
       fontWeight: '700',
       color: colors.text,
       marginBottom: 10,
@@ -174,8 +214,8 @@ export const createRecommendationsStyles = (
     },
 
     description: {
-      fontSize: compact ? 13 : 14,
-      lineHeight: compact ? 19 : 22,
+      fontSize: responsiveValue(profile, { compact: 13, default: 14 }),
+      lineHeight: responsiveValue(profile, { compact: 19, default: 22 }),
       color: colors.textSecondary,
     },
 

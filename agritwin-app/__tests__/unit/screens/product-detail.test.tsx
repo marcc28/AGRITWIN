@@ -176,6 +176,28 @@ describe('ProductScreen', () => {
     expect(screen.getByLabelText('Augmentar quantitat')).toBeDisabled();
   });
 
+  it('accepta una quantitat manual amb coma decimal dins de les existències', async () => {
+    const screen = render(<ProductScreen />);
+    await waitFor(() => expect(screen.getByText('Tomata')).toBeTruthy());
+    const input = screen.getByLabelText('Quantitat en quilograms');
+    fireEvent.changeText(input, '2,50');
+    expect(screen.getByTestId('checkout-form')).toHaveTextContent('1-2.5-false');
+    fireEvent(input, 'blur');
+    expect(screen.getByLabelText('Quantitat en quilograms').props.value).toBe('2,5');
+  });
+
+  it('ignora text invàlid i recupera la quantitat en sortir del camp', async () => {
+    const screen = render(<ProductScreen />);
+    await waitFor(() => expect(screen.getByText('Tomata')).toBeTruthy());
+    const input = screen.getByLabelText('Quantitat en quilograms');
+    fireEvent.changeText(input, 'abc');
+    expect(screen.getByLabelText('Quantitat en quilograms').props.value).toBe('1');
+    fireEvent.changeText(input, '0');
+    expect(screen.getByLabelText('Quantitat en quilograms').props.value).toBe('0');
+    fireEvent(input, 'blur');
+    expect(screen.getByLabelText('Quantitat en quilograms').props.value).toBe('1');
+  });
+
   it('mostra el missatge de producte sense estoc', async () => {
     (getMarketProduct as jest.Mock).mockResolvedValueOnce({
       ...mockProduct,

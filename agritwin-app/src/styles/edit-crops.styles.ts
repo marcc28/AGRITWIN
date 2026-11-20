@@ -1,6 +1,12 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { Colors } from '../constants/theme';
+import {
+  getResponsiveProfile,
+  getWebScrollStyle,
+  responsiveValue,
+  valueAtWidth,
+} from './responsiveLayout';
 
 const baseStyles = StyleSheet.create({
   screen: {
@@ -11,7 +17,7 @@ const baseStyles = StyleSheet.create({
   scroll: {
     flex: 1,
     width: '100%',
-    ...(Platform.OS === 'web' ? { overflow: 'scroll' as const } : {}),
+      ...getWebScrollStyle(),
   },
 
   scrollContent: {
@@ -336,21 +342,38 @@ const baseStyles = StyleSheet.create({
 });
 
 export function getEditCropsStyles(width: number, height: number) {
-  const compact = width < 360;
-  const tablet = width >= 600;
-  const compactLandscape = width > height && height < 600;
-  const topMargin = compactLandscape ? 4 : height < 700 ? 14 : tablet ? 30 : 22;
-  const horizontalInset = compact ? 12 : tablet ? 24 : 16;
-  const maxWidth =
-    width >= 1600 ? 1000 : width >= 1024 ? 900 : tablet ? 760 : 560;
+  const profile = getResponsiveProfile(width, height);
+  const topMargin = responsiveValue(profile, {
+    compactLandscape: 4,
+    shortScreen: 14,
+    tablet: 30,
+    default: 22,
+  });
+  const horizontalInset = responsiveValue(profile, {
+    compact: 12,
+    tablet: 24,
+    default: 16,
+  });
+  const maxWidth = valueAtWidth(
+    width,
+    [[1600, 1000], [1024, 900], [600, 760]],
+    560,
+  );
 
   return StyleSheet.create({
     ...baseStyles,
     scrollContent: {
       ...baseStyles.scrollContent,
       paddingHorizontal: horizontalInset,
-      paddingTop: compactLandscape ? 10 : tablet ? 28 : 20,
-      paddingBottom: compactLandscape ? 16 : 48,
+      paddingTop: responsiveValue(profile, {
+        compactLandscape: 10,
+        tablet: 28,
+        default: 20,
+      }),
+      paddingBottom: responsiveValue(profile, {
+        compactLandscape: 16,
+        default: 48,
+      }),
     },
     container: {
       ...baseStyles.container,
@@ -359,37 +382,64 @@ export function getEditCropsStyles(width: number, height: number) {
     },
     title: {
       ...baseStyles.title,
-      fontSize: compact ? 22 : tablet ? 28 : 26,
-      marginBottom: compactLandscape ? 10 : 18,
+      fontSize: responsiveValue(profile, {
+        compact: 22,
+        tablet: 28,
+        default: 26,
+      }),
+      marginBottom: responsiveValue(profile, {
+        compactLandscape: 10,
+        default: 18,
+      }),
     },
     card: {
       ...baseStyles.card,
-      padding: compact ? 14 : tablet ? 24 : 20,
+      padding: responsiveValue(profile, {
+        compact: 14,
+        tablet: 24,
+        default: 20,
+      }),
     },
     cropForm: {
       ...baseStyles.cropForm,
-      padding: compact ? 10 : tablet ? 20 : 14,
+      padding: responsiveValue(profile, {
+        compact: 10,
+        tablet: 20,
+        default: 14,
+      }),
     },
     dateFieldsRow: {
-      flexDirection: tablet ? 'row' : 'column',
-      gap: compactLandscape ? 8 : 12,
+      flexDirection: responsiveValue(profile, {
+        tablet: 'row' as const,
+        default: 'column' as const,
+      }),
+      gap: responsiveValue(profile, {
+        compactLandscape: 8,
+        default: 12,
+      }),
     },
     dateField: {
-      width: tablet ? undefined : '100%',
-      flex: tablet ? 1 : undefined,
+      width: responsiveValue(profile, { tablet: undefined, default: '100%' }),
+      flex: responsiveValue(profile, { tablet: 1, default: undefined }),
     },
     cropModalBackdrop: {
       ...baseStyles.cropModalBackdrop,
       alignItems: 'center',
       paddingHorizontal: horizontalInset,
-      paddingVertical: compactLandscape ? 10 : 24,
+      paddingVertical: responsiveValue(profile, {
+        compactLandscape: 10,
+        default: 24,
+      }),
     },
     cropModal: {
       ...baseStyles.cropModal,
       width: '100%',
-      maxWidth: tablet ? 640 : 520,
-      maxHeight: compactLandscape ? '90%' : '75%',
-      padding: compact ? 12 : 16,
+      maxWidth: responsiveValue(profile, { tablet: 640, default: 520 }),
+      maxHeight: responsiveValue(profile, {
+        compactLandscape: '90%' as const,
+        default: '75%' as const,
+      }),
+      padding: responsiveValue(profile, { compact: 12, default: 16 }),
     },
   });
 }

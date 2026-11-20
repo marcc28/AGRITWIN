@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
-  Modal,
   Text,
   View,
   Pressable,
@@ -49,14 +47,17 @@ import {
   type AreaUnit,
 } from '../utils/fieldGeometry';
 import { styles as areaStyles } from '../styles/create-field.styles';
-import { DateField } from '../components/DateField';
+import { FieldCropForm } from '../components/FieldCropForm';
 
 import {
   createFieldCrop,
   deleteFieldCrop,
   type FieldCrop,
-  type FieldCropCreate,
 } from '../services/api_fieldCrops';
+import {
+  createFieldCropDraft,
+  validateFieldCropDates,
+} from '../utils/fieldCropDraft';
 
 import type { Crop } from '../services/api_crops';
 import {
@@ -465,33 +466,19 @@ export default function EditFieldScreen() {
   }
 
   async function handleAddCrop() {
-    const validDate = (value: string) => {
-      if (!value) return true;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-      const parsed = new Date(`${value}T00:00:00.000Z`);
-      return (
-        !Number.isNaN(parsed.getTime()) &&
-        parsed.toISOString().slice(0, 10) === value
-      );
-    };
-    if (!validDate(plantedAt) || !validDate(expectedHarvestAt)) {
-      setErrorMessage(t('settings.manageCrops.errors.invalidDate'));
-      return;
-    }
-    if (plantedAt && expectedHarvestAt && expectedHarvestAt < plantedAt) {
-      setErrorMessage(t('settings.manageCrops.errors.harvestBeforePlanting'));
+    const dateError = validateFieldCropDates(plantedAt, expectedHarvestAt);
+    if (dateError) {
+      setErrorMessage(t(`settings.manageCrops.errors.${dateError}`));
       return;
     }
 
     const tempId = `temp-${Date.now()}`;
-    const cropData: FieldCropCreate = {
-      field_id: fieldId,
-      crop_id: Number(selectedCropId),
-      planted_at: plantedAt || null,
-      expected_harvest_at: expectedHarvestAt || null,
-      status: 'planted',
-      notes: cropNotes.trim() || null,
-    };
+    const cropData = createFieldCropDraft(fieldId, {
+      cropId: selectedCropId,
+      plantedAt,
+      expectedHarvestAt,
+      notes: cropNotes,
+    });
 
     try {
       setAddingCrop(true);
@@ -887,195 +874,35 @@ export default function EditFieldScreen() {
                     );
                   })}
 
-                  {showCropForm ? (
-                    <View style={styles.cropForm}>
-                      <Text style={styles.label}>
-                        {t('settings.manageCrops.cropType')}
-                      </Text>
-                      <Pressable
-                        style={styles.cropPicker}
-                        onPress={() => setCropSelectorOpen(true)}
-                        disabled={addingCrop || saving || loadingCrops}
-                        accessibilityRole="button"
-                      >
-                        <Text
-                          style={[
-                            styles.cropPickerText,
-                            !selectedCropName && styles.cropPickerPlaceholder,
-                          ]}
-                        >
-                          {selectedCropName ||
-                            t('settings.manageCrops.selectCrop')}
-                        </Text>
-                        <Ionicons
-                          name="chevron-down"
-                          size={18}
-                          color={Colors.light.textSecondary}
-                        />
-                      </Pressable>
-
-                      <Modal
-                        testID="crop-selector-modal"
-                        visible={cropSelectorOpen}
-                        transparent
-                        animationType="fade"
-                        onRequestClose={() => setCropSelectorOpen(false)}
-                      >
-                        <View style={styles.cropModalBackdrop}>
-                          <View style={styles.cropModal}>
-                            <View style={styles.cropModalHeader}>
-                              <Text style={styles.cropModalTitle}>
-                                {t('settings.manageCrops.cropType')}
-                              </Text>
-                              <Pressable
-                                onPress={() => setCropSelectorOpen(false)}
-                                hitSlop={8}
-                                accessibilityRole="button"
-                                accessibilityLabel={t('settings.cancel')}
-                              >
-                                <Ionicons
-                                  name="close"
-                                  size={22}
-                                  color={Colors.light.textSecondary}
-                                />
-                              </Pressable>
-                            </View>
-                            <FlatList
-                              testID="crop-selector-list"
-                              key={cropPage}
-                              data={availableCrops.filter(
-                                (crop) =>
-                                  !existingCrops.some(
-                                    (fieldCrop) =>
-                                      String(fieldCrop.crop_id) ===
-                                      String(crop.id),
-                                  ),
-                              )}
-                              keyExtractor={(crop) => String(crop.id)}
-                              onEndReached={() => void loadNextCropPage()}
-                              onEndReachedThreshold={0.35}
-                              renderItem={({ item: crop }) => (
-                                <Pressable
-                                  style={styles.cropOption}
-                                  onPress={() => {
-                                    setSelectedCropId(String(crop.id));
-                                    setSelectedCropName(crop.name);
-                                    setCropSelectorOpen(false);
-                                  }}
-                                >
-                                  <Text style={styles.cropOptionText}>
-                                    {crop.name}
-                                  </Text>
-                                </Pressable>
-                              )}
-                              ListEmptyComponent={
-                                loadingCrops ? (
-                                  <ActivityIndicator
-                                    style={styles.cropListLoader}
-                                    color={Colors.light.primary}
-                                  />
-                                ) : (
-                                  <Text style={styles.cropEmpty}>
-                                    {t('settings.manageCrops.noAvailableCrops')}
-                                  </Text>
-                                )
-                              }
-                              ListFooterComponent={
-                                loadingCrops && availableCrops.length > 0 ? (
-                                  <ActivityIndicator
-                                    style={styles.cropListLoader}
-                                    color={Colors.light.primary}
-                                  />
-                                ) : null
-                              }
-                            />
-                          </View>
-                        </View>
-                      </Modal>
-
-                      <Text style={styles.label}>
-                        {t('settings.manageCrops.plantedAt')}
-                      </Text>
-                      <DateField
-                        value={plantedAt}
-                        onChange={setPlantedAt}
-                        placeholder={t('settings.manageCrops.selectDate')}
-                        maximumDate={expectedHarvestAt || undefined}
-                        disabled={addingCrop || saving}
-                      />
-
-                      <Text style={styles.label}>
-                        {t('settings.manageCrops.expectedHarvestAt')}
-                      </Text>
-                      <DateField
-                        value={expectedHarvestAt}
-                        onChange={setExpectedHarvestAt}
-                        placeholder={t('settings.manageCrops.selectDate')}
-                        minimumDate={plantedAt || undefined}
-                        disabled={addingCrop || saving}
-                      />
-
-                      <Text style={styles.label}>
-                        {t('settings.manageCrops.notes')}
-                      </Text>
-                      <TextInput
-                        style={[styles.input, styles.cropNotesInput]}
-                        value={cropNotes}
-                        onChangeText={setCropNotes}
-                        placeholder={t('settings.manageCrops.notesPlaceholder')}
-                        multiline
-                        editable={!addingCrop && !saving}
-                      />
-
-                      <Pressable
-                        style={[
-                          styles.button,
-                          styles.acceptButton,
-                          styles.cropSubmit,
-                        ]}
-                        onPress={() => void handleAddCrop()}
-                        disabled={!selectedCropId || addingCrop || saving}
-                      >
-                        <Text style={styles.acceptText}>
-                          {addingCrop
-                            ? t('settings.manageCrops.adding')
-                            : t('settings.manageCrops.saveCrop')}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        style={styles.cropCancel}
-                        onPress={() => setShowCropForm(false)}
-                        disabled={addingCrop || saving}
-                      >
-                        <Text style={styles.cropCancelText}>
-                          {t('settings.cancel')}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  ) : (
-                    <Pressable
-                      style={styles.addCropButton}
-                      onPress={() => {
-                        setErrorMessage('');
-                        setShowCropForm(true);
-                      }}
-                      disabled={
-                        saving ||
-                        addingCrop ||
-                        loadingCrops ||
-                        availableCrops.length === 0
-                      }
-                    >
-                      <Ionicons
-                        name="add-circle-outline"
-                        size={20}
-                        color={Colors.light.primary}
-                      />
-                      <Text style={styles.addCropText}>
-                        {t('settings.manageCrops.addCrop')}
-                      </Text>
-                    </Pressable>
-                  )}
+                  <FieldCropForm
+                    styles={styles}
+                    availableCrops={availableCrops}
+                    existingCrops={existingCrops}
+                    loadingCrops={loadingCrops}
+                    saving={saving}
+                    addingCrop={addingCrop}
+                    showCropForm={showCropForm}
+                    setShowCropForm={setShowCropForm}
+                    cropSelectorOpen={cropSelectorOpen}
+                    setCropSelectorOpen={setCropSelectorOpen}
+                    selectedCropId={selectedCropId}
+                    setSelectedCropId={setSelectedCropId}
+                    selectedCropName={selectedCropName}
+                    setSelectedCropName={setSelectedCropName}
+                    plantedAt={plantedAt}
+                    setPlantedAt={setPlantedAt}
+                    expectedHarvestAt={expectedHarvestAt}
+                    setExpectedHarvestAt={setExpectedHarvestAt}
+                    cropNotes={cropNotes}
+                    setCropNotes={setCropNotes}
+                    onLoadMore={() => void loadNextCropPage()}
+                    onAdd={() => void handleAddCrop()}
+                    onShowCropForm={() => {
+                      setErrorMessage('');
+                      setShowCropForm(true);
+                    }}
+                    cropPageKey={cropPage}
+                  />
                 </View>
               </View>
             ) : null}

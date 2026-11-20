@@ -1,6 +1,11 @@
 import { StyleSheet } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+import {
+  getResponsiveProfile,
+  responsiveValue,
+  valueAtWidth,
+} from './responsiveLayout';
 
 export const styles = StyleSheet.create({
   card: {
@@ -133,22 +138,38 @@ export const styles = StyleSheet.create({
 });
 
 export function getFieldCropsStyles(width: number, height: number) {
-  const compact = width < 360;
-  const compactPhone = width < 560;
-  const tablet = width >= 600;
-  const compactLandscape = width > height && height < 600;
-  const compactLayout = compactPhone || compactLandscape;
-  const columns = width >= 1000 ? 3 : width >= 560 ? 2 : 1;
-  const cardPadding = compact ? 10 : width >= 600 ? 20 : 14;
-  const gap = compactLandscape ? 8 : 12;
+  const profile = getResponsiveProfile(width, height);
+  const compactLayout = profile.compactPhone || profile.compactLandscape;
+  const columns = valueAtWidth(width, [[1000, 3], [560, 2]], 1);
+  const cardPadding = responsiveValue(profile, {
+    compact: 10,
+    tablet: 20,
+    default: 14,
+  });
+  const gap = responsiveValue(profile, { compactLandscape: 8, default: 12 });
   const contentWidth = Math.max(0, width - cardPadding * 2);
   const cropWidth = Math.max(0, (contentWidth - gap * (columns - 1)) / columns);
+  const compactFont = responsiveValue(profile, { compact: 11, default: 12 });
+  const compactInfoStyle = compactLayout
+    ? { flexBasis: '47%' as const, flexGrow: 1, minWidth: 110 }
+    : {};
+  const cropStatusLayout = compactLayout ? { width: '100%' as const } : {};
+  const cropInfoFlow = compactLayout
+    ? { flexDirection: 'row' as const, flexWrap: 'wrap' as const }
+    : { flexDirection: 'column' as const, flexWrap: 'nowrap' as const };
 
   return StyleSheet.create({
     card: {
-      marginTop: compactLandscape ? 8 : compactPhone ? 14 : 20,
-      padding: compact ? 10 : width >= 600 ? 20 : 14,
-      borderRadius: compactLandscape ? 14 : 16,
+      marginTop: responsiveValue(profile, {
+        compactLandscape: 8,
+        compactPhone: 14,
+        default: 20,
+      }),
+      padding: cardPadding,
+      borderRadius: responsiveValue(profile, {
+        compactLandscape: 14,
+        default: 16,
+      }),
       backgroundColor: Colors.light.surface,
       width: '100%',
     },
@@ -157,7 +178,11 @@ export function getFieldCropsStyles(width: number, height: number) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 8,
-      marginBottom: compactLandscape ? 6 : compactPhone ? 10 : 16,
+      marginBottom: responsiveValue(profile, {
+        compactLandscape: 6,
+        compactPhone: 10,
+        default: 16,
+      }),
     },
     headerActions: {
       flexDirection: 'row',
@@ -167,7 +192,7 @@ export function getFieldCropsStyles(width: number, height: number) {
     title: {
       flex: 1,
       minWidth: 0,
-      fontSize: compact ? 18 : 20,
+      fontSize: responsiveValue(profile, { compact: 18, default: 20 }),
       fontWeight: '700',
       color: Colors.light.text,
     },
@@ -185,14 +210,26 @@ export function getFieldCropsStyles(width: number, height: number) {
     crop: {
       alignSelf: 'flex-start',
       width: cropWidth,
-      minHeight: compactLandscape ? 136 : compact ? 160 : tablet ? 184 : 172,
+      minHeight: responsiveValue(profile, {
+        compactLandscape: 136,
+        compact: 160,
+        tablet: 184,
+        default: 172,
+      }),
       minWidth: 0,
-      padding: compactLandscape ? 8 : compact ? 8 : 12,
-      borderRadius: compactLandscape ? 12 : 16,
+      padding: responsiveValue(profile, {
+        compactLandscape: 8,
+        compact: 8,
+        default: 12,
+      }),
+      borderRadius: responsiveValue(profile, {
+        compactLandscape: 12,
+        default: 16,
+      }),
       borderWidth: 1,
       borderColor: Colors.light.border,
       backgroundColor: Colors.light.surface,
-      gap: compactLandscape ? 6 : 9,
+      gap: responsiveValue(profile, { compactLandscape: 6, default: 9 }),
     },
     cropHeader: {
       width: '100%',
@@ -204,32 +241,33 @@ export function getFieldCropsStyles(width: number, height: number) {
     cropTitle: {
       flex: 1,
       minWidth: 0,
-      fontSize: compact ? 15 : 16,
+      fontSize: responsiveValue(profile, { compact: 15, default: 16 }),
       fontWeight: '700',
       color: Colors.light.text,
     },
     cropInfo: {
-      flexDirection: compactLayout ? 'row' : 'column',
-      flexWrap: compactLayout ? 'wrap' : 'nowrap',
-      gap: compactLandscape ? 4 : compactPhone ? 6 : 5,
+      ...cropInfoFlow,
+      gap: responsiveValue(profile, {
+        compactLandscape: 4,
+        compactPhone: 6,
+        default: 5,
+      }),
     },
     cropDetail: {
-      fontSize: compact ? 11 : 12,
-      lineHeight: compact ? 15 : 17,
+      fontSize: compactFont,
+      lineHeight: responsiveValue(profile, { compact: 15, default: 17 }),
       color: Colors.light.textMuted,
-      ...(compactLayout
-        ? { flexBasis: '47%', flexGrow: 1, minWidth: 110 }
-        : {}),
+      ...compactInfoStyle,
     },
     cropStatus: {
-      ...(compactLayout ? { width: '100%' } : {}),
-      fontSize: compact ? 12 : 13,
+      ...cropStatusLayout,
+      fontSize: responsiveValue(profile, { compact: 12, default: 13 }),
       fontWeight: '600',
       color: Colors.light.primary,
     },
     addIcon: {
-      width: compact ? 28 : 32,
-      height: compact ? 28 : 32,
+      width: responsiveValue(profile, { compact: 28, default: 32 }),
+      height: responsiveValue(profile, { compact: 28, default: 32 }),
     },
     addButton: {
       padding: 2,
@@ -243,7 +281,11 @@ export function getFieldCropsStyles(width: number, height: number) {
     targetButton: {
       alignSelf: 'stretch',
       width: '100%',
-      minHeight: compactLandscape ? 32 : compactPhone ? 34 : 42,
+      minHeight: responsiveValue(profile, {
+        compactLandscape: 32,
+        compactPhone: 34,
+        default: 42,
+      }),
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 8,
@@ -256,10 +298,10 @@ export function getFieldCropsStyles(width: number, height: number) {
     targetButtonText: {
       flexShrink: 1,
       color: Colors.light.primaryDark,
-      fontSize: compact ? 11 : 12,
+      fontSize: compactFont,
       fontWeight: '700',
       textAlign: 'center',
-      lineHeight: compact ? 14 : 16,
+      lineHeight: responsiveValue(profile, { compact: 14, default: 16 }),
     },
     headerActionIcon: {
       width: 32,
