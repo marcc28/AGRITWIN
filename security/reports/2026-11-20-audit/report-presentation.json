@@ -1,0 +1,933 @@
+{
+  "language": "en",
+  "audit_status": "incomplete",
+  "source_ref": "5410a38fb8034cafd0374aef65761d8c9b069e21",
+  "presentation_only": true,
+  "new_scans_started": false,
+  "severity_policy": [
+    "Severity labels are retained from the originating scanner; no overall application risk score is invented.",
+    "npm high/moderate counts refer to affected package entries. ZAP medium/low/informational counts refer to deduplicated alerts. Do not add these counts together.",
+    "Unrated means a severity was not captured or cannot yet be assigned. It does not mean low severity.",
+    "All 15 source candidates remain preliminary and unvalidated. They receive no vulnerability severity and are not final needs_validation records.",
+    "Not executed / not assessed is not a clean result. Sonar's zero reported issues is limited to its analyzed revision and configuration."
+  ],
+  "tools": [
+    {
+      "name": "TruffleHog",
+      "version": "3.99.9",
+      "status": "Executed locally",
+      "style": "executed",
+      "kind": "Fresh static scan",
+      "result": "2 URI detector hits; both are intentional credential-rejection fixtures. No new leaked credential identified.",
+      "severity": "No credential severity assigned",
+      "badge": "no-findings",
+      "scope": "All history reachable from local dev; 7,378 chunks / 9,967,788 bytes.",
+      "limit": "Credential verification and update checks disabled; archives and additional refs skipped. Official 3.100.0 was observed but was not used.",
+      "evidence": "secret-scan.json",
+      "official": "https://github.com/trufflesecurity/trufflehog"
+    },
+    {
+      "name": "npm audit",
+      "version": "Lockfile advisory query",
+      "status": "Executed this review",
+      "style": "executed",
+      "kind": "Fresh metadata query",
+      "result": "27 affected package entries, including direct, transitive and development dependencies.",
+      "severity": "5 high · 22 moderate",
+      "badge": "high",
+      "scope": "Copied frontend lockfile; package-lock-only and ignore-scripts; no install or automatic fixes.",
+      "limit": "Entries include dependency-chain effects. They are not 27 distinct advisories or proven application exploits.",
+      "evidence": "dependency-audit.json",
+      "official": "https://docs.npmjs.com/cli/commands/npm-audit"
+    },
+    {
+      "name": "OSV",
+      "version": "Python batch API",
+      "status": "Queried this review",
+      "style": "queried",
+      "kind": "Fresh metadata query",
+      "result": "5 Python package/version matches from 99 queried locked versions.",
+      "severity": "Unrated · 5 packages",
+      "badge": "unrated",
+      "scope": "authlib, certifi, dnspython, joserfc and opentelemetry-api.",
+      "limit": "Retained batch results contain advisory IDs, not severity ratings. GHSA and PYSEC IDs may be aliases; reachability was not tested.",
+      "evidence": "dependency-audit.json",
+      "official": "https://google.github.io/osv.dev/api/"
+    },
+    {
+      "name": "OWASP ZAP",
+      "version": "2.17.0",
+      "status": "Existing CI reviewed",
+      "style": "ci",
+      "kind": "Existing deployment scan",
+      "result": "32 unique alerts: baseline 15 + passive API 18 = 33 raw records, with 1 duplicate removed.",
+      "severity": "3 medium · 16 low · 13 informational",
+      "badge": "medium",
+      "scope": "Anonymous passive GET checks against the Render deployment; CI run 44761212902.",
+      "limit": "No new ZAP run. Deployment SHA unverified; no authenticated ownership, mutation or MQTT checks.",
+      "evidence": "zap-ci-evidence.json",
+      "official": "https://github.com/marcc28/AGRITWIN/actions/runs/44761212902"
+    },
+    {
+      "name": "SonarQube / SonarCloud",
+      "version": "Public API + existing CI",
+      "status": "Results queried",
+      "style": "ci",
+      "kind": "Existing source analysis",
+      "result": "Quality gate OK; 0 reported vulnerabilities; 0 security hotspots; 92.0% overall coverage.",
+      "severity": "No issues reported",
+      "badge": "no-findings",
+      "scope": "dev analysis 1963366, 20 Nov 2026 at 16:17 Europe/Madrid. Only reports/costes.xlsx differs from reviewed HEAD.",
+      "limit": "Scanner success is not a security certification. Configured exclusions and LCOV / SQL parsing warnings limit coverage.",
+      "evidence": "sonar-ci-evidence.json",
+      "official": "https://sonarcloud.io/dashboard?id=marcc28_AGRITWIN&branch=dev"
+    },
+    {
+      "name": "CodeQL",
+      "version": "2.27.4 in retained CI",
+      "status": "Existing CI reviewed",
+      "style": "ci",
+      "kind": "Earlier scheduled analysis",
+      "result": "0 open branch alerts in the retained report; Python and JavaScript/TypeScript analyses available.",
+      "severity": "No open alerts reported",
+      "badge": "no-findings",
+      "scope": "Weekly analysis on 18 Nov 2026, commit 684d883.",
+      "limit": "An earlier revision; it does not validate all changes in 5410a38. No new analysis was triggered.",
+      "evidence": "ci/security-report-44761212902-1/external-analyses.json",
+      "official": "https://github.com/marcc28/AGRITWIN/security/code-scanning"
+    },
+    {
+      "name": "Cloudflare security-audit skill",
+      "version": "c1c8a8c · methodology",
+      "status": "Partially applied",
+      "style": "partial",
+      "kind": "Agent-assisted source review",
+      "result": "4 reconnaissance agents and backend, client and IoT source reviews; 15 preliminary candidates across the ledger.",
+      "severity": "Unrated · 15 candidates",
+      "badge": "unrated",
+      "scope": "22 coverage units: 6 covered, 10 candidate, 5 blocked and 1 deferred. Source reviewed at 5410a38.",
+      "limit": "Coverage critics and independent candidate / final-record verification were not run. This is an incomplete application of the workflow, not a completed Cloudflare audit.",
+      "evidence": "coverage-ledger.json",
+      "official": "https://github.com/cloudflare/security-audit-skill/blob/c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/skills/security-audit/SKILL.md"
+    },
+    {
+      "name": "BLA",
+      "version": "3.5.2 documentation observed",
+      "status": "Not executed",
+      "style": "not-run",
+      "kind": "Documentation only",
+      "result": "CLI purpose, read-only lint / inspect-release commands and runtime requirements evaluated. No scan results exist.",
+      "severity": "Not assessed",
+      "badge": "not-run",
+      "scope": "Release packaging / source-map inspection capabilities reviewed.",
+      "limit": "Requires Node ^22.23.4 or >=24.0.0; available runtime was 22.17.0. No setup, install, harden, protect or apply operation ran.",
+      "evidence": "tool-evaluation.md",
+      "official": "https://github.com/qybaihe/bla"
+    },
+    {
+      "name": "Backend / frontend test CI",
+      "version": "pytest + Jest",
+      "status": "Existing CI reviewed",
+      "style": "ci",
+      "kind": "Existing regression suites",
+      "result": "947 backend tests and 1,169 frontend tests passed; 130 frontend suites passed.",
+      "severity": "Not a severity assessment",
+      "badge": "not-run",
+      "scope": "CI run 44761212933 on 1963366; identical application source to the reviewed HEAD.",
+      "limit": "No local test rerun and no reproduction of the 15 code candidates. A passing test suite is not an absence-of-vulnerabilities claim.",
+      "evidence": "sonar-ci-evidence.json",
+      "official": "https://github.com/marcc28/AGRITWIN/actions/runs/44761212933"
+    }
+  ],
+  "zap": {
+    "raw_records": 33,
+    "unique_alerts": 32,
+    "severity_counts": {
+      "medium": 3,
+      "low": 16,
+      "informational": 13
+    },
+    "rule_groups": [
+      {
+        "rule_id": "10020",
+        "title": "Missing Anti-clickjacking Header",
+        "severity": "medium",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "10038",
+        "title": "Content Security Policy (CSP) Header Not Set",
+        "severity": "medium",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "90003",
+        "title": "Sub Resource Integrity Attribute Missing",
+        "severity": "medium",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "10017",
+        "title": "Cross-Domain JavaScript Source File Inclusion",
+        "severity": "low",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "10021",
+        "title": "X-Content-Type-Options Header Missing",
+        "severity": "low",
+        "unique_alerts": 6,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/api/v1/anunces",
+          "https://backend-web-ur8z.onrender.com/api/v1/conte_mercat",
+          "https://backend-web-ur8z.onrender.com/api/v1/legal/privacy",
+          "https://backend-web-ur8z.onrender.com/api/v1/legal/security",
+          "https://backend-web-ur8z.onrender.com/api/v1/user_profile",
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "10063",
+        "title": "Permissions Policy Header Not Set",
+        "severity": "low",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "90004",
+        "title": "Cross-Origin-Embedder-Policy Header Missing or Invalid",
+        "severity": "low",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "90004",
+        "title": "Cross-Origin-Opener-Policy Header Missing or Invalid",
+        "severity": "low",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "90004",
+        "title": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+        "severity": "low",
+        "unique_alerts": 6,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/api/v1/anunces",
+          "https://backend-web-ur8z.onrender.com/api/v1/conte_mercat",
+          "https://backend-web-ur8z.onrender.com/api/v1/legal/privacy",
+          "https://backend-web-ur8z.onrender.com/api/v1/legal/security",
+          "https://backend-web-ur8z.onrender.com/api/v1/user_profile",
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      },
+      {
+        "rule_id": "100000",
+        "title": "A Client Error response code was returned by the server",
+        "severity": "informational",
+        "unique_alerts": 3,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/api/v1/dashboard",
+          "https://backend-web-ur8z.onrender.com/api/v1/fields",
+          "https://backend-web-ur8z.onrender.com/api/v1/me"
+        ]
+      },
+      {
+        "rule_id": "10049",
+        "title": "Non-Storable Content",
+        "severity": "informational",
+        "unique_alerts": 9,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/",
+          "https://backend-web-ur8z.onrender.com/api/v1/anunces",
+          "https://backend-web-ur8z.onrender.com/api/v1/conte_mercat",
+          "https://backend-web-ur8z.onrender.com/api/v1/dashboard",
+          "https://backend-web-ur8z.onrender.com/api/v1/fields",
+          "https://backend-web-ur8z.onrender.com/api/v1/legal/privacy",
+          "https://backend-web-ur8z.onrender.com/docs",
+          "https://backend-web-ur8z.onrender.com/robots.txt",
+          "https://backend-web-ur8z.onrender.com/sitemap.xml"
+        ]
+      },
+      {
+        "rule_id": "10109",
+        "title": "Modern Web Application",
+        "severity": "informational",
+        "unique_alerts": 1,
+        "urls": [
+          "https://backend-web-ur8z.onrender.com/docs"
+        ]
+      }
+    ]
+  },
+  "npm": {
+    "package_entries": 27,
+    "severity_counts": {
+      "high": 5,
+      "moderate": 22
+    },
+    "packages": [
+      {
+        "name": "@expo/cli",
+        "severity": "high",
+        "relation": "Transitive",
+        "locked_versions": [
+          "55.0.37"
+        ],
+        "via": [
+          "@expo/config",
+          "@expo/config-plugins",
+          "@expo/metro-config",
+          "@expo/prebuild-config",
+          "glob",
+          "zod"
+        ]
+      },
+      {
+        "name": "decode-uri-component",
+        "severity": "high",
+        "relation": "Transitive",
+        "locked_versions": [
+          "0.2.2"
+        ],
+        "via": [
+          {
+            "source": 1147955,
+            "name": "decode-uri-component",
+            "dependency": "decode-uri-component",
+            "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+            "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-400",
+              "CWE-405",
+              "CWE-407",
+              "CWE-1176"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": "<=0.4.2"
+          },
+          {
+            "source": 1243857,
+            "name": "decode-uri-component",
+            "dependency": "decode-uri-component",
+            "title": "decode-uri-component vulnerable to denial of service via quadratic replacement of percent-encoded runs",
+            "url": "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
+            "severity": "high",
+            "cwe": [
+              "CWE-400",
+              "CWE-407"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": "<=0.5.0"
+          }
+        ]
+      },
+      {
+        "name": "expo-router",
+        "severity": "high",
+        "relation": "Direct",
+        "locked_versions": [
+          "55.0.18"
+        ],
+        "via": [
+          "query-string"
+        ]
+      },
+      {
+        "name": "query-string",
+        "severity": "high",
+        "relation": "Transitive",
+        "locked_versions": [
+          "7.1.3"
+        ],
+        "via": [
+          "decode-uri-component"
+        ]
+      },
+      {
+        "name": "zod",
+        "severity": "high",
+        "relation": "Transitive",
+        "locked_versions": [
+          "3.25.76"
+        ],
+        "via": [
+          {
+            "source": 1243066,
+            "name": "zod",
+            "dependency": "zod",
+            "title": "Zod can exhaust memory while validating oversized constrained collections",
+            "url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
+            "severity": "high",
+            "cwe": [
+              "CWE-770"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<4.6.6"
+          }
+        ]
+      },
+      {
+        "name": "@expo/config",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "55.0.21"
+        ],
+        "via": [
+          "@expo/config-plugins",
+          "glob"
+        ]
+      },
+      {
+        "name": "@expo/config-plugins",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "55.0.12"
+        ],
+        "via": [
+          "glob"
+        ]
+      },
+      {
+        "name": "@expo/fingerprint",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "0.16.8"
+        ],
+        "via": [
+          "glob",
+          "minimatch"
+        ]
+      },
+      {
+        "name": "@expo/local-build-cache-provider",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "55.0.16"
+        ],
+        "via": [
+          "@expo/config"
+        ]
+      },
+      {
+        "name": "@expo/metro-config",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "55.0.27"
+        ],
+        "via": [
+          "@expo/config",
+          "glob"
+        ]
+      },
+      {
+        "name": "@expo/prebuild-config",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "55.0.22"
+        ],
+        "via": [
+          "@expo/config",
+          "@expo/config-plugins"
+        ]
+      },
+      {
+        "name": "@typescript-eslint/eslint-plugin",
+        "severity": "moderate",
+        "relation": "Direct",
+        "locked_versions": [
+          "8.71.2"
+        ],
+        "via": [
+          "@typescript-eslint/type-utils",
+          "@typescript-eslint/utils"
+        ]
+      },
+      {
+        "name": "@typescript-eslint/parser",
+        "severity": "moderate",
+        "relation": "Direct",
+        "locked_versions": [
+          "8.71.2"
+        ],
+        "via": [
+          "@typescript-eslint/typescript-estree"
+        ]
+      },
+      {
+        "name": "@typescript-eslint/type-utils",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "8.71.2"
+        ],
+        "via": [
+          "@typescript-eslint/typescript-estree",
+          "@typescript-eslint/utils"
+        ]
+      },
+      {
+        "name": "@typescript-eslint/typescript-estree",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "8.71.2"
+        ],
+        "via": [
+          "minimatch"
+        ]
+      },
+      {
+        "name": "@typescript-eslint/utils",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "8.71.2"
+        ],
+        "via": [
+          "@typescript-eslint/typescript-estree"
+        ]
+      },
+      {
+        "name": "@wix-pilot/detox",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "1.0.13"
+        ],
+        "via": [
+          "detox"
+        ]
+      },
+      {
+        "name": "bunyamin",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "1.6.3"
+        ],
+        "via": [
+          "stream-json"
+        ]
+      },
+      {
+        "name": "detox",
+        "severity": "moderate",
+        "relation": "Direct",
+        "locked_versions": [
+          "20.51.4"
+        ],
+        "via": [
+          "@wix-pilot/detox",
+          "jest-environment-emit",
+          "stream-json"
+        ]
+      },
+      {
+        "name": "expo",
+        "severity": "moderate",
+        "relation": "Direct",
+        "locked_versions": [
+          "55.0.32"
+        ],
+        "via": [
+          "@expo/cli",
+          "@expo/config",
+          "@expo/config-plugins",
+          "@expo/fingerprint",
+          "@expo/local-build-cache-provider",
+          "@expo/metro-config"
+        ]
+      },
+      {
+        "name": "expo-splash-screen",
+        "severity": "moderate",
+        "relation": "Direct",
+        "locked_versions": [
+          "55.0.25"
+        ],
+        "via": [
+          "@expo/prebuild-config"
+        ]
+      },
+      {
+        "name": "fast-uri",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "3.1.8"
+        ],
+        "via": [
+          {
+            "source": 1243098,
+            "name": "fast-uri",
+            "dependency": "fast-uri",
+            "title": "fast-uri vulnerable to URI scheme spoofing via percent-encoded scheme decoding",
+            "url": "https://github.com/advisories/GHSA-w74x-v6f9-j3xg",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-172",
+              "CWE-180"
+            ],
+            "cvss": {
+              "score": 6.1,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+            },
+            "range": ">=3.0.0 <3.1.9"
+          },
+          {
+            "source": 1243101,
+            "name": "fast-uri",
+            "dependency": "fast-uri",
+            "title": "fast-uri vulnerable to improper path equivalence in relative reference normalization",
+            "url": "https://github.com/advisories/GHSA-xhq7-xmqj-769h",
+            "severity": "low",
+            "cwe": [
+              "CWE-41"
+            ],
+            "cvss": {
+              "score": 3.7,
+              "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+            },
+            "range": ">=3.0.0 <3.1.9"
+          },
+          {
+            "source": 1243104,
+            "name": "fast-uri",
+            "dependency": "fast-uri",
+            "title": "fast-uri vulnerable to host confusion via unchecked WHATWG host canonicalization",
+            "url": "https://github.com/advisories/GHSA-wjr9-j795-jxcr",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-20",
+              "CWE-436"
+            ],
+            "cvss": {
+              "score": 4.8,
+              "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+            },
+            "range": ">=3.1.3 <3.1.9"
+          },
+          {
+            "source": 1243107,
+            "name": "fast-uri",
+            "dependency": "fast-uri",
+            "title": "fast-uri vulnerable to scheme injection via an unescaped first-segment colon in suffix references",
+            "url": "https://github.com/advisories/GHSA-333x-w4r6-6crp",
+            "severity": "low",
+            "cwe": [
+              "CWE-41",
+              "CWE-116"
+            ],
+            "cvss": {
+              "score": 3.7,
+              "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+            },
+            "range": ">=3.0.0 <3.1.9"
+          }
+        ]
+      },
+      {
+        "name": "glob",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "13.0.6",
+          "13.0.7"
+        ],
+        "via": [
+          {
+            "source": 1244013,
+            "name": "glob",
+            "dependency": "glob",
+            "title": "Glob: AbortSignal cancellation bypass allows post-timeout filesystem traversal",
+            "url": "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-400"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": ">=9.0.0 <=14.0.1"
+          },
+          "minimatch"
+        ]
+      },
+      {
+        "name": "jest-environment-emit",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "1.2.0"
+        ],
+        "via": [
+          "bunyamin"
+        ]
+      },
+      {
+        "name": "jest-expo",
+        "severity": "moderate",
+        "relation": "Direct",
+        "locked_versions": [
+          "55.0.22"
+        ],
+        "via": [
+          "@expo/config"
+        ]
+      },
+      {
+        "name": "minimatch",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "10.2.6"
+        ],
+        "via": [
+          {
+            "source": 1244623,
+            "name": "minimatch",
+            "dependency": "minimatch",
+            "title": "minimatch has potential denial of service via globparts amplification",
+            "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-405"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": ">=7.0.0 <11.0.1"
+          }
+        ]
+      },
+      {
+        "name": "stream-json",
+        "severity": "moderate",
+        "relation": "Transitive",
+        "locked_versions": [
+          "1.9.1"
+        ],
+        "via": [
+          {
+            "source": 1164823,
+            "name": "stream-json",
+            "dependency": "stream-json",
+            "title": "stream-json: pick/ignore/filter/replace filters are O(depth²) on nested input — small crafted JSON blocks the event loop for seconds→minutes (DoS)",
+            "url": "https://github.com/advisories/GHSA-528h-pc64-c93x",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-407"
+            ],
+            "cvss": {
+              "score": 6.2,
+              "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=3.4.0"
+          },
+          {
+            "source": 1241262,
+            "name": "stream-json",
+            "dependency": "stream-json",
+            "title": "stream-json: JSONC parser and verifier re-scan the whole accumulated comment on every input chunk",
+            "url": "https://github.com/advisories/GHSA-hqr4-qq8f-hg3x",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-407"
+            ],
+            "cvss": {
+              "score": 6.2,
+              "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=3.5.0"
+          },
+          {
+            "source": 1241263,
+            "name": "stream-json",
+            "dependency": "stream-json",
+            "title": "stream-json has a prototype pollution issue: Assembler writes this.current[this.key] on plain objects",
+            "url": "https://github.com/advisories/GHSA-mjw6-4jj6-33hc",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-1321"
+            ],
+            "cvss": {
+              "score": 5.1,
+              "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L"
+            },
+            "range": "<3.6.0"
+          }
+        ]
+      }
+    ]
+  },
+  "osv": {
+    "package_matches": 5,
+    "severity_assessment": "not_captured_in_retained_batch"
+  },
+  "candidates": [
+    {
+      "id": "C01",
+      "fingerprint": "agritwin-app/src/app/auth/oauth-callback.tsx:unbound_native_ticket",
+      "title": "An unsolicited native callback can adopt another user's social-login ticket",
+      "domain": "Client / session",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C02",
+      "fingerprint": "agritwin-app/src/services/auth.ts:authenticatedFetch_cross_account_retry",
+      "title": "A pending account A mutation can be retried with account B's token",
+      "domain": "Client / session",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C03",
+      "fingerprint": "agritwin-app/src/services/auth.ts:refreshAuth_late_session_commit",
+      "title": "A late refresh can restore a previous account after logout or account replacement",
+      "domain": "Client / session",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C04",
+      "fingerprint": "agritwin-app/src/services/bleProvisioning.ts:sendWifiSettings:unverified-credential-recipient",
+      "title": "Provisioning releases Wi-Fi credentials to a self-identified BLE peer",
+      "domain": "IoT / provisioning",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C05",
+      "fingerprint": "agritwin-app/src/services/gardenPicker.ts:late_response_current_account_cache_key",
+      "title": "A late garden response can be persisted under the next user's cache key",
+      "domain": "Client / session",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C06",
+      "fingerprint": "backend/anunces/anonymous-shared-delete",
+      "title": "Anonymous news deletion lacks publication authority",
+      "domain": "Backend / API",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C07",
+      "fingerprint": "backend/auth/reset-jwt-as-bearer",
+      "title": "Reset JWT can cross from the email namespace into another account username",
+      "domain": "Backend / API",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C08",
+      "fingerprint": "backend/crops/shared-catalog-write-authority",
+      "title": "Any authenticated user can modify the shared crop catalog",
+      "domain": "Backend / API",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C09",
+      "fingerprint": "backend/market/anonymous-translation-budget",
+      "title": "Public market reads can invoke operator-funded Gemini translation",
+      "domain": "Backend / API",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C10",
+      "fingerprint": "backend/services/device_status_monitor.py:register_message:unbounded-identity-retention",
+      "title": "Unregistered MQTT identities can remain in the monitor indefinitely",
+      "domain": "IoT / telemetry",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C11",
+      "fingerprint": "backend/services/mqtt_subscriber.py:on_message:unbound-device-authority",
+      "title": "MQTT payload identity can select another device’s telemetry and online status",
+      "domain": "IoT / telemetry",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C12",
+      "fingerprint": "backend/services/mqtt_subscriber.py:on_message:uncontained-message-errors",
+      "title": "Malformed message errors can escape the shared MQTT callback",
+      "domain": "IoT / telemetry",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C13",
+      "fingerprint": "backend/tasks/aggregate-inference-budget",
+      "title": "Per-field AI claims do not bound one account's aggregate scheduled inference",
+      "domain": "Backend / API",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C14",
+      "fingerprint": "backend/users/anonymous-email-directory",
+      "title": "Anonymous user listing serializes account email addresses",
+      "domain": "Backend / API",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    },
+    {
+      "id": "C15",
+      "fingerprint": "scripts/generate_costs_csv.py:write_xlsx:issue-title-as-formula",
+      "title": "Issue titles can reach cost reports as spreadsheet formulas",
+      "domain": "CI / report generation",
+      "severity_assessment": "not_assessed",
+      "validation_status": "preliminary_unvalidated"
+    }
+  ],
+  "coverage": {
+    "blocked": 5,
+    "candidate": 10,
+    "covered": 6,
+    "deferred": 1
+  },
+  "original_evidence_preserved": true
+}

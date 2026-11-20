@@ -187,7 +187,7 @@ export default function ProductScreen() {
     t('market.detail.loadError'),
   );
 
-  const handleBack = () => router.back();
+  const handleBack = () => router.dismissTo('/app/market');
 
   if (loading) {
     return (

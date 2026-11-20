@@ -41,6 +41,15 @@ type Product = {
 };
 
 const PAGE_SIZE = MARKET_PAGE_SIZE;
+type MarketViewState = {
+  searchQuery: string;
+  scrollY: number;
+  allProducts: Product[];
+  products: Product[];
+};
+const marketViewKey = (language: string) => ['market-view', language] as const;
+// Navigation state is session-only and is cleared with the account query cache.
+queryClient.setQueryDefaults(['market-view'], { meta: { persist: false } });
 
 function productImage(product: Product) {
   return product.image_url ?? product.url_image;
@@ -492,6 +501,12 @@ export default function MarketScreen() {
   const compactSkeleton = width < 360 || compactLandscape;
   const router = useRouter();
   const marketRef = useRef<View>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const [savedView] = useState(() =>
+    queryClient.getQueryData<MarketViewState>(marketViewKey(language)),
+  );
+  const scrollY = useRef(savedView?.scrollY ?? 0);
+  const restoredScroll = useRef(false);
 
   const [hoverPreview, setHoverPreview] = useState<{
     title: string;
@@ -541,15 +556,19 @@ export default function MarketScreen() {
   // once; they are refreshed from the server right after.
   const [cached] = useState(() => readCachedMarket(language));
 
-  const [products, setProducts] = useState<Product[]>(cached.products);
-  const [allProducts, setAllProducts] = useState<Product[]>(cached.products);
+  const [products, setProducts] = useState<Product[]>(
+    savedView?.products ?? cached.products,
+  );
+  const [allProducts, setAllProducts] = useState<Product[]>(
+    savedView?.allProducts ?? cached.products,
+  );
   const [currentItems, setCurrentItems] = useState<Product[]>([]);
   const [productsTotal, setProductsTotal] = useState(cached.total);
 
   const [loading, setLoading] = useState(!cached.ready);
   const [loadingPage, setLoadingPage] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(savedView?.searchQuery ?? '');
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
@@ -560,9 +579,12 @@ export default function MarketScreen() {
   useEffect(() => {
     let active = true;
     const localeCache = readCachedMarket(language);
-    setProducts(localeCache.products);
-    setAllProducts(localeCache.products);
-    setCurrentItems(localeCache.products);
+    const view = queryClient.getQueryData<MarketViewState>(
+      marketViewKey(language),
+    );
+    setProducts(view?.products ?? localeCache.products);
+    setAllProducts(view?.allProducts ?? localeCache.products);
+    setCurrentItems(view?.products ?? localeCache.products);
     setProductsTotal(localeCache.total);
     setHasMore(localeCache.hasMore);
     setLoading(!localeCache.ready);
@@ -581,13 +603,20 @@ export default function MarketScreen() {
             queryClient.getQueryData<Product[]>(
               queryKeys.marketPage(PAGE_SIZE, PAGE_SIZE, language),
             ) ?? [];
-          const merge = [...firstPage, ...previous];
+          const tail = view?.allProducts ?? previous;
+          const firstIds = new Set(
+            firstPage.map((product) => String(product.id)),
+          );
+          const merge = [
+            ...firstPage,
+            ...tail.filter((product) => !firstIds.has(String(product.id))),
+          ];
 
           setProductsTotal(productsCount);
           setAllProducts(merge);
           setCurrentItems(merge);
-          setProducts(merge);
-          setHasMore(firstPage.length < productsCount);
+          if (!view?.searchQuery.trim()) setProducts(merge);
+          setHasMore(merge.length < productsCount);
           prefetchImages(firstPage.map(productImage));
         }
       } catch (error) {
@@ -703,6 +732,7 @@ export default function MarketScreen() {
     };
   }) => {
     const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+    scrollY.current = contentOffset.y;
 
     const distanceFromBottom =
       contentSize.height - (layoutMeasurement.height + contentOffset.y);
@@ -714,6 +744,17 @@ export default function MarketScreen() {
   };
 
   const openProduct = (productId: string | number) => {
+    // Web scroll events can still be throttled when a product is clicked.
+    const node =
+      Platform.OS === 'web' ? scrollRef.current?.getScrollableNode() : null;
+    const offset =
+      typeof node?.scrollTop === 'number' ? node.scrollTop : scrollY.current;
+    queryClient.setQueryData<MarketViewState>(marketViewKey(language), {
+      searchQuery,
+      scrollY: offset,
+      allProducts,
+      products,
+    });
     router.push({
       pathname: '/product/[id]',
       params: { id: String(productId) },
@@ -747,7 +788,11 @@ export default function MarketScreen() {
           placeholder={t('market.searchPlaceholder')}
           placeholderTextColor={palette.muted}
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={(value) => {
+            scrollY.current = 0;
+            scrollRef.current?.scrollTo({ y: 0, animated: false });
+            setSearchQuery(value);
+          }}
           returnKeyType="search"
         />
 
@@ -764,7 +809,17 @@ export default function MarketScreen() {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         testID="market-scroll-view"
+        onContentSizeChange={(_width, contentHeight) => {
+          if (!restoredScroll.current && contentHeight > scrollY.current) {
+            scrollRef.current?.scrollTo({
+              y: scrollY.current,
+              animated: false,
+            });
+            restoredScroll.current = true;
+          }
+        }}
         style={styles.scroll}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}

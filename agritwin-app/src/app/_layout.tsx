@@ -26,6 +26,7 @@ export default function RootLayout() {
   // The single loading screen of the app: shown while the session is
   // checked and, the first time, while all the data is loaded.
   const [preparing, setPreparing] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => setupAppFocusRefetch(), []);
 
@@ -37,6 +38,7 @@ export default function RootLayout() {
         await routeBySession();
       } finally {
         if (active) {
+          setLoadingProgress(1);
           setPreparing(false);
         }
       }
@@ -44,6 +46,7 @@ export default function RootLayout() {
 
     async function routeBySession() {
       let auth = await getAuth();
+      if (active) setLoadingProgress(0.25);
 
       if (!auth?.token && auth?.refreshToken) {
         try {
@@ -80,6 +83,7 @@ export default function RootLayout() {
       // With the gardens saved from the last session the app opens at once;
       // the list is refreshed in the background.
       const cached = await getCachedGardenPickerFields();
+      if (active) setLoadingProgress(0.5);
       if (!active) {
         return;
       }
@@ -101,8 +105,10 @@ export default function RootLayout() {
       setPreparing(true);
       try {
         const fields = await loadGardenPickerFields();
+        if (active) setLoadingProgress(0.65);
         const current = await getCurrentField().catch(() => null);
         await preloadAppData(current?.id ?? null, i18next.language);
+        if (active) setLoadingProgress(0.9);
         if (!active) {
           return;
         }
@@ -157,7 +163,10 @@ export default function RootLayout() {
       />
       {preparing ? (
         <View style={StyleSheet.absoluteFill}>
-          <AgritwinLoadingScreen label={t('startup.loading')} />
+          <AgritwinLoadingScreen
+            label={t('startup.loading')}
+            progress={loadingProgress}
+          />
         </View>
       ) : null}
     </PersistQueryClientProvider>

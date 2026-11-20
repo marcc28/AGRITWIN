@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useCachedQuery } from '../hooks/use-cached-query';
 import { cropCatalogQuery, fieldCropsQuery } from '../services/queries';
-import { getCropDetailStyles } from '../styles/crop-detail.styles';
+import { styles as fieldStyles } from '../styles/field-detail.styles';
 
 interface FieldCropsSectionProps {
   fieldId: number;
@@ -18,10 +18,17 @@ export function FieldCropsSection({
 }: FieldCropsSectionProps) {
   const { t } = useTranslation();
   const dimensions = useWindowDimensions();
-  const styles = getCropDetailStyles(
-    responsive ? dimensions.width : 360,
-    responsive ? dimensions.height : 844,
-  );
+  const styles = {
+    ...fieldStyles,
+    cropsList: { gap: 10, alignSelf: 'stretch' as const },
+    cropRow: { ...fieldStyles.cropRow, minWidth: 0, flexWrap: 'wrap' as const },
+    cropName: { ...fieldStyles.cropName, minWidth: 0 },
+    status: { ...fieldStyles.status, flexShrink: 1, maxWidth: '100%' as const },
+    sectionTitle: {
+      ...fieldStyles.sectionTitle,
+      fontSize: responsive && dimensions.width < 360 ? 12 : 13,
+    },
+  };
 
   const cropsResult = useCachedQuery({
     ...fieldCropsQuery(fieldId),
@@ -47,7 +54,7 @@ export function FieldCropsSection({
     : '';
 
   return (
-    <View style={styles.card}>
+    <View style={styles.card} testID="field-crops-card">
       <Text style={styles.sectionTitle}>{t('settings.fieldDetail.crops')}</Text>
 
       {cropsError ? (
@@ -70,8 +77,12 @@ export function FieldCropsSection({
               : null;
 
             return (
-              <View key={String(fieldCrop.id)} style={styles.cropRow}>
-                <Text style={styles.cropName} numberOfLines={1}>
+              <View
+                key={String(fieldCrop.id)}
+                style={styles.cropRow}
+                testID="field-crop-row"
+              >
+                <Text style={styles.cropName} numberOfLines={2}>
                   {crop?.name ??
                     fieldCrop.crop_name ??
                     `Cultiu #${fieldCrop.crop_id}`}

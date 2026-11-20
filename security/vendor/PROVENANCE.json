@@ -1,0 +1,21 @@
+[
+  {
+    "package": "decode-uri-component",
+    "version": "0.5.1",
+    "upstream_tarball": "https://registry.npmjs.org/decode-uri-component/-/decode-uri-component-0.5.1.tgz",
+    "upstream_integrity": "sha512-vWHQkXgg2cE3BB4rR0c+PYw9BCQzLoNIRMI7AunIkZst74tw/vpPp7VLoYtsR/cy1f55g3XDWUslfeCZjiZJyA==",
+    "adaptation": "Only ESM default function export converted to CommonJS module.exports; upstream algorithm unchanged",
+    "local_tarball": "decode-uri-component-0.5.1.tgz",
+    "local_sha256": "98af8d2761671b32da9da2f0a7743898592c5bb42be1cb58bc545d33978425ad"
+  },
+  {
+    "package": "stream-json",
+    "version": "3.9.0",
+    "upstream_tarball": "https://registry.npmjs.org/stream-json/-/stream-json-3.9.0.tgz",
+    "upstream_integrity": "sha512-kL2w6owYCdzCRApK9/9HI7Vgrd+0iWE5tTGc8P/AS2AdPoHcFTQwUek66sbMpfaX73lgHvDN+u1AoRC/dzB1Hw==",
+    "adaptation": "Legacy used CommonJS paths adapt to official patched stream-json 3.9.0 via npm alias; no legacy implementation retained",
+    "local_tarball": "stream-json-3.9.0-agritwin.1.tgz",
+    "local_sha256": "e4b2c22bf93f373acbb2095f7d77fa288e7621b79bc16f9a7a2a55bd38dcea0a",
+    "compatibility_version": "3.9.0-agritwin.1"
+  }
+]

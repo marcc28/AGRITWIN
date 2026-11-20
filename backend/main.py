@@ -28,6 +28,7 @@ from api.v1 import (
     weather,
     xauth,
 )
+from services.security_docs import install_documentation
 
 load_dotenv()
 
@@ -41,7 +42,8 @@ CORS_ORIGINS = [
     if origin.strip()
 ]
 
-app = FastAPI(title="AgriTwin")
+app = FastAPI(title="AgriTwin", docs_url=None, redoc_url=None)
+install_documentation(app)
 
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
@@ -72,6 +74,7 @@ async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
 
     response.headers["Strict-Transport-Security"] = "max-age=31536000"
+    response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"

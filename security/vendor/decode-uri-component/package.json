@@ -1,0 +1,16 @@
+{
+  "name": "decode-uri-component",
+  "version": "0.5.1",
+  "description": "CommonJS compatibility build of official patched decode-uri-component 0.5.1",
+  "main": "index.cjs",
+  "type": "commonjs",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.16"
+  },
+  "files": [
+    "index.cjs",
+    "LICENSE",
+    "README.md"
+  ]
+}

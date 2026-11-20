@@ -1,0 +1,776 @@
+[
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "agritwin-app/src/services/bleProvisioning.ts:sendWifiSettings:unverified-credential-recipient",
+    "title": "Provisioning releases Wi-Fi credentials to a self-identified BLE peer",
+    "description": "A nearby peripheral advertising the public service and supplying syntactically valid INFO can enter the mobile provisioning flow when selected by the farmer. The app writes the Wi-Fi password before backend registration and without an independent proof of device identity. The companion tester automatically chooses the first matching peripheral. This is a conditional recipient-authentication disclosure path, not proof of passive interception.",
+    "claimed_root_cause": "Discovery names/UUID and self-reported INFO are accepted as sufficient recipient identity before a network secret is released. Bluetooth permission, user selection and later HTTP ownership checks do not independently authenticate that recipient.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "agritwin-app/src/services/bleProvisioning.ts",
+        "line": 198,
+        "scope": "scanForBoards",
+        "description": "Discovers peripherals advertising the public service UUID and uses their advertised names."
+      },
+      {
+        "kind": "propagation",
+        "file": "agritwin-app/src/hooks/use-ble-provisioning.ts",
+        "line": 168,
+        "scope": "selectBoard",
+        "description": "Connects to the user-selected advertised peer and reads its INFO."
+      },
+      {
+        "kind": "propagation",
+        "file": "agritwin-app/src/services/bleProvisioning.ts",
+        "line": 236,
+        "scope": "parseBoardInfo",
+        "description": "Accepts nonempty self-reported device_id and serial strings without an independently trusted certificate, secret or challenge."
+      },
+      {
+        "kind": "propagation",
+        "file": "agritwin-app/src/hooks/use-ble-provisioning.ts",
+        "line": 218,
+        "scope": "submitWifi",
+        "description": "Passes the farmer\u2019s entered Wi-Fi password to the selected peer before registerBoard."
+      },
+      {
+        "kind": "sink",
+        "file": "agritwin-app/src/services/bleProvisioning.ts",
+        "line": 377,
+        "scope": "sendWifiSettings",
+        "description": "Writes settings.password to the peer\u2019s password characteristic."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "agritwin-app/src/components/device-setup/ScanSteps.tsx",
+        "line": 49,
+        "description": "Mobile selection displays peripheral-provided board names and requires a user tap."
+      },
+      {
+        "file": "agritwin-app/src/services/blePermissions.ts",
+        "line": 28,
+        "description": "Runtime Bluetooth permission authorizes app access to the transport, not the identity of a particular peripheral."
+      },
+      {
+        "file": "agritwin-app/src/hooks/use-ble-provisioning.ts",
+        "line": 228,
+        "description": "The connection is closed and backend registration begins only after credential transfer."
+      },
+      {
+        "file": "iot/firmware/agritwin_esp32/provisioning.cpp",
+        "line": 215,
+        "description": "Firmware declares INFO READ and password WRITE characteristics; provisioningBegin shows no explicit authenticated identity protocol."
+      },
+      {
+        "file": "iot/firmware/agritwin_esp32/agritwin_esp32.ino",
+        "line": 72,
+        "description": "A configured genuine board boots normal telemetry mode rather than BLE setup, limiting the genuine-board exposure window."
+      },
+      {
+        "file": "iot/firmware/tools/provision_ble.py",
+        "line": 57,
+        "description": "The tester chooses devices[0], including a name-prefix fallback at line 51, and writes the Wi-Fi password at line 81 without recipient proof."
+      },
+      {
+        "file": "agritwin-app/src/components/device-setup/DeviceSetupScreen.tsx",
+        "line": 26,
+        "description": "Mobile Wi-Fi credentials stay in component memory and the password is cleared on success; persistent mobile password storage is not demonstrated."
+      }
+    ],
+    "blockers": [
+      "No bounded fake-peripheral/native-transport fixture executed because the required OS-enforced sandbox is not established.",
+      "Final native packaging, operating-system pairing behavior, shipped firmware and any physical/out-of-band identity verification procedure are unobserved."
+    ],
+    "validation_plan": {
+      "local": "Extend the existing fake BLE manager in the approved isolated sandbox with an unrelated identity that advertises the expected UUID and supplies valid INFO. Explicitly select it in the mobile fixture and use a dummy Wi-Fi password only; record whether the password write precedes authenticated recipient proof. Separately mock the tester\u2019s discovery with two dummy peers and inspect which receives that dummy value. Never scan real devices.",
+      "deployment": "An owner should inspect shipped pairing/bonding policy, firmware configuration and provisioning instructions for an authenticated out-of-band identity or proof-of-possession check before releasing Wi-Fi credentials. User-visible names and public UUIDs alone are not such proof."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/anunces/anonymous-shared-delete",
+    "title": "Anonymous news deletion lacks publication authority",
+    "description": "The source-defined DELETE accepts a public news UUID and deletes the shared record without an authenticated author/editor. Whether that violates product policy and the deployed effective control remains unverified.",
+    "claimed_root_cause": "The delete path selects shared news by UUID alone and commits deletion without a principal or editorial role.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/api/v1/anunces.py",
+        "line": 135,
+        "scope": "delete_anunce",
+        "description": "DELETE /anunces/{id} accepts UUID plus a service dependency only."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/anunce_service.py",
+        "line": 92,
+        "scope": "delete_anunce",
+        "description": "Fetches the shared news row solely by UUID."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/services/anunce_service.py",
+        "line": 100,
+        "scope": "delete_anunce",
+        "description": "Deletes that row and commits."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/api/v1/anunces.py",
+        "line": 29,
+        "description": "Public listing serializes AnunceRead records and identifiers."
+      },
+      {
+        "file": "backend/main.py",
+        "line": 89,
+        "description": "Router mount adds no identity dependency."
+      },
+      {
+        "file": "backend/api/v1/anunces.py",
+        "line": 87,
+        "description": "Creation has an IP rate limit, which does not authorize deletion."
+      },
+      {
+        "file": "backend/db/schema.py",
+        "line": 200,
+        "description": "Anunce has no author/owner relationship that would implicitly constrain this service path."
+      }
+    ],
+    "blockers": [
+      "Publication policy must establish who may delete shared news and whether anonymous deletion is intended.",
+      "No isolated dummy deletion or inspection of upstream/database authorization was performed."
+    ],
+    "validation_plan": {
+      "local": "In an isolated dummy store, seed one news item published by a separate trusted dummy editor, invoke exactly one anonymous DELETE and inspect that fixture row. Assert denial according to the approved editor/owner policy.",
+      "deployment": "Owner should inspect route-level upstream authorization and publication policy without deleting deployed content."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/auth/reset-jwt-as-bearer",
+    "title": "Reset JWT can cross from the email namespace into another account username",
+    "description": "A reset token legitimately delivered to an attacker-controlled mailbox can be submitted as bearer authentication. If that mailbox string is another account's username, the bearer verifier selects the other account. No local cross-account result was executed.",
+    "claimed_root_cause": "Reset and access JWTs share SECRET_KEY/HS256, but reset sub=email is interpreted by get_current_user as a username without token purpose/type separation.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/api/v1/forgot_password.py",
+        "line": 222,
+        "scope": "forget_password",
+        "description": "Looks up a registered email and schedules token delivery to that address."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/api/v1/forgot_password.py",
+        "line": 84,
+        "scope": "create_reset_password_token",
+        "description": "Signs sub=email and purpose=password_reset with SECRET_KEY and HS256."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/api/v1/auth.py",
+        "line": 123,
+        "scope": "get_current_user",
+        "description": "Verifies same key/algorithm, extracts sub, but never rejects reset purpose."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/user_service.py",
+        "line": 62,
+        "scope": "get_user_by_username",
+        "description": "Selects User.username equal to reset email subject."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/api/v1/auth.py",
+        "line": 243,
+        "scope": "read_me",
+        "description": "Uses selected principal to return profile and email."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/models/user.py",
+        "line": 4,
+        "description": "Signup username is an unrestricted string and email a distinct EmailStr; the source permits the necessary cross-namespace value."
+      },
+      {
+        "file": "backend/db/schema.py",
+        "line": 50,
+        "description": "Username and email have separate unique columns; no cross-column equality constraint is defined."
+      },
+      {
+        "file": "backend/api/v1/forgot_password.py",
+        "line": 102,
+        "description": "The reset consumer enforces purpose and jti; bearer verification does not invoke that consumer or the used-token table."
+      }
+    ],
+    "blockers": [
+      "A bounded two-account JWT/DB fixture has not run because the required OS sandbox is not established.",
+      "The mailbox/username collision is a prerequisite, not evidence that existing deployed accounts meet it."
+    ],
+    "validation_plan": {
+      "local": "In an offline isolated fixture, create dummy A with an owned test mailbox and dummy B whose username equals that mailbox but whose email differs. Capture the reset delivery locally, then submit that exact issued token to get_current_user and /me with the dummy DB. Assert the access verifier rejects all non-access token purposes. Do not contact email or a live service."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/crops/shared-catalog-write-authority",
+    "title": "Any authenticated user can modify the shared crop catalog",
+    "description": "The crop catalog is shared across field associations. Router authentication alone allows any signed-in account to patch a catalog row by id, affecting the names/categories read through other owners' field crops if that account lacks editorial authority. The authority policy and runtime effect need validation.",
+    "claimed_root_cause": "Global CropService mutations accept an id and data but no user or editorial role; the router enforces only get_current_user.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/api/v1/crops.py",
+        "line": 72,
+        "scope": "update_crop",
+        "description": "Authenticated PATCH /crops/{crop_id} delegates global crop id and validated update fields."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/crops_service.py",
+        "line": 60,
+        "scope": "update_crop",
+        "description": "Fetches Crop by id without owner or role and assigns supplied model fields."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/crops_service.py",
+        "line": 69,
+        "scope": "update_crop",
+        "description": "Commits changes to shared Crop."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/services/field_crops_service.py",
+        "line": 36,
+        "scope": "list_field_crops",
+        "description": "Other users' correctly owner-filtered field crop queries load the same shared crop relationship."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/api/v1/crops.py",
+        "line": 8,
+        "description": "Router requires authentication but does not check a role."
+      },
+      {
+        "file": "backend/services/crops_service.py",
+        "line": 77,
+        "description": "Delete has the same authority model; foreign-key failure prevents deleting linked rows and must not be represented as unconditional deletion of associated crops."
+      },
+      {
+        "file": "backend/services/field_crops_service.py",
+        "line": 108,
+        "description": "Field-crop creation correctly verifies field ownership; this does not restrict shared catalog mutation."
+      }
+    ],
+    "blockers": [
+      "Owner must specify whether every signed-in account deliberately has global crop-editor authority.",
+      "Cross-owner display mutation was not reproduced with dummy accounts and DB."
+    ],
+    "validation_plan": {
+      "local": "Seed one shared crop referenced by dummy B's field and sign in as ordinary dummy A. Attempt one harmless name/category patch and inspect B's field-crop view. Compare with explicit catalog-editor policy; keep the foreign-key denial test separate.",
+      "deployment": "Owner should confirm catalog write roles and any effective database authorization before classifying the source path as unauthorized."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/market/anonymous-translation-budget",
+    "title": "Public market reads can invoke operator-funded Gemini translation",
+    "description": "New localized market GET routes permit anonymous callers to reach the shared translation client, including a search-term translation before any product match. These calls do not enter enforce_ai_rate_limit or a source-visible translation cache/budget. The effect depends on configured translation model and effective quotas.",
+    "claimed_root_cause": "Translation was added to public catalog reads without binding provider-spend admission to an authenticated or metered requester.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/api/v1/content_market.py",
+        "line": 117,
+        "scope": "search_conte_mercat",
+        "description": "Anonymous search accepts a bounded product string and non-Catalan language."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/api/v1/content_market.py",
+        "line": 93,
+        "scope": "_translate_search_term",
+        "description": "Invokes translation before the product search, even if the query will match no catalog rows."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/translation_service.py",
+        "line": 32,
+        "scope": "translate",
+        "description": "Validates language and configured model but has no caller budget, cache or rate-admission check."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/services/translation_service.py",
+        "line": 58,
+        "scope": "translate",
+        "description": "Calls shared Gemini client interactions.create with a maximum of 3000 output tokens."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/main.py",
+        "line": 90,
+        "description": "Public catalog router is mounted without global auth dependency."
+      },
+      {
+        "file": "backend/api/v1/content_market.py",
+        "line": 122,
+        "description": "Search term length and language-tag bounds are real controls; they cap input shape rather than aggregate calls."
+      },
+      {
+        "file": "backend/services/ai_dependencies.py",
+        "line": 12,
+        "description": "Translation client uses configured GEMINI_API_KEY and MODEL_USE_IN_TRANSLATION."
+      },
+      {
+        "file": "backend/api/v1/field_recommendations.py",
+        "line": 41,
+        "description": "Recommendation inference uses enforce_ai_rate_limit, providing a source-visible contrasting provider-admission control absent from localized market routes."
+      },
+      {
+        "file": "backend/api/v1/content_market.py",
+        "line": 60,
+        "description": "List/detail may also translate returned products; search can perform a second call when matches exist."
+      }
+    ],
+    "blockers": [
+      "MODEL_USE_IN_TRANSLATION activation and effective upstream/provider budgets are external facts; missing model causes a fallback without provider execution.",
+      "No isolated mock request counter or aggregate-budget fixture ran; paid calls were not made."
+    ],
+    "validation_plan": {
+      "local": "In the required offline sandbox, replace the translation client with a counter-only dummy client. Invoke one anonymous search with a harmless unmatched term and language=en, and compare repeat requests to the intended anonymous translation allowance. Verify a source-side cache/admission rule before invoking a paid client; stop at counter evidence.",
+      "deployment": "Owner should inspect translation model enablement, public translation policy, edge admission and provider spend/quotas. Do not probe or generate traffic on the deployed service."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/services/device_status_monitor.py:register_message:unbounded-identity-retention",
+    "title": "Unregistered MQTT identities can remain in the monitor indefinitely",
+    "description": "Messages naming distinct nonempty string device IDs add permanent entries to the process-wide last-seen map, including when the database rejects the telemetry. The periodic check visits registered database devices but never removes map entries. Persistent memory growth is source-grounded; meaningful shared-service impact and effective admission bounds need validation.",
+    "claimed_root_cause": "The monitor admits any truthy hashable identifier before proving registration and has no TTL pruning or cardinality cap. Persistence failure does not gate this bookkeeping.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 34,
+        "scope": "on_message",
+        "description": "Accepts JSON supplied by a publisher admitted to the shared topic namespace."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 42,
+        "scope": "on_message",
+        "description": "Attempts persistence; save_telemetry returns without a success signal even after a rejected insert."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 47,
+        "scope": "on_message",
+        "description": "Calls register_message on the body device_id regardless of persistence success."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/services/device_status_monitor.py",
+        "line": 53,
+        "scope": "register_message",
+        "description": "Adds a distinct identifier and timestamp to the shared _last_seen dictionary with no registration or cardinality check."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/db/database.py",
+        "line": 104,
+        "description": "Database insertion errors are caught and logged, allowing callback execution to continue to the monitor."
+      },
+      {
+        "file": "backend/services/device_status_monitor.py",
+        "line": 43,
+        "description": "The identity-to-timestamp dictionary is owned for the lifetime of the monitor."
+      },
+      {
+        "file": "backend/services/device_status_monitor.py",
+        "line": 79,
+        "description": "check_devices iterates database-registered devices; it does not delete expired, unknown or removed entries from _last_seen."
+      },
+      {
+        "file": "backend/services/device_status_monitor.py",
+        "line": 68,
+        "description": "Timeout affects the online decision only; it is not data-retention expiry."
+      },
+      {
+        "file": "backend/tests/unit/test_device_status_monitor.py",
+        "line": 110,
+        "description": "Tests check empty identifiers but do not assert pruning or rejection of unknown identifiers."
+      }
+    ],
+    "blockers": [
+      "No small retention/cleanup fixture was run because the full execution sandbox is not established.",
+      "Actual untrusted publisher admission, effective broker per-producer quotas, listener process lifetime/memory limits and restart policy are unobserved; service exhaustion is not an observed result."
+    ],
+    "validation_plan": {
+      "local": "In the approved isolated fixture with a fake clock, a tiny dummy registered-device set and mocked rejected inserts, deliver two or three distinct short unknown IDs. Advance beyond the offline timeout and run one check. Inspect retained cardinality without generating load. The regression should reject unknown identifiers and remove expired/removed-device entries according to a bounded retention policy.",
+      "deployment": "An owner should inspect broker publish admission/rate limits and the listener\u2019s process memory/lifetime limits. Determine whether untrusted identities can accumulate across the normal process lifetime without a cap or reset."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/services/mqtt_subscriber.py:on_message:unbound-device-authority",
+    "title": "MQTT payload identity can select another device\u2019s telemetry and online status",
+    "description": "A publisher admitted to the subscribed MQTT namespace can name an existing device belonging to another farmer. The consumer uses that claimed identifier for privileged telemetry insertion and for the online-status calculation without authenticating the device or binding it to the topic. Actual publisher admission and successful persistence remain unverified.",
+    "claimed_root_cause": "The consumer treats payload.device_id as authoritative, independently of MQTT publisher identity or the field topic. HTTP ownership checks and the telemetry foreign key establish registration/ownership for other paths but do not prove message origin.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 24,
+        "scope": "on_connect",
+        "description": "Subscribes to agritwin/sensors/#, spanning all field topics."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 34,
+        "scope": "on_message",
+        "description": "Decodes JSON; msg.topic is logged but does not authorize the body device identifier."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 42,
+        "scope": "on_message",
+        "description": "Passes the publisher-controlled body directly to save_telemetry."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/db/database.py",
+        "line": 86,
+        "scope": "save_telemetry",
+        "description": "Copies device_id and sensor values into a telemetry row without a principal-to-device check."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/db/database.py",
+        "line": 101,
+        "scope": "save_telemetry",
+        "description": "Inserts that row using the configured Supabase client; a second source-visible branch can update the selected registered device\u2019s online status."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/db/database.py",
+        "line": 67,
+        "description": "The telemetry client uses SUPABASE_URL and SUPABASE_SECRET_KEY, rather than an identity supplied by the MQTT publisher."
+      },
+      {
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 65,
+        "description": "The listener creates a client and connects at line 74 without source-visible TLS or username/password setup. Broker-side policy is not established."
+      },
+      {
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 47,
+        "description": "The same unverified device_id is registered with the monitor even when persistence returned without success."
+      },
+      {
+        "file": "backend/services/device_status_monitor.py",
+        "line": 79,
+        "description": "The monitor restricts actual status updates to database-registered devices and compares their recent-message state."
+      },
+      {
+        "file": "backend/db/database.py",
+        "line": 115,
+        "description": "Status mutation selects the devices row solely by id."
+      },
+      {
+        "file": "backend/db/schema.py",
+        "line": 376,
+        "description": "Telemetry has a foreign key to devices.id; it can reject an unknown device but does not authenticate a publisher claiming an existing id."
+      },
+      {
+        "file": "backend/api/v1/fields.py",
+        "line": 366,
+        "description": "HTTP registration separately verifies the account owns the target field; this control is not invoked by MQTT."
+      },
+      {
+        "file": "iot/firmware/agritwin_esp32/telemetry.cpp",
+        "line": 67,
+        "description": "Firmware supplies deviceId as MQTT client id and publishes field topic at lines 80/91; consumer does not bind either to a trusted publisher."
+      }
+    ],
+    "blockers": [
+      "No local dummy publisher/consumer/database result was executed because the required OS-enforced sandbox is not established.",
+      "The listener\u2019s actual activation, broker ACLs and publisher restrictions, effective Supabase permissions/policies, and device registration in that persistence path are unobserved. The HTTP image alone does not establish MQTT reachability.",
+      "Whether the HTTP dashboard reads the same telemetry store is deployment-dependent; no cross-store readback is claimed."
+    ],
+    "validation_plan": {
+      "local": "In the approved isolated sandbox, mock the transport and Supabase with two dummy registered devices owned by distinct dummy principals. Feed one message admitted under dummy A\u2019s topic but naming dummy B. Inspect only the attempted insert and B\u2019s mock online-status update. Bind the authorized producer/topic to the registered device and assert both operations are denied for the mismatch.",
+      "deployment": "An owner should inspect the deployed listener command/revision, broker authentication and per-device publish ACLs, and effective database policies. Establish whether an untrusted publisher can reach this consumer and whether claimed identifiers are independently constrained; do not send audit messages to the shared broker."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/services/mqtt_subscriber.py:on_message:uncontained-message-errors",
+    "title": "Malformed message errors can escape the shared MQTT callback",
+    "description": "A publisher whose message reaches the consumer can supply invalid UTF-8 or a JSON object with an unhashable device_id. These paths raise outside the callback\u2019s sole JSONDecodeError handler. A stop of the shared telemetry loop is conditional on the locked Paho callback handling and supervisor behavior, neither reproduced here.",
+    "claimed_root_cause": "The callback validates JSON syntax only. UTF-8 decoding and monitor registration may fail with other exception types, and start_mqtt_listener has no surrounding recovery boundary.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 30,
+        "scope": "on_message",
+        "description": "Receives a broker message under the shared subscribed namespace."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 34,
+        "scope": "on_message",
+        "description": "Strict UTF-8 decoding precedes JSON parsing and can raise UnicodeDecodeError."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 47,
+        "scope": "on_message",
+        "description": "For dictionary payloads, forwards device_id without checking its scalar type."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/device_status_monitor.py",
+        "line": 53,
+        "scope": "register_message",
+        "description": "Uses a truthy device_id as a dictionary key; a nonempty JSON list/dictionary is unhashable."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 49,
+        "scope": "on_message exception boundary",
+        "description": "Catches JSONDecodeError only; the other exception types can escape into the MQTT network-loop caller."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/services/mqtt_subscriber.py",
+        "line": 77,
+        "description": "The listener runs loop_forever without a surrounding try/restart boundary and does not set callback exception suppression in this module."
+      },
+      {
+        "file": "backend/db/database.py",
+        "line": 104,
+        "description": "save_telemetry catches its own exceptions; this does not contain an earlier decode error or the later monitor error."
+      },
+      {
+        "file": "backend/services/device_status_monitor.py",
+        "line": 94,
+        "description": "The background check thread contains its own exceptions, but register_message is called synchronously in the separate MQTT callback path."
+      },
+      {
+        "file": "backend/tests/unit/test_mqtt_subscriber.py",
+        "line": 90,
+        "description": "Existing callback tests cover syntactically invalid JSON and non-object payloads, not invalid UTF-8 or an unhashable device_id."
+      },
+      {
+        "file": "backend/uv.lock",
+        "line": 1675,
+        "description": "The source lock selects paho-mqtt 2.1.0; this exact consumer-loop behavior was not executed."
+      }
+    ],
+    "blockers": [
+      "The bounded malformed-message checks and exact locked Paho 2.1.0 loop effect were not executed because the required sandbox is unavailable. A cached local Paho 2.2.0 source is not evidence for the locked version.",
+      "Actual listener exposure, broker filtering, process isolation and supervisor restart behavior remain unobserved. No claim is made that the FastAPI process stops."
+    ],
+    "validation_plan": {
+      "local": "Under the approved sandbox, replace persistence and broker I/O with dummy functions, then deliver one invalid UTF-8 byte sequence and separately one small object with a nonempty list as device_id through the locked callback/loop adapter. Record the exception boundary and whether a subsequent valid dummy message is handled. Stop after that result; reject malformed shapes and contain per-message failures without concealing infrastructure failures.",
+      "deployment": "An owner should inspect the actual listener\u2019s deployment, broker message validation, supervisor/restart configuration and its isolation from the HTTP service. These observations determine the scope and duration of any telemetry interruption."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/tasks/aggregate-inference-budget",
+    "title": "Per-field AI claims do not bound one account's aggregate scheduled inference",
+    "description": "A signed-in user can create multiple located fields; owner-authorized task reads or the operator scheduler can ask Gemini about each eligible field. The atomic claim and cron semaphore limit per-field duplication/concurrency, but no source-visible per-account field/inference budget bounds aggregate operator-funded work. No spend or load test was performed.",
+    "claimed_root_cause": "Scheduled and lazy task generation account at field scope; user-controlled field cardinality is not charged against an account-level entitlement/budget before inference.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/api/v1/fields.py",
+        "line": 228,
+        "scope": "create_field",
+        "description": "Authenticated creation inserts a field owned by the caller without an account field-count budget in this path."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/api/v1/tasks.py",
+        "line": 54,
+        "scope": "list_tasks",
+        "description": "Owner-authorized task reads enqueue refresh when the field is stale."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/task_service.py",
+        "line": 323,
+        "scope": "refresh_field",
+        "description": "Checks eligibility and claims the field before assembling provider context."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/services/task_service.py",
+        "line": 359,
+        "scope": "refresh_field",
+        "description": "Calls ask_gemini for the selected field with operator-configured provider authority."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/api/v1/tasks.py",
+        "line": 170,
+        "description": "Cron is protected by a configured nonempty constant-time secret check; the claim does not allege bypass of that secret."
+      },
+      {
+        "file": "backend/api/v1/tasks.py",
+        "line": 40,
+        "description": "Cron bounds simultaneous reviews to three but processes all selected gardens."
+      },
+      {
+        "file": "backend/services/task_service.py",
+        "line": 382,
+        "description": "Conditional committed _claim prevents duplicate reviews of one field and implements retry/freshness windows."
+      },
+      {
+        "file": "backend/services/rate_limit.py",
+        "line": 56,
+        "description": "The AI account limiter is applied by recommendation/diagnosis routes, not the lazy task-read route."
+      }
+    ],
+    "blockers": [
+      "Configured account entitlements, provider spend caps and upstream controls are not visible in this repository.",
+      "A bounded mocked two-field accounting/claim fixture has not run; no actual provider work was generated."
+    ],
+    "validation_plan": {
+      "local": "With a dummy account, two eligible dummy fields and a mocked ask_gemini counter in the required sandbox, compare permitted calls against a declared one-account inference budget. Check both lazy reads and an authorized dummy scheduler invocation, retaining claim/dedup controls. Stop after the minimal counter difference.",
+      "deployment": "Owner should inspect plan entitlements, aggregate provider budgets and field-count limits; do not infer uncapped real billing from absent application counters alone."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "backend/users/anonymous-email-directory",
+    "title": "Anonymous user listing serializes account email addresses",
+    "description": "A visitor can call the source-defined users list without credentials and the response model includes each account email. The intended privacy policy and deployed row filtering require owner validation.",
+    "claimed_root_cause": "The list route and service accept no principal or owner constraint while serializing a global User query into UserRead.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "backend/api/v1/user.py",
+        "line": 34,
+        "scope": "get_users",
+        "description": "Anonymous GET /users delegates offset and limit to UserService."
+      },
+      {
+        "kind": "propagation",
+        "file": "backend/services/user_service.py",
+        "line": 19,
+        "scope": "list_users",
+        "description": "Selects global User rows without caller or row ownership predicate."
+      },
+      {
+        "kind": "sink",
+        "file": "backend/models/user.py",
+        "line": 13,
+        "scope": "UserRead",
+        "description": "Response serializes username and email."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "backend/main.py",
+        "line": 82,
+        "description": "Router is mounted without global identity dependency."
+      },
+      {
+        "file": "backend/api/v1/user.py",
+        "line": 36,
+        "description": "Only service injection is required by the list endpoint."
+      },
+      {
+        "file": "backend/api/v1/auth.py",
+        "line": 243,
+        "description": "The separate /me route does bind the returned email/profile to get_current_user."
+      }
+    ],
+    "blockers": [
+      "The owner must establish whether publishing all account emails anonymously is intentional and authorized.",
+      "Effective database/ingress filtering and actual response contents were not reproduced locally."
+    ],
+    "validation_plan": {
+      "local": "Seed two harmless dummy users in a local isolated DB, invoke the anonymous list once and inspect only those fixture emails. Compare the result with the owner-approved directory policy.",
+      "deployment": "Owner should inspect directory/privacy requirements and effective routing/database policies; existing 200 status alone does not establish what data was returned."
+    }
+  },
+  {
+    "proposed_verdict": "needs_validation",
+    "fingerprint": "scripts/generate_costs_csv.py:write_xlsx:issue-title-as-formula",
+    "title": "Issue titles can reach cost reports as spreadsheet formulas",
+    "description": "A principal allowed to edit an included sprint issue title can place formula-prefixed text in the Task column consumed by a report reader. The generator does not distinguish external text from formula syntax. Formula interpretation and the effective author/reader boundary have not been observed.",
+    "claimed_root_cause": "The sprint prefix is removed without neutralizing formula prefixes; external Task text is passed to CSV and openpyxl cell assignment without an explicit text-only type.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "scripts/generate_costs_csv.py",
+        "line": 215,
+        "scope": "parent_task_row",
+        "description": "Included parent issue title becomes Task after clean_parent_title."
+      },
+      {
+        "kind": "propagation",
+        "file": "scripts/generate_costs_csv.py",
+        "line": 73,
+        "scope": "clean_parent_title",
+        "description": "Removes sprint prefix and whitespace only; leading formula syntax remains."
+      },
+      {
+        "kind": "sink",
+        "file": "scripts/generate_costs_csv.py",
+        "line": 617,
+        "scope": "write_sprint_sheet",
+        "description": "Task is passed as a cell value without forcing text; CSV sibling writes the same Task."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "scripts/generate_costs_csv.py",
+        "line": 246,
+        "description": "Only sprint-tagged parent issues are selected; a fixture title can retain the required sprint prefix before a harmless formula."
+      },
+      {
+        "file": "scripts/generate_costs_csv.py",
+        "line": 423,
+        "description": "CSV quoting is used but no spreadsheet text neutralization is applied."
+      },
+      {
+        "file": ".github/workflows/generate-costs-csv.yml",
+        "line": 67,
+        "description": "Generator executes against the default branch and reports are uploaded/committed; no source execution injection is claimed."
+      }
+    ],
+    "blockers": [
+      "The required OS-enforced execution sandbox is not established, so no dummy workbook/CSV interpretation check ran.",
+      "Effective permission to edit an included issue and the intended authority separation between issue editor and report consumer are not established."
+    ],
+    "validation_plan": {
+      "local": "In the required offline sandbox use a single dummy included sprint issue with harmless title [SPRINT 2] =1+1; generate one report, inspect XML/cell type without invoking external links or macros, then verify text-only remediation retains a literal string.",
+      "deployment": "Owner should inspect who may edit included issues/Project items and who opens generated CSV/XLSX, and confirm whether their trust/authority differs. No live document evaluation is requested."
+    }
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "package": "swagger-ui-dist",
+    "version": "5.35.1",
+    "tarball": "https://registry.npmjs.org/swagger-ui-dist/-/swagger-ui-dist-5.35.1.tgz",
+    "tarball_sha256": "d0aefadc276b19faff1e58bc1777e03667f7cb82fc89b273d209c0287865f415",
+    "tarball_integrity": "sha512-XPBzLiPyIvwg2KYyNZIxOVS77pD0SNMbiSIwvpPXbU5bC/F4zvXxGraK3Hpyxug1b89fH5T29gSsW6rBxMmPyg==",
+    "files": [
+      {
+        "file": "swagger-ui-5.35.1/LICENSE",
+        "upstream_member": "package/LICENSE",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "unchanged_upstream_bytes": true
+      },
+      {
+        "file": "swagger-ui-5.35.1/NOTICE",
+        "upstream_member": "package/NOTICE",
+        "sha256": "0d20d1adef18aee3f40dd258172155521ce702ac445cb5f7b7d60ed32dad2fb2",
+        "unchanged_upstream_bytes": true
+      },
+      {
+        "file": "swagger-ui-5.35.1/favicon-32x32.png",
+        "upstream_member": "package/favicon-32x32.png",
+        "sha256": "3ed612f41e050ca5e7000cad6f1cbe7e7da39f65fca99c02e99e6591056e5837",
+        "unchanged_upstream_bytes": true
+      },
+      {
+        "file": "swagger-ui-5.35.1/swagger-ui-bundle.js",
+        "upstream_member": "package/swagger-ui-bundle.js",
+        "sha256": "d0e0bee93732408c91fbad05cb0c2812e9ad37e94d12799c5503a9fe7afa2b82",
+        "unchanged_upstream_bytes": true
+      },
+      {
+        "file": "swagger-ui-5.35.1/swagger-ui-bundle.js.LICENSE.txt",
+        "upstream_member": "package/swagger-ui-bundle.js.LICENSE.txt",
+        "sha256": "37eb6e7e59aed57b2c1acf076574b818ea07b74265717e0bd67b59e0baf9abbb",
+        "unchanged_upstream_bytes": true
+      },
+      {
+        "file": "swagger-ui-5.35.1/swagger-ui.css",
+        "upstream_member": "package/swagger-ui.css",
+        "sha256": "5ed08757e53da3e026d6cbecc61fe5d43585c9560b302d534ad56692519a273d",
+        "unchanged_upstream_bytes": true
+      }
+    ]
+  },
+  {
+    "package": "redoc",
+    "version": "2.5.3",
+    "tarball": "https://registry.npmjs.org/redoc/-/redoc-2.5.3.tgz",
+    "tarball_sha256": "e09cc6eb1af62e493e92ebff1ff98b5917ff4018f24ef9be91a3d97998987a73",
+    "tarball_integrity": "sha512-bBbat+Sx6xKWdyoCGTtA0BWeTEW9Vs4VnEja7q7ZLOk4IM7cHQLrf+kDxWF6dKeKxT8kOBnoy/OsNXCeLttpyQ==",
+    "files": [
+      {
+        "file": "redoc-2.5.3/LICENSE",
+        "upstream_member": "package/LICENSE",
+        "sha256": "d3026d549cf68ab7355bcfa85877bf8f845b3334a7efbfdc63936432fb34ff0e",
+        "unchanged_upstream_bytes": true
+      },
+      {
+        "file": "redoc-2.5.3/redoc.standalone.js",
+        "upstream_member": "package/bundles/redoc.standalone.js",
+        "sha256": "1320f442151c57c447d3b70c7ffc6c4f86d08464020fe34c8cc5d3164e9944f0",
+        "unchanged_upstream_bytes": true
+      },
+      {
+        "file": "redoc-2.5.3/redoc.standalone.js.LICENSE.txt",
+        "upstream_member": "package/bundles/redoc.standalone.js.LICENSE.txt",
+        "sha256": "469cc94b600aac09643f70e167cd1f66f24301ebb546532fad5db7c60f7b30d0",
+        "unchanged_upstream_bytes": true
+      }
+    ]
+  }
+]
