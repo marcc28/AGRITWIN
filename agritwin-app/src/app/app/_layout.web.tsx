@@ -136,11 +136,11 @@ export default function WebLayout() {
                 icon={require('@assets/images/tabIcons/market.png')}
               />
             </TabTrigger>
-            <TabTrigger name="settings" href="/app/settings" asChild>
+            <TabTrigger name="crops" href="/app/crops" asChild>
               <WebTabButton
-                name="settings"
-                label={t('tabs.profile')}
-                icon={require('@assets/images/tabIcons/settings.png')}
+                name="Crops"
+                label={t('tabs.Crops')}
+                icon={require('@assets/images/brote.png')}
               />
             </TabTrigger>
           </TabList>

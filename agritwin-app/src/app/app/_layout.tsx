@@ -84,12 +84,12 @@ export default function Layout() {
             />
           </NativeTabs.Trigger>
 
-          <NativeTabs.Trigger name="settings">
+          <NativeTabs.Trigger name="crops">
             <NativeTabs.Trigger.Label>
-              {t('tabs.profile')}
+              {t('tabs.Crops')}
             </NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
-              src={require('@assets/images/tabIcons/settings.png')}
+              src={require('@assets/images/brote.png')}
               renderingMode="template"
             />
           </NativeTabs.Trigger>

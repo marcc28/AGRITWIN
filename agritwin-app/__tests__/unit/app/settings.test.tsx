@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import SettingsScreen from '../../../src/app/app/settings';
+import SettingsScreen from '../../../src/app/app/crops';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({

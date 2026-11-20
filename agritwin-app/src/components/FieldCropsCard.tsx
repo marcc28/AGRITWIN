@@ -94,10 +94,9 @@ export function FieldCropsCard({
                     accessibilityRole="button"
                     accessibilityLabel={t('recommendations.open')}
                   >
-                    <Image
-                      source={require('@assets/images/target.png')}
-                      style={styles.target}
-                    />
+                    <Text style={styles.targetButtonText}>
+                      View{' \n'}Recommendations
+                    </Text>
                   </Pressable>
                 }
               />

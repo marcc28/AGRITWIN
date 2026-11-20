@@ -21,7 +21,8 @@
     "market": "Market",
     "profile": "Profile",
     "calendar": "Calendar",
-    "diagnosis": "Diagnosis"
+    "diagnosis": "Diagnosis",
+    "Crops": "Crops"
   },
   "tasks": {
     "title": "Tasks",
@@ -142,8 +143,8 @@
     }
   },
   "settings": {
-    "title": "Profile",
-    "eyebrow": "USER PROFILE",
+    "title": "Cultivos",
+    "eyebrow": "GESTIÓN AGRÍCOLA",
     "profile": "Profile",
     "preferences": "Preferences",
     "language": "Language",

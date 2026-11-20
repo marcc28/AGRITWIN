@@ -6,8 +6,8 @@ describe('field crop navigation', () => {
     const openCropForm = createAddCropHandler({ id: 12 }, navigate);
     openCropForm();
     expect(navigate).toHaveBeenCalledWith({
-      pathname: '/edit-field',
-      params: { id: '12', addCrop: 'true' },
+      pathname: '/editar_crops',
+      params: { id: '12' },
     });
 
     const noField = createAddCropHandler(null, navigate);

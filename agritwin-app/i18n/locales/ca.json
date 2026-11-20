@@ -21,7 +21,8 @@
     "market": "Mercat",
     "profile": "Perfil",
     "calendar": "Calendari",
-    "diagnosis": "Diagnòstic"
+    "diagnosis": "Diagnòstic",
+    "Crops": "Cultius"
   },
   "tasks": {
     "title": "Tasques",
@@ -144,8 +145,8 @@
     }
   },
   "settings": {
-    "title": "Perfil",
-    "eyebrow": "PERFIL D'USUARI",
+    "title": "Cultius",
+    "eyebrow": "GESTIÓ AGRÍCOLA",
     "profile": "Perfil",
     "preferences": "Preferències",
     "language": "Idioma",
