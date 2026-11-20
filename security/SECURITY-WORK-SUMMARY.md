@@ -18,7 +18,7 @@ The remediation backend suite passed 956 tests, including nine new security regr
 
 Added consumer-level checks for URL decoding, Expo schema validation, JSON streams, prototype safety, glob cancellation, ignore matching and URI/schema resolution. These checks run after dependency installation in frontend-test and Sonar workflows. TypeScript, lint, Android export and browser checks provide additional compatibility evidence, rather than a security certification.
 
-Tool outcomes are distinguished explicitly: TruffleHog was executed in the original audit and reported only intentional rejection fixtures; npm audit was queried again after remediation; existing OWASP ZAP, SonarCloud and CodeQL results were reviewed. The Cloudflare security-audit methodology was applied partially with agents; independent verification was not completed. BLA was evaluated but not executed. No new production ZAP/Sonar run, real MQTT broker test or native-device integration result is claimed.
+Tool outcomes are distinguished explicitly: TruffleHog was executed in the original audit and reported only intentional rejection fixtures; a final PR snapshot scan produced seven false-positive hits for the same documented public Cloudflare Git commit hash, with no new leaked credential identified; npm audit was queried again after remediation; existing OWASP ZAP, SonarCloud and CodeQL results were reviewed. The Cloudflare security-audit methodology was applied partially with agents; independent verification was not completed. BLA was evaluated but not executed. No new production ZAP/Sonar run, real MQTT broker test or native-device integration result is claimed.
 
 # [DOC] Documentation of the process and results
 

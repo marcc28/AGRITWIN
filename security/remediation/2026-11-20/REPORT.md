@@ -55,7 +55,7 @@ Only the compiled third-party bundles are added to Sonar's dependency exclusions
 | Browser checks | Real login, garden selection and home screen with dummy local data; actual backend Swagger and ReDoc | Rendered successfully; documentation browser checks reported no console errors or warnings |
 | OWASP ZAP | Previous CI evidence retained; no new deployment scan | 3 original medium alerts addressed in source; deployment verdict pending |
 | SonarQube / SonarCloud | Previous CI evidence retained; compatibility check added to workflow | Previous gate OK, 0 vulnerabilities and 0 hotspots; changes not remotely rescanned |
-| TruffleHog | Original scan retained; not rerun in this remediation | 2 intentional rejection-fixture hits; no new leaked credential identified by the original scan |
+| TruffleHog | Original scan retained; final PR filesystem snapshot also scanned | Original scan: 2 intentional rejection fixtures. PR snapshot: 7 false-positive hits, all the public Cloudflare methodology commit hash; no new leaked credential identified. Verification disabled — [PR evidence](pr-preflight-secret-scan.json) |
 | Cloudflare security-audit skill | Original partial agent review retained; focused remediation agents used for documentation and preview | Original independent verification remains incomplete |
 | BLA | Not executed | No BLA scan verdict exists; the original runtime constraint remains documented |
 
