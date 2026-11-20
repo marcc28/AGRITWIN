@@ -26,7 +26,7 @@ SPRINT 1,MockUp Figma,15,marcc28,16,100%,225,240,225,-15,,,,,,,,
 SPRINT 1,Risk Analysis,7,marcc28,7,100%,105,105,105,0,,,,,,,,
 SPRINT 2,Add a device to a field,22,Tigre44 & ainhoaaf,24,100%,330,360,330,-30,,,,,,,,
 SPRINT 2,AI crop recommendation,11,flaviaserret04,11,100%,165,165,165,0,,,,,,,,
-SPRINT 2,Crop recommendation on the profile page,0.7,flaviaserret04,0,0%,10.5,0,0,10.5,,,,,,,,
+SPRINT 2,Crop recommendation on the profile page,0.7,flaviaserret04,0.6,33.333333%,10.5,9,3.5,1.5,,,,,,,,
 SPRINT 2,Field location on a map,13,marcc28,13,100%,195,195,195,0,,,,,,,,
 SPRINT 2,Field selection screen and personal profile,8.5,atnic15,6,100%,127.5,90,127.5,37.5,,,,,,,,
 SPRINT 2,Final documentation,8,flaviaserret04 & Tigre44 & ainhoaaf & marcc28 & atnic15,0,0%,120,0,0,120,,,,,,,,
@@ -44,4 +44,4 @@ SPRINT 2,"Security of the data, the broker and the API",17,marcc28,0,0%,255,0,0,
 SPRINT 2,Task list for the current garden,22,ainhoaaf,18.5,100%,330,277.5,330,52.5,,,,,,,,
 SPRINT 2,Weather alerts for the current garden,9,atnic15,7.5,100%,135,112.5,135,22.5,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,221.4,,193,,3321,2895,2875.5,426,10168,0.993264,0.865854,-19.5,-445.5,10236.953573,7341.953573,-68.953573
+SPRINT 2,TOTAL SPRINT 2,221.4,,193.6,,3321,2904,2879,417,10168,0.991391,0.866908,-25,-442,10256.294547,7352.294547,-88.294547
