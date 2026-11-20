@@ -1,0 +1,109 @@
+{
+  "source_commit": "1963366877d4c58052842db6415c81e21ae98bca",
+  "target": "https://backend-web-ur8z.onrender.com",
+  "baseline_run_id": "44384466073",
+  "comparison_status": "compared",
+  "newly_observed": [
+    "3fad18b829cf3fd5"
+  ],
+  "still_observed": [
+    "0224fc5d67568943",
+    "0919a3a1418fa2bf",
+    "0ef823dd97062c35",
+    "22f3b344386dbcf5",
+    "29f2b3fc0657942a",
+    "3f180a3cd77d5d46",
+    "4037406969d5a037",
+    "50842b2e7709635c",
+    "50def3764543a820",
+    "5f3b7f9ff8746539",
+    "622c8d28e4f0195e",
+    "7fb58fae85e6c9a0",
+    "7ff5e6e5bfc98bb7",
+    "8c9647fb0ec5191d",
+    "8eedbdb93927a234",
+    "99889ced572249bd",
+    "9e9b11e57f95a064",
+    "a3640bc24dc1d385",
+    "a600def6bf93dade",
+    "a8c5e228c3321914",
+    "aa348705cba00fc7",
+    "bfc9385058b39360",
+    "c2aae94dbaf75bd7",
+    "caedefedc23131c1",
+    "d575baffb0294d51",
+    "df1b44b654b7f768",
+    "e89063b34d89a733",
+    "eeaad729d44dca11",
+    "f4e9a152b7480aba",
+    "f7a43ea916c14058",
+    "fe044975d87e35a1"
+  ],
+  "not_observed_again": [
+    "f4fac6b04c6a8ef3"
+  ],
+  "closure_policy": "Disappearing alerts are not confirmed fixes. Review coverage and retest before closing.",
+  "external_analyses": {
+    "collected_at": "2026-11-20T15:15:24.964655+00:00",
+    "repository": "marcc28/AGRITWIN",
+    "sonar": {
+      "status": "available",
+      "project": "marcc28_AGRITWIN",
+      "requested_branch": "dev",
+      "analysis_branch": "dev",
+      "fallback_to_default_branch": false,
+      "quality_gate": "OK",
+      "measure_scope": "overall branch measures; quality gate may evaluate new-code conditions",
+      "vulnerabilities": 0,
+      "security_rating": "A",
+      "security_hotspots": 0,
+      "hotspots_reviewed_percent": "100.0",
+      "url": "https://sonarcloud.io/dashboard?id=marcc28_AGRITWIN&branch=dev",
+      "analysis_revision_status": "unverified; associated workflow revision is recorded separately",
+      "analysis_date": "2026-11-20T09:18:09+0000",
+      "associated_workflow": {
+        "run_id": 44709250685,
+        "url": "https://github.com/marcc28/AGRITWIN/actions/runs/44709250685",
+        "commit": "bbd5234eab677e6113a84d691eac3bdcfb5143e2",
+        "branch": "dev",
+        "event": "push",
+        "finished_at": "2026-11-20T09:19:24Z"
+      }
+    },
+    "codeql": {
+      "status": "available",
+      "analysis_branch": "dev",
+      "execution_policy": "Existing weekly analysis only; no scan is started by this report",
+      "alert_scope": "Open alerts for the branch at collection time, not a historical commit snapshot",
+      "open_alerts": 0,
+      "severity_counts": {},
+      "latest_analyses": [
+        {
+          "category": "/language:javascript-typescript",
+          "commit": "684d88311ead672402f43116bef5a87a2bd1364f",
+          "created_at": "2026-11-18T07:19:19Z",
+          "error": "",
+          "warning": "",
+          "tool_version": "2.27.4"
+        },
+        {
+          "category": "/language:python",
+          "commit": "684d88311ead672402f43116bef5a87a2bd1364f",
+          "created_at": "2026-11-18T07:18:58Z",
+          "error": "",
+          "warning": "",
+          "tool_version": "2.27.4"
+        }
+      ],
+      "url": "https://github.com/marcc28/AGRITWIN/security/code-scanning",
+      "associated_workflow": {
+        "run_id": 44257819903,
+        "url": "https://github.com/marcc28/AGRITWIN/actions/runs/44257819903",
+        "commit": "684d88311ead672402f43116bef5a87a2bd1364f",
+        "branch": "dev",
+        "event": "schedule",
+        "finished_at": "2026-11-18T07:19:45Z"
+      }
+    }
+  }
+}

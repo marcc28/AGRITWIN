@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify security dependency compatibility
+        run: npm run test:security-dependencies
+
       - name: Run Jest unit tests with coverage
         run: npx jest __tests__ --coverage --runInBand
 

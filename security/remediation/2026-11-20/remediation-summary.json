@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-20",
+  "branch": "security/dev-review-5410a38",
+  "base_commit": "5410a38fb8034cafd0374aef65761d8c9b069e21",
+  "base_origin_dev_ahead": 0,
+  "base_origin_dev_behind": 0,
+  "delivery": "prepared on the security branch for pull-request review; no deployment",
+  "npm": {
+    "before": {
+      "high": 5,
+      "moderate": 22
+    },
+    "after": {
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "low": 0,
+      "info": 0
+    },
+    "evidence": "npm-audit-after.json"
+  },
+  "zap_medium_rules": {
+    "10038": "fixed locally; deployment rescan pending",
+    "10020": "fixed locally; deployment rescan pending",
+    "90003": "fixed locally; deployment rescan pending"
+  },
+  "checks": {
+    "backend_tests": 956,
+    "new_backend_security_tests": 9,
+    "frontend_tests": 1169,
+    "frontend_suites": 130,
+    "frontend_typecheck": "pass",
+    "frontend_lint": {
+      "errors": 0,
+      "existing_warnings": 41
+    },
+    "backend_ruff": "pass",
+    "android_export": "pass",
+    "dependency_compatibility": "pass",
+    "npm_ci_offline_dry_run": "pass",
+    "browser_preview": "login, garden selection and home rendered",
+    "browser_api_docs": "Swagger and ReDoc rendered; no console error/warning entries",
+    "backend_locked_fastapi_starlette_tests": 956
+  },
+  "unresolved": {
+    "unrated_code_candidates": 15,
+    "unrated_python_package_matches": 5,
+    "production_scan": "pending",
+    "live_provider_integrations": "not exercised by preview"
+  },
+  "source_sha256": {
+    "agritwin-app/package.json": "4adb0a4f2a62a6cc5b3bac9925c044caf96bb9864f84ceb46a346ac299013115",
+    "agritwin-app/package-lock.json": "da53cafbedd9d5b528be2a313fd075b1871fd80188ccfd5108834b52829a686b",
+    "agritwin-app/scripts/test-security-dependencies.cjs": "8856c19c2779fcff6872f05c3f4426adf411cb89e6f9838681bf020f78749988",
+    "backend/main.py": "4b2cc17aceb53615de53e449192a47da2a549aee03a4d3b2ebfe00689386d092",
+    "backend/services/security_docs.py": "022a9de9ce0cef7f6ef068cdb55cb674822fd02661f8b069b2bceae175dac1db",
+    "backend/tests/unit/test_security_docs.py": "bf79a445cd93a492cae81c610df61bbda4d7d50251ba846a511bcd2e3dbbb573",
+    "sonar-project.properties": "789bc9c975d4ee43be66970a638f16fd2923b2b0ac11c550dc2366348ae14c3f"
+  },
+  "runtime_versions": "runtime-versions.json"
+}

@@ -1,0 +1,596 @@
+{
+  "units": [
+    {
+      "coverage_id": "agritwin-app%2Fsrc%2Fapp%2Fauth%2Foauth-callback.tsx%23links::agritwin-app%2Fsrc%2Fcomponents%2Ffield-location%2FMapCanvas.tsx%23bridge::agritwin-app%2Frendering::ATTACK-CLASSES.md%23Injection",
+      "disposition": "candidate",
+      "checks": [
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/components/SocialLoginButtons.tsx",
+            "agritwin-app/src/app/auth/oauth-callback.tsx",
+            "agritwin-app/src/services/api_oauth.ts",
+            "agritwin-app/app.json",
+            "backend/api/v1/social_auth.py",
+            "backend/services/social_auth_service.py",
+            "backend/models/userProfile.py",
+            "backend/api/v1/google_auth.py",
+            "agritwin-app/__tests__/unit/auth/social-oauth-callback.test.tsx",
+            "agritwin-app/__tests__/unit/components/SocialLoginButtons.test.tsx"
+          ],
+          "invariant": "El callback que instala una sesión debe corresponder a una transacción iniciada por esta instancia del cliente.",
+          "method": "source",
+          "result": "El callback nativo exige provider/ticket y evita duplicados en el componente, pero no verifica una transacción local pendiente antes de exchange/setAuth. El servidor limita proveedor, longitud, expiración de tres minutos y consumo único; el state del proveedor pertenece al navegador y no vincula la instalación receptora. Las pruebas fuente cubren proveedor inválido y tickets ausentes/duplicados, no la ausencia de inicio local. Se conserva el candidato previo sin afirmar explotación.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/components/field-location/MapCanvas.tsx",
+            "agritwin-app/src/components/field-location/MapCanvas.web.tsx",
+            "agritwin-app/src/components/field-location/mapDocument.ts",
+            "agritwin-app/src/components/field-location/mapConfig.ts",
+            "agritwin-app/src/components/field-location/types.ts",
+            "agritwin-app/src/components/field-location/loadLeaflet.ts",
+            "agritwin-app/__tests__/unit/components/MapCanvas.native.test.tsx",
+            "agritwin-app/__tests__/unit/components/MapCanvas.web.test.tsx",
+            "agritwin-app/__tests__/unit/components/map-document.test.ts"
+          ],
+          "invariant": "Los datos de geometría permanecen datos, el bridge acepta puntos finitos dentro de rango y la navegación del WebView queda confinada.",
+          "method": "source",
+          "result": "mapDocument serializa JSON escapando '<', fija Leaflet con SRI y CSP, y MapCanvas valida JSON/isMapPoint y readOnly. Las actualizaciones usan JSON.stringify sin interpolar código del usuario. El WebView desactiva acceso a archivos, contenido mixto y ventanas automáticas; solo permite el documento local y abre atribuciones con igualdad exacta de URL. El mapa web usa Leaflet con coordenadas y limpia recursos al desmontar. Las pruebas fuente comprueban mensajes inválidos, navegación, SRI y readOnly del documento; no se ejecutaron.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/components/checkout-form.web.tsx",
+            "agritwin-app/__tests__/unit/components/checkout-form.web.test.tsx",
+            "backend/api/v1/payments.py",
+            "backend/services/payment_service.py",
+            "agritwin-app/src/services/bleProvisioning.ts",
+            "agritwin-app/__tests__/unit/services/bleProvisioning.test.ts"
+          ],
+          "invariant": "Las entradas de checkout/BLE no se convierten en HTML o código ejecutable en estos puntos de uso.",
+          "method": "source",
+          "result": "Checkout envía productId/quantity como JSON y navega a la URL de respuesta; la fuente del backend retorna session.url del SDK de Stripe, sin una URL de destino suministrada por el cliente en esta ruta. BLE usa JSON.parse, tipos explícitos para identidad y escrituras de texto codificado a características fijas, sin eval ni HTML. No se establece una inyección controlable en estas rutas; validar el destino de checkout en cliente queda como endurecimiento.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "agritwin-app/src/app/auth/oauth-callback.tsx:unbound_native_ticket"
+      ],
+      "unresolved": [
+        "No se ejecutó un fixture nativo con callback no solicitado ni se verificó el despacho del esquema por el sistema operativo; la revisión está limitada a fuente."
+      ],
+      "reviewed_paths": [
+        "agritwin-app/__tests__/unit/auth/social-oauth-callback.test.tsx",
+        "agritwin-app/__tests__/unit/components/MapCanvas.native.test.tsx",
+        "agritwin-app/__tests__/unit/components/MapCanvas.web.test.tsx",
+        "agritwin-app/__tests__/unit/components/SocialLoginButtons.test.tsx",
+        "agritwin-app/__tests__/unit/components/checkout-form.web.test.tsx",
+        "agritwin-app/__tests__/unit/components/map-document.test.ts",
+        "agritwin-app/__tests__/unit/services/bleProvisioning.test.ts",
+        "agritwin-app/app.json",
+        "agritwin-app/src/app/auth/oauth-callback.tsx",
+        "agritwin-app/src/components/SocialLoginButtons.tsx",
+        "agritwin-app/src/components/checkout-form.web.tsx",
+        "agritwin-app/src/components/field-location/MapCanvas.tsx",
+        "agritwin-app/src/components/field-location/MapCanvas.web.tsx",
+        "agritwin-app/src/components/field-location/loadLeaflet.ts",
+        "agritwin-app/src/components/field-location/mapConfig.ts",
+        "agritwin-app/src/components/field-location/mapDocument.ts",
+        "agritwin-app/src/components/field-location/types.ts",
+        "agritwin-app/src/services/api_oauth.ts",
+        "agritwin-app/src/services/bleProvisioning.ts",
+        "backend/api/v1/google_auth.py",
+        "backend/api/v1/payments.py",
+        "backend/api/v1/social_auth.py",
+        "backend/models/userProfile.py",
+        "backend/services/payment_service.py",
+        "backend/services/social_auth_service.py"
+      ]
+    },
+    {
+      "coverage_id": "agritwin-app%2Fsrc%2Fapp%2Fedit-field.tsx%23cached-forms::agritwin-app%2Fsrc%2Fservices%2FqueryKeys.ts%23field-and-page::agritwin-app%2Fforms::ATTACK-CLASSES.md%23Access%20control",
+      "disposition": "candidate",
+      "checks": [
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/app/create-field.tsx",
+            "agritwin-app/src/app/edit-field.tsx",
+            "agritwin-app/src/services/queryKeys.ts",
+            "agritwin-app/src/services/queries.ts",
+            "agritwin-app/src/hooks/use-cached-query.ts",
+            "agritwin-app/__tests__/unit/app/create-field.test.tsx",
+            "agritwin-app/__tests__/unit/app/edit-field.test.tsx",
+            "agritwin-app/__tests__/unit/services/queryCache.test.ts"
+          ],
+          "invariant": "La clave incluye los selectores de campo/página y las recargas no sobrescriben un borrador ya iniciado.",
+          "method": "source",
+          "result": "Las claves incluyen fieldId, idioma donde corresponde y offset/limit del catálogo. cropCatalogPageQuery reutiliza solo slices completos o página final e ignora fuentes invalidadas; conserva dataUpdatedAt. edit-field inicializa el borrador una vez por fieldId y protege las preferencias locales con mounted/activeFieldId. Las pruebas fuente cubren reutilización, invalidación y conservación del borrador. Estos controles no particionan por principal: dependen de la limpieza de sesión.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/app/field-data.tsx",
+            "agritwin-app/__tests__/unit/app/field-data.test.tsx"
+          ],
+          "invariant": "El polling se limita al campo válido y a la pantalla enfocada, y los errores de autenticación activan limpieza.",
+          "method": "source",
+          "result": "field-data habilita la consulta solo para ID finito, usa dashboardQuery(fieldId), detiene el intervalo fuera de foco y llama clearAuth ante un error reconocido de autenticación. Las pruebas fuente cubren ID inválido, intervalo y pérdida de foco; no se ejecutaron.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/services/auth.ts",
+            "agritwin-app/src/services/api.ts",
+            "agritwin-app/src/services/queryPersistence.ts"
+          ],
+          "invariant": "Una operación de formulario conserva la identidad que la inició durante esperas y reintentos.",
+          "method": "source",
+          "result": "createField/updateField obtienen credenciales y llaman authenticatedFetch; este reemplaza el token por el actual y reintenta un 401 sin comprobar identidad/generación. La limpieza de TanStack no cancela por sí misma estas operaciones imperativas. Se vincula el mismo candidato de sesión, sin crear una causa duplicada para formularios.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "agritwin-app/src/services/auth.ts:authenticatedFetch_cross_account_retry"
+      ],
+      "unresolved": [
+        "No se ejecutó el fixture de cambio A→B durante una petición de formulario; falta observar con mocks que la operación antigua no se reenvía bajo B."
+      ],
+      "reviewed_paths": [
+        "agritwin-app/__tests__/unit/app/create-field.test.tsx",
+        "agritwin-app/__tests__/unit/app/edit-field.test.tsx",
+        "agritwin-app/__tests__/unit/app/field-data.test.tsx",
+        "agritwin-app/__tests__/unit/services/queryCache.test.ts",
+        "agritwin-app/src/app/create-field.tsx",
+        "agritwin-app/src/app/edit-field.tsx",
+        "agritwin-app/src/app/field-data.tsx",
+        "agritwin-app/src/hooks/use-cached-query.ts",
+        "agritwin-app/src/services/api.ts",
+        "agritwin-app/src/services/auth.ts",
+        "agritwin-app/src/services/queries.ts",
+        "agritwin-app/src/services/queryKeys.ts",
+        "agritwin-app/src/services/queryPersistence.ts"
+      ]
+    },
+    {
+      "coverage_id": "agritwin-app%2Fsrc%2Fcomponents%2FFieldFormSteps.tsx%23sections::agritwin-app%2Fsrc%2Futils%2FfieldFormValidation.ts%23fieldFormErrors::agritwin-app%2Fforms::ATTACK-CLASSES.md%23Injection",
+      "disposition": "covered",
+      "checks": [
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/components/FieldFormSteps.tsx",
+            "agritwin-app/src/components/FieldOptionChips.tsx",
+            "agritwin-app/src/components/OptionChip.tsx",
+            "agritwin-app/src/components/FieldCropForm.tsx",
+            "agritwin-app/src/constants/fieldOptions.ts",
+            "agritwin-app/__tests__/unit/components/FieldOptionChips.test.tsx"
+          ],
+          "invariant": "Los nombres, mensajes, etiquetas y notas de formularios se representan como texto y los cambios de tipo usan valores enumerados.",
+          "method": "source",
+          "result": "Los componentes usan Text/TextInput y handlers explícitos; no aparece un sink de HTML, eval o navegación construido con estos valores. FieldOptionChips obtiene sus opciones de constantes y FieldCropForm mantiene nombres/notas como texto. No se encontró un fallo concreto de inyección en esta unidad de fuente.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/utils/fieldFormValidation.ts",
+            "agritwin-app/src/utils/fieldGeometry.ts",
+            "agritwin-app/src/utils/fieldCropDraft.ts",
+            "agritwin-app/__tests__/unit/utils/fieldFormValidation.test.ts"
+          ],
+          "invariant": "La validación compartida rechaza nombre vacío/excesivo, tipo ajeno a la lista, área no finita/fuera de rango y fechas incoherentes.",
+          "method": "source",
+          "result": "fieldFormErrors aplica trim, máximo 100, enum y área entre 0.01 y MAX_FIELD_AREA; la alternativa de ubicación requiere texto o isMapPoint. fieldGeometry limita puntos/zonas, rangos, duplicados, cruces y superposición. fieldCropDraft valida fechas canónicas y orden temporal, y produce un objeto con claves fijas. Las pruebas fuente cubren valores ausentes, NaN/Infinity, límites y tipo inválido; no se ejecutaron.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/styles/responsive.ts",
+            "agritwin-app/__tests__/unit/styles/responsive.test.ts"
+          ],
+          "invariant": "El cambio de tamaño de pantalla solo modifica dimensiones de presentación.",
+          "method": "source",
+          "result": "getPageFrame calcula números desde umbrales fijos sin introducir HTML, selectores de recursos o permisos. Las pruebas fuente cubren teléfono, tablet, escritorio y paisaje. No se observa una nueva frontera de inyección.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": [],
+      "reviewed_paths": [
+        "agritwin-app/__tests__/unit/components/FieldOptionChips.test.tsx",
+        "agritwin-app/__tests__/unit/styles/responsive.test.ts",
+        "agritwin-app/__tests__/unit/utils/fieldFormValidation.test.ts",
+        "agritwin-app/src/components/FieldCropForm.tsx",
+        "agritwin-app/src/components/FieldFormSteps.tsx",
+        "agritwin-app/src/components/FieldOptionChips.tsx",
+        "agritwin-app/src/components/OptionChip.tsx",
+        "agritwin-app/src/constants/fieldOptions.ts",
+        "agritwin-app/src/styles/responsive.ts",
+        "agritwin-app/src/utils/fieldCropDraft.ts",
+        "agritwin-app/src/utils/fieldFormValidation.ts",
+        "agritwin-app/src/utils/fieldGeometry.ts"
+      ]
+    },
+    {
+      "coverage_id": "agritwin-app%2Fsrc%2Fservices%2Fauth.ts%23session::agritwin-app%2Fsrc%2Fservices%2Fauth.ts%23clearAuth::agritwin-app%2Fsession::ATTACK-CLASSES.md%23Access%20control",
+      "disposition": "candidate",
+      "checks": [
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/services/auth.ts",
+            "agritwin-app/src/services/api.ts",
+            "agritwin-app/__tests__/unit/services/auth.test.ts",
+            "agritwin-app/__tests__/unit/services/auth-cache.test.ts",
+            "agritwin-app/__tests__/unit/services/auth-refresh.test.ts"
+          ],
+          "invariant": "Logout o cambio de cuenta invalida tanto las credenciales como continuaciones y reintentos de la sesión anterior.",
+          "method": "source",
+          "result": "clearAuth elimina credenciales/campo/caché, setAuth limpia caché cuando cambia username y expireSession deduplica limpieza. Sin embargo, no hay generación de sesión: refreshAuth puede guardar tokens tras logout/cambio, y authenticatedFetch confunde un token de otra cuenta con renovación del mismo principal. Las pruebas fuente verifican casos secuenciales y rotación de token para el mismo username, no carreras A/B. El diff frente a 4e8be50 añade expireSession y limpieza en reintentos fallidos, pero no cierra estas carreras.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/services/gardenPicker.ts",
+            "agritwin-app/src/services/currentField.ts",
+            "agritwin-app/src/services/routeAfterAuth.ts",
+            "agritwin-app/src/components/GardenPickerOverlay.tsx",
+            "agritwin-app/__tests__/unit/services/gardenPicker.test.ts",
+            "agritwin-app/__tests__/unit/services/gardenPicker-cache.test.ts"
+          ],
+          "invariant": "El dueño de una respuesta del selector queda fijado al inicio y sigue siendo el dueño de la caché persistida al finalizar.",
+          "method": "source",
+          "result": "El selector particiona el almacenamiento por username y descarta la respuesta si otro loadGardenPickerFields ya cambió loadedUsername. clearAuth/setAuth no cambian ese marcador ni resetean el selector; cacheFields vuelve a obtener username al finalizar. Una respuesta iniciada por A durante la transición a B puede superar el marcador todavía A y calcular luego la clave de B. La prueba fuente de carrera existente inicia explícitamente una carga de B antes de resolver A, por lo que cubre el control presente pero no esta ventana.",
+          "artifact": null
+        },
+        {
+          "agent_id": "hunt_client",
+          "reviewed_paths": [
+            "agritwin-app/src/services/queryPersistence.ts",
+            "agritwin-app/src/services/queryClient.ts",
+            "agritwin-app/src/services/queryKeys.ts",
+            "agritwin-app/src/services/queries.ts",
+            "agritwin-app/src/app/_layout.tsx",
+            "agritwin-app/src/services/AuthProvider.ts",
+            "agritwin-app/__tests__/unit/services/queryCache.test.ts"
+          ],
+          "invariant": "La limpieza cubre memoria y almacenamiento y la restauración no atribuye datos a otra sesión.",
+          "method": "source",
+          "result": "clearQueryCache solicita cancelación, vacía QueryClient y elimina la copia persistida; solo se deshidratan éxitos y se admite meta.persist=false. Las claves privadas y el almacenamiento persistido son globales y no llevan principal. No se infiere de ello que TanStack repueble automáticamente una consulta cancelada; ese comportamiento y el throttling requieren fixture. La escritura imperativa del selector es independiente. Las pruebas fuente de limpieza usan removeClient simulado, sin restauración tardía ni escrituras pendientes.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "agritwin-app/src/services/auth.ts:refreshAuth_late_session_commit",
+        "agritwin-app/src/services/auth.ts:authenticatedFetch_cross_account_retry",
+        "agritwin-app/src/services/gardenPicker.ts:late_response_current_account_cache_key"
+      ],
+      "unresolved": [
+        "Las carreras y la persistencia asíncrona no se ejecutaron por el alcance de solo lectura; faltan fixtures offline con promesas diferidas y almacenamiento en memoria."
+      ],
+      "reviewed_paths": [
+        "agritwin-app/__tests__/unit/services/auth-cache.test.ts",
+        "agritwin-app/__tests__/unit/services/auth-refresh.test.ts",
+        "agritwin-app/__tests__/unit/services/auth.test.ts",
+        "agritwin-app/__tests__/unit/services/gardenPicker-cache.test.ts",
+        "agritwin-app/__tests__/unit/services/gardenPicker.test.ts",
+        "agritwin-app/__tests__/unit/services/queryCache.test.ts",
+        "agritwin-app/src/app/_layout.tsx",
+        "agritwin-app/src/components/GardenPickerOverlay.tsx",
+        "agritwin-app/src/services/AuthProvider.ts",
+        "agritwin-app/src/services/api.ts",
+        "agritwin-app/src/services/auth.ts",
+        "agritwin-app/src/services/currentField.ts",
+        "agritwin-app/src/services/gardenPicker.ts",
+        "agritwin-app/src/services/queries.ts",
+        "agritwin-app/src/services/queryClient.ts",
+        "agritwin-app/src/services/queryKeys.ts",
+        "agritwin-app/src/services/queryPersistence.ts",
+        "agritwin-app/src/services/routeAfterAuth.ts"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "agritwin-app/src/app/auth/oauth-callback.tsx:unbound_native_ticket",
+      "title": "El callback nativo no acredita un inicio de autenticación local",
+      "description": "La ruta nativa puede intercambiar un ticket y guardar su sesión sin comprobar que exista un inicio OAuth pendiente en esta instancia. La fuente demuestra la falta de vínculo; no se ha demostrado un cambio de cuenta en una aplicación en ejecución.",
+      "claimed_root_cause": "provider/ticket son aceptados como única correlación local. La deduplicación processedTicket solo cubre el componente montado. El ticket del servidor está ligado a proveedor/identidad/expiración, pero no a un secreto o transacción de la instalación receptora.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "agritwin-app/src/app/auth/oauth-callback.tsx",
+          "line": 24,
+          "scope": "SocialOAuthCallbackScreen",
+          "description": "Lee provider y ticket de parámetros de ruta."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/app/auth/oauth-callback.tsx",
+          "line": 37,
+          "scope": "useEffect/finishLogin",
+          "description": "Comprueba presencia, duplicado y proveedor; no exige una transacción local pendiente."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/api_oauth.ts",
+          "line": 58,
+          "scope": "exchangeGoogleLoginTicket y hermanos",
+          "description": "Envía únicamente ticket al endpoint de intercambio del proveedor."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/social_auth_service.py",
+          "line": 97,
+          "scope": "consume_social_auth_ticket",
+          "description": "Consume de forma única un ticket vigente del proveedor; no recibe correlación del cliente."
+        },
+        {
+          "kind": "sink",
+          "file": "agritwin-app/src/app/auth/oauth-callback.tsx",
+          "line": 71,
+          "scope": "finishLogin",
+          "description": "Persiste las credenciales retornadas mediante setAuth."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "agritwin-app/src/components/SocialLoginButtons.tsx",
+          "line": 57,
+          "description": "El inicio local construye redirectUri con provider, sin correlación adicional persistida."
+        },
+        {
+          "file": "agritwin-app/src/app/auth/oauth-callback.tsx",
+          "line": 41,
+          "description": "processedTicket impide duplicado inmediato, sin acreditar origen local."
+        },
+        {
+          "file": "backend/services/social_auth_service.py",
+          "line": 102,
+          "description": "El control más fuerte limita ticket, proveedor y vencimiento con DELETE RETURNING."
+        },
+        {
+          "file": "backend/api/v1/google_auth.py",
+          "line": 132,
+          "description": "Existe verificación de state en el callback del proveedor, distinta de vincular la instalación que canjea el ticket."
+        },
+        {
+          "file": "agritwin-app/__tests__/unit/auth/social-oauth-callback.test.tsx",
+          "line": 202,
+          "description": "La prueba de éxito configura directamente los parámetros y espera setAuth; no exige inicio OAuth local."
+        }
+      ],
+      "blockers": [
+        "No se ejecutaron app, pruebas ni emulador; no se ha observado el despacho del esquema ni el resultado de un callback sin inicio local."
+      ],
+      "validation_plan": {
+        "local": "En un fixture offline del componente con exchange/setAuth/router simulados y tickets ficticios, comprobar que ausencia, vencimiento o discordancia de transacción local impidan exchange y setAuth; añadir caso de éxito ligado a una transacción pendiente y consumo único. Verificar el despacho nativo solo con entorno local autorizado, sin proveedor ni credenciales reales."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "agritwin-app/src/services/auth.ts:refreshAuth_late_session_commit",
+      "title": "Una renovación pendiente no se invalida al terminar su sesión",
+      "description": "refreshAuth conserva el refresh token inicial durante la espera y luego escribe la respuesta sobre el estado vigente. clearAuth y setAuth no invalidan esa continuación; una respuesta de A posterior a logout o login B puede restaurar o mezclar credenciales. No se ejecutó la carrera.",
+      "claimed_root_cause": "La renovación carece de generación/identidad capturada que deba seguir vigente antes de guardar tokens o expirar la sesión. El username se lee después de la respuesta, y refreshInFlight es global.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 130,
+          "scope": "refreshAuth",
+          "description": "Lee el refresh token de la sesión iniciadora."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 141,
+          "scope": "refreshAuth",
+          "description": "Espera fetch y response.json sin capturar una generación de sesión."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 246,
+          "scope": "clearAuth",
+          "description": "El logout elimina credenciales y cachés, pero no invalida la renovación en curso."
+        },
+        {
+          "kind": "sink",
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 170,
+          "scope": "refreshAuth",
+          "description": "Guarda access_token y posible refresh_token de la respuesta sobre el almacenamiento actual."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 166,
+          "description": "Se obtiene el username actual después de la respuesta; no se compara con la sesión que aportó refresh_token."
+        },
+        {
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 151,
+          "description": "Una respuesta antigua 401/403 también puede llamar expireSession sobre la sesión actual."
+        },
+        {
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 78,
+          "description": "El control de cambio de usuario limpia caché, pero no vincula renovaciones pendientes."
+        },
+        {
+          "file": "agritwin-app/__tests__/unit/services/auth-refresh.test.ts",
+          "line": 60,
+          "description": "La prueba de renovación es secuencial; no intercala logout ni login de otro username."
+        }
+      ],
+      "blockers": [
+        "No se observó el intercalado refresh A → logout/login B → resolución de A porque no se autoriza ejecutar tests/aplicación."
+      ],
+      "validation_plan": {
+        "local": "Con fetch diferido y SecureStore/localStorage en memoria, iniciar renovación ficticia de A, completar clearAuth y opcionalmente setAuth de B, y resolver éxito o 401 de A. Exigir que no haya escritura, limpieza o navegación atribuida a la sesión antigua. Añadir generación monotónica comprobada antes de cada efecto y repetir el fixture para web/native."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "agritwin-app/src/services/auth.ts:authenticatedFetch_cross_account_retry",
+      "title": "El reintento autenticado no distingue renovación de cambio de cuenta",
+      "description": "Después de un 401, authenticatedFetch puede repetir el mismo input, método y cuerpo con el token almacenado en ese momento aunque pertenezca a B y la operación haya comenzado en A. También sustituye el token del llamante antes del primer envío. No se ha observado una operación cruzada en ejecución.",
+      "claimed_root_cause": "La comparación usa solo desigualdad de token y almacenamiento global; falta ligar la petición/reintento a una identidad y generación estables. La cancelación de queries no gobierna necesariamente las operaciones imperativas de formularios.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "agritwin-app/src/services/api.ts",
+          "line": 596,
+          "scope": "updateField",
+          "description": "Construye una operación de formulario con payload e identificación de campo."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 207,
+          "scope": "authenticatedFetch",
+          "description": "Prefiere el token canónico actual sin comparar principal con el llamante."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 218,
+          "scope": "authenticatedFetch",
+          "description": "Tras el 401 vuelve a leer credenciales globales y trata un token distinto como renovación."
+        },
+        {
+          "kind": "sink",
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 221,
+          "scope": "authenticatedFetch",
+          "description": "Reenvía input e init con el token nuevo sin verificar continuidad de sesión."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 219,
+          "description": "El único criterio de reintento rápido es token actual presente y distinto; no se compara username/generación."
+        },
+        {
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 229,
+          "description": "La alternativa espera una renovación global y reintenta igualmente sin comprobar vigencia de la operación."
+        },
+        {
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 79,
+          "description": "setAuth limpia caché para otro username, pero no invalida las peticiones fetch imperativas."
+        },
+        {
+          "file": "agritwin-app/__tests__/unit/services/auth-refresh.test.ts",
+          "line": 185,
+          "description": "La prueba existente cambia el token conservando farmer; no cubre el cambio de principal."
+        }
+      ],
+      "blockers": [
+        "No se ejecutó el fixture determinista de respuesta 401 de A después de login B; no hay observación de headers ni efecto de recurso cruzado."
+      ],
+      "validation_plan": {
+        "local": "Usar fetch totalmente simulado y cuentas ficticias A/B: pausar la primera respuesta, cambiar la sesión, devolver 401 y exigir que no exista segundo envío bajo B. Cubrir también el cambio durante la espera de refreshInFlight y antes del primer envío. Mantener un control positivo de renovación dentro de la misma generación sin cambiar identidad."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "agritwin-app/src/services/gardenPicker.ts:late_response_current_account_cache_key",
+      "title": "La respuesta del selector puede persistirse con el usuario de finalización",
+      "description": "El selector captura username al iniciar, pero el marcador loadedUsername solo cambia al iniciar otra carga y cacheFields recalcula la clave desde la sesión vigente. Durante un cambio A→B sin una carga B ya iniciada, datos de A pueden superar el marcador antiguo y alcanzar la caché global o la clave persistida de B. No se ejecutó esta ventana.",
+      "claimed_root_cause": "La identidad de la respuesta, el marcador del selector y la clave de persistencia no comparten una generación invalidada por clearAuth/setAuth. El control presente depende de una carga posterior y no del ciclo de vida real de autenticación.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "agritwin-app/src/services/gardenPicker.ts",
+          "line": 103,
+          "scope": "loadGardenPickerFields",
+          "description": "Captura username para cargar la lista."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/gardenPicker.ts",
+          "line": 139,
+          "scope": "loadGardenPickerFields",
+          "description": "Espera getFields; la transición de autenticación no resetea loadedUsername."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/gardenPicker.ts",
+          "line": 142,
+          "scope": "request.then",
+          "description": "Solo descarta si otra carga ya cambió el marcador; luego actualiza estado y lanza cacheFields."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/gardenPicker.ts",
+          "line": 75,
+          "scope": "cacheFields/getCacheKey",
+          "description": "Obtiene de nuevo las credenciales actuales para elegir la clave de persistencia."
+        },
+        {
+          "kind": "sink",
+          "file": "agritwin-app/src/services/gardenPicker.ts",
+          "line": 79,
+          "scope": "cacheFields",
+          "description": "Escribe la lista recibida bajo la clave calculada al finalizar, en localStorage o SecureStore."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "agritwin-app/src/services/gardenPicker.ts",
+          "line": 106,
+          "description": "loadedUsername se actualiza al iniciar una carga de usuario distinto, no al mutar la sesión."
+        },
+        {
+          "file": "agritwin-app/src/services/auth.ts",
+          "line": 246,
+          "description": "clearAuth limpia CurrentField y QueryClient, sin invalidar el estado/promesa del selector."
+        },
+        {
+          "file": "agritwin-app/src/services/gardenPicker.ts",
+          "line": 157,
+          "description": "La misma continuación también escribe explícitamente queryKeys.fields global."
+        },
+        {
+          "file": "agritwin-app/__tests__/unit/services/gardenPicker.test.ts",
+          "line": 217,
+          "description": "El test existente arranca loadB antes de resolver A, cubriendo un intercalado diferente."
+        }
+      ],
+      "blockers": [
+        "No se ejecutaron promesas diferidas para separar el cambio de credenciales del inicio de loadB ni se observaron las claves escritas."
+      ],
+      "validation_plan": {
+        "local": "Con getFields/getAuth/storage simulados y listas ficticias distintas, iniciar A, completar logout y login B sin iniciar loadB, resolver A y exigir ausencia de escrituras/notifications de A. Repetir con carga B iniciada, logout sin login, A→B→A y lectura de caché diferida. Capturar la identidad/generación y clave al inicio e invalidarlas en los cambios de sesión."
+      }
+    }
+  ],
+  "hardening": [
+    "La revisión se realizó únicamente sobre fuente local del commit 5410a38fb8034cafd0374aef65761d8c9b069e21 y fuentes de pruebas; no se ejecutó aplicación, tests, red ni validación de explotación.",
+    "Regresión de persistencia: usar almacenamiento en memoria y reloj falso para programar escritura throttled, clearAuth, restauración tardía y fallo de removeClient; exigir que datos privados de A no se restauren en B. El código actual tiene una clave persistida global y las pruebas solo verifican limpieza inmediata.",
+    "Particionar claves/copia persistida privada por identidad y generación estable refuerza la limpieza existente; evitar usar tokens como claves. Conservar los controles de éxito/meta.persist=false y el borrado en logout.",
+    "Regresión de formulario: al cambiar fieldId o sesión con peticiones/crop rollback pendientes, exigir que el borrador y las continuaciones pertenezcan al mismo campo y generación. mounted/activeFieldId protegen preferencias locales, pero no todas las mutaciones; no se afirma aquí una ganancia de privilegios.",
+    "Conservar fixtures de borrador que acrediten que una revalidación de dispositivos no sobrescribe nombre, geometría, área o unidad que el usuario edita, y añadir cambios rápidos de campo con respuestas reordenadas.",
+    "Regresión de render: comprobar texto literal en nombres, direcciones, errores y notas; serialización segura de mapDocument; rechazo de mensajes no JSON, tipos/rangos inválidos y puntos en readOnly. No se necesita proveedor externo ni payload ejecutable.",
+    "Endurecer checkout con parseo de URL y una política explícita de HTTPS/destinos permitidos antes de location.assign; actualmente la procedencia fuente es session.url del SDK Stripe y no se establece una entrada controlable que demuestre inyección.",
+    "Tratar EXPO_PUBLIC_MAP_TILE_ATTRIBUTION como configuración de compilación confiable o sanearla si en el futuro se vuelve editable por usuarios, porque Leaflet interpreta atribución como HTML; no hay en la unidad una ruta de usuario a esa configuración.",
+    "Conservar la lista exacta de enlaces de atribución, las restricciones del WebView y SRI/CSP; un originWhitelist amplio por sí solo no demuestra evasión de la política onShouldStartLoadWithRequest revisada.",
+    "En setAuth, documentar si refreshToken es obligatorio para una nueva identidad y limpiar el anterior cuando falte; los llamantes de login revisados pasan el par, por lo que la firma opcional se registra como endurecimiento y no como hallazgo."
+  ],
+  "uncovered": []
+}

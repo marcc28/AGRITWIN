@@ -1,0 +1,608 @@
+{
+  "openapi_operation_count": 87,
+  "selected_get_operations": [
+    {
+      "method": "GET",
+      "path": "/api/v1/anunces"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conte_mercat"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fields"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/legal/privacy"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/legal/security"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/user_profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users"
+    },
+    {
+      "method": "GET",
+      "path": "/ping"
+    }
+  ],
+  "observed_endpoints": [
+    {
+      "method": "GET",
+      "path": "/docs",
+      "http_status": 200,
+      "duration_ms": 160,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/ping",
+      "http_status": 200,
+      "duration_ms": 328,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anunces",
+      "http_status": 200,
+      "duration_ms": 1143,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conte_mercat",
+      "http_status": 200,
+      "duration_ms": 1000,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard",
+      "http_status": 401,
+      "duration_ms": 146,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fields",
+      "http_status": 401,
+      "duration_ms": 297,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/legal/privacy",
+      "http_status": 200,
+      "duration_ms": 153,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/legal/security",
+      "http_status": 200,
+      "duration_ms": 157,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me",
+      "http_status": 401,
+      "duration_ms": 161,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/user_profile",
+      "http_status": 200,
+      "duration_ms": 997,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users",
+      "http_status": 200,
+      "duration_ms": 1001,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/ping",
+      "http_status": 200,
+      "duration_ms": 154,
+      "authentication": "anonymous",
+      "scope": "Response status and headers; ownership not verified",
+      "security_headers": {
+        "content-security-policy": null,
+        "x-frame-options": null,
+        "x-content-type-options": null,
+        "strict-transport-security": "max-age=31536000"
+      }
+    }
+  ],
+  "omitted_operations": [
+    {
+      "method": "GET",
+      "path": "/api/v1/",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/anunces",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anunces/count",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anunces/search",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/anunces/{id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/anunces/{id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/callback",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/complete-google-signup",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/conte_mercat",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conte_mercat/count",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conte_mercat/search",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conte_mercat/{conte_mercat_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/crops",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/crops",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/crops/count",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/crops/field-crops",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/crops/field-crops",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/crops/field-crops/count",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/crops/field-crops/{field_crop_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/crops/field-crops/{field_crop_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/crops/field-crops/{field_crop_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/crops/search",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/crops/{crop_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/crops/{crop_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/crops/{crop_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/diagnosis",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/facebook/callback",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/facebook/login",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/field-recommendations",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/field-recommendations",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/field-recommendations/count",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/field-recommendations/{recommendation_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/field-recommendations/{recommendation_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/field-recommendations/{recommendation_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/fields",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/fields/{field_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/fields/{field_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/devices",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/fields/{field_id}/devices/{device_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/fields/{field_id}/devices/{device_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/recommendations",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/fields/{field_id}/recommendations/refresh",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geocode",
+      "reason": "External-provider requests are excluded"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/login",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/me",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/me/email",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/me/password",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/password/forget-password",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/password/reset-password",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/checkout-session",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/payment-sheet",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/refresh",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/reverse-geocode",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/social/google/login",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/social/signup",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/social/{provider}/exchange",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/generate",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/recommendations/{recommendation_id}/seen",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/recommendations/{recommendation_id}/task",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/tasks/{task_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/tasks/{task_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/token",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/user_profile/{user_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/users",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users/{user_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/users/{user_id}",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/weather/fields/{field_id}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/weather/forecast",
+      "reason": "External-provider requests are excluded"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/welcome",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/x/callback",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/x/login",
+      "reason": "Route is not in the approved read-only collection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/x/tweets",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "HEAD",
+      "path": "/ping",
+      "reason": "Write and non-GET operations are outside this review"
+    },
+    {
+      "method": "GET",
+      "path": "/reset-password/{token}",
+      "reason": "Resource identifiers are not guessed on a live deployment"
+    }
+  ],
+  "limitations": [
+    "Authentication is not configured",
+    "Cross-user permissions and MQTT are not tested",
+    "No active scans or write operations",
+    "Deployed revision is not verified against the source commit"
+  ]
+}

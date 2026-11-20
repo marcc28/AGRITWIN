@@ -1,0 +1,491 @@
+{
+  "units": [
+    {
+      "coverage_id": "backend%2Fservices%2Fmqtt_subscriber.py%23on_message::backend%2Fservices%2Fmqtt_subscriber.py%23start_mqtt::iot%2Fmessages::ATTACK-CLASSES.md%23Access%20control",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        "backend/services/mqtt_subscriber.py",
+        "backend/db/database.py",
+        "backend/services/device_status_monitor.py",
+        "iot/firmware/agritwin_esp32/telemetry.cpp",
+        "iot/firmware/agritwin_esp32/config.h",
+        "iot/mqtt_sensor_simulator.py",
+        "backend/db/schema.py",
+        "backend/migrations/migrations.sql",
+        "backend/api/v1/fields.py",
+        "backend/services/dashboard_service.py",
+        "backend/tests/unit/test_mqtt_subscriber.py",
+        "iot/firmware/README.md",
+        "backend/main.py",
+        "backend/Dockerfile",
+        "backend/Dockerfile.lambda"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_iot",
+          "reviewed_paths": [
+            "backend/services/mqtt_subscriber.py",
+            "backend/db/database.py",
+            "backend/services/device_status_monitor.py",
+            "iot/firmware/agritwin_esp32/telemetry.cpp",
+            "iot/firmware/agritwin_esp32/config.h",
+            "iot/mqtt_sensor_simulator.py",
+            "backend/db/schema.py",
+            "backend/migrations/migrations.sql",
+            "backend/api/v1/fields.py",
+            "backend/services/dashboard_service.py",
+            "backend/tests/unit/test_mqtt_subscriber.py",
+            "iot/firmware/README.md",
+            "backend/main.py",
+            "backend/Dockerfile",
+            "backend/Dockerfile.lambda"
+          ],
+          "invariant": "Only the authenticated registered device producer may insert its telemetry or affect its online status.",
+          "method": "source",
+          "result": "Current source subscribes across fields and does not bind publisher/topic to payload.device_id. The Supabase insertion and online-status branches select that claimed id. Registration ownership, FK constraints, registered-only status iteration and owner-scoped dashboard selection are real controls on other boundaries; none authenticates MQTT origin. HTTP CMDs do not start this separate listener. Broker ACL/RLS/activation and successful dummy mutation remain unresolved. Firmware and simulator construct consistent normal payloads; no source-defined authenticated envelope was found.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "backend/services/mqtt_subscriber.py:on_message:unbound-device-authority"
+      ],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "backend%2Fservices%2Fmqtt_subscriber.py%23telemetry::backend%2Fdb%2Fdatabase.py%23save_telemetry::iot%2Ftelemetry::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        "backend/services/mqtt_subscriber.py",
+        "backend/db/database.py",
+        "backend/services/device_status_monitor.py",
+        "backend/db/schema.py",
+        "backend/services/dashboard_service.py",
+        "backend/tests/unit/test_mqtt_subscriber.py",
+        "backend/tests/unit/test_device_status_monitor.py",
+        "backend/uv.lock"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_iot",
+          "reviewed_paths": [
+            "backend/services/mqtt_subscriber.py",
+            "backend/db/database.py",
+            "backend/services/device_status_monitor.py",
+            "backend/db/schema.py",
+            "backend/services/dashboard_service.py",
+            "backend/tests/unit/test_mqtt_subscriber.py",
+            "backend/tests/unit/test_device_status_monitor.py",
+            "backend/uv.lock"
+          ],
+          "invariant": "One malformed or unregistered message must not escape into shared listener control flow or cause indefinite unregistered identity retention.",
+          "method": "source",
+          "result": "Source handles JSONDecodeError and persistence exceptions, but strict UTF-8 errors and monitor unhashable-key errors are outside containment. The registered-only periodic status loop catches its own failures, yet unknown string ids can accumulate in _last_seen because insertion failure does not gate register_message and no code prunes that map. A timeout changes status only. Dashboard reads are owner filtered with a 50-entry result cap. No local retention/failure fixture or consumer-loop effect was executed; locked Paho is 2.1.0, while a different cached 2.2.0 was not treated as locked-version evidence.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "backend/services/mqtt_subscriber.py:on_message:uncontained-message-errors",
+        "backend/services/device_status_monitor.py:register_message:unbounded-identity-retention"
+      ],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "iot%2Ffirmware%2Fagritwin_esp32%2Fprovisioning.cpp%23BLE::iot%2Ffirmware%2Fagritwin_esp32%2Fprovisioning.cpp%23provisioningBegin::iot%2Fprovisioning::ATTACK-CLASSES.md%23Cryptography%20and%20secrets",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        "agritwin-app/src/services/bleProvisioning.ts",
+        "agritwin-app/src/hooks/use-ble-provisioning.ts",
+        "iot/firmware/agritwin_esp32/provisioning.cpp",
+        "iot/firmware/agritwin_esp32/settings.cpp",
+        "iot/firmware/agritwin_esp32/agritwin_esp32.ino",
+        "iot/firmware/agritwin_esp32/config.h",
+        "iot/firmware/tools/provision_ble.py",
+        "agritwin-app/src/hooks/use-device-setup.ts",
+        "agritwin-app/src/app/add-device.tsx",
+        "agritwin-app/src/services/bleManager.ts",
+        "agritwin-app/src/services/blePermissions.ts",
+        "agritwin-app/src/components/device-setup/ScanSteps.tsx",
+        "agritwin-app/src/components/device-setup/DeviceSetupScreen.tsx",
+        "agritwin-app/__tests__/unit/helpers/fakeBleManager.ts",
+        "agritwin-app/__tests__/unit/services/bleProvisioning.test.ts",
+        "agritwin-app/app.json"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_iot",
+          "reviewed_paths": [
+            "agritwin-app/src/services/bleProvisioning.ts",
+            "agritwin-app/src/hooks/use-ble-provisioning.ts",
+            "iot/firmware/agritwin_esp32/provisioning.cpp",
+            "iot/firmware/agritwin_esp32/settings.cpp",
+            "iot/firmware/agritwin_esp32/agritwin_esp32.ino",
+            "iot/firmware/agritwin_esp32/config.h",
+            "iot/firmware/tools/provision_ble.py",
+            "agritwin-app/src/hooks/use-device-setup.ts",
+            "agritwin-app/src/app/add-device.tsx",
+            "agritwin-app/src/services/bleManager.ts",
+            "agritwin-app/src/services/blePermissions.ts",
+            "agritwin-app/src/components/device-setup/ScanSteps.tsx",
+            "agritwin-app/src/components/device-setup/DeviceSetupScreen.tsx",
+            "agritwin-app/__tests__/unit/helpers/fakeBleManager.ts",
+            "agritwin-app/__tests__/unit/services/bleProvisioning.test.ts",
+            "agritwin-app/app.json"
+          ],
+          "invariant": "Wi-Fi credentials must be released only to the intended authenticated physical board, with setup/normal-mode and user-consent boundaries preserved.",
+          "method": "source",
+          "result": "The real Add device route re-exports useBleProvisioning. Mobile requires Bluetooth permission and explicit board selection, validates INFO structure, then writes password before HTTP registration. No independent recipient proof is present. The companion tester selects the first UUID/name-matching board and follows the same release order. Firmware password is write-only and not logged; boot with valid settings avoids BLE and physical BOOT hold resets settings. These limit exposure but do not authenticate an impostor recipient. Effective pairing, firmware and any physical/out-of-band procedure are unknown; no native fixture was executed.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "agritwin-app/src/services/bleProvisioning.ts:sendWifiSettings:unverified-credential-recipient"
+      ],
+      "unresolved": []
+    }
+  ],
+  "candidates": [
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/services/mqtt_subscriber.py:on_message:unbound-device-authority",
+      "title": "MQTT payload identity can select another device’s telemetry and online status",
+      "description": "A publisher admitted to the subscribed MQTT namespace can name an existing device belonging to another farmer. The consumer uses that claimed identifier for privileged telemetry insertion and for the online-status calculation without authenticating the device or binding it to the topic. Actual publisher admission and successful persistence remain unverified.",
+      "claimed_root_cause": "The consumer treats payload.device_id as authoritative, independently of MQTT publisher identity or the field topic. HTTP ownership checks and the telemetry foreign key establish registration/ownership for other paths but do not prove message origin.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 24,
+          "scope": "on_connect",
+          "description": "Subscribes to agritwin/sensors/#, spanning all field topics."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 34,
+          "scope": "on_message",
+          "description": "Decodes JSON; msg.topic is logged but does not authorize the body device identifier."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 42,
+          "scope": "on_message",
+          "description": "Passes the publisher-controlled body directly to save_telemetry."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/db/database.py",
+          "line": 86,
+          "scope": "save_telemetry",
+          "description": "Copies device_id and sensor values into a telemetry row without a principal-to-device check."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/db/database.py",
+          "line": 101,
+          "scope": "save_telemetry",
+          "description": "Inserts that row using the configured Supabase client; a second source-visible branch can update the selected registered device’s online status."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/db/database.py",
+          "line": 67,
+          "description": "The telemetry client uses SUPABASE_URL and SUPABASE_SECRET_KEY, rather than an identity supplied by the MQTT publisher."
+        },
+        {
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 65,
+          "description": "The listener creates a client and connects at line 74 without source-visible TLS or username/password setup. Broker-side policy is not established."
+        },
+        {
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 47,
+          "description": "The same unverified device_id is registered with the monitor even when persistence returned without success."
+        },
+        {
+          "file": "backend/services/device_status_monitor.py",
+          "line": 79,
+          "description": "The monitor restricts actual status updates to database-registered devices and compares their recent-message state."
+        },
+        {
+          "file": "backend/db/database.py",
+          "line": 115,
+          "description": "Status mutation selects the devices row solely by id."
+        },
+        {
+          "file": "backend/db/schema.py",
+          "line": 376,
+          "description": "Telemetry has a foreign key to devices.id; it can reject an unknown device but does not authenticate a publisher claiming an existing id."
+        },
+        {
+          "file": "backend/api/v1/fields.py",
+          "line": 366,
+          "description": "HTTP registration separately verifies the account owns the target field; this control is not invoked by MQTT."
+        },
+        {
+          "file": "iot/firmware/agritwin_esp32/telemetry.cpp",
+          "line": 67,
+          "description": "Firmware supplies deviceId as MQTT client id and publishes field topic at lines 80/91; consumer does not bind either to a trusted publisher."
+        }
+      ],
+      "blockers": [
+        "No local dummy publisher/consumer/database result was executed because the required OS-enforced sandbox is not established.",
+        "The listener’s actual activation, broker ACLs and publisher restrictions, effective Supabase permissions/policies, and device registration in that persistence path are unobserved. The HTTP image alone does not establish MQTT reachability.",
+        "Whether the HTTP dashboard reads the same telemetry store is deployment-dependent; no cross-store readback is claimed."
+      ],
+      "validation_plan": {
+        "local": "In the approved isolated sandbox, mock the transport and Supabase with two dummy registered devices owned by distinct dummy principals. Feed one message admitted under dummy A’s topic but naming dummy B. Inspect only the attempted insert and B’s mock online-status update. Bind the authorized producer/topic to the registered device and assert both operations are denied for the mismatch.",
+        "deployment": "An owner should inspect the deployed listener command/revision, broker authentication and per-device publish ACLs, and effective database policies. Establish whether an untrusted publisher can reach this consumer and whether claimed identifiers are independently constrained; do not send audit messages to the shared broker."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/services/mqtt_subscriber.py:on_message:uncontained-message-errors",
+      "title": "Malformed message errors can escape the shared MQTT callback",
+      "description": "A publisher whose message reaches the consumer can supply invalid UTF-8 or a JSON object with an unhashable device_id. These paths raise outside the callback’s sole JSONDecodeError handler. A stop of the shared telemetry loop is conditional on the locked Paho callback handling and supervisor behavior, neither reproduced here.",
+      "claimed_root_cause": "The callback validates JSON syntax only. UTF-8 decoding and monitor registration may fail with other exception types, and start_mqtt_listener has no surrounding recovery boundary.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 30,
+          "scope": "on_message",
+          "description": "Receives a broker message under the shared subscribed namespace."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 34,
+          "scope": "on_message",
+          "description": "Strict UTF-8 decoding precedes JSON parsing and can raise UnicodeDecodeError."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 47,
+          "scope": "on_message",
+          "description": "For dictionary payloads, forwards device_id without checking its scalar type."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/device_status_monitor.py",
+          "line": 53,
+          "scope": "register_message",
+          "description": "Uses a truthy device_id as a dictionary key; a nonempty JSON list/dictionary is unhashable."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 49,
+          "scope": "on_message exception boundary",
+          "description": "Catches JSONDecodeError only; the other exception types can escape into the MQTT network-loop caller."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 77,
+          "description": "The listener runs loop_forever without a surrounding try/restart boundary and does not set callback exception suppression in this module."
+        },
+        {
+          "file": "backend/db/database.py",
+          "line": 104,
+          "description": "save_telemetry catches its own exceptions; this does not contain an earlier decode error or the later monitor error."
+        },
+        {
+          "file": "backend/services/device_status_monitor.py",
+          "line": 94,
+          "description": "The background check thread contains its own exceptions, but register_message is called synchronously in the separate MQTT callback path."
+        },
+        {
+          "file": "backend/tests/unit/test_mqtt_subscriber.py",
+          "line": 90,
+          "description": "Existing callback tests cover syntactically invalid JSON and non-object payloads, not invalid UTF-8 or an unhashable device_id."
+        },
+        {
+          "file": "backend/uv.lock",
+          "line": 1675,
+          "description": "The source lock selects paho-mqtt 2.1.0; this exact consumer-loop behavior was not executed."
+        }
+      ],
+      "blockers": [
+        "The bounded malformed-message checks and exact locked Paho 2.1.0 loop effect were not executed because the required sandbox is unavailable. A cached local Paho 2.2.0 source is not evidence for the locked version.",
+        "Actual listener exposure, broker filtering, process isolation and supervisor restart behavior remain unobserved. No claim is made that the FastAPI process stops."
+      ],
+      "validation_plan": {
+        "local": "Under the approved sandbox, replace persistence and broker I/O with dummy functions, then deliver one invalid UTF-8 byte sequence and separately one small object with a nonempty list as device_id through the locked callback/loop adapter. Record the exception boundary and whether a subsequent valid dummy message is handled. Stop after that result; reject malformed shapes and contain per-message failures without concealing infrastructure failures.",
+        "deployment": "An owner should inspect the actual listener’s deployment, broker message validation, supervisor/restart configuration and its isolation from the HTTP service. These observations determine the scope and duration of any telemetry interruption."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/services/device_status_monitor.py:register_message:unbounded-identity-retention",
+      "title": "Unregistered MQTT identities can remain in the monitor indefinitely",
+      "description": "Messages naming distinct nonempty string device IDs add permanent entries to the process-wide last-seen map, including when the database rejects the telemetry. The periodic check visits registered database devices but never removes map entries. Persistent memory growth is source-grounded; meaningful shared-service impact and effective admission bounds need validation.",
+      "claimed_root_cause": "The monitor admits any truthy hashable identifier before proving registration and has no TTL pruning or cardinality cap. Persistence failure does not gate this bookkeeping.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 34,
+          "scope": "on_message",
+          "description": "Accepts JSON supplied by a publisher admitted to the shared topic namespace."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 42,
+          "scope": "on_message",
+          "description": "Attempts persistence; save_telemetry returns without a success signal even after a rejected insert."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/mqtt_subscriber.py",
+          "line": 47,
+          "scope": "on_message",
+          "description": "Calls register_message on the body device_id regardless of persistence success."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/services/device_status_monitor.py",
+          "line": 53,
+          "scope": "register_message",
+          "description": "Adds a distinct identifier and timestamp to the shared _last_seen dictionary with no registration or cardinality check."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/db/database.py",
+          "line": 104,
+          "description": "Database insertion errors are caught and logged, allowing callback execution to continue to the monitor."
+        },
+        {
+          "file": "backend/services/device_status_monitor.py",
+          "line": 43,
+          "description": "The identity-to-timestamp dictionary is owned for the lifetime of the monitor."
+        },
+        {
+          "file": "backend/services/device_status_monitor.py",
+          "line": 79,
+          "description": "check_devices iterates database-registered devices; it does not delete expired, unknown or removed entries from _last_seen."
+        },
+        {
+          "file": "backend/services/device_status_monitor.py",
+          "line": 68,
+          "description": "Timeout affects the online decision only; it is not data-retention expiry."
+        },
+        {
+          "file": "backend/tests/unit/test_device_status_monitor.py",
+          "line": 110,
+          "description": "Tests check empty identifiers but do not assert pruning or rejection of unknown identifiers."
+        }
+      ],
+      "blockers": [
+        "No small retention/cleanup fixture was run because the full execution sandbox is not established.",
+        "Actual untrusted publisher admission, effective broker per-producer quotas, listener process lifetime/memory limits and restart policy are unobserved; service exhaustion is not an observed result."
+      ],
+      "validation_plan": {
+        "local": "In the approved isolated fixture with a fake clock, a tiny dummy registered-device set and mocked rejected inserts, deliver two or three distinct short unknown IDs. Advance beyond the offline timeout and run one check. Inspect retained cardinality without generating load. The regression should reject unknown identifiers and remove expired/removed-device entries according to a bounded retention policy.",
+        "deployment": "An owner should inspect broker publish admission/rate limits and the listener’s process memory/lifetime limits. Determine whether untrusted identities can accumulate across the normal process lifetime without a cap or reset."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "agritwin-app/src/services/bleProvisioning.ts:sendWifiSettings:unverified-credential-recipient",
+      "title": "Provisioning releases Wi-Fi credentials to a self-identified BLE peer",
+      "description": "A nearby peripheral advertising the public service and supplying syntactically valid INFO can enter the mobile provisioning flow when selected by the farmer. The app writes the Wi-Fi password before backend registration and without an independent proof of device identity. The companion tester automatically chooses the first matching peripheral. This is a conditional recipient-authentication disclosure path, not proof of passive interception.",
+      "claimed_root_cause": "Discovery names/UUID and self-reported INFO are accepted as sufficient recipient identity before a network secret is released. Bluetooth permission, user selection and later HTTP ownership checks do not independently authenticate that recipient.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "agritwin-app/src/services/bleProvisioning.ts",
+          "line": 198,
+          "scope": "scanForBoards",
+          "description": "Discovers peripherals advertising the public service UUID and uses their advertised names."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/hooks/use-ble-provisioning.ts",
+          "line": 168,
+          "scope": "selectBoard",
+          "description": "Connects to the user-selected advertised peer and reads its INFO."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/services/bleProvisioning.ts",
+          "line": 236,
+          "scope": "parseBoardInfo",
+          "description": "Accepts nonempty self-reported device_id and serial strings without an independently trusted certificate, secret or challenge."
+        },
+        {
+          "kind": "propagation",
+          "file": "agritwin-app/src/hooks/use-ble-provisioning.ts",
+          "line": 218,
+          "scope": "submitWifi",
+          "description": "Passes the farmer’s entered Wi-Fi password to the selected peer before registerBoard."
+        },
+        {
+          "kind": "sink",
+          "file": "agritwin-app/src/services/bleProvisioning.ts",
+          "line": 377,
+          "scope": "sendWifiSettings",
+          "description": "Writes settings.password to the peer’s password characteristic."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "agritwin-app/src/components/device-setup/ScanSteps.tsx",
+          "line": 49,
+          "description": "Mobile selection displays peripheral-provided board names and requires a user tap."
+        },
+        {
+          "file": "agritwin-app/src/services/blePermissions.ts",
+          "line": 28,
+          "description": "Runtime Bluetooth permission authorizes app access to the transport, not the identity of a particular peripheral."
+        },
+        {
+          "file": "agritwin-app/src/hooks/use-ble-provisioning.ts",
+          "line": 228,
+          "description": "The connection is closed and backend registration begins only after credential transfer."
+        },
+        {
+          "file": "iot/firmware/agritwin_esp32/provisioning.cpp",
+          "line": 215,
+          "description": "Firmware declares INFO READ and password WRITE characteristics; provisioningBegin shows no explicit authenticated identity protocol."
+        },
+        {
+          "file": "iot/firmware/agritwin_esp32/agritwin_esp32.ino",
+          "line": 72,
+          "description": "A configured genuine board boots normal telemetry mode rather than BLE setup, limiting the genuine-board exposure window."
+        },
+        {
+          "file": "iot/firmware/tools/provision_ble.py",
+          "line": 57,
+          "description": "The tester chooses devices[0], including a name-prefix fallback at line 51, and writes the Wi-Fi password at line 81 without recipient proof."
+        },
+        {
+          "file": "agritwin-app/src/components/device-setup/DeviceSetupScreen.tsx",
+          "line": 26,
+          "description": "Mobile Wi-Fi credentials stay in component memory and the password is cleared on success; persistent mobile password storage is not demonstrated."
+        }
+      ],
+      "blockers": [
+        "No bounded fake-peripheral/native-transport fixture executed because the required OS-enforced sandbox is not established.",
+        "Final native packaging, operating-system pairing behavior, shipped firmware and any physical/out-of-band identity verification procedure are unobserved."
+      ],
+      "validation_plan": {
+        "local": "Extend the existing fake BLE manager in the approved isolated sandbox with an unrelated identity that advertises the expected UUID and supplies valid INFO. Explicitly select it in the mobile fixture and use a dummy Wi-Fi password only; record whether the password write precedes authenticated recipient proof. Separately mock the tester’s discovery with two dummy peers and inspect which receives that dummy value. Never scan real devices.",
+        "deployment": "An owner should inspect shipped pairing/bonding policy, firmware configuration and provisioning instructions for an authenticated out-of-band identity or proof-of-possession check before releasing Wi-Fi credentials. User-visible names and public UUIDs alone are not such proof."
+      }
+    }
+  ],
+  "hardening": [
+    "Require an authenticated per-device message principal and bind it to the registered device/topic before telemetry or status mutation; use broker ACLs plus a source-visible consumer invariant.",
+    "Validate MQTT payload byte size, object shape, scalar identifiers, sensor ranges and timestamp freshness before persistence or monitoring. Add bounded malformed-message and replay/identity-mismatch cases with dummy data.",
+    "Keep the monitor’s state limited to registered devices and prune expired/removed identities; a foreign-key rejection must not create unrelated retained bookkeeping.",
+    "Provisioning should prove the intended board’s identity before credential release, for example with a device-bound setup secret or verified out-of-band identity. Preserve explicit mobile selection and remove automatic first-peer selection in the tester.",
+    "Physical flash/NVS encryption and release pairing settings are owner-verification/hardening topics; source alone does not demonstrate extraction of stored Wi-Fi credentials."
+  ],
+  "uncovered": []
+}

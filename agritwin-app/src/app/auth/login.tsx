@@ -28,6 +28,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
   async function handleLogin() {
     setErrorMessage('');
@@ -53,10 +54,13 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       setLoginLoading(true);
+      setLoadingProgress(0.1);
 
       const data = await login(trimmedUsername, trimmedPassword);
 
+      setLoadingProgress(0.55);
       await setAuth(trimmedUsername, data.access_token, data.refresh_token);
+      setLoadingProgress(0.75);
 
       await routeAfterAuth();
     } catch (error) {
@@ -93,7 +97,12 @@ export default function LoginScreen() {
   }
 
   if (loginLoading) {
-    return <AgritwinLoadingScreen label={t('login.loggingIn')} />;
+    return (
+      <AgritwinLoadingScreen
+        label={t('login.loggingIn')}
+        progress={loadingProgress}
+      />
+    );
   }
 
   return (

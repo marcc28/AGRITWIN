@@ -1,0 +1,15 @@
+[
+  {
+    "surface": "backend/api/v1/content_market.py#localized-public-reads",
+    "boundary": "backend/services/translation_service.py#translate",
+    "subsystem": "backend/market-translation",
+    "attack_class": "Business logic",
+    "starting_paths": [
+      "backend/api/v1/content_market.py",
+      "backend/services/translation_service.py",
+      "backend/services/ai_dependencies.py",
+      "backend/services/rate_limit.py"
+    ],
+    "reason": "Localized public GETs were added since 4e8be50 and cross anonymous caller to provider-spend authority. Source trace is tracked under provider-work but its entry/admission differs from the cron-secret task boundary; candidate backend/market/anonymous-translation-budget needs an explicit unit."
+  }
+]

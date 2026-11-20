@@ -1,9 +1,10 @@
 import React from 'react';
 import {
   act,
-  cleanup,
+  cleanupAsync,
   fireEvent,
   render,
+  renderAsync,
   waitFor,
 } from '@testing-library/react-native';
 import { Animated, Platform } from 'react-native';
@@ -121,10 +122,36 @@ describe('MarketScreen', () => {
     );
   });
 
-  afterEach(() => {
-    cleanup();
+  afterEach(async () => {
+    await cleanupAsync();
     animationSpy.mockRestore();
     jest.restoreAllMocks();
+  });
+
+  it('restores the market search after opening a product and remounting', async () => {
+    (searchMarketProducts as jest.Mock).mockResolvedValue([mockProducts[1]]);
+    const screen = await renderAsync(<MarketScreen />);
+    await waitFor(() =>
+      expect(screen.getByTestId('product-item-1')).toBeTruthy(),
+    );
+    fireEvent.changeText(searchInput(screen), 'Producte 2');
+    await waitFor(() =>
+      expect(searchMarketProducts).toHaveBeenCalledWith('Producte 2', 'ca'),
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId('product-item-1')).toBeNull(),
+    );
+    expect(screen.getByTestId('product-item-2')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('product-item-2'));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/product/[id]',
+      params: { id: '2' },
+    });
+    await screen.unmountAsync();
+    const restored = await renderAsync(<MarketScreen />);
+    expect(searchInput(restored).props.value).toBe('Producte 2');
+    expect(restored.getByTestId('product-item-2')).toBeTruthy();
+    await restored.unmountAsync();
   });
 
   // --------------------------------------------------

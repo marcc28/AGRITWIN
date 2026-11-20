@@ -1,0 +1,746 @@
+{
+  "units": [
+    {
+      "coverage_id": "backend%2Fapi%2Fv1%2Fauth.py%23identity-lifecycle::backend%2Fapi%2Fv1%2Fauth.py%23get_current_user::backend%2Fauth::ATTACK-CLASSES.md%23Access%20control",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        "backend/api/v1/auth.py",
+        "backend/api/v1/forgot_password.py",
+        "backend/services/password_service.py",
+        "backend/services/user_service.py",
+        "backend/models/user.py",
+        "backend/db/schema.py",
+        "backend/services/social_auth_service.py",
+        "backend/api/v1/google_auth.py",
+        "backend/api/v1/fb_auth.py",
+        "backend/api/v1/xauth.py",
+        "backend/services/google_auth_service.py",
+        "backend/services/fb_auth_service.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/auth.py",
+            "backend/api/v1/forgot_password.py",
+            "backend/services/password_service.py",
+            "backend/services/user_service.py",
+            "backend/models/user.py",
+            "backend/db/schema.py",
+            "backend/services/social_auth_service.py",
+            "backend/api/v1/google_auth.py",
+            "backend/api/v1/fb_auth.py",
+            "backend/api/v1/xauth.py",
+            "backend/services/google_auth_service.py",
+            "backend/services/fb_auth_service.py"
+          ],
+          "invariant": "Access artifacts must retain purpose and principal namespace across lifecycle.",
+          "method": "source",
+          "result": "Signature uses a fixed HS256 key; refresh consumer checks type, reset consumer checks purpose and atomically consumes jti, social identities use provider+subject and reject email auto-linking. Bearer get_current_user instead accepts any same-key JWT with sub and interprets it as username; complete reset-email collision trace retained as candidate.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "backend/auth/reset-jwt-as-bearer"
+      ],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "backend%2Fapi%2Fv1%2Fcontent_market.py%23uploads::backend%2Fservices%2Fsupabase_storage_service.py%23uploads::backend%2Fuploads::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+      "disposition": "blocked",
+      "reviewed_paths": [
+        "backend/api/v1/content_market.py",
+        "backend/api/v1/anunces.py",
+        "backend/api/v1/diagnosis.py",
+        "backend/services/supabase_storage_service.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/content_market.py",
+            "backend/api/v1/anunces.py",
+            "backend/api/v1/diagnosis.py",
+            "backend/services/supabase_storage_service.py"
+          ],
+          "invariant": "File bytes and storage authority must have effective size/type/admission bounds.",
+          "method": "source",
+          "result": "Diagnosis reads MAX_IMAGE_BYTES+1 and calls validate_image. Market/news upload uses a MIME allowlist and UUID-generated bucket paths, but reads the whole file; caller-provided filename does not choose their path. Public market creation has no account dependency; news creation has an IP limiter. No executing renderer/path traversal or bounded cross-user resource result was established.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": [
+        "Effective multipart/ingress and bucket byte/storage limits, signature validation behavior and a bounded fake-upload fixture were not established; no availability or storage-cost conclusion is made."
+      ]
+    },
+    {
+      "coverage_id": "backend%2Fapi%2Fv1%2Ffield_recommendations.py%23translation::backend%2Fservices%2Ftranslation_service.py%23translate::backend%2Fai-output::ATTACK-CLASSES.md%23Injection",
+      "disposition": "covered",
+      "reviewed_paths": [
+        "backend/api/v1/field_recommendations.py",
+        "backend/services/field_recommendations_service.py",
+        "backend/services/translation_service.py",
+        "backend/services/ai_dependencies.py",
+        "backend/api/v1/content_market.py",
+        "backend/prompts/field_recommendation_translation_prompt.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/field_recommendations.py",
+            "backend/services/field_recommendations_service.py",
+            "backend/services/translation_service.py",
+            "backend/services/ai_dependencies.py",
+            "backend/api/v1/content_market.py",
+            "backend/prompts/field_recommendation_translation_prompt.py"
+          ],
+          "invariant": "Untrusted translated JSON must not gain resource or execution authority.",
+          "method": "source",
+          "result": "Changed recommendation translation takes only owner-selected records and returns validated text/based_on while copying ids, field_id, category, severity, model and timestamps from source records. Market translation accepts only matching list length with nonempty product strings and preserves price/id using ConteMercatRead; malformed output falls back. Language input is syntactically bounded; JSON output is parsed, not executed, and no tool/command sink exists in these backend paths. Provider admission is tracked separately in the provider-work unit.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "backend%2Fapi%2Fv1%2Ffields.py%23field-writes::backend%2Fapi%2Fv1%2Ffields.py%23owner-update::backend%2Fagricultural-data::ATTACK-CLASSES.md%23Access%20control",
+      "disposition": "blocked",
+      "reviewed_paths": [
+        "backend/api/v1/fields.py",
+        "backend/services/field_geometry_service.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/fields.py",
+            "backend/services/field_geometry_service.py"
+          ],
+          "invariant": "Field writes must preserve authenticated ownership and validate bounded geometry.",
+          "method": "source",
+          "result": "Creation inserts current_user.id; detail/device queries use owner predicates. Geometry code enforces 3\u2013200 points per ring, at most 20 exclusions and 1000 total corners before hole intersection work; finite coordinates, self-intersection and area controls are present. No caller-supplied user_id is used by creation.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": [
+        "The final field update/delete body paths were not completely traced in this bounded wave and require a follow-up source check before this unit can close."
+      ]
+    },
+    {
+      "coverage_id": "backend%2Fapi%2Fv1%2Ffields.py%23geocode_location::backend%2Fservices%2Fgeocode_service.py%23_request::backend%2Fgeocoding-work::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+      "disposition": "blocked",
+      "reviewed_paths": [
+        "backend/api/v1/fields.py",
+        "backend/services/geocode_service.py",
+        "backend/services/rate_limit.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/fields.py",
+            "backend/services/geocode_service.py",
+            "backend/services/rate_limit.py"
+          ],
+          "invariant": "One caller must not retain unrelated shared workers beyond effective admission/deadlines.",
+          "method": "source",
+          "result": "Both routes require get_current_user and use run_in_threadpool. The global lock surrounds cache lookup, pacing sleep and urlopen/read; URLs are operator-selected and query values encoded, cache cardinality is capped at 512 and upstream calls use timeout=8. Reverse fallback re-enters the same pacing system. No SSRF to a caller-selected destination or observed shared worker denial was established.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": [
+        "Threadpool capacity/admission, cancellation behavior, effective ingress limits and a bounded two-principal delayed-upstream fixture were not validated; the earlier starvation lead is not confirmed."
+      ]
+    },
+    {
+      "coverage_id": "backend%2Fapi%2Fv1%2Fpayments.py%23payment-initiation::backend%2Fservices%2Fpayment_service.py%23price::backend%2Fpayments::ATTACK-CLASSES.md%23Business%20logic",
+      "disposition": "covered",
+      "reviewed_paths": [
+        "backend/api/v1/payments.py",
+        "backend/models/payments.py",
+        "backend/services/payment_service.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/payments.py",
+            "backend/models/payments.py",
+            "backend/services/payment_service.py"
+          ],
+          "invariant": "Checkout amount must come from server product price and validated positive quantity.",
+          "method": "source",
+          "result": "Both interfaces accept product UUID and positive Decimal quantity, look up server product.price and calculate finite positive integer cents with ROUND_HALF_UP. Client cannot submit price/amount or return URLs; those URLs are operator environment. Provider exceptions are normalized. Anonymous initiation alone does not prove unauthorized purchase/fulfillment or underpayment; no fulfillment grant path was established.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "backend%2Fapi%2Fv1%2Fweather.py%23forecast::backend%2Fservices%2Fweather_service.py%23_request::backend%2Fweather-provider-work::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+      "disposition": "covered",
+      "reviewed_paths": [
+        "backend/api/v1/weather.py",
+        "backend/services/weather_service.py",
+        "backend/services/fallback_weather_service.py",
+        "backend/services/open_meteo_service.py",
+        "backend/services/field_weather_service.py",
+        "backend/services/city_search.py",
+        "backend/services/rate_limit.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/weather.py",
+            "backend/services/weather_service.py",
+            "backend/services/fallback_weather_service.py",
+            "backend/services/open_meteo_service.py",
+            "backend/services/field_weather_service.py",
+            "backend/services/city_search.py",
+            "backend/services/rate_limit.py"
+          ],
+          "invariant": "Outbound weather work must use bounded retries, known destinations and owner scope for private fields.",
+          "method": "source",
+          "result": "Forecast inputs restrict coordinates, days, units and city/language shape; provider URLs are fixed. Primary calls have a ten-second timeout and at most two attempts, 429 fails to bounded fallback, Open-Meteo performs one bounded call per requested operation. Field weather passes current username and checks ownership before using the cache; cache considers language/units/location. No unbounded retry or input-controlled destination was found. General public-provider budgeting remains hardening, not demonstrated abuse.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "backend%2Fmain.py%23owned-api::backend%2Fapi%2Fv1%2Ffields.py%23_require_owned_field::backend%2Fagricultural-data::ATTACK-CLASSES.md%23Access%20control",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        "backend/api/v1/fields.py",
+        "backend/api/v1/crops_field.py",
+        "backend/services/field_crops_service.py",
+        "backend/api/v1/crops.py",
+        "backend/services/crops_service.py",
+        "backend/api/v1/field_recommendations.py",
+        "backend/services/field_recommendations_service.py",
+        "backend/api/v1/tasks.py",
+        "backend/services/task_service.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/fields.py",
+            "backend/api/v1/crops_field.py",
+            "backend/services/field_crops_service.py",
+            "backend/api/v1/crops.py",
+            "backend/services/crops_service.py",
+            "backend/api/v1/field_recommendations.py",
+            "backend/services/field_recommendations_service.py",
+            "backend/api/v1/tasks.py",
+            "backend/services/task_service.py"
+          ],
+          "invariant": "Object access must bind the current owner while shared catalog writes require appropriate authority.",
+          "method": "source",
+          "result": "Field/device reads and device writes verify parent field ownership. FieldCrop list/count/detail join Field.user_id; creation and field transfer check target ownership. Recommendations verify the selected field and join ownership on list/detail/update/delete, disallowing field reassignment; nearby-context queries restrict same-user fields. Tasks verify owned field before task/recommendation selectors. Shared Crop PATCH instead gates only on authentication and affects globally referenced catalog data; policy-dependent candidate retained.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "backend/crops/shared-catalog-write-authority"
+      ],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "backend%2Fmain.py%23provider-work::backend%2Fapi%2Fv1%2Ftasks.py%23verify_cron_secret::backend%2Fprovider-work::ATTACK-CLASSES.md%23Business%20logic",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        "backend/api/v1/fields.py",
+        "backend/api/v1/tasks.py",
+        "backend/services/task_service.py",
+        "backend/services/rate_limit.py",
+        "backend/api/v1/field_recommendations.py",
+        "backend/api/v1/diagnosis.py",
+        "backend/api/v1/content_market.py",
+        "backend/services/translation_service.py",
+        "backend/services/ai_dependencies.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/api/v1/fields.py",
+            "backend/api/v1/tasks.py",
+            "backend/services/task_service.py",
+            "backend/services/rate_limit.py",
+            "backend/api/v1/field_recommendations.py",
+            "backend/api/v1/diagnosis.py",
+            "backend/api/v1/content_market.py",
+            "backend/services/translation_service.py",
+            "backend/services/ai_dependencies.py"
+          ],
+          "invariant": "Provider authority must charge work against the requester scope before scheduling or inference.",
+          "method": "source",
+          "result": "Task cron uses nonempty compare_digest secret, concurrency=3 and an atomic field claim/retry window. Those controls do not aggregate by the account that can create multiple eligible fields and cause lazy or scheduled work. Newly localized public market GETs also invoke translation before search results without the AI route limiter; bounded term/tag/output limits do not admit or meter callers. Each path remains conditional on effective entitlements/provider configuration.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "backend/tasks/aggregate-inference-budget",
+        "backend/market/anonymous-translation-budget"
+      ],
+      "unresolved": []
+    },
+    {
+      "coverage_id": "backend%2Fmain.py%23public-api::backend%2Fapi%2Fv1%2Fuser.py%23router::backend%2Fshared-content::ATTACK-CLASSES.md%23Feature%20abuse%20and%20data%20leakage",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        "backend/main.py",
+        "backend/api/v1/user.py",
+        "backend/models/user.py",
+        "backend/models/userProfile.py",
+        "backend/services/user_service.py",
+        "backend/services/userprofile_service.py",
+        "backend/api/v1/anunces.py",
+        "backend/services/anunce_service.py",
+        "backend/db/schema.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "hunt_backend",
+          "reviewed_paths": [
+            "backend/main.py",
+            "backend/api/v1/user.py",
+            "backend/models/user.py",
+            "backend/models/userProfile.py",
+            "backend/services/user_service.py",
+            "backend/services/userprofile_service.py",
+            "backend/api/v1/anunces.py",
+            "backend/services/anunce_service.py",
+            "backend/db/schema.py"
+          ],
+          "invariant": "Public visibility and shared deletion authority must match account/privacy and publication policy.",
+          "method": "source",
+          "result": "User list performs a global User query serialized with email and has no auth dependency. News DELETE fetches by public UUID and commits without a caller; creation IP limiting does not authorize deletion. The unauthenticated PUT /users/{user_id} calls an absent UserService.update_user method, so it does not establish a functioning account mutation path. Policy-dependent directory/deletion traces retained; no live data was read or deleted.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "backend/users/anonymous-email-directory",
+        "backend/anunces/anonymous-shared-delete"
+      ],
+      "unresolved": []
+    }
+  ],
+  "candidates": [
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/auth/reset-jwt-as-bearer",
+      "title": "Reset JWT can cross from the email namespace into another account username",
+      "description": "A reset token legitimately delivered to an attacker-controlled mailbox can be submitted as bearer authentication. If that mailbox string is another account's username, the bearer verifier selects the other account. No local cross-account result was executed.",
+      "claimed_root_cause": "Reset and access JWTs share SECRET_KEY/HS256, but reset sub=email is interpreted by get_current_user as a username without token purpose/type separation.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/api/v1/forgot_password.py",
+          "line": 222,
+          "scope": "forget_password",
+          "description": "Looks up a registered email and schedules token delivery to that address."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/api/v1/forgot_password.py",
+          "line": 84,
+          "scope": "create_reset_password_token",
+          "description": "Signs sub=email and purpose=password_reset with SECRET_KEY and HS256."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/api/v1/auth.py",
+          "line": 123,
+          "scope": "get_current_user",
+          "description": "Verifies same key/algorithm, extracts sub, but never rejects reset purpose."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/user_service.py",
+          "line": 62,
+          "scope": "get_user_by_username",
+          "description": "Selects User.username equal to reset email subject."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/api/v1/auth.py",
+          "line": 243,
+          "scope": "read_me",
+          "description": "Uses selected principal to return profile and email."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/models/user.py",
+          "line": 4,
+          "description": "Signup username is an unrestricted string and email a distinct EmailStr; the source permits the necessary cross-namespace value."
+        },
+        {
+          "file": "backend/db/schema.py",
+          "line": 50,
+          "description": "Username and email have separate unique columns; no cross-column equality constraint is defined."
+        },
+        {
+          "file": "backend/api/v1/forgot_password.py",
+          "line": 102,
+          "description": "The reset consumer enforces purpose and jti; bearer verification does not invoke that consumer or the used-token table."
+        }
+      ],
+      "blockers": [
+        "A bounded two-account JWT/DB fixture has not run because the required OS sandbox is not established.",
+        "The mailbox/username collision is a prerequisite, not evidence that existing deployed accounts meet it."
+      ],
+      "validation_plan": {
+        "local": "In an offline isolated fixture, create dummy A with an owned test mailbox and dummy B whose username equals that mailbox but whose email differs. Capture the reset delivery locally, then submit that exact issued token to get_current_user and /me with the dummy DB. Assert the access verifier rejects all non-access token purposes. Do not contact email or a live service."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/users/anonymous-email-directory",
+      "title": "Anonymous user listing serializes account email addresses",
+      "description": "A visitor can call the source-defined users list without credentials and the response model includes each account email. The intended privacy policy and deployed row filtering require owner validation.",
+      "claimed_root_cause": "The list route and service accept no principal or owner constraint while serializing a global User query into UserRead.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/api/v1/user.py",
+          "line": 34,
+          "scope": "get_users",
+          "description": "Anonymous GET /users delegates offset and limit to UserService."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/user_service.py",
+          "line": 19,
+          "scope": "list_users",
+          "description": "Selects global User rows without caller or row ownership predicate."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/models/user.py",
+          "line": 13,
+          "scope": "UserRead",
+          "description": "Response serializes username and email."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/main.py",
+          "line": 82,
+          "description": "Router is mounted without global identity dependency."
+        },
+        {
+          "file": "backend/api/v1/user.py",
+          "line": 36,
+          "description": "Only service injection is required by the list endpoint."
+        },
+        {
+          "file": "backend/api/v1/auth.py",
+          "line": 243,
+          "description": "The separate /me route does bind the returned email/profile to get_current_user."
+        }
+      ],
+      "blockers": [
+        "The owner must establish whether publishing all account emails anonymously is intentional and authorized.",
+        "Effective database/ingress filtering and actual response contents were not reproduced locally."
+      ],
+      "validation_plan": {
+        "local": "Seed two harmless dummy users in a local isolated DB, invoke the anonymous list once and inspect only those fixture emails. Compare the result with the owner-approved directory policy.",
+        "deployment": "Owner should inspect directory/privacy requirements and effective routing/database policies; existing 200 status alone does not establish what data was returned."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/anunces/anonymous-shared-delete",
+      "title": "Anonymous news deletion lacks publication authority",
+      "description": "The source-defined DELETE accepts a public news UUID and deletes the shared record without an authenticated author/editor. Whether that violates product policy and the deployed effective control remains unverified.",
+      "claimed_root_cause": "The delete path selects shared news by UUID alone and commits deletion without a principal or editorial role.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/api/v1/anunces.py",
+          "line": 135,
+          "scope": "delete_anunce",
+          "description": "DELETE /anunces/{id} accepts UUID plus a service dependency only."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/anunce_service.py",
+          "line": 92,
+          "scope": "delete_anunce",
+          "description": "Fetches the shared news row solely by UUID."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/services/anunce_service.py",
+          "line": 100,
+          "scope": "delete_anunce",
+          "description": "Deletes that row and commits."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/api/v1/anunces.py",
+          "line": 29,
+          "description": "Public listing serializes AnunceRead records and identifiers."
+        },
+        {
+          "file": "backend/main.py",
+          "line": 89,
+          "description": "Router mount adds no identity dependency."
+        },
+        {
+          "file": "backend/api/v1/anunces.py",
+          "line": 87,
+          "description": "Creation has an IP rate limit, which does not authorize deletion."
+        },
+        {
+          "file": "backend/db/schema.py",
+          "line": 200,
+          "description": "Anunce has no author/owner relationship that would implicitly constrain this service path."
+        }
+      ],
+      "blockers": [
+        "Publication policy must establish who may delete shared news and whether anonymous deletion is intended.",
+        "No isolated dummy deletion or inspection of upstream/database authorization was performed."
+      ],
+      "validation_plan": {
+        "local": "In an isolated dummy store, seed one news item published by a separate trusted dummy editor, invoke exactly one anonymous DELETE and inspect that fixture row. Assert denial according to the approved editor/owner policy.",
+        "deployment": "Owner should inspect route-level upstream authorization and publication policy without deleting deployed content."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/crops/shared-catalog-write-authority",
+      "title": "Any authenticated user can modify the shared crop catalog",
+      "description": "The crop catalog is shared across field associations. Router authentication alone allows any signed-in account to patch a catalog row by id, affecting the names/categories read through other owners' field crops if that account lacks editorial authority. The authority policy and runtime effect need validation.",
+      "claimed_root_cause": "Global CropService mutations accept an id and data but no user or editorial role; the router enforces only get_current_user.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/api/v1/crops.py",
+          "line": 72,
+          "scope": "update_crop",
+          "description": "Authenticated PATCH /crops/{crop_id} delegates global crop id and validated update fields."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/crops_service.py",
+          "line": 60,
+          "scope": "update_crop",
+          "description": "Fetches Crop by id without owner or role and assigns supplied model fields."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/crops_service.py",
+          "line": 69,
+          "scope": "update_crop",
+          "description": "Commits changes to shared Crop."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/services/field_crops_service.py",
+          "line": 36,
+          "scope": "list_field_crops",
+          "description": "Other users' correctly owner-filtered field crop queries load the same shared crop relationship."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/api/v1/crops.py",
+          "line": 8,
+          "description": "Router requires authentication but does not check a role."
+        },
+        {
+          "file": "backend/services/crops_service.py",
+          "line": 77,
+          "description": "Delete has the same authority model; foreign-key failure prevents deleting linked rows and must not be represented as unconditional deletion of associated crops."
+        },
+        {
+          "file": "backend/services/field_crops_service.py",
+          "line": 108,
+          "description": "Field-crop creation correctly verifies field ownership; this does not restrict shared catalog mutation."
+        }
+      ],
+      "blockers": [
+        "Owner must specify whether every signed-in account deliberately has global crop-editor authority.",
+        "Cross-owner display mutation was not reproduced with dummy accounts and DB."
+      ],
+      "validation_plan": {
+        "local": "Seed one shared crop referenced by dummy B's field and sign in as ordinary dummy A. Attempt one harmless name/category patch and inspect B's field-crop view. Compare with explicit catalog-editor policy; keep the foreign-key denial test separate.",
+        "deployment": "Owner should confirm catalog write roles and any effective database authorization before classifying the source path as unauthorized."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/tasks/aggregate-inference-budget",
+      "title": "Per-field AI claims do not bound one account's aggregate scheduled inference",
+      "description": "A signed-in user can create multiple located fields; owner-authorized task reads or the operator scheduler can ask Gemini about each eligible field. The atomic claim and cron semaphore limit per-field duplication/concurrency, but no source-visible per-account field/inference budget bounds aggregate operator-funded work. No spend or load test was performed.",
+      "claimed_root_cause": "Scheduled and lazy task generation account at field scope; user-controlled field cardinality is not charged against an account-level entitlement/budget before inference.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/api/v1/fields.py",
+          "line": 228,
+          "scope": "create_field",
+          "description": "Authenticated creation inserts a field owned by the caller without an account field-count budget in this path."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/api/v1/tasks.py",
+          "line": 54,
+          "scope": "list_tasks",
+          "description": "Owner-authorized task reads enqueue refresh when the field is stale."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/task_service.py",
+          "line": 323,
+          "scope": "refresh_field",
+          "description": "Checks eligibility and claims the field before assembling provider context."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/services/task_service.py",
+          "line": 359,
+          "scope": "refresh_field",
+          "description": "Calls ask_gemini for the selected field with operator-configured provider authority."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/api/v1/tasks.py",
+          "line": 170,
+          "description": "Cron is protected by a configured nonempty constant-time secret check; the claim does not allege bypass of that secret."
+        },
+        {
+          "file": "backend/api/v1/tasks.py",
+          "line": 40,
+          "description": "Cron bounds simultaneous reviews to three but processes all selected gardens."
+        },
+        {
+          "file": "backend/services/task_service.py",
+          "line": 382,
+          "description": "Conditional committed _claim prevents duplicate reviews of one field and implements retry/freshness windows."
+        },
+        {
+          "file": "backend/services/rate_limit.py",
+          "line": 56,
+          "description": "The AI account limiter is applied by recommendation/diagnosis routes, not the lazy task-read route."
+        }
+      ],
+      "blockers": [
+        "Configured account entitlements, provider spend caps and upstream controls are not visible in this repository.",
+        "A bounded mocked two-field accounting/claim fixture has not run; no actual provider work was generated."
+      ],
+      "validation_plan": {
+        "local": "With a dummy account, two eligible dummy fields and a mocked ask_gemini counter in the required sandbox, compare permitted calls against a declared one-account inference budget. Check both lazy reads and an authorized dummy scheduler invocation, retaining claim/dedup controls. Stop after the minimal counter difference.",
+        "deployment": "Owner should inspect plan entitlements, aggregate provider budgets and field-count limits; do not infer uncapped real billing from absent application counters alone."
+      }
+    },
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "backend/market/anonymous-translation-budget",
+      "title": "Public market reads can invoke operator-funded Gemini translation",
+      "description": "New localized market GET routes permit anonymous callers to reach the shared translation client, including a search-term translation before any product match. These calls do not enter enforce_ai_rate_limit or a source-visible translation cache/budget. The effect depends on configured translation model and effective quotas.",
+      "claimed_root_cause": "Translation was added to public catalog reads without binding provider-spend admission to an authenticated or metered requester.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "backend/api/v1/content_market.py",
+          "line": 117,
+          "scope": "search_conte_mercat",
+          "description": "Anonymous search accepts a bounded product string and non-Catalan language."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/api/v1/content_market.py",
+          "line": 93,
+          "scope": "_translate_search_term",
+          "description": "Invokes translation before the product search, even if the query will match no catalog rows."
+        },
+        {
+          "kind": "propagation",
+          "file": "backend/services/translation_service.py",
+          "line": 32,
+          "scope": "translate",
+          "description": "Validates language and configured model but has no caller budget, cache or rate-admission check."
+        },
+        {
+          "kind": "sink",
+          "file": "backend/services/translation_service.py",
+          "line": 58,
+          "scope": "translate",
+          "description": "Calls shared Gemini client interactions.create with a maximum of 3000 output tokens."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "backend/main.py",
+          "line": 90,
+          "description": "Public catalog router is mounted without global auth dependency."
+        },
+        {
+          "file": "backend/api/v1/content_market.py",
+          "line": 122,
+          "description": "Search term length and language-tag bounds are real controls; they cap input shape rather than aggregate calls."
+        },
+        {
+          "file": "backend/services/ai_dependencies.py",
+          "line": 12,
+          "description": "Translation client uses configured GEMINI_API_KEY and MODEL_USE_IN_TRANSLATION."
+        },
+        {
+          "file": "backend/api/v1/field_recommendations.py",
+          "line": 41,
+          "description": "Recommendation inference uses enforce_ai_rate_limit, providing a source-visible contrasting provider-admission control absent from localized market routes."
+        },
+        {
+          "file": "backend/api/v1/content_market.py",
+          "line": 60,
+          "description": "List/detail may also translate returned products; search can perform a second call when matches exist."
+        }
+      ],
+      "blockers": [
+        "MODEL_USE_IN_TRANSLATION activation and effective upstream/provider budgets are external facts; missing model causes a fallback without provider execution.",
+        "No isolated mock request counter or aggregate-budget fixture ran; paid calls were not made."
+      ],
+      "validation_plan": {
+        "local": "In the required offline sandbox, replace the translation client with a counter-only dummy client. Invoke one anonymous search with a harmless unmatched term and language=en, and compare repeat requests to the intended anonymous translation allowance. Verify a source-side cache/admission rule before invoking a paid client; stop at counter evidence.",
+        "deployment": "Owner should inspect translation model enablement, public translation policy, edge admission and provider spend/quotas. Do not probe or generate traffic on the deployed service."
+      }
+    }
+  ],
+  "hardening": [
+    "Make access-token purpose explicit and consistent for local/social/refresh issuance; use immutable account identifiers as JWT subjects.",
+    "Preserve the existing owner-filtered queries and per-field atomic AI claim while adding any approved aggregate admission controls.",
+    "Market/news upload paths should enforce a bounded byte read and validate content signatures consistently with diagnosis; no storage abuse is claimed from missing limits alone.",
+    "The shared provider work unit contains a new public translation spend boundary that deserves its own deterministic coverage unit.",
+    "Do not treat guest Stripe initiation or absent fulfillment code as a demonstrated authorization or payment bypass."
+  ],
+  "uncovered": [
+    {
+      "surface": "backend/api/v1/content_market.py#localized-public-reads",
+      "boundary": "backend/services/translation_service.py#translate",
+      "subsystem": "backend/market-translation",
+      "attack_class": "Business logic",
+      "starting_paths": [
+        "backend/api/v1/content_market.py",
+        "backend/services/translation_service.py",
+        "backend/services/ai_dependencies.py",
+        "backend/services/rate_limit.py"
+      ],
+      "reason": "Localized public GETs were added since 4e8be50 and cross anonymous caller to provider-spend authority. Source trace is tracked under provider-work but its entry/admission differs from the cron-secret task boundary; candidate backend/market/anonymous-translation-budget needs an explicit unit."
+    }
+  ]
+}

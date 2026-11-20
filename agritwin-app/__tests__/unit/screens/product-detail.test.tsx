@@ -32,7 +32,7 @@ jest.mock('react-i18next', () => {
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
-    back: mockBack,
+    dismissTo: mockBack,
   }),
   useLocalSearchParams: () => ({
     id: mockId,
@@ -287,7 +287,7 @@ describe('ProductScreen', () => {
 
     fireEvent.press(screen.getByLabelText('Tornar al mercat'));
 
-    expect(mockBack).toHaveBeenCalled();
+    expect(mockBack).toHaveBeenCalledWith('/app/market');
   });
 
   it('mostra el missatge per defecte si el producte és null', async () => {
@@ -302,7 +302,7 @@ describe('ProductScreen', () => {
     });
 
     fireEvent.press(screen.getByLabelText('Tornar al mercat'));
-    expect(mockBack).toHaveBeenCalled();
+    expect(mockBack).toHaveBeenCalledWith('/app/market');
   });
 
   it('ignores a product response after the detail screen unmounts', async () => {

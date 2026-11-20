@@ -1,0 +1,69 @@
+{
+  "workflow_url": "https://github.com/marcc28/AGRITWIN/actions/runs/44761212902",
+  "tool_version": "2.17.0",
+  "target": "https://backend-web-ur8z.onrender.com",
+  "deployment_revision": "unverified",
+  "authentication": "none",
+  "scan_policy": "existing CI passive GET only, no active API scan, form submission or ownership tests",
+  "baseline_alerts": 15,
+  "api_alerts": 18,
+  "unique_alerts": 32,
+  "severities": {
+    "medium": 3,
+    "low": 16,
+    "informational": 13
+  },
+  "scanner_rules": [
+    {
+      "rule_id": "10038",
+      "title": "Content Security Policy (CSP) Header Not Set",
+      "severity": "medium"
+    },
+    {
+      "rule_id": "10020",
+      "title": "Missing Anti-clickjacking Header",
+      "severity": "medium"
+    },
+    {
+      "rule_id": "90003",
+      "title": "Sub Resource Integrity Attribute Missing",
+      "severity": "medium"
+    },
+    {
+      "rule_id": "10017",
+      "title": "Cross-Domain JavaScript Source File Inclusion",
+      "severity": "low"
+    },
+    {
+      "rule_id": "90004",
+      "title": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+      "severity": "low"
+    },
+    {
+      "rule_id": "10063",
+      "title": "Permissions Policy Header Not Set",
+      "severity": "low"
+    },
+    {
+      "rule_id": "10021",
+      "title": "X-Content-Type-Options Header Missing",
+      "severity": "low"
+    },
+    {
+      "rule_id": "10109",
+      "title": "Modern Web Application",
+      "severity": "informational"
+    },
+    {
+      "rule_id": "10049",
+      "title": "Non-Storable Content",
+      "severity": "informational"
+    },
+    {
+      "rule_id": "100000",
+      "title": "A Client Error response code was returned by the server",
+      "severity": "informational"
+    }
+  ],
+  "new_scan_started": false
+}

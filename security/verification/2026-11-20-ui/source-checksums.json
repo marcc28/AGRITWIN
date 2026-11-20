@@ -1,0 +1,7 @@
+{
+  "src/components/AgritwinLoadingScreen.tsx": "e6f7925d354f44a8bd2ef4a34f6d0155b173d616926c12b1419e872a344ac41d",
+  "src/components/FieldCropsSection.tsx": "b9e8172719bfcbf853c21a596fc3d26017d2dc7caefb2542b43161c7d1d5fa5d",
+  "src/app/product/_layout.tsx": "38d5e64fba0674496c155729750cbf21b4bc0e6c11625badc955eaaa67b94921",
+  "src/app/product/[id].tsx": "f28bdab0fcf1a5f6ed0268769120d7737de5c5d68754b56747d873101ff40432",
+  "src/app/app/market.tsx": "b3a7e0dafa254cc345775347a00eea2b2b9ff4651c592f89a3fc05047ce58855"
+}

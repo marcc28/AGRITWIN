@@ -1,0 +1,50 @@
+[
+  {
+    "card": {
+      "left": 16,
+      "right": 304,
+      "width": 288
+    },
+    "rows": [
+      {
+        "contained": true,
+        "left": 30,
+        "right": 290,
+        "width": 260
+      }
+    ],
+    "viewport": 320
+  },
+  {
+    "card": {
+      "left": 204,
+      "right": 564,
+      "width": 360
+    },
+    "rows": [
+      {
+        "contained": true,
+        "left": 218,
+        "right": 550,
+        "width": 332
+      }
+    ],
+    "viewport": 768
+  },
+  {
+    "card": {
+      "left": 460,
+      "right": 820,
+      "width": 360
+    },
+    "rows": [
+      {
+        "contained": true,
+        "left": 474,
+        "right": 806,
+        "width": 332
+      }
+    ],
+    "viewport": 1280
+  }
+]

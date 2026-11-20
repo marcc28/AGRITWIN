@@ -74,6 +74,10 @@ jobs:
         working-directory: ./agritwin-app
         run: npm ci
 
+      - name: Verify security dependency compatibility
+        working-directory: ./agritwin-app
+        run: npm run test:security-dependencies
+
       - name: Run frontend unit tests with coverage
         working-directory: ./agritwin-app
         run: npx jest __tests__ --coverage --runInBand

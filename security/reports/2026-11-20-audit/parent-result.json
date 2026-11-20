@@ -1,0 +1,179 @@
+{
+  "units": [
+    {
+      "coverage_id": ".github%2Fworkflows%2Fgarden_tasks.yml%23scheduled-post::backend%2Fapi%2Fv1%2Ftasks.py%23generate_tasks::repository%2Fcron::ATTACK-CLASSES.md%23Business%20logic",
+      "disposition": "blocked",
+      "reviewed_paths": [
+        ".github/workflows/garden_tasks.yml",
+        "backend/api/v1/tasks.py",
+        "backend/services/task_service.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "parent",
+          "reviewed_paths": [
+            ".github/workflows/garden_tasks.yml",
+            "backend/api/v1/tasks.py",
+            "backend/services/task_service.py"
+          ],
+          "invariant": "New schedule authority, retry and aggregate work",
+          "method": "source",
+          "result": "Garden scheduler has fixed HTTPS endpoint, secret supplied via quoted environment expansion, rejects empty secret; backend compare_digest rejects absent/configuration-empty values. Workflow concurrency serializes scheduler; endpoint bounds concurrent field processing and persistent per-field claim. Timeout 900s with retries vs20min job can replay work; actual retry/idempotency, aggregate entitlement and provider quota remain owner-observed facts. Backend provider-work unit reviews aggregate cost hypothesis separately.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": [
+        "Effective scheduler activation/secret rotation, timeout recovery and aggregate provider quota not observed."
+      ]
+    },
+    {
+      "coverage_id": ".github%2Fworkflows%2Fgenerate-costs-csv.yml%23issues::scripts%2Fgenerate_costs_csv.py%23write_csv-write_xlsx::repository%2Freport-automation::ATTACK-CLASSES.md%23Injection",
+      "disposition": "candidate",
+      "reviewed_paths": [
+        ".github/workflows/generate-costs-csv.yml",
+        "scripts/generate_costs_csv.py",
+        ".github/workflows/burndown.yml",
+        "scripts/burndown.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "parent",
+          "reviewed_paths": [
+            ".github/workflows/generate-costs-csv.yml",
+            "scripts/generate_costs_csv.py",
+            ".github/workflows/burndown.yml",
+            "scripts/burndown.py"
+          ],
+          "invariant": ".github/workflows/generate-costs-csv.yml#issues",
+          "method": "source",
+          "result": "Issue title enters clean_parent_title (73), removes sprint prefix only, is stored in Task (215), written to CSV through csv.DictWriter (413-423) and to XLSX via ws.cell without forcing string type (612-617). Workflow checks out default branch, installs fixed openpyxl and runs generator; no issue text is interpolated into shell. Downstream formula interpretation and effective issue/Project author permissions require bounded validation. Burndown workflow uses fixed environment selectors and default-branch source; no direct issue-controlled code expression found.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [
+        "scripts/generate_costs_csv.py:write_xlsx:issue-title-as-formula"
+      ],
+      "unresolved": [
+        "Spreadsheet parser behavior and reader trust policy need dummy fixture validation; no target execution."
+      ]
+    },
+    {
+      "coverage_id": "cloud-and-ci%23release::backend%2FDockerfile%23runtime::release::ATTACK-CLASSES.md%23Access%20control",
+      "disposition": "blocked",
+      "reviewed_paths": [
+        ".github/workflows",
+        "backend/Dockerfile",
+        "backend/docker-compose.yaml",
+        "scripts/security"
+      ],
+      "checks": [
+        {
+          "agent_id": "parent",
+          "reviewed_paths": [
+            ".github/workflows",
+            "backend/Dockerfile",
+            "backend/docker-compose.yaml",
+            "scripts/security"
+          ],
+          "invariant": "CI trust, deployment inputs, security coverage and runtime identity",
+          "method": "source",
+          "result": "Reviewed workflows and both Dockerfiles: ordinary runtime appuser; frozen uv resolution, Lambda require-hashes; deployment runs from staging/manual and pushes mutable latest then Render hooks. No pull_request_target execution path found in workflows. ZAP/sonar independently report deployment/source with coverage limits; CI tests are successful on identical application source. Effective workflow permissions, cloud/IAM/RLS, deployed digest, Node support and container package CVEs are not established by source.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": [
+        "Effective cloud policies, exact deployed image/SHA and base-image package inventory unavailable; no image runtime analysis."
+      ]
+    },
+    {
+      "coverage_id": "git%23history-and-lockfiles::git%23tracked-source::repository::ATTACK-CLASSES.md%23Cryptography%20and%20secrets",
+      "disposition": "covered",
+      "reviewed_paths": [
+        "backend/uv.lock",
+        "agritwin-app/package-lock.json",
+        ".gitignore",
+        "backend/tests/unit/services/test_social_auth_service.py",
+        "scripts/security/tests/test_deployed_security_report.py"
+      ],
+      "checks": [
+        {
+          "agent_id": "parent",
+          "reviewed_paths": [
+            "backend/uv.lock",
+            "agritwin-app/package-lock.json",
+            ".gitignore",
+            "backend/tests/unit/services/test_social_auth_service.py",
+            "scripts/security/tests/test_deployed_security_report.py"
+          ],
+          "invariant": "Credential history and vulnerable dependency inventory",
+          "method": "source",
+          "result": "Fresh TruffleHog3.99.9 dev-history scan with verification/updates disabled, archives skipped returned two URI detector hits in intentional credential-rejection fixtures, no newly identified credentials. Public latest version is3.100.0; this run reused locally available checksum-checked3.99.9. npm advisory query of copied lockfile reports27 affected entries(5high22moderate); OSV99 Python name/version queries match5 packages. No target install/scripts executed; package/advisory matches are metadata, not exploit proof. Existing untracked docs excluded from commit scan.",
+          "artifact": null
+        }
+      ],
+      "candidate_fingerprints": [],
+      "unresolved": []
+    }
+  ],
+  "candidates": [
+    {
+      "proposed_verdict": "needs_validation",
+      "fingerprint": "scripts/generate_costs_csv.py:write_xlsx:issue-title-as-formula",
+      "title": "Issue titles can reach cost reports as spreadsheet formulas",
+      "description": "A principal allowed to edit an included sprint issue title can place formula-prefixed text in the Task column consumed by a report reader. The generator does not distinguish external text from formula syntax. Formula interpretation and the effective author/reader boundary have not been observed.",
+      "claimed_root_cause": "The sprint prefix is removed without neutralizing formula prefixes; external Task text is passed to CSV and openpyxl cell assignment without an explicit text-only type.",
+      "trace": [
+        {
+          "kind": "entrypoint",
+          "file": "scripts/generate_costs_csv.py",
+          "line": 215,
+          "scope": "parent_task_row",
+          "description": "Included parent issue title becomes Task after clean_parent_title."
+        },
+        {
+          "kind": "propagation",
+          "file": "scripts/generate_costs_csv.py",
+          "line": 73,
+          "scope": "clean_parent_title",
+          "description": "Removes sprint prefix and whitespace only; leading formula syntax remains."
+        },
+        {
+          "kind": "sink",
+          "file": "scripts/generate_costs_csv.py",
+          "line": 617,
+          "scope": "write_sprint_sheet",
+          "description": "Task is passed as a cell value without forcing text; CSV sibling writes the same Task."
+        }
+      ],
+      "evidence": [
+        {
+          "file": "scripts/generate_costs_csv.py",
+          "line": 246,
+          "description": "Only sprint-tagged parent issues are selected; a fixture title can retain the required sprint prefix before a harmless formula."
+        },
+        {
+          "file": "scripts/generate_costs_csv.py",
+          "line": 423,
+          "description": "CSV quoting is used but no spreadsheet text neutralization is applied."
+        },
+        {
+          "file": ".github/workflows/generate-costs-csv.yml",
+          "line": 67,
+          "description": "Generator executes against the default branch and reports are uploaded/committed; no source execution injection is claimed."
+        }
+      ],
+      "blockers": [
+        "The required OS-enforced execution sandbox is not established, so no dummy workbook/CSV interpretation check ran.",
+        "Effective permission to edit an included issue and the intended authority separation between issue editor and report consumer are not established."
+      ],
+      "validation_plan": {
+        "local": "In the required offline sandbox use a single dummy included sprint issue with harmless title [SPRINT 2] =1+1; generate one report, inspect XML/cell type without invoking external links or macros, then verify text-only remediation retains a literal string.",
+        "deployment": "Owner should inspect who may edit included issues/Project items and who opens generated CSV/XLSX, and confirm whether their trust/authority differs. No live document evaluation is requested."
+      }
+    }
+  ],
+  "hardening": [],
+  "uncovered": []
+}
