@@ -544,10 +544,58 @@
     "prices": "Preus",
     "news": "Notícies",
     "buy": "Compra",
-    "units": "unitats",
-    "errors": {
-      "loadFailed": "No s'han pogut carregar les dades del mercat"
+    "loading": "Carregant…",
+    "searchPlaceholder": "Cerca productes",
+    "clearSearch": "Esborra la cerca",
+    "loadMore": "Carrega més productes",
+    "noMatch": "Cap producte coincideix amb «{{query}}».",
+    "noProducts": "Encara no hi ha productes al mercat.",
+    "viewProduct": "Veure el producte {{name}}",
+    "stock": {
+      "outOfStock": "Esgotat",
+      "low": "Només en queden {{count}} kg",
+      "available": "{{count}} kg disponibles"
     },
+    "errors": {
+      "loadFailed": "No s'han pogut carregar les dades del mercat",
+      "searchFailed": "No s’ha pogut fer la cerca. Torna-ho a provar."
+    },
+    "detail": {
+      "unavailable": "Producte no disponible",
+      "missingProductId": "No s’ha indicat cap producte.",
+      "loading": "Carregant producte…",
+      "loadingDescription": "Estem obtenint les dades del mercat.",
+      "back": "Tornar al mercat",
+      "eyebrow": "AGRITWIN · MERCAT",
+      "price": "PREU DEL PRODUCTE",
+      "perKg": "per kg",
+      "noStock": "Sense estoc",
+      "available": "{{value}} kg disponibles",
+      "availability": "Disponibilitat del producte",
+      "unavailableNow": "Actualment no disponible",
+      "availableToBuy": "Disponible per comprar",
+      "order": "La teva comanda",
+      "quantity": "Quantitat",
+      "quantityHint": "Selecciona els kg que vols",
+      "reduceQuantity": "Reduir quantitat",
+      "increaseQuantity": "Augmentar quantitat",
+      "quantityInKg": "Quantitat en quilograms",
+      "total": "TOTAL DE LA COMANDA",
+      "footer": "AgriTwin · Agricultura intel·ligent",
+      "loadError": "No s’han pogut carregar les dades del producte."
+    },
+    "checkout": {
+      "error": "Error de pagament",
+      "missingApi": "Falta configurar l’URL de l’API.",
+      "incompleteResponse": "La resposta del servidor és incompleta.",
+      "paymentIncomplete": "Pagament no completat",
+      "paymentSent": "Pagament enviat",
+      "paymentConfirmation": "Stripe ha completat el flux de pagament. La confirmació definitiva de la comanda arribarà del servidor.",
+      "startFailed": "No s’ha pogut iniciar el pagament.",
+      "preparing": "Preparant pagament…",
+      "buy": "Comprar"
+    },
+    "units": "unitats",
     "come_to_merkat": "Tornar al mercat"
   },
   "weather": {

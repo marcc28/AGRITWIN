@@ -542,9 +542,57 @@
     "prices": "Prezzi",
     "news": "Notizie",
     "buy": "Acquista",
+    "loading": "Caricamento…",
+    "searchPlaceholder": "Cerca prodotti",
+    "clearSearch": "Cancella ricerca",
+    "loadMore": "Carica altri prodotti",
+    "noMatch": "Nessun prodotto corrisponde a “{{query}}”.",
+    "noProducts": "Non ci sono ancora prodotti nel mercato.",
+    "viewProduct": "Visualizza {{name}}",
+    "stock": {
+      "outOfStock": "Esaurito",
+      "low": "Ne restano solo {{count}} kg",
+      "available": "{{count}} kg disponibili"
+    },
     "units": "unità",
     "errors": {
-      "loadFailed": "Non è stato possibile caricare i dati del mercato"
+      "loadFailed": "Non è stato possibile caricare i dati del mercato",
+      "searchFailed": "Ricerca non riuscita. Riprova."
+    },
+    "detail": {
+      "unavailable": "Prodotto non disponibile",
+      "missingProductId": "Nessun prodotto specificato.",
+      "loading": "Caricamento prodotto…",
+      "loadingDescription": "Stiamo recuperando i dati del mercato.",
+      "back": "Torna al mercato",
+      "eyebrow": "AGRITWIN · MERCATO",
+      "price": "PREZZO DEL PRODOTTO",
+      "perKg": "al kg",
+      "noStock": "Esaurito",
+      "available": "{{value}} kg disponibili",
+      "availability": "Disponibilità del prodotto",
+      "unavailableNow": "Al momento non disponibile",
+      "availableToBuy": "Disponibile per l'acquisto",
+      "order": "Il tuo ordine",
+      "quantity": "Quantità",
+      "quantityHint": "Seleziona i kg che desideri",
+      "reduceQuantity": "Riduci quantità",
+      "increaseQuantity": "Aumenta quantità",
+      "quantityInKg": "Quantità in chilogrammi",
+      "total": "TOTALE ORDINE",
+      "footer": "AgriTwin · Agricoltura intelligente",
+      "loadError": "Impossibile caricare i dati del prodotto."
+    },
+    "checkout": {
+      "error": "Errore di pagamento",
+      "missingApi": "L’URL dell’API non è configurato.",
+      "incompleteResponse": "La risposta del server è incompleta.",
+      "paymentIncomplete": "Pagamento non completato",
+      "paymentSent": "Pagamento inviato",
+      "paymentConfirmation": "Stripe ha completato il pagamento. Il server invierà la conferma definitiva dell’ordine.",
+      "startFailed": "Impossibile avviare il pagamento.",
+      "preparing": "Preparazione del pagamento…",
+      "buy": "Acquista"
     },
     "come_to_merkat": "Torna al mercato"
   },

@@ -56,7 +56,7 @@ function createSubmitLabel(
 }
 
 function goToSettings() {
-  router.replace('/app/settings');
+  router.replace('/profile');
 }
 
 async function logoutToLogin() {

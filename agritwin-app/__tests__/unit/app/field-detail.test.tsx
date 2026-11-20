@@ -193,7 +193,7 @@ describe('FieldDetailScreen', () => {
     });
     fireEvent.press(screen.getByText('settings.fieldDetail.back'));
     expect(router.back).toHaveBeenCalled();
-    expect(router.replace).not.toHaveBeenCalledWith('/app/settings');
+    expect(router.replace).not.toHaveBeenCalledWith('/profile');
     fireEvent.press(screen.getByText('settings.fieldDetail.sensorTitle'));
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/field-data',

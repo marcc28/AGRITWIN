@@ -36,6 +36,7 @@ class TranslationService:
         self,
         content: dict | list,
         language: str,
+        source_language: str | None = None,
     ) -> dict | list:
         """
         Translate JSON content into the requested language.
@@ -48,14 +49,22 @@ class TranslationService:
 
         language = language.lower()
         base_language = language.split("-")[0]
+        if source_language is not None:
+            source_language = source_language.strip().replace("_", "-").lower()
+            if not re.fullmatch(
+                r"[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*", source_language
+            ):
+                raise ValueError(f"Invalid source language tag: {source_language}")
 
-        if base_language == "ca":
+        if base_language == "ca" and (
+            source_language is None or source_language.split("-")[0] == "ca"
+        ):
             return content
 
         if not self._model:
             raise RuntimeError("MODEL_USE_IN_TRANSLATION is not configured")
 
-        prompt = self._build_prompt(content, language)
+        prompt = self._build_prompt(content, language, source_language)
 
         try:
             response = await self._client.aio.interactions.create(
@@ -87,6 +96,7 @@ class TranslationService:
     def _build_prompt(
         content: dict | list,
         language: str,
+        source_language: str | None = None,
     ) -> str:
         normalized_language = language.lower().replace("_", "-")
         base_language = normalized_language.split("-")[0]
@@ -97,11 +107,22 @@ class TranslationService:
         if normalized_language != base_language:
             target_language = f"{target_language} ({normalized_language})"
 
+        source_instruction = ""
+        if source_language:
+            normalized_source = source_language.lower().replace("_", "-")
+            source_base = normalized_source.split("-")[0]
+            source_name = SUPPORTED_LANGUAGES.get(
+                source_base,
+                f"the language identified by the BCP 47 tag {normalized_source}",
+            )
+            source_instruction = f"- The source content is in {source_name}.\n"
+
         return f"""
 You are a professional agricultural translator.
 
 TASK:
 Translate the following JSON content into {target_language}.
+{source_instruction}
 
 RULES:
 - Translate all user-facing text.

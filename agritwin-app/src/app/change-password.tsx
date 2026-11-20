@@ -58,7 +58,7 @@ function passwordFormError(
 }
 
 function goToProfile() {
-  router.replace('/app/settings');
+  router.replace('/profile');
 }
 
 function PasswordField({

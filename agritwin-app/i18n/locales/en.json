@@ -542,9 +542,57 @@
     "prices": "Prices",
     "news": "News",
     "buy": "Buy",
+    "loading": "Loading…",
+    "searchPlaceholder": "Search products",
+    "clearSearch": "Clear search",
+    "loadMore": "Load more products",
+    "noMatch": "No products match “{{query}}”.",
+    "noProducts": "There are no products in the market yet.",
+    "viewProduct": "View {{name}}",
+    "stock": {
+      "outOfStock": "Out of stock",
+      "low": "Only {{count}} kg left",
+      "available": "{{count}} kg available"
+    },
     "units": "units",
     "errors": {
-      "loadFailed": "Could not load market data"
+      "loadFailed": "Could not load market data",
+      "searchFailed": "Could not search the market. Please try again."
+    },
+    "detail": {
+      "unavailable": "Product unavailable",
+      "missingProductId": "No product was specified.",
+      "loading": "Loading product…",
+      "loadingDescription": "Loading market information.",
+      "back": "Back to the market",
+      "eyebrow": "AGRITWIN · MARKET",
+      "price": "PRODUCT PRICE",
+      "perKg": "per kg",
+      "noStock": "Out of stock",
+      "available": "{{value}} kg available",
+      "availability": "Product availability",
+      "unavailableNow": "Currently unavailable",
+      "availableToBuy": "Available to buy",
+      "order": "Your order",
+      "quantity": "Quantity",
+      "quantityHint": "Select how many kg you want",
+      "reduceQuantity": "Reduce quantity",
+      "increaseQuantity": "Increase quantity",
+      "quantityInKg": "Quantity in kilograms",
+      "total": "ORDER TOTAL",
+      "footer": "AgriTwin · Smart agriculture",
+      "loadError": "Could not load product information."
+    },
+    "checkout": {
+      "error": "Payment error",
+      "missingApi": "The API URL is not configured.",
+      "incompleteResponse": "The server response is incomplete.",
+      "paymentIncomplete": "Payment not completed",
+      "paymentSent": "Payment submitted",
+      "paymentConfirmation": "Stripe completed the payment flow. The server will send the final order confirmation.",
+      "startFailed": "Could not start the payment.",
+      "preparing": "Preparing payment…",
+      "buy": "Buy"
     },
     "come_to_merkat": "Back to the market"
   },

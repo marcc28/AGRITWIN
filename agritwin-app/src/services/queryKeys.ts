@@ -28,7 +28,8 @@ export const queryKeys = {
     ['crops', 'catalog', 'page', offset, limit] as const,
   market: ['market'] as const,
   marketCount: ['market', 'count'] as const,
-  marketPage: (offset: number, limit: number) =>
-    ['market', 'page', offset, limit] as const,
-  marketProduct: (id: string) => ['market', 'product', id] as const,
+  marketPage: (offset: number, limit: number, language = 'ca') =>
+    ['market', 'page', offset, limit, language] as const,
+  marketProduct: (id: string, language = 'ca') =>
+    ['market', 'product', id, language] as const,
 };

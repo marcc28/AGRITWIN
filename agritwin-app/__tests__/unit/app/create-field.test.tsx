@@ -778,7 +778,7 @@ describe('CreateFieldScreen', () => {
   it('goes back to my gardens from profile', () => {
     render(<CreateFieldScreen />);
     fireEvent.press(screen.getByText('settings.myGardens'));
-    expect(router.replace).toHaveBeenCalledWith('/app/settings');
+    expect(router.replace).toHaveBeenCalledWith('/profile');
   });
 
   it('goes back to the field selection', () => {
