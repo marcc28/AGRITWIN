@@ -17,7 +17,7 @@ const baseStyles = StyleSheet.create({
   scroll: {
     flex: 1,
     width: '100%',
-      ...getWebScrollStyle(),
+    ...getWebScrollStyle(),
   },
 
   scrollContent: {
@@ -356,7 +356,11 @@ export function getEditCropsStyles(width: number, height: number) {
   });
   const maxWidth = valueAtWidth(
     width,
-    [[1600, 1000], [1024, 900], [600, 760]],
+    [
+      [1600, 1000],
+      [1024, 900],
+      [600, 760],
+    ],
     560,
   );
 

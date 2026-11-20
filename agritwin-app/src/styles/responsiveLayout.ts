@@ -23,9 +23,9 @@ export function getResponsiveProfile(
   };
 }
 
-type ResponsiveValues<T> = Partial<
-  Record<keyof ResponsiveProfile, T>
-> & { default: T };
+type ResponsiveValues<T> = Partial<Record<keyof ResponsiveProfile, T>> & {
+  default: T;
+};
 
 const RESPONSIVE_PRIORITY: (keyof ResponsiveProfile)[] = [
   'compactLandscape',
@@ -63,4 +63,3 @@ export function getWebScrollStyle(): { overflow: 'scroll' } | undefined {
   if (Platform.OS === 'web') return { overflow: 'scroll' };
   return undefined;
 }
-

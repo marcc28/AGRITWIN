@@ -140,7 +140,14 @@ export const styles = StyleSheet.create({
 export function getFieldCropsStyles(width: number, height: number) {
   const profile = getResponsiveProfile(width, height);
   const compactLayout = profile.compactPhone || profile.compactLandscape;
-  const columns = valueAtWidth(width, [[1000, 3], [560, 2]], 1);
+  const columns = valueAtWidth(
+    width,
+    [
+      [1000, 3],
+      [560, 2],
+    ],
+    1,
+  );
   const cardPadding = responsiveValue(profile, {
     compact: 10,
     tablet: 20,

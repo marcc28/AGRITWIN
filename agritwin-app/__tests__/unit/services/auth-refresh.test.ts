@@ -1,6 +1,12 @@
 import { Platform } from 'react-native';
 import { router } from 'expo-router';
-import { authenticatedFetch, clearAuth, getAuth, refreshAuth, setAuth } from '@/services/auth';
+import {
+  authenticatedFetch,
+  clearAuth,
+  getAuth,
+  refreshAuth,
+  setAuth,
+} from '@/services/auth';
 import { clearQueryCache } from '@/services/queryPersistence';
 
 jest.mock('expo-secure-store', () => ({
@@ -10,29 +16,39 @@ jest.mock('expo-secure-store', () => ({
 }));
 jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
 jest.mock('@/services/currentField', () => ({ clearCurrentField: jest.fn() }));
-jest.mock('@/services/queryPersistence', () => ({ clearQueryCache: jest.fn() }));
+jest.mock('@/services/queryPersistence', () => ({
+  clearQueryCache: jest.fn(),
+}));
 
 describe('auth refresh and authenticated requests', () => {
   const originalPlatform = Object.getOwnPropertyDescriptor(Platform, 'OS');
   const originalFetch = global.fetch;
   const storage: Record<string, string> = {};
   const localStorageMock = {
-    setItem: jest.fn((key: string, value: string) => { storage[key] = value; }),
+    setItem: jest.fn((key: string, value: string) => {
+      storage[key] = value;
+    }),
     getItem: jest.fn((key: string) => storage[key] ?? null),
-    removeItem: jest.fn((key: string) => { delete storage[key]; }),
+    removeItem: jest.fn((key: string) => {
+      delete storage[key];
+    }),
   };
 
   beforeEach(async () => {
     jest.clearAllMocks();
     Object.keys(storage).forEach((key) => delete storage[key]);
     Object.defineProperty(Platform, 'OS', { configurable: true, value: 'web' });
-    Object.defineProperty(global, 'localStorage', { configurable: true, value: localStorageMock });
+    Object.defineProperty(global, 'localStorage', {
+      configurable: true,
+      value: localStorageMock,
+    });
     await clearAuth();
   });
 
   afterAll(() => {
     global.fetch = originalFetch;
-    if (originalPlatform) Object.defineProperty(Platform, 'OS', originalPlatform);
+    if (originalPlatform)
+      Object.defineProperty(Platform, 'OS', originalPlatform);
   });
 
   it('expires the session and redirects when there is no refresh token', async () => {
@@ -45,15 +61,24 @@ describe('auth refresh and authenticated requests', () => {
     await setAuth('farmer', 'old-access', 'old-refresh');
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ access_token: 'new-access', refresh_token: 'new-refresh' }),
+      json: async () => ({
+        access_token: 'new-access',
+        refresh_token: 'new-refresh',
+      }),
     }) as jest.Mock;
 
     await expect(refreshAuth()).resolves.toEqual({
-      accessToken: 'new-access', refreshToken: 'new-refresh', username: 'farmer',
+      accessToken: 'new-access',
+      refreshToken: 'new-refresh',
+      username: 'farmer',
     });
     expect(storage.agritwin_access_token).toBe('new-access');
     expect(storage.agritwin_refresh_token).toBe('new-refresh');
-    expect(await getAuth()).toEqual({ token: 'new-access', refreshToken: 'new-refresh', username: 'farmer' });
+    expect(await getAuth()).toEqual({
+      token: 'new-access',
+      refreshToken: 'new-refresh',
+      username: 'farmer',
+    });
   });
 
   it('clears cached account data when a different user signs in', async () => {
@@ -64,7 +89,9 @@ describe('auth refresh and authenticated requests', () => {
 
   it('redirects and clears credentials for an unauthorized refresh', async () => {
     await setAuth('farmer', 'old-access', 'expired-refresh');
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 401 }) as jest.Mock;
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({ ok: false, status: 401 }) as jest.Mock;
     await expect(refreshAuth()).rejects.toThrow('Token refresh failed: 401');
     expect(storage).toEqual({});
     expect(router.replace).toHaveBeenCalledWith('/auth/login');
@@ -103,9 +130,13 @@ describe('auth refresh and authenticated requests', () => {
 
   it('retries an authorized request once with the refreshed token', async () => {
     await setAuth('farmer', 'old-access', 'refresh-token');
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockResolvedValueOnce({ status: 401 })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'new-access' }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: 'new-access' }),
+      })
       .mockResolvedValueOnce({ status: 200, ok: true }) as jest.Mock;
 
     const response = await authenticatedFetch('/protected', {
@@ -113,9 +144,12 @@ describe('auth refresh and authenticated requests', () => {
     });
     expect(response.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledTimes(3);
-    expect(global.fetch).toHaveBeenLastCalledWith('/protected', expect.objectContaining({
-      headers: expect.any(Headers),
-    }));
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      '/protected',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
   });
 
   it('does not refresh a request without authorization', async () => {
@@ -126,7 +160,9 @@ describe('auth refresh and authenticated requests', () => {
 
   it('returns an authorized successful response without refreshing', async () => {
     await setAuth('farmer', 'valid-access', 'refresh-token');
-    global.fetch = jest.fn().mockResolvedValue({ status: 200, ok: true }) as jest.Mock;
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({ status: 200, ok: true }) as jest.Mock;
     const response = await authenticatedFetch('/protected', {
       headers: { Authorization: 'Bearer valid-access' },
     });
@@ -136,7 +172,8 @@ describe('auth refresh and authenticated requests', () => {
 
   it('returns the original unauthorized response when refresh fails', async () => {
     await setAuth('farmer', 'old-access', 'refresh-token');
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockResolvedValueOnce({ status: 401 })
       .mockResolvedValueOnce({ ok: false, status: 500 }) as jest.Mock;
     const response = await authenticatedFetch('/protected', {
@@ -147,7 +184,8 @@ describe('auth refresh and authenticated requests', () => {
 
   it('uses a newer token when another request refreshes during the first response', async () => {
     await setAuth('farmer', 'old-access', 'refresh-token');
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockImplementationOnce(async () => {
         await setAuth('farmer', 'new-access', 'refresh-token');
         return { status: 401 };
@@ -162,7 +200,8 @@ describe('auth refresh and authenticated requests', () => {
 
   it('expires the session when the newer token is also rejected', async () => {
     await setAuth('farmer', 'old-access', 'refresh-token');
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockImplementationOnce(async () => {
         await setAuth('farmer', 'new-access', 'refresh-token');
         return { status: 401 };
@@ -177,9 +216,13 @@ describe('auth refresh and authenticated requests', () => {
 
   it('expires the session when the retry after refresh is still unauthorized', async () => {
     await setAuth('farmer', 'old-access', 'refresh-token');
-    global.fetch = jest.fn()
+    global.fetch = jest
+      .fn()
       .mockResolvedValueOnce({ status: 401 })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'new-access' }) })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: 'new-access' }),
+      })
       .mockResolvedValueOnce({ status: 401 }) as jest.Mock;
     const response = await authenticatedFetch('/protected', {
       headers: { Authorization: 'Bearer old-access' },

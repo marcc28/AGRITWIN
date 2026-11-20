@@ -26,7 +26,13 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('@/components/FieldCropsCard', () => ({
-  FieldCropsCard: ({ onAdd, onEdit }: { onAdd: () => void; onEdit: () => void }) => {
+  FieldCropsCard: ({
+    onAdd,
+    onEdit,
+  }: {
+    onAdd: () => void;
+    onEdit: () => void;
+  }) => {
     const React = jest.requireActual<typeof import('react')>('react');
     const { Pressable, Text, View } =
       jest.requireActual<typeof import('react-native')>('react-native');

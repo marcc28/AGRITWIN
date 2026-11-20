@@ -12,7 +12,11 @@ export function getCropsStyles(width: number, height: number) {
   const profile = getResponsiveProfile(width, height);
   const maxWidth = valueAtWidth(
     width,
-    [[1600, 1320], [1024, 1200], [600, 960]],
+    [
+      [1600, 1320],
+      [1024, 1200],
+      [600, 960],
+    ],
     560,
   );
   const horizontalInset = responsiveValue(profile, {

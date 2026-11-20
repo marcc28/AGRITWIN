@@ -20,8 +20,26 @@ describe('responsive crop styles', () => {
     expect(phone.shortScreen).toBe(true);
     expect(landscape.compactLandscape).toBe(true);
     expect(responsiveValue(phone, { compact: 12, default: 16 })).toBe(12);
-    expect(valueAtWidth(1024, [[1600, 3], [1024, 2]], 1)).toBe(2);
-    expect(valueAtWidth(320, [[1600, 3], [1024, 2]], 1)).toBe(1);
+    expect(
+      valueAtWidth(
+        1024,
+        [
+          [1600, 3],
+          [1024, 2],
+        ],
+        1,
+      ),
+    ).toBe(2);
+    expect(
+      valueAtWidth(
+        320,
+        [
+          [1600, 3],
+          [1024, 2],
+        ],
+        1,
+      ),
+    ).toBe(1);
   });
 
   it('keeps field crop detail spacing responsive in portrait and landscape', () => {
@@ -55,7 +73,9 @@ describe('responsive crop styles', () => {
     const landscapeCrop = StyleSheet.flatten(landscape.crop);
     expect(portrait.cropsGrid.width).toBe('100%');
     expect(landscapeCrop.minHeight).toBe(136);
-    expect(landscapeCrop.minHeight).toBeLessThan(portraitCrop.minHeight as number);
+    expect(landscapeCrop.minHeight).toBeLessThan(
+      portraitCrop.minHeight as number,
+    );
     expect(landscape.targetButton.minHeight).toBe(32);
   });
 

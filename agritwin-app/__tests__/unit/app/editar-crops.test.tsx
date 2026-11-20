@@ -1,6 +1,11 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import ManageFieldCropsScreen from '@/app/editar_crops';
 import { router, useLocalSearchParams } from 'expo-router';
 import { getAuth } from '@/services/auth';
@@ -33,57 +38,70 @@ jest.mock('@/services/queryClient', () => ({
   queryClient: { query: jest.fn() },
 }));
 jest.mock('@/components/FieldCropForm', () => {
-  const { View: MockView, Text: MockText, Pressable: MockPressable } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-  return { FieldCropForm: (props: {
-    existingCrops: Array<{ id: number | string; crop_name?: string }>;
-    setSelectedCropId: (value: string) => void;
-    setSelectedCropName: (value: string) => void;
-    setPlantedAt: (value: string) => void;
-    setExpectedHarvestAt: (value: string) => void;
-    setCropNotes: (value: string) => void;
-    onLoadMore: () => void;
-    onAdd: () => void;
-    showCropForm: boolean;
-    setShowCropForm: (value: boolean) => void;
-    onShowCropForm: () => void;
-  }) => (
-    <MockView>
-      {props.existingCrops.map((crop) => (
-        <MockText key={String(crop.id)}>{crop.crop_name ?? `crop-${crop.id}`}</MockText>
-      ))}
-      <MockPressable testID="load-next-page" onPress={props.onLoadMore}>
-        <MockText>Load next crop page</MockText>
-      </MockPressable>
-      <MockPressable
-        testID="draft-valid"
-        onPress={() => {
-          props.setSelectedCropId('9');
-          props.setSelectedCropName('Tomàquet');
-          props.setPlantedAt('2026-04-01');
-          props.setExpectedHarvestAt('2026-08-01');
-          props.setCropNotes(' notes ');
-        }}
-      >
-        <MockText>Prepare draft</MockText>
-      </MockPressable>
-      <MockPressable testID="draft-invalid" onPress={() => props.setPlantedAt('bad')}>
-        <MockText>Prepare invalid draft</MockText>
-      </MockPressable>
-      <MockPressable testID="submit-crop" onPress={props.onAdd}>
-        <MockText>Submit crop</MockText>
-      </MockPressable>
-      {props.showCropForm ? (
-        <MockPressable testID="collapse-form" onPress={() => props.setShowCropForm(false)}>
-          <MockText>Collapse form</MockText>
+  const {
+    View: MockView,
+    Text: MockText,
+    Pressable: MockPressable,
+  } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    FieldCropForm: (props: {
+      existingCrops: Array<{ id: number | string; crop_name?: string }>;
+      setSelectedCropId: (value: string) => void;
+      setSelectedCropName: (value: string) => void;
+      setPlantedAt: (value: string) => void;
+      setExpectedHarvestAt: (value: string) => void;
+      setCropNotes: (value: string) => void;
+      onLoadMore: () => void;
+      onAdd: () => void;
+      showCropForm: boolean;
+      setShowCropForm: (value: boolean) => void;
+      onShowCropForm: () => void;
+    }) => (
+      <MockView>
+        {props.existingCrops.map((crop) => (
+          <MockText key={String(crop.id)}>
+            {crop.crop_name ?? `crop-${crop.id}`}
+          </MockText>
+        ))}
+        <MockPressable testID="load-next-page" onPress={props.onLoadMore}>
+          <MockText>Load next crop page</MockText>
         </MockPressable>
-      ) : (
-        <MockPressable testID="show-crop-form" onPress={props.onShowCropForm}>
-          <MockText>Show crop form</MockText>
+        <MockPressable
+          testID="draft-valid"
+          onPress={() => {
+            props.setSelectedCropId('9');
+            props.setSelectedCropName('Tomàquet');
+            props.setPlantedAt('2026-04-01');
+            props.setExpectedHarvestAt('2026-08-01');
+            props.setCropNotes(' notes ');
+          }}
+        >
+          <MockText>Prepare draft</MockText>
         </MockPressable>
-      )}
-    </MockView>
-  ), };
+        <MockPressable
+          testID="draft-invalid"
+          onPress={() => props.setPlantedAt('bad')}
+        >
+          <MockText>Prepare invalid draft</MockText>
+        </MockPressable>
+        <MockPressable testID="submit-crop" onPress={props.onAdd}>
+          <MockText>Submit crop</MockText>
+        </MockPressable>
+        {props.showCropForm ? (
+          <MockPressable
+            testID="collapse-form"
+            onPress={() => props.setShowCropForm(false)}
+          >
+            <MockText>Collapse form</MockText>
+          </MockPressable>
+        ) : (
+          <MockPressable testID="show-crop-form" onPress={props.onShowCropForm}>
+            <MockText>Show crop form</MockText>
+          </MockPressable>
+        )}
+      </MockView>
+    ),
+  };
 });
 
 const mockedParams = useLocalSearchParams as jest.Mock;
@@ -111,17 +129,19 @@ describe('editar crops screen', () => {
     expect((await screen.findAllByText('Ceba')).length).toBeGreaterThan(0);
     fireEvent.press(screen.getByTestId('draft-valid'));
     fireEvent.press(screen.getByTestId('submit-crop'));
-    await waitFor(() => expect(createFieldCrop).toHaveBeenCalledWith(
-      {
-        field_id: 3,
-        crop_id: 9,
-        planted_at: '2026-04-01',
-        expected_harvest_at: '2026-08-01',
-        status: 'planted',
-        notes: 'notes',
-      },
-      'token',
-    ));
+    await waitFor(() =>
+      expect(createFieldCrop).toHaveBeenCalledWith(
+        {
+          field_id: 3,
+          crop_id: 9,
+          planted_at: '2026-04-01',
+          expected_harvest_at: '2026-08-01',
+          status: 'planted',
+          notes: 'notes',
+        },
+        'token',
+      ),
+    );
     expect(router.replace).toHaveBeenCalledWith({
       pathname: '/crop-detail',
       params: { id: '3' },
@@ -133,7 +153,9 @@ describe('editar crops screen', () => {
     await screen.findAllByText('Ceba');
     fireEvent.press(screen.getByTestId('draft-invalid'));
     fireEvent.press(screen.getByTestId('submit-crop'));
-    expect(await screen.findByText('settings.manageCrops.errors.invalidDate')).toBeTruthy();
+    expect(
+      await screen.findByText('settings.manageCrops.errors.invalidDate'),
+    ).toBeTruthy();
     expect(createFieldCrop).not.toHaveBeenCalled();
   });
 
@@ -147,12 +169,16 @@ describe('editar crops screen', () => {
   it('shows an authentication error when no access token is stored', async () => {
     (getAuth as jest.Mock).mockResolvedValue(null);
     render(<ManageFieldCropsScreen />);
-    expect(await screen.findByText('No s’ha trobat el token d’autenticació')).toBeTruthy();
+    expect(
+      await screen.findByText('No s’ha trobat el token d’autenticació'),
+    ).toBeTruthy();
     expect(getCrops).not.toHaveBeenCalled();
   });
 
   it('rolls back an optimistic add when the API fails', async () => {
-    (createFieldCrop as jest.Mock).mockRejectedValue(new Error('create failed'));
+    (createFieldCrop as jest.Mock).mockRejectedValue(
+      new Error('create failed'),
+    );
     render(<ManageFieldCropsScreen />);
     await screen.findAllByText('Ceba');
     fireEvent.press(screen.getByTestId('draft-valid'));
@@ -173,11 +199,16 @@ describe('editar crops screen', () => {
     render(<ManageFieldCropsScreen />);
     await screen.findAllByText('Ceba');
     fireEvent.press(screen.getByTestId('load-next-page'));
-    await waitFor(() => expect(getCrops).toHaveBeenLastCalledWith(50, 50, 'token'));
+    await waitFor(() =>
+      expect(getCrops).toHaveBeenLastCalledWith(50, 50, 'token'),
+    );
   });
 
   it('stops pagination and displays an error when the next page fails', async () => {
-    const firstPage = Array.from({ length: 50 }, (_, index) => ({ id: index + 1, name: `Crop ${index + 1}` }));
+    const firstPage = Array.from({ length: 50 }, (_, index) => ({
+      id: index + 1,
+      name: `Crop ${index + 1}`,
+    }));
     (getCrops as jest.Mock)
       .mockResolvedValueOnce(firstPage)
       .mockRejectedValueOnce(new Error('page failed'));
@@ -191,7 +222,10 @@ describe('editar crops screen', () => {
     render(<ManageFieldCropsScreen />);
     await screen.findAllByText('Ceba');
     fireEvent.press(screen.getByText('settings.manageCrops.back'));
-    expect(router.replace).toHaveBeenCalledWith({ pathname: '/crop-detail', params: { id: '3' } });
+    expect(router.replace).toHaveBeenCalledWith({
+      pathname: '/crop-detail',
+      params: { id: '3' },
+    });
   });
 
   it('reopens the crop form from its collapsed state', async () => {
@@ -203,10 +237,14 @@ describe('editar crops screen', () => {
   });
 
   it('optimistically removes a crop and restores it after a delete failure', async () => {
-    (deleteFieldCrop as jest.Mock).mockRejectedValue(new Error('delete failed'));
+    (deleteFieldCrop as jest.Mock).mockRejectedValue(
+      new Error('delete failed'),
+    );
     render(<ManageFieldCropsScreen />);
     await screen.findAllByText('Ceba');
-    fireEvent.press(screen.getByRole('button', { name: 'settings.manageCrops.removeCrop' }));
+    fireEvent.press(
+      screen.getByRole('button', { name: 'settings.manageCrops.removeCrop' }),
+    );
     expect(await screen.findByText('delete failed')).toBeTruthy();
     expect(screen.getAllByText('Ceba').length).toBeGreaterThan(0);
   });

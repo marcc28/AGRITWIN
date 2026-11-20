@@ -11,9 +11,8 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/components/DateField', () => {
   const React = jest.requireActual<typeof import('react')>('react');
-  const { TextInput } = jest.requireActual<typeof import('react-native')>(
-    'react-native',
-  );
+  const { TextInput } =
+    jest.requireActual<typeof import('react-native')>('react-native');
   return {
     DateField: (props: { value: string; onChange: (value: string) => void }) =>
       React.createElement(TextInput, {
@@ -73,7 +72,9 @@ describe('FieldCropForm', () => {
     fireEvent.press(screen.getByRole('button'));
     fireEvent.press(screen.getByText('Tomàquet'));
     expect(screen.getByText('Tomàquet')).toBeTruthy();
-    expect(screen.getByText('settings.manageCrops.saveCrop').parent).toBeTruthy();
+    expect(
+      screen.getByText('settings.manageCrops.saveCrop').parent,
+    ).toBeTruthy();
   });
 
   it('shows the add button when the form is collapsed', () => {

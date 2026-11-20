@@ -23,10 +23,21 @@ export const createRecommendationsStyles = (
     wideTablet: 32,
     default: 24,
   });
-  const columns = valueAtWidth(width, [[1500, 3], [680, 2]], 1);
+  const columns = valueAtWidth(
+    width,
+    [
+      [1500, 3],
+      [680, 2],
+    ],
+    1,
+  );
   const maxWidth = valueAtWidth(
     width,
-    [[1600, 1320], [1024, 1200], [680, 960]],
+    [
+      [1600, 1320],
+      [1024, 1200],
+      [680, 960],
+    ],
     560,
   );
   const horizontalInset = responsiveValue(profile, {

@@ -10,10 +10,21 @@ import {
 
 export function getCropDetailStyles(width: number, height: number) {
   const profile = getResponsiveProfile(width, height);
-  const columns = valueAtWidth(width, [[1600, 3], [680, 2]], 1);
+  const columns = valueAtWidth(
+    width,
+    [
+      [1600, 3],
+      [680, 2],
+    ],
+    1,
+  );
   const maxWidth = valueAtWidth(
     width,
-    [[1600, 1320], [1024, 1200], [600, 960]],
+    [
+      [1600, 1320],
+      [1024, 1200],
+      [600, 960],
+    ],
     560,
   );
   const topMargin = responsiveValue(profile, {
