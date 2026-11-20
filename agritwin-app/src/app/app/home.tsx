@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
@@ -19,9 +19,12 @@ import { createAddCropHandler } from '@/services/fieldCropNavigation';
 import { useWeatherAlertsEnabled } from '@/hooks/use-weather-alerts-enabled';
 
 import { styles } from '@/styles/home.styles';
+import { DASHBOARD_PHONE, getPageFrame } from '@/styles/responsive';
 
 export default function HomeScreen() {
   const { i18n, t } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const frame = getPageFrame(width, height, DASHBOARD_PHONE);
 
   const field = useCurrentField();
 
@@ -114,8 +117,16 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View testID="home-screen" style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: frame.horizontalInset },
+        ]}
+      >
+        <View
+          testID="home-screen"
+          style={[styles.content, { maxWidth: frame.maxWidth }]}
+        >
           <Text style={styles.date}>{today}</Text>
 
           <Text style={styles.title}>

@@ -5,6 +5,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Dimensions } from 'react-native';
 
 import TaskDayScreen from '@/app/task-day';
 import type { GardenRecommendation, GardenTask } from '@/services/api';
@@ -323,5 +324,24 @@ describe('task day screen', () => {
     expect(screen.getByTestId('task-day-moon-name').props.children).toBe(
       'tasks.moon.waningGibbous',
     );
+  });
+
+  it('uses the same column width as the calendar', () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    Dimensions.set({
+      window: { width: 1280, height: 800, scale: 2, fontScale: 1 },
+      screen: { width: 1280, height: 800, scale: 2, fontScale: 1 },
+    });
+    try {
+      render(<TaskDayScreen />);
+      expect(screen.getByTestId('task-day-content').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 880 })]),
+      );
+    } finally {
+      Dimensions.set(previous);
+    }
   });
 });

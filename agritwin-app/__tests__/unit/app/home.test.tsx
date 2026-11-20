@@ -2,6 +2,7 @@ import React from 'react';
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { Dimensions } from 'react-native';
 
 import HomeScreen from '../../../src/app/app/home';
 import { useCurrentField } from '../../../src/hooks/use-current-field';
@@ -293,5 +294,34 @@ describe('HomeScreen', () => {
 
     expect(await screen.findByText('card-ready')).toBeTruthy();
     expect(screen.queryByTestId('weather-alert-banner')).toBeNull();
+  });
+
+  it('keeps the phone column and widens it on a desktop', () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    function show(width: number, height: number) {
+      Dimensions.set({
+        window: { width, height, scale: 2, fontScale: 1 },
+        screen: { width, height, scale: 2, fontScale: 1 },
+      });
+      render(<HomeScreen />);
+    }
+
+    try {
+      show(390, 844);
+      expect(screen.getByTestId('home-screen').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 420 })]),
+      );
+      screen.unmount();
+
+      show(1800, 1000);
+      expect(screen.getByTestId('home-screen').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 1040 })]),
+      );
+    } finally {
+      Dimensions.set(previous);
+    }
   });
 });

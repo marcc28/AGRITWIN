@@ -24,6 +24,8 @@ export const queryKeys = {
       ? (['field', toFieldKey(fieldId), 'recommendations', language] as const)
       : (['field', toFieldKey(fieldId), 'recommendations'] as const),
   cropCatalog: ['crops', 'catalog'] as const,
+  cropCatalogPage: (offset: number, limit: number) =>
+    ['crops', 'catalog', 'page', offset, limit] as const,
   market: ['market'] as const,
   marketCount: ['market', 'count'] as const,
   marketPage: (offset: number, limit: number) =>

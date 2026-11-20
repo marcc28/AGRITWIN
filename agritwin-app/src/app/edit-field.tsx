@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +7,6 @@ import {
   View,
   Pressable,
   TextInput,
-  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -28,7 +27,14 @@ import { getFieldPhotoIndex, setFieldPhotoIndex } from '../services/fieldPhoto';
 import { styles } from '../styles/edit-field.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
-import { FIELD_TYPES, SOIL_TYPES } from '../constants/fieldOptions';
+import { FieldFormError } from '../components/FieldFormError';
+import {
+  fieldFormErrors,
+  firstFieldError,
+  FIELD_FORM_STEPS,
+  type FieldFormKey,
+} from '../utils/fieldFormValidation';
+import { FieldFormSteps } from '../components/FieldFormSteps';
 import { FieldOptionChips } from '../components/FieldOptionChips';
 import { GardenPhotoPicker } from '../components/GardenPhotoPicker';
 import { OptionChip } from '../components/OptionChip';
@@ -37,7 +43,6 @@ import type { MapPoint } from '../components/field-location/types';
 import {
   AREA_UNITS,
   BORDER_FIELD_TYPES,
-  MAX_FIELD_AREA,
   parseArea,
   displayArea,
   fieldGeometry,
@@ -50,10 +55,16 @@ import {
   createFieldCrop,
   deleteFieldCrop,
   type FieldCrop,
+  type FieldCropCreate,
 } from '../services/api_fieldCrops';
 
-import { getCrops, type Crop } from '../services/api_crops';
-import { fieldCropsQuery, fieldDetailQuery } from '../services/queries';
+import type { Crop } from '../services/api_crops';
+import {
+  cropCatalogPageQuery,
+  fieldCropsQuery,
+  fieldDetailQuery,
+} from '../services/queries';
+import { useCachedQuery } from '../hooks/use-cached-query';
 import { queryClient } from '../services/queryClient';
 
 const CROP_PAGE_SIZE = 50;
@@ -72,10 +83,11 @@ export default function EditFieldScreen() {
     ? params.addCrop[0]
     : params.addCrop;
 
+  const [step, setStep] = useState(addCropParam === 'true' ? 3 : 0);
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  const [fieldType, setFieldType] = useState<string>(FIELD_TYPES[0]);
-  const [soilType, setSoilType] = useState<string>(SOIL_TYPES[0]);
+  const [fieldType, setFieldType] = useState<string>('');
+  const [soilType, setSoilType] = useState<string>('');
   const [sizeValue, setSizeValue] = useState('');
   const [areaUnit, setAreaUnit] = useState<AreaUnit>('m2');
   const [boundary, setBoundary] = useState<MapPoint[] | null>(null);
@@ -90,6 +102,45 @@ export default function EditFieldScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [validationThrough, setValidationThrough] = useState(-1);
+  const areaM2 = useMemo(() => {
+    try {
+      return boundary
+        ? fieldGeometry(boundary, excludedZones).areaM2
+        : parseArea(sizeValue, areaUnit);
+    } catch {
+      return Number.NaN;
+    }
+  }, [boundary, excludedZones, sizeValue, areaUnit]);
+  const requiredErrors = fieldFormErrors({
+    name,
+    location,
+    point: point,
+    fieldType,
+    areaM2,
+  });
+  function visibleError(key: FieldFormKey) {
+    return FIELD_FORM_STEPS[key] <= validationThrough
+      ? requiredErrors[key]
+      : undefined;
+  }
+  function validateRequired(through: number) {
+    setValidationThrough((current) => Math.max(current, Math.min(through, 2)));
+    const failed = firstFieldError(requiredErrors, through);
+    if (failed) {
+      setStep(FIELD_FORM_STEPS[failed]);
+      setErrorMessage('');
+      return false;
+    }
+    return true;
+  }
+  function navigateStep(target: number) {
+    if (target <= step || validateRequired(step)) {
+      setStep(target);
+      setErrorMessage('');
+    }
+  }
+
   const [existingDevices, setExistingDevices] = useState<FieldDevice[]>([]);
   const [existingCrops, setExistingCrops] = useState<FieldCrop[]>([]);
   const [selectedCropId, setSelectedCropId] = useState('');
@@ -102,6 +153,9 @@ export default function EditFieldScreen() {
   const [selectedCropName, setSelectedCropName] = useState('');
   const cropPageLoading = useRef(false);
   const [addingCrop, setAddingCrop] = useState(false);
+  const [removingCropIds, setRemovingCropIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [showCropForm, setShowCropForm] = useState(addCropParam === 'true');
   const [plantedAt, setPlantedAt] = useState('');
   const [expectedHarvestAt, setExpectedHarvestAt] = useState('');
@@ -117,75 +171,143 @@ export default function EditFieldScreen() {
       params: { id: String(fieldId) },
     });
   }
+  const validFieldId = Number.isFinite(fieldId);
+  const [relatedFieldId, setRelatedFieldId] = useState<number | null>(null);
+  const initializedFieldId = useRef<number | null>(null);
+  const activeFieldId = useRef(fieldId);
+  activeFieldId.current = fieldId;
+  const mounted = useRef(true);
+  const fieldRequest = useCachedQuery({
+    ...fieldDetailQuery(fieldId),
+    staleTime: FORM_DATA_MAX_AGE_MS,
+    enabled: validFieldId,
+  });
+  const cropsRequest = useCachedQuery({
+    ...fieldCropsQuery(fieldId),
+    staleTime: FORM_DATA_MAX_AGE_MS,
+    enabled: validFieldId && relatedFieldId === fieldId,
+  });
+  const catalogRequest = useCachedQuery({
+    ...cropCatalogPageQuery(0, CROP_PAGE_SIZE),
+    enabled: validFieldId && relatedFieldId === fieldId,
+  });
+  const loadError = [fieldRequest, cropsRequest, catalogRequest].find(
+    (request) => request.error && (!request.data || isAuthError(request.error)),
+  )?.error;
+  const { refetch: refetchField } = fieldRequest;
+
   useEffect(() => {
-    async function loadField() {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!validFieldId) {
+      setErrorMessage(t('settings.errors.invalidId'));
+      setLoading(false);
+      return;
+    }
+    const field = fieldRequest.data;
+    if (!field || initializedFieldId.current === fieldId) return;
+    initializedFieldId.current = fieldId;
+    setLoading(true);
+    // Hydrate the editable draft once. Background cache refreshes must never
+    // overwrite a name, boundary, unit or address the user is editing.
+    setName(field.name);
+    setLocation(field.location ?? '');
+    setFieldType(field.field_type ?? '');
+    setSoilType(field.soil_type ?? '');
+    setSizeValue(field.size_m2 != null ? String(field.size_m2) : '');
+    setBoundary(field.boundary ?? null);
+    setExcludedZones(field.excluded_zones ?? []);
+    setAreaUnit('m2');
+    setBoundaryChanged(false);
+    setPoint(
+      field.lat != null && field.lon != null
+        ? { lat: field.lat, lon: field.lon }
+        : null,
+    );
+
+    async function loadLocalPreferences() {
       try {
-        // A copy loaded a few seconds ago (e.g. by the garden screen that
-        // was just open) is reused at once instead of asking the server.
-        const field = await queryClient.query({
-          ...fieldDetailQuery(fieldId),
-          staleTime: FORM_DATA_MAX_AGE_MS,
-        });
-
-        setName(field.name);
-        setLocation(field.location ?? '');
-        setFieldType(field.field_type ?? FIELD_TYPES[0]);
-        setSoilType(field.soil_type ?? SOIL_TYPES[0]);
-        setSizeValue(field.size_m2 != null ? String(field.size_m2) : '');
-        setBoundary(field.boundary ?? null);
-        setExcludedZones(field.excluded_zones ?? []);
-        setAreaUnit('m2');
-        setBoundaryChanged(false);
-        setPoint(
-          field.lat != null && field.lon != null
-            ? { lat: field.lat, lon: field.lon }
-            : null,
-        );
-        setExistingDevices(field.devices);
-        setPhotoIndex(await getFieldPhotoIndex(fieldId));
+        const photo = await getFieldPhotoIndex(fieldId);
         const auth = await getAuth();
-
-        if (!auth?.token) {
+        if (!mounted.current || activeFieldId.current !== fieldId) return;
+        if (!auth?.token)
           throw new Error('No s’ha trobat el token d’autenticació');
-        }
-
-        const [fieldCrops, crops] = await Promise.all([
-          queryClient.query({
-            ...fieldCropsQuery(fieldId),
-            staleTime: FORM_DATA_MAX_AGE_MS,
-          }),
-          getCrops(0, CROP_PAGE_SIZE, auth.token),
-        ]);
-
-        setExistingCrops(fieldCrops);
-        setAvailableCrops(crops);
-        setCropOffset(crops.length);
-        setHasMoreCrops(crops.length === CROP_PAGE_SIZE);
+        setPhotoIndex(photo);
+        setRelatedFieldId(fieldId);
       } catch (error) {
+        if (!mounted.current || activeFieldId.current !== fieldId) return;
         if (isAuthError(error)) {
           await clearAuth();
           router.replace('/auth/login');
           return;
         }
-        const message =
+        setErrorMessage(
           error instanceof Error
             ? error.message
-            : t('settings.errors.loadGarden');
-        setErrorMessage(message);
-      } finally {
+            : t('settings.errors.loadGarden'),
+        );
         setLoadingCrops(false);
         setLoading(false);
       }
     }
+    void loadLocalPreferences();
+  }, [fieldId, validFieldId, fieldRequest.data, t]);
 
-    if (!Number.isFinite(fieldId)) {
-      setErrorMessage(t('settings.errors.invalidId'));
+  useEffect(() => {
+    if (fieldRequest.data) setExistingDevices(fieldRequest.data.devices);
+  }, [fieldRequest.data]);
+
+  useEffect(() => {
+    if (cropsRequest.data) setExistingCrops(cropsRequest.data);
+  }, [cropsRequest.data]);
+
+  useEffect(() => {
+    if (!catalogRequest.data || cropPage !== 0) return;
+    setAvailableCrops(catalogRequest.data);
+    setCropOffset(catalogRequest.data.length);
+    setHasMoreCrops(catalogRequest.data.length === CROP_PAGE_SIZE);
+  }, [catalogRequest.data, cropPage]);
+
+  useEffect(() => {
+    const error = loadError;
+    if (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : t('settings.errors.loadGarden'),
+      );
+      setLoadingCrops(false);
       setLoading(false);
+      if (isAuthError(error)) {
+        async function returnToLogin() {
+          await clearAuth();
+          router.replace('/auth/login');
+        }
+        void returnToLogin();
+      }
       return;
     }
-
-    void loadField();
-  }, [fieldId, t]);
+    if (
+      relatedFieldId === fieldId &&
+      cropsRequest.isSuccess &&
+      catalogRequest.isSuccess
+    ) {
+      setLoadingCrops(false);
+      setLoading(false);
+    }
+  }, [
+    loadError,
+    relatedFieldId,
+    fieldId,
+    cropsRequest.isSuccess,
+    catalogRequest.isSuccess,
+    t,
+  ]);
 
   async function loadNextCropPage() {
     if (cropPageLoading.current || loadingCrops || !hasMoreCrops) return;
@@ -196,7 +318,9 @@ export default function EditFieldScreen() {
       const auth = await getAuth();
       if (!auth?.token) throw new Error('No s’ha trobat el token');
 
-      const nextPage = await getCrops(cropOffset, CROP_PAGE_SIZE, auth.token);
+      const nextPage = await queryClient.query(
+        cropCatalogPageQuery(cropOffset, CROP_PAGE_SIZE),
+      );
       setAvailableCrops(nextPage);
       setCropOffset((offset) => offset + nextPage.length);
       setCropPage((page) => page + 1);
@@ -224,22 +348,11 @@ export default function EditFieldScreen() {
       if (!Number.isFinite(fieldId)) {
         return undefined;
       }
-      let active = true;
-      // Always asked to the server: a board may have just been added.
-      queryClient
-        .query({ ...fieldDetailQuery(fieldId), staleTime: 0 })
-        .then((field) => {
-          if (active) {
-            setExistingDevices(field.devices);
-          }
-        })
-        .catch(() => {
-          // Keep the list the user already sees.
-        });
-      return () => {
-        active = false;
-      };
-    }, [fieldId]),
+      // Revalidate on return from device setup; the query observer updates
+      // devices without reinitializing the editable form draft.
+      void refetchField();
+      return undefined;
+    }, [fieldId, refetchField]),
   );
 
   function handleAddDevice() {
@@ -285,13 +398,17 @@ export default function EditFieldScreen() {
     setBoundaryChanged(true);
     setSizeValue(displayArea(geometry.areaM2, areaUnit));
     setPoint(geometry.center);
+    await resolveAddress(geometry.center);
+  }
+
+  async function resolveAddress(selectedPoint: MapPoint) {
     setLocating(true);
     setLocation('');
     setErrorMessage('');
     try {
       const found = await reverseGeocodeLocation(
-        geometry.center.lat,
-        geometry.center.lon,
+        selectedPoint.lat,
+        selectedPoint.lon,
       );
       if (!found.label?.trim()) throw new Error('Address unavailable');
       setLocation(found.label.slice(0, 255));
@@ -309,25 +426,9 @@ export default function EditFieldScreen() {
 
   async function handleAccept() {
     if (locating) return;
+    if (!validateRequired(2)) return;
     const trimmedName = name.trim();
-
-    if (!trimmedName) {
-      setErrorMessage(t('settings.errors.nameRequired'));
-      return;
-    }
-
-    const parsedSize = boundary
-      ? fieldGeometry(boundary, excludedZones).areaM2
-      : parseArea(sizeValue, areaUnit);
-    if (
-      parsedSize != null &&
-      (!Number.isFinite(parsedSize) ||
-        parsedSize < 0.01 ||
-        parsedSize > MAX_FIELD_AREA)
-    ) {
-      setErrorMessage(t('settings.errors.sizeNumber'));
-      return;
-    }
+    const parsedSize = areaM2;
 
     try {
       setSaving(true);
@@ -335,6 +436,8 @@ export default function EditFieldScreen() {
       await updateField(fieldId, {
         name: trimmedName,
         location: location.trim() || null,
+        lat: point?.lat ?? null,
+        lon: point?.lon ?? null,
         field_type: fieldType || null,
         soil_type: soilType || null,
         size_m2: parsedSize,
@@ -380,9 +483,29 @@ export default function EditFieldScreen() {
       return;
     }
 
+    const tempId = `temp-${Date.now()}`;
+    const cropData: FieldCropCreate = {
+      field_id: fieldId,
+      crop_id: Number(selectedCropId),
+      planted_at: plantedAt || null,
+      expected_harvest_at: expectedHarvestAt || null,
+      status: 'planted',
+      notes: cropNotes.trim() || null,
+    };
+
     try {
       setAddingCrop(true);
       setErrorMessage('');
+
+      setExistingCrops((current) => [
+        ...current,
+        {
+          id: tempId,
+          ...cropData,
+          crop_name: selectedCropName,
+          field_name: name,
+        },
+      ]);
 
       const auth = await getAuth();
 
@@ -390,19 +513,11 @@ export default function EditFieldScreen() {
         throw new Error('No s’ha trobat el token');
       }
 
-      const newCrop = await createFieldCrop(
-        {
-          field_id: fieldId,
-          crop_id: Number(selectedCropId),
-          planted_at: plantedAt || null,
-          expected_harvest_at: expectedHarvestAt || null,
-          status: 'planted',
-          notes: cropNotes.trim() || null,
-        },
-        auth.token,
-      );
+      const newCrop = await createFieldCrop(cropData, auth.token);
 
-      setExistingCrops((current) => [...current, newCrop]);
+      setExistingCrops((current) =>
+        current.map((crop) => (String(crop.id) === tempId ? newCrop : crop)),
+      );
       setSelectedCropId('');
       setSelectedCropName('');
       setPlantedAt('');
@@ -410,6 +525,9 @@ export default function EditFieldScreen() {
       setCropNotes('');
       setShowCropForm(false);
     } catch (error) {
+      setExistingCrops((current) =>
+        current.filter((crop) => String(crop.id) !== tempId),
+      );
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -420,6 +538,19 @@ export default function EditFieldScreen() {
     }
   }
   async function handleRemoveCrop(cropId: string | number) {
+    const cropKey = String(cropId);
+    const cropIndex = existingCrops.findIndex(
+      (crop) => String(crop.id) === cropKey,
+    );
+    const removedCrop = existingCrops[cropIndex];
+    if (!removedCrop) return;
+
+    setRemovingCropIds((current) => new Set(current).add(cropKey));
+    setErrorMessage('');
+    setExistingCrops((current) =>
+      current.filter((crop) => String(crop.id) !== cropKey),
+    );
+
     try {
       const auth = await getAuth();
 
@@ -428,51 +559,91 @@ export default function EditFieldScreen() {
       }
 
       await deleteFieldCrop(cropId, auth.token);
-
-      setExistingCrops((current) =>
-        current.filter((crop) => crop.id !== cropId),
-      );
     } catch (error) {
+      setExistingCrops((current) => {
+        if (current.some((crop) => String(crop.id) === cropKey)) {
+          return current;
+        }
+        const restored = [...current];
+        restored.splice(Math.min(cropIndex, restored.length), 0, removedCrop);
+        return restored;
+      });
       setErrorMessage(
         error instanceof Error
           ? error.message
           : t('settings.manageCrops.errors.removeFailed'),
       );
+    } finally {
+      setRemovingCropIds((current) => {
+        const next = new Set(current);
+        next.delete(cropKey);
+        return next;
+      });
     }
   }
   return (
     <View style={styles.screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.container}>
-          <Pressable style={styles.backRow} onPress={goBack} disabled={saving}>
-            <Ionicons
-              name="chevron-back"
-              size={18}
-              color={Colors.light.textSecondary}
-            />
-            <Text style={styles.backText}>
-              {t('settings.fieldDetail.dataBack')}
+      <FieldFormSteps
+        steps={[
+          'details',
+          'location',
+          'characteristics',
+          'crops',
+          'devices',
+        ].map((key) => ({
+          title: t(`settings.fieldForm.steps.${key}.title`),
+          hint: t(`settings.fieldForm.steps.${key}.hint`),
+        }))}
+        currentStep={step}
+        onStepChange={navigateStep}
+        disabled={saving || loading || locating || addingCrop}
+        header={
+          <>
+            <Pressable
+              style={styles.backRow}
+              onPress={goBack}
+              disabled={saving}
+            >
+              <Ionicons
+                name="chevron-back"
+                size={18}
+                color={Colors.light.textSecondary}
+              />
+              <Text style={styles.backText}>
+                {t('settings.fieldDetail.dataBack')}
+              </Text>
+            </Pressable>
+
+            <Text style={styles.eyebrow}>
+              {t('settings.fieldDetail.eyebrow')}
+            </Text>
+            <Text style={styles.title}>{t('settings.editGarden')}</Text>
+          </>
+        }
+        error={errorMessage}
+        finalAction={
+          <Pressable
+            accessibilityRole="button"
+            style={[
+              styles.button,
+              styles.acceptButton,
+              { flex: 0, minHeight: 50 },
+            ]}
+            onPress={() => void handleAccept()}
+            disabled={saving || loading || locating}
+          >
+            <Text style={styles.acceptText}>
+              {saving ? t('settings.saving') : t('settings.accept')}
             </Text>
           </Pressable>
-
-          <Text style={styles.eyebrow}>
-            {t('settings.fieldDetail.eyebrow')}
-          </Text>
-          <Text style={styles.title}>{t('settings.editGarden')}</Text>
-
-          {errorMessage ? (
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          ) : null}
-
-          <View style={styles.card}>
-            {loading ? (
-              <Text style={styles.label}>{t('settings.loading')}</Text>
-            ) : (
-              <>
+        }
+      >
+        {loading ? (
+          <Text style={styles.label}>{t('settings.loading')}</Text>
+        ) : (
+          <>
+            {step === 0 ? (
+              <View style={styles.card}>
                 <Text style={styles.label}>{t('settings.photo')}</Text>
                 <GardenPhotoPicker
                   photoIndex={photoIndex}
@@ -485,20 +656,72 @@ export default function EditFieldScreen() {
                 <TextInput
                   style={styles.input}
                   value={name}
+                  accessibilityLabel={t('settings.name')}
+                  accessibilityHint={
+                    visibleError('name') ? t(visibleError('name')!) : undefined
+                  }
                   onChangeText={setName}
                   editable={!saving}
                 />
-
+                <FieldFormError error={visibleError('name')} />
+              </View>
+            ) : null}
+            {step === 1 ? (
+              <View style={styles.card}>
                 <Text style={styles.label}>{t('settings.location')}</Text>
                 <TextInput
                   style={styles.input}
                   value={location}
-                  onChangeText={setLocation}
-                  editable={!saving}
+                  accessibilityLabel={t('settings.location')}
+                  accessibilityHint={
+                    visibleError('location')
+                      ? t(visibleError('location')!)
+                      : undefined
+                  }
+                  onChangeText={(value) => {
+                    setLocation(value);
+                    if (!boundary) setPoint(null);
+                  }}
+                  editable={!saving && !locating}
                 />
+                <FieldFormError error={visibleError('location')} />
 
+                {point ? (
+                  <Text style={areaStyles.coords}>
+                    {t('settings.createField.coords', {
+                      lat: point.lat.toFixed(6),
+                      lon: point.lon.toFixed(6),
+                    })}
+                  </Text>
+                ) : null}
+
+                {locating ? (
+                  <Text
+                    style={areaStyles.lookupText}
+                    accessibilityLiveRegion="polite"
+                  >
+                    {t('settings.createField.lookingUp')}
+                  </Text>
+                ) : point && !location.trim() ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={saving}
+                    onPress={() => void resolveAddress(point)}
+                  >
+                    <Text style={areaStyles.lookupText}>
+                      {t('settings.createField.retryAddress')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
+            {step === 2 ? (
+              <View style={styles.card}>
                 <FieldOptionChips
                   fieldType={fieldType}
+                  typeHelp={
+                    <FieldFormError error={visibleError('fieldType')} />
+                  }
                   soilType={soilType}
                   onFieldType={(value) => {
                     setFieldType(value);
@@ -592,6 +815,7 @@ export default function EditFieldScreen() {
                   )}
                   editable={!saving && !locating && !boundary}
                 />
+                <FieldFormError error={visibleError('area')} />
                 <Text style={areaStyles.coordsHint}>
                   {t(
                     `settings.createField.${boundary ? 'automaticArea' : 'areaUnitLabel'}`,
@@ -612,15 +836,251 @@ export default function EditFieldScreen() {
                     />
                   ))}
                 </View>
-                {point ? (
-                  <Text style={areaStyles.coords}>
-                    {t('settings.createField.coords', {
-                      lat: point.lat.toFixed(6),
-                      lon: point.lon.toFixed(6),
-                    })}
+              </View>
+            ) : null}
+            {step === 3 ? (
+              <View style={styles.card}>
+                <View style={styles.cropSection}>
+                  <Text style={styles.cropSectionTitle}>
+                    {t('settings.manageCrops.title')}
                   </Text>
-                ) : null}
+                  <Text style={styles.cropSectionHint}>
+                    {t('settings.manageCrops.hint')}
+                  </Text>
 
+                  {existingCrops.map((fieldCrop) => {
+                    const crop = availableCrops.find(
+                      (item) => String(item.id) === String(fieldCrop.crop_id),
+                    );
+
+                    return (
+                      <View key={String(fieldCrop.id)} style={styles.cropRow}>
+                        <Text style={styles.cropName}>
+                          {fieldCrop.crop_name ??
+                            crop?.name ??
+                            t('fieldCrops.crop', { id: fieldCrop.crop_id })}
+                        </Text>
+
+                        <Pressable
+                          onPress={() => void handleRemoveCrop(fieldCrop.id)}
+                          disabled={
+                            saving ||
+                            addingCrop ||
+                            removingCropIds.has(String(fieldCrop.id))
+                          }
+                          accessibilityLabel={t(
+                            'settings.manageCrops.removeCrop',
+                            {
+                              crop:
+                                crop?.name ?? t('settings.fieldDetail.crops'),
+                            },
+                          )}
+                          hitSlop={8}
+                        >
+                          <Ionicons
+                            name="trash-outline"
+                            size={20}
+                            color="#D9534F"
+                          />
+                        </Pressable>
+                      </View>
+                    );
+                  })}
+
+                  {showCropForm ? (
+                    <View style={styles.cropForm}>
+                      <Text style={styles.label}>
+                        {t('settings.manageCrops.cropType')}
+                      </Text>
+                      <Pressable
+                        style={styles.cropPicker}
+                        onPress={() => setCropSelectorOpen(true)}
+                        disabled={addingCrop || saving || loadingCrops}
+                        accessibilityRole="button"
+                      >
+                        <Text
+                          style={[
+                            styles.cropPickerText,
+                            !selectedCropName && styles.cropPickerPlaceholder,
+                          ]}
+                        >
+                          {selectedCropName ||
+                            t('settings.manageCrops.selectCrop')}
+                        </Text>
+                        <Ionicons
+                          name="chevron-down"
+                          size={18}
+                          color={Colors.light.textSecondary}
+                        />
+                      </Pressable>
+
+                      <Modal
+                        testID="crop-selector-modal"
+                        visible={cropSelectorOpen}
+                        transparent
+                        animationType="fade"
+                        onRequestClose={() => setCropSelectorOpen(false)}
+                      >
+                        <View style={styles.cropModalBackdrop}>
+                          <View style={styles.cropModal}>
+                            <View style={styles.cropModalHeader}>
+                              <Text style={styles.cropModalTitle}>
+                                {t('settings.manageCrops.cropType')}
+                              </Text>
+                              <Pressable
+                                onPress={() => setCropSelectorOpen(false)}
+                                hitSlop={8}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('settings.cancel')}
+                              >
+                                <Ionicons
+                                  name="close"
+                                  size={22}
+                                  color={Colors.light.textSecondary}
+                                />
+                              </Pressable>
+                            </View>
+                            <FlatList
+                              testID="crop-selector-list"
+                              key={cropPage}
+                              data={availableCrops.filter(
+                                (crop) =>
+                                  !existingCrops.some(
+                                    (fieldCrop) =>
+                                      String(fieldCrop.crop_id) ===
+                                      String(crop.id),
+                                  ),
+                              )}
+                              keyExtractor={(crop) => String(crop.id)}
+                              onEndReached={() => void loadNextCropPage()}
+                              onEndReachedThreshold={0.35}
+                              renderItem={({ item: crop }) => (
+                                <Pressable
+                                  style={styles.cropOption}
+                                  onPress={() => {
+                                    setSelectedCropId(String(crop.id));
+                                    setSelectedCropName(crop.name);
+                                    setCropSelectorOpen(false);
+                                  }}
+                                >
+                                  <Text style={styles.cropOptionText}>
+                                    {crop.name}
+                                  </Text>
+                                </Pressable>
+                              )}
+                              ListEmptyComponent={
+                                loadingCrops ? (
+                                  <ActivityIndicator
+                                    style={styles.cropListLoader}
+                                    color={Colors.light.primary}
+                                  />
+                                ) : (
+                                  <Text style={styles.cropEmpty}>
+                                    {t('settings.manageCrops.noAvailableCrops')}
+                                  </Text>
+                                )
+                              }
+                              ListFooterComponent={
+                                loadingCrops && availableCrops.length > 0 ? (
+                                  <ActivityIndicator
+                                    style={styles.cropListLoader}
+                                    color={Colors.light.primary}
+                                  />
+                                ) : null
+                              }
+                            />
+                          </View>
+                        </View>
+                      </Modal>
+
+                      <Text style={styles.label}>
+                        {t('settings.manageCrops.plantedAt')}
+                      </Text>
+                      <DateField
+                        value={plantedAt}
+                        onChange={setPlantedAt}
+                        placeholder={t('settings.manageCrops.selectDate')}
+                        maximumDate={expectedHarvestAt || undefined}
+                        disabled={addingCrop || saving}
+                      />
+
+                      <Text style={styles.label}>
+                        {t('settings.manageCrops.expectedHarvestAt')}
+                      </Text>
+                      <DateField
+                        value={expectedHarvestAt}
+                        onChange={setExpectedHarvestAt}
+                        placeholder={t('settings.manageCrops.selectDate')}
+                        minimumDate={plantedAt || undefined}
+                        disabled={addingCrop || saving}
+                      />
+
+                      <Text style={styles.label}>
+                        {t('settings.manageCrops.notes')}
+                      </Text>
+                      <TextInput
+                        style={[styles.input, styles.cropNotesInput]}
+                        value={cropNotes}
+                        onChangeText={setCropNotes}
+                        placeholder={t('settings.manageCrops.notesPlaceholder')}
+                        multiline
+                        editable={!addingCrop && !saving}
+                      />
+
+                      <Pressable
+                        style={[
+                          styles.button,
+                          styles.acceptButton,
+                          styles.cropSubmit,
+                        ]}
+                        onPress={() => void handleAddCrop()}
+                        disabled={!selectedCropId || addingCrop || saving}
+                      >
+                        <Text style={styles.acceptText}>
+                          {addingCrop
+                            ? t('settings.manageCrops.adding')
+                            : t('settings.manageCrops.saveCrop')}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        style={styles.cropCancel}
+                        onPress={() => setShowCropForm(false)}
+                        disabled={addingCrop || saving}
+                      >
+                        <Text style={styles.cropCancelText}>
+                          {t('settings.cancel')}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <Pressable
+                      style={styles.addCropButton}
+                      onPress={() => {
+                        setErrorMessage('');
+                        setShowCropForm(true);
+                      }}
+                      disabled={
+                        saving ||
+                        addingCrop ||
+                        loadingCrops ||
+                        availableCrops.length === 0
+                      }
+                    >
+                      <Ionicons
+                        name="add-circle-outline"
+                        size={20}
+                        color={Colors.light.primary}
+                      />
+                      <Text style={styles.addCropText}>
+                        {t('settings.manageCrops.addCrop')}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            ) : null}
+            {step === 4 ? (
+              <View style={styles.card}>
                 <FieldDevicesSection
                   devices={existingDevices}
                   addLabel={t('addDevice.button')}
@@ -630,31 +1090,20 @@ export default function EditFieldScreen() {
                     void handleRemoveDevice(deviceId);
                   }}
                 />
-              </>
-            )}
-            
 
-            <View style={styles.buttons}>
-              <Pressable
-                style={[styles.button, styles.cancelButton]}
-                onPress={goBack}
-                disabled={saving}
-              >
-                <Text style={styles.cancelText}>{t('settings.cancel')}</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.button, styles.acceptButton]}
-                onPress={() => void handleAccept()}
-                disabled={saving || loading || locating}
-              >
-                <Text style={styles.acceptText}>
-                  {saving ? t('settings.saving') : t('settings.accept')}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={goBack}
+                  disabled={saving}
+                  style={styles.cropCancel}
+                >
+                  <Text style={styles.cancelText}>{t('settings.cancel')}</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </>
+        )}
+      </FieldFormSteps>
       {geometryPicker ? (
         <FieldBoundaryPicker
           initialPoint={point}

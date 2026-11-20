@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { Dimensions } from 'react-native';
 
 import CalendarScreen from '@/app/app/calendar';
 import type { GardenRecommendation, GardenTask } from '@/services/api';
@@ -327,5 +328,34 @@ describe('calendar tab', () => {
     render(<CalendarScreen />);
 
     expect(screen.getByText('tasks.errors.load')).toBeTruthy();
+  });
+
+  it('keeps the phone column and widens it on a tablet', () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    function show(width: number, height: number) {
+      Dimensions.set({
+        window: { width, height, scale: 2, fontScale: 1 },
+        screen: { width, height, scale: 2, fontScale: 1 },
+      });
+      render(<CalendarScreen />);
+    }
+
+    try {
+      show(390, 844);
+      expect(screen.getByTestId('calendar-content').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 440 })]),
+      );
+      screen.unmount();
+
+      show(800, 400);
+      expect(screen.getByTestId('calendar-content').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 720 })]),
+      );
+    } finally {
+      Dimensions.set(previous);
+    }
   });
 });

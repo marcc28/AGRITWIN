@@ -49,6 +49,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          # Latest commit of the branch when the job starts. Without it an
+          # issue event checks out the commit of the moment the event fired,
+          # which can miss the reports pushed by the previous run.
+          ref: ${{ github.event.repository.default_branch }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -79,11 +84,26 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/costes.csv reports/costes.xlsx
-          git commit -m "chore: update project costs [skip ci]"
-          # dev may have moved while the job was running: rebase and retry.
+          branch="$(git branch --show-current)"
+
+          # The reports are generated from scratch, so this run's files are
+          # always the newest ones. If dev moved while the job was running,
+          # start again from the latest dev and put the new reports on top
+          # (a rebase cannot merge the binary .xlsx file).
+          mkdir -p "$RUNNER_TEMP/reports"
+          cp reports/costes.csv reports/costes.xlsx "$RUNNER_TEMP/reports/"
+
           for attempt in 1 2 3; do
-            git pull --rebase --quiet origin "$(git branch --show-current)" && git push && exit 0
+            git fetch --quiet origin "$branch"
+            git reset --quiet --hard "origin/$branch"
+            cp "$RUNNER_TEMP/reports/costes.csv" "$RUNNER_TEMP/reports/costes.xlsx" reports/
+            git add reports/costes.csv reports/costes.xlsx
+            if git diff --cached --quiet; then
+              echo "Cost reports are already up to date"
+              exit 0
+            fi
+            git commit --quiet -m "chore: update project costs [skip ci]"
+            git push --quiet origin "HEAD:$branch" && exit 0
             echo "Push attempt $attempt failed, retrying in 10s..."
             sleep 10
           done
