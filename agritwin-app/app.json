@@ -2,11 +2,12 @@
   "expo": {
     "name": "AgriTwin",
     "slug": "AgriTwin",
+    "owner": "flaviaserret04s-team",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/logo.png",
     "scheme": "agritwin",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.AgriTwin.app",
@@ -25,7 +26,8 @@
       "package": "com.AgriTwin.app"
     },
     "web": {
-      "output": "static",
+      "bundle": "metro",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -38,17 +40,54 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.agritwin.app",
+          "publishableKey": "pk_test_51T8JyBFnYQkzHZlYk9fRD5eK4xVzsCSNB47AiTT2O3V8UWisBRC3DFGhFOjZqUL3sYB9RVm7nLGXCRZITyAJpQgD00xwr84UKT",
+          "enableGooglePay": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow AgriTwin to access your photos to diagnose your plants.",
+          "cameraPermission": "Allow AgriTwin to use the camera to diagnose your plants."
+        }
+      ],
+      "expo-web-browser",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": [],
+          "neverForLocation": true,
+          "bluetoothAlwaysPermission": "AgriTwin uses Bluetooth to set up the sensors of your field."
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-5472828884402627~5846471932",
+          "iosAppId": "ca-app-pub-5472828884402627~1715655235"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
-      "router": {},
+      "router": {
+        "origin": "https://agritwin.com"
+      },
       "eas": {
         "projectId": "a4a995ec-0af0-43ab-bc44-d326c9141074"
       }
+    },
+    "scripts": {
+      "postinstall": "patch-package"
     }
   }
 }

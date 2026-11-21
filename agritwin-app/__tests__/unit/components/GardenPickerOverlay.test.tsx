@@ -6,11 +6,24 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import { router } from 'expo-router';
 
 import GardenPickerOverlay from '../../../src/components/GardenPickerOverlay';
+import { clearAuth } from '../../../src/services/auth';
 import { setCurrentField } from '../../../src/services/currentField';
 import { setGardenPicker } from '../../../src/services/gardenPicker';
 import type { Field } from '../../../src/services/api';
+
+jest.mock('expo-router', () => ({
+  router: {
+    push: jest.fn(),
+    replace: jest.fn(),
+  },
+}));
+
+jest.mock('../../../src/services/auth', () => ({
+  clearAuth: jest.fn(async () => undefined),
+}));
 
 jest.mock('../../../src/services/currentField', () => ({
   setCurrentField: jest.fn(async () => undefined),
@@ -20,7 +33,18 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
-function field(id: number, name: string): Field {
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+function field(
+  id: number,
+  name: string,
+  devicesOnline?: number,
+  deviceCount = 0,
+): Field {
   return {
     id,
     name,
@@ -28,7 +52,8 @@ function field(id: number, name: string): Field {
     field_type: null,
     soil_type: null,
     size_m2: null,
-    device_count: 0,
+    device_count: deviceCount,
+    ...(devicesOnline == null ? {} : { devices_online: devicesOnline }),
   };
 }
 
@@ -48,6 +73,57 @@ describe('GardenPickerOverlay', () => {
     expect(toJSON()).toBeNull();
   });
 
+  it.each([
+    ['garden-picker-all', '/field-selection'],
+    ['garden-picker-profile', '/profile'],
+  ])('closes the selector and opens %s', (testID, path) => {
+    setGardenPicker({ open: true, fields: [field(1, 'Hort')], currentId: 1 });
+    render(<GardenPickerOverlay />);
+    expect(screen.getByText('Hort')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId(testID));
+
+    expect(router.push).toHaveBeenCalledWith(path);
+    expect(screen.queryByText('Hort')).toBeNull();
+  });
+
+  it('shows an Arduino dot on each garden from the cached list', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort', 2, 2), field(2, 'Camp', 0, 1)],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+
+    expect(screen.getByTestId('device-health-ok')).toBeTruthy();
+    expect(screen.getByTestId('device-health-down')).toBeTruthy();
+  });
+
+  it('shows an orange Arduino dot when only some boards are online', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort', 1, 2), field(2, 'Camp', 2, 2)],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+
+    expect(screen.getByTestId('device-health-partial')).toBeTruthy();
+    expect(screen.getByLabelText('settings.deviceHealth.partial')).toBeTruthy();
+  });
+
+  it('hides the Arduino dot when devices_online is missing from cache', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort'), field(2, 'Camp')],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+
+    expect(screen.queryByTestId('device-health-ok')).toBeNull();
+    expect(screen.queryByTestId('device-health-partial')).toBeNull();
+    expect(screen.queryByTestId('device-health-down')).toBeNull();
+  });
+
   it('lists gardens and selects one', async () => {
     setGardenPicker({
       open: true,
@@ -61,5 +137,52 @@ describe('GardenPickerOverlay', () => {
     await waitFor(() => {
       expect(setCurrentField).toHaveBeenCalledWith({ id: 2, name: 'Camp' });
     });
+  });
+
+  it('closes the selector and logs out', async () => {
+    setGardenPicker({ open: true, fields: [field(1, 'Hort')], currentId: 1 });
+    render(<GardenPickerOverlay />);
+
+    fireEvent.press(screen.getByTestId('garden-picker-logout'));
+
+    expect(screen.queryByText('Hort')).toBeNull();
+    await waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/auth/login');
+    });
+  });
+
+  it('closes the selector from the backdrop', () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort'), field(2, 'Camp')],
+      currentId: 1,
+    });
+    render(<GardenPickerOverlay />);
+    fireEvent.press(screen.getByTestId('garden-picker-backdrop'));
+    expect(screen.queryByText('Hort')).toBeNull();
+  });
+
+  it('logs a selection save error', async () => {
+    setGardenPicker({
+      open: true,
+      fields: [field(1, 'Hort'), field(2, 'Camp')],
+      currentId: 1,
+    });
+    const log = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    (setCurrentField as jest.Mock).mockRejectedValueOnce(
+      new Error('storage failed'),
+    );
+    render(<GardenPickerOverlay />);
+    fireEvent.press(screen.getByText('Camp'));
+    await waitFor(() =>
+      expect(log).toHaveBeenCalledWith(
+        'Error seleccionant el camp:',
+        expect.any(Error),
+      ),
+    );
+    log.mockRestore();
   });
 });

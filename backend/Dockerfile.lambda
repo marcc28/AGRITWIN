@@ -45,6 +45,7 @@ COPY db/ ./db/
 COPY models/ ./models/
 COPY services/ ./services/
 COPY templates/ ./templates/
+COPY prompts/ ./prompts/
 COPY main.py ./
 COPY PRIVACY.md ./
 COPY SECURITY.md ./

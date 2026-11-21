@@ -1,0 +1,22 @@
+{
+  "name": "stream-json",
+  "version": "3.9.0-agritwin.1",
+  "description": "Legacy CommonJS entry point adapters delegating to patched official stream-json 3.9.0",
+  "main": "index.cjs",
+  "type": "commonjs",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=20.19.4"
+  },
+  "exports": {
+    ".": "./index.cjs",
+    "./package.json": "./package.json",
+    "./jsonl/Parser": "./jsonl/Parser.cjs",
+    "./jsonl/Parser.js": "./jsonl/Parser.cjs",
+    "./streamers/StreamArray": "./streamers/StreamArray.cjs",
+    "./streamers/StreamArray.js": "./streamers/StreamArray.cjs"
+  },
+  "dependencies": {
+    "stream-json-fixed": "npm:stream-json@3.9.0"
+  }
+}

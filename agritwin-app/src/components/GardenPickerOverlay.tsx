@@ -2,8 +2,16 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/constants/theme';
+import DeviceStatusDot from '@/components/DeviceStatusDot';
+import {
+  DEVICE_HEALTH_LABEL,
+  deviceHealthFromCounts,
+} from '@/services/deviceHealth';
+import { clearAuth } from '@/services/auth';
 import { setCurrentField } from '@/services/currentField';
 import {
   getGardenPicker,
@@ -13,23 +21,75 @@ import {
 import type { Field } from '@/services/api';
 
 async function selectGarden(field: Field) {
-  await setCurrentField({ id: field.id, name: field.name });
-  setGardenPicker({ open: false, currentId: field.id });
+  // Tanquem el selector immediatament
+  setGardenPicker({
+    open: false,
+    currentId: field.id,
+  });
+
+  // Després desem el camp seleccionat
+  try {
+    await setCurrentField({
+      id: field.id,
+      name: field.name,
+    });
+  } catch (error) {
+    console.error('Error seleccionant el camp:', error);
+  }
 }
+
+function openFromPicker(path: '/field-selection' | '/profile') {
+  setGardenPicker({ open: false });
+  router.push(path);
+}
+
+async function logoutFromPicker() {
+  setGardenPicker({ open: false });
+  await clearAuth();
+  router.replace('/auth/login');
+}
+
+const PICKER_LINKS = [
+  {
+    testID: 'garden-picker-all',
+    icon: 'grid-outline',
+    labelKey: 'fieldSelection.allGardens',
+    danger: false,
+    onPress: () => openFromPicker('/field-selection'),
+  },
+  {
+    testID: 'garden-picker-profile',
+    icon: 'person-circle-outline',
+    labelKey: 'fieldSelection.profile',
+    danger: false,
+    onPress: () => openFromPicker('/profile'),
+  },
+  {
+    testID: 'garden-picker-logout',
+    icon: 'log-out-outline',
+    labelKey: 'settings.logout',
+    danger: true,
+    onPress: () => void logoutFromPicker(),
+  },
+] as const;
 
 export default function GardenPickerOverlay() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [picker, setPicker] = useState(getGardenPicker);
 
   useEffect(() => {
-    return subscribeGardenPicker(() => {
+    const unsubscribe = subscribeGardenPicker(() => {
       setPicker(getGardenPicker());
     });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
-  if (!picker.open || picker.fields.length <= 1) {
+  if (!picker.open || picker.fields.length === 0) {
     return null;
   }
 
@@ -46,6 +106,7 @@ export default function GardenPickerOverlay() {
       }}
     >
       <Pressable
+        testID="garden-picker-backdrop"
         onPress={() => setGardenPicker({ open: false })}
         style={{
           position: 'absolute',
@@ -92,6 +153,27 @@ export default function GardenPickerOverlay() {
                 opacity: pressed ? 0.7 : 1,
               })}
             >
+              {field.devices_online == null ? null : (
+                <View
+                  accessible
+                  accessibilityLabel={t(
+                    DEVICE_HEALTH_LABEL[
+                      deviceHealthFromCounts(
+                        field.device_count,
+                        field.devices_online,
+                      )
+                    ],
+                  )}
+                  style={{ marginRight: 8 }}
+                >
+                  <DeviceStatusDot
+                    health={deviceHealthFromCounts(
+                      field.device_count,
+                      field.devices_online,
+                    )}
+                  />
+                </View>
+              )}
               <Text
                 numberOfLines={1}
                 style={{
@@ -110,6 +192,44 @@ export default function GardenPickerOverlay() {
             </Pressable>
           );
         })}
+        {PICKER_LINKS.map((link, index) => (
+          <Pressable
+            key={link.testID}
+            testID={link.testID}
+            onPress={link.onPress}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              opacity: pressed ? 0.7 : 1,
+              ...(index === 0
+                ? {
+                    marginTop: 4,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                  }
+                : {}),
+            })}
+          >
+            <Ionicons
+              name={link.icon}
+              size={16}
+              color={link.danger ? colors.dangerText : colors.primary}
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 14,
+                fontWeight: '600',
+                color: link.danger ? colors.dangerText : colors.primary,
+              }}
+            >
+              {t(link.labelKey)}
+            </Text>
+          </Pressable>
+        ))}
       </View>
     </View>
   );

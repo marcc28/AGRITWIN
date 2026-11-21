@@ -1,47 +1,172 @@
-import { ScrollView, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { WeatherAlertBanner } from '@/components/WeatherAlerts';
 import { WeatherCard } from '@/components/WeatherCard';
+import { FieldCropsCard } from '@/components/FieldCropsCard';
+import { FieldDevicesCard } from '@/components/FieldDevicesCard';
+
+import { WeatherAlert } from '@/services/api';
+import { activeAlerts } from '@/constants/weather';
 import { useCurrentField } from '@/hooks/use-current-field';
 import { useFieldWeather } from '@/hooks/use-field-weather';
+import { useFieldCrops } from '@/hooks/use-field-crops';
+import { useFieldDevices } from '@/hooks/use-field-devices';
+import { getSeenAlerts, markAlertSeen } from '@/services/seenWeatherAlerts';
+import { createAddCropHandler } from '@/services/fieldCropNavigation';
+import { useWeatherAlertsEnabled } from '@/hooks/use-weather-alerts-enabled';
+
 import { styles } from '@/styles/home.styles';
+import { DASHBOARD_PHONE, getPageFrame } from '@/styles/responsive';
 
 export default function HomeScreen() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const frame = getPageFrame(width, height, DASHBOARD_PHONE);
+
   const field = useCurrentField();
+
   const { state, retry } = useFieldWeather(field?.id ?? null, i18n.language);
+  const alertsEnabled = useWeatherAlertsEnabled();
+  const [seenAlerts, setSeenAlerts] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void getSeenAlerts().then((seen) => {
+      if (active) {
+        setSeenAlerts(seen);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const devices = useFieldDevices(field ? field.id : null);
+
+  const crops = useFieldCrops(field ? Number(field.id) : null);
+  const openAddCrop = createAddCropHandler(field, router.push);
 
   const weather =
     field === undefined ? ({ status: 'loading' } as const) : state;
 
   const today = new Date()
-    .toLocaleDateString('ca', {
+    .toLocaleDateString(i18n.resolvedLanguage, {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
     })
     .toUpperCase();
 
+  function openField() {
+    if (field) {
+      router.push({
+        pathname: '/field-detail',
+        params: { id: String(field.id) },
+      });
+    }
+  }
+
   function openWeather() {
     if (field) {
-      router.push({ pathname: '/weather', params: { id: String(field.id) } });
+      router.push({
+        pathname: '/weather',
+        params: { id: String(field.id) },
+      });
     }
+  }
+
+  const queue: { key: string; alert: WeatherAlert; now: boolean }[] = [];
+  if (alertsEnabled && weather.status === 'ready') {
+    const { currentAlerts, alerts } = activeAlerts(weather.weather);
+    currentAlerts.forEach((alert) =>
+      queue.push({
+        key: `${field?.id}:now:${alert.type}:${alert.day}`,
+        alert,
+        now: true,
+      }),
+    );
+    alerts.forEach((alert) =>
+      queue.push({
+        key: `${field?.id}:${alert.type}:${alert.starts_at ?? alert.day}`,
+        alert,
+        now: false,
+      }),
+    );
+  }
+  const pending =
+    seenAlerts === null
+      ? []
+      : queue.filter((item) => !seenAlerts.includes(item.key));
+  const next = pending[0];
+
+  function closeAlert() {
+    if (next) {
+      const { key } = next;
+      setSeenAlerts((seen) => [...(seen ?? []), key]);
+      void markAlertSeen(key);
+    }
+  }
+
+  function openAlert() {
+    closeAlert();
+    openWeather();
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View testID="home-screen" style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: frame.horizontalInset },
+        ]}
+      >
+        <View
+          testID="home-screen"
+          style={[styles.content, { maxWidth: frame.maxWidth }]}
+        >
           <Text style={styles.date}>{today}</Text>
-          <Text style={styles.title}>El teu hort,{'\n'}cada dia millor.</Text>
-          <Text style={styles.subtitle}>
-            Tasques, temps i cultius adaptats al teu hort.
+
+          <Text style={styles.title}>
+            {t('home.titleFirst')}
+            {'\n'}
+            {t('home.titleSecond')}
           </Text>
+
+          <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+
+          {field ? (
+            <>
+              <Text testID="home-working-on" style={styles.workingOn}>
+                {t('home.workingOn')}{' '}
+                <Text style={styles.workingOnName}>{field.name}</Text>
+              </Text>
+
+              <FieldDevicesCard
+                state={devices.state}
+                onPress={openField}
+                onRetry={devices.retry}
+              />
+            </>
+          ) : null}
 
           <WeatherCard state={weather} onPress={openWeather} onRetry={retry} />
         </View>
       </ScrollView>
+
+      {next ? (
+        <WeatherAlertBanner
+          key={next.key}
+          alert={next.alert}
+          now={next.now}
+          position={queue.length - pending.length + 1}
+          total={queue.length}
+          onOpen={openAlert}
+          onClose={closeAlert}
+        />
+      ) : null}
     </View>
   );
 }

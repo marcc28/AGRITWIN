@@ -2,13 +2,27 @@ import type { ComponentProps } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import type { TFunction } from 'i18next';
 
-import type { WeatherCondition } from '@/services/api';
+import type {
+  FieldWeather,
+  WeatherAlert,
+  WeatherCondition,
+} from '@/services/api';
 
 export type WeatherIcon = ComponentProps<typeof Ionicons>['name'];
 
 export type UvLevel = 'low' | 'moderate' | 'high' | 'veryHigh' | 'extreme';
 
 const PARTLY_CLOUDY_CODES = new Set([1, 2]);
+
+const ALERT_ICONS: Record<string, WeatherIcon> = {
+  hail: 'thunderstorm-outline',
+  storm: 'flash-outline',
+  snow: 'snow-outline',
+  frost: 'thermometer-outline',
+  wind: 'flag-outline',
+  heat: 'sunny-outline',
+  rain: 'rainy-outline',
+};
 
 export function weatherIcon(
   condition: WeatherCondition,
@@ -32,6 +46,37 @@ export function weatherIcon(
     default:
       return 'cloudy-outline';
   }
+}
+
+export function alertIcon(type: string): WeatherIcon {
+  return ALERT_ICONS[type] ?? 'warning-outline';
+}
+
+const HOUR_MS = 60 * 60 * 1000;
+
+function localDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+export function isActiveAlert(alert: WeatherAlert, now = new Date()): boolean {
+  if (alert.starts_at) {
+    return new Date(alert.starts_at).getTime() + HOUR_MS > now.getTime();
+  }
+  if (alert.day) {
+    return alert.day >= localDate(now);
+  }
+  return true;
+}
+
+export function activeAlerts(weather: FieldWeather, now = new Date()) {
+  return {
+    currentAlerts: (weather.current_alerts ?? []).filter((alert) =>
+      isActiveAlert(alert, now),
+    ),
+    alerts: (weather.alerts ?? []).filter((alert) => isActiveAlert(alert, now)),
+  };
 }
 
 export function formatTemperature(value: number): string {

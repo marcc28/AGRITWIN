@@ -1,0 +1,35 @@
+/** Route params arrive as strings: '7' and 7 must share the same cache. */
+function toFieldKey(fieldId: number | string): number | string {
+  const numeric = Number(fieldId);
+  return Number.isFinite(numeric) ? numeric : fieldId;
+}
+
+/**
+ * Cache keys. Everything that belongs to one field starts with
+ * ['field', id] so it can be refreshed in one go after a change.
+ */
+export const queryKeys = {
+  me: ['me'] as const,
+  fields: ['fields'] as const,
+  field: (fieldId: number) => ['field', fieldId] as const,
+  fieldDetail: (fieldId: number) => ['field', fieldId, 'detail'] as const,
+  fieldCrops: (fieldId: number) => ['field', fieldId, 'crops'] as const,
+  dashboard: (fieldId: number) => ['field', fieldId, 'dashboard'] as const,
+  weather: (fieldId: number, lang: string) =>
+    ['field', fieldId, 'weather', lang] as const,
+  tasks: (fieldId: number, lang: string) =>
+    ['field', fieldId, 'tasks', lang] as const,
+  recommendations: (fieldId: number | string, language?: string) =>
+    language
+      ? (['field', toFieldKey(fieldId), 'recommendations', language] as const)
+      : (['field', toFieldKey(fieldId), 'recommendations'] as const),
+  cropCatalog: ['crops', 'catalog'] as const,
+  cropCatalogPage: (offset: number, limit: number) =>
+    ['crops', 'catalog', 'page', offset, limit] as const,
+  market: ['market'] as const,
+  marketCount: ['market', 'count'] as const,
+  marketPage: (offset: number, limit: number, language = 'ca') =>
+    ['market', 'page', offset, limit, language] as const,
+  marketProduct: (id: string, language = 'ca') =>
+    ['market', 'product', id, language] as const,
+};

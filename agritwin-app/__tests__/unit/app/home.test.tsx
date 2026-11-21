@@ -2,10 +2,15 @@ import React from 'react';
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { Dimensions } from 'react-native';
 
 import HomeScreen from '../../../src/app/app/home';
 import { useCurrentField } from '../../../src/hooks/use-current-field';
+import { useFieldDevices } from '../../../src/hooks/use-field-devices';
 import { useFieldWeather } from '../../../src/hooks/use-field-weather';
+import { useWeatherAlertsEnabled } from '../../../src/hooks/use-weather-alerts-enabled';
+import type { FieldWeather } from '../../../src/services/api';
+import { markAlertSeen } from '../../../src/services/seenWeatherAlerts';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -28,6 +33,27 @@ jest.mock('../../../src/hooks/use-field-weather', () => ({
   useFieldWeather: jest.fn(),
 }));
 
+jest.mock('../../../src/hooks/use-weather-alerts-enabled', () => ({
+  useWeatherAlertsEnabled: jest.fn(),
+}));
+
+jest.mock('../../../src/services/seenWeatherAlerts', () => ({
+  getSeenAlerts: jest.fn().mockResolvedValue([]),
+  markAlertSeen: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../src/hooks/use-field-crops', () => ({
+  useFieldCrops: jest.fn(() => ({
+    status: 'success',
+    data: [],
+    retry: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../src/hooks/use-field-devices', () => ({
+  useFieldDevices: jest.fn(),
+}));
+
 jest.mock('../../../src/components/WeatherCard', () => ({
   WeatherCard: ({
     state,
@@ -38,8 +64,9 @@ jest.mock('../../../src/components/WeatherCard', () => ({
     onPress: () => void;
     onRetry: () => void;
   }) => {
-    const React = require('react');
-    const { Pressable, Text } = require('react-native');
+    const React = jest.requireActual<typeof import('react')>('react');
+    const { Pressable, Text } =
+      jest.requireActual<typeof import('react-native')>('react-native');
     return (
       <>
         <Pressable testID="card" onPress={onPress}>
@@ -57,12 +84,49 @@ const mockedUseCurrentField = useCurrentField as jest.MockedFunction<
 const mockedUseFieldWeather = useFieldWeather as jest.MockedFunction<
   typeof useFieldWeather
 >;
+const mockedUseWeatherAlertsEnabled =
+  useWeatherAlertsEnabled as jest.MockedFunction<
+    typeof useWeatherAlertsEnabled
+  >;
+const mockedUseFieldDevices = useFieldDevices as jest.MockedFunction<
+  typeof useFieldDevices
+>;
 const retry = jest.fn();
+const retryDevices = jest.fn();
+
+function alert(type: string, message: string) {
+  return {
+    type,
+    message,
+    starts_at: null,
+    day: '2099-10-29',
+    rain_probability: null,
+    rain_mm: null,
+    temperature: null,
+    wind_speed: null,
+  };
+}
+
+const withAlerts = {
+  current_alerts: [alert('wind', 'Ara hi ha vent fort (55 km/h)')],
+  alerts: [alert('rain', 'Es preveu pluja el 30/10 (80%)')],
+} as unknown as FieldWeather;
 
 describe('HomeScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedUseWeatherAlertsEnabled.mockReturnValue(true);
     mockedUseCurrentField.mockReturnValue({ id: 2, name: 'Tremp' });
+    mockedUseFieldDevices.mockReturnValue({
+      state: {
+        status: 'ready',
+        devices: [
+          { id: 'esp32_sim_01', battery_status: true },
+          { id: 'esp32_sim_02', battery_status: false },
+        ],
+      },
+      retry: retryDevices,
+    });
     mockedUseFieldWeather.mockReturnValue({
       state: { status: 'ready', weather: {} as never },
       retry,
@@ -73,7 +137,72 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(screen.getByTestId('home-screen')).toBeTruthy();
-    expect(screen.getByText(/El teu hort/)).toBeTruthy();
+
+    expect(
+      screen.getByText(/home\.titleFirst[\s\S]*home\.titleSecond/),
+    ).toBeTruthy();
+
+    expect(screen.getByText('home.subtitle')).toBeTruthy();
+  });
+
+  it('says which field is active, under the welcome text', () => {
+    render(<HomeScreen />);
+
+    expect(screen.getByTestId('home-working-on')).toBeTruthy();
+    expect(screen.getByText('home.workingOn', { exact: false })).toBeTruthy();
+    expect(screen.getByText('Tremp')).toBeTruthy();
+  });
+
+  it('shows the devices of the active field with their status', () => {
+    render(<HomeScreen />);
+
+    expect(mockedUseFieldDevices).toHaveBeenCalledWith(2);
+    expect(screen.getByText('esp32_sim_01')).toBeTruthy();
+    expect(screen.getByText('esp32_sim_02')).toBeTruthy();
+    expect(screen.getByTestId('device-health-ok')).toBeTruthy();
+    expect(screen.getByTestId('device-health-down')).toBeTruthy();
+  });
+
+  it('opens the field from the devices card', () => {
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByTestId('field-devices-card'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/field-detail',
+      params: { id: '2' },
+    });
+  });
+
+  it('retries the devices', () => {
+    mockedUseFieldDevices.mockReturnValue({
+      state: { status: 'error' },
+      retry: retryDevices,
+    });
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByTestId('field-devices-retry'));
+
+    expect(retryDevices).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the field and its devices when there is no field', () => {
+    mockedUseCurrentField.mockReturnValue(null);
+    mockedUseFieldDevices.mockReturnValue({
+      state: { status: 'loading' },
+      retry: retryDevices,
+    });
+    mockedUseFieldWeather.mockReturnValue({
+      state: { status: 'no-field' },
+      retry,
+    });
+
+    render(<HomeScreen />);
+
+    expect(mockedUseFieldDevices).toHaveBeenCalledWith(null);
+    expect(screen.queryByTestId('home-working-on')).toBeNull();
+    expect(screen.queryByTestId('field-devices-card')).toBeNull();
+    expect(screen.queryByTestId('field-devices-loading')).toBeNull();
   });
 
   it('shows the weather of the chosen field', () => {
@@ -128,5 +257,71 @@ describe('HomeScreen', () => {
     fireEvent.press(screen.getByTestId('card-retry'));
 
     expect(retry).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the weather alerts one by one', async () => {
+    mockedUseFieldWeather.mockReturnValue({
+      state: { status: 'ready', weather: withAlerts },
+      retry,
+    });
+
+    render(<HomeScreen />);
+
+    expect(
+      await screen.findByText('Ara hi ha vent fort (55 km/h)'),
+    ).toBeTruthy();
+    fireEvent.press(screen.getByTestId('weather-alert-close'));
+    expect(screen.getByText('Es preveu pluja el 30/10 (80%)')).toBeTruthy();
+    expect(markAlertSeen).toHaveBeenCalledWith('2:now:wind:2099-10-29');
+
+    fireEvent.press(screen.getByTestId('weather-alert-banner'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/weather',
+      params: { id: '2' },
+    });
+    expect(screen.queryByTestId('weather-alert-banner')).toBeNull();
+  });
+
+  it('does not show the weather alerts when they are turned off', async () => {
+    mockedUseWeatherAlertsEnabled.mockReturnValue(false);
+    mockedUseFieldWeather.mockReturnValue({
+      state: { status: 'ready', weather: withAlerts },
+      retry,
+    });
+
+    render(<HomeScreen />);
+
+    expect(await screen.findByText('card-ready')).toBeTruthy();
+    expect(screen.queryByTestId('weather-alert-banner')).toBeNull();
+  });
+
+  it('keeps the phone column and widens it on a desktop', () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    function show(width: number, height: number) {
+      Dimensions.set({
+        window: { width, height, scale: 2, fontScale: 1 },
+        screen: { width, height, scale: 2, fontScale: 1 },
+      });
+      render(<HomeScreen />);
+    }
+
+    try {
+      show(390, 844);
+      expect(screen.getByTestId('home-screen').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 420 })]),
+      );
+      screen.unmount();
+
+      show(1800, 1000);
+      expect(screen.getByTestId('home-screen').props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ maxWidth: 1040 })]),
+      );
+    } finally {
+      Dimensions.set(previous);
+    }
   });
 });

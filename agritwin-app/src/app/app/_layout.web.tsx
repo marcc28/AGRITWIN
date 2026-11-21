@@ -5,9 +5,11 @@ import {
   View,
   StyleSheet,
   useColorScheme,
+  useWindowDimensions,
   type ImageSourcePropType,
 } from 'react-native';
 import { usePathname } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   Tabs,
   TabList,
@@ -32,6 +34,8 @@ function WebTabButton({
   icon: ImageSourcePropType;
 }) {
   const scheme = useColorScheme();
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const pathname = usePathname();
   const active = Boolean(isFocused) || pathname.startsWith(`/app/${name}`);
@@ -51,13 +55,23 @@ function WebTabButton({
                 borderColor: colors.successBorder,
               }
             : null,
+          compactLandscape ? styles.iconWrapCompact : null,
         ]}
       >
-        <Image source={icon} style={[styles.icon, { tintColor: tint }]} />
+        <Image
+          source={icon}
+          style={[
+            styles.icon,
+            compactLandscape ? styles.iconCompact : null,
+            { tintColor: tint },
+          ]}
+        />
       </View>
       <Text
+        numberOfLines={1}
         style={[
           styles.label,
+          compactLandscape ? styles.labelCompact : null,
           {
             color: tint,
             fontWeight: active ? '800' : '500',
@@ -71,7 +85,10 @@ function WebTabButton({
 }
 
 export default function WebLayout() {
+  const { t } = useTranslation();
   const scheme = useColorScheme();
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
 
   return (
@@ -88,34 +105,42 @@ export default function WebLayout() {
                 backgroundColor: colors.surface,
                 borderTopColor: colors.border,
               },
+              compactLandscape ? styles.tabListCompact : null,
             ]}
           >
             <TabTrigger name="home" href="/app/home" asChild>
               <WebTabButton
                 name="home"
-                label="Inici"
+                label={t('tabs.home')}
                 icon={require('@assets/images/tabIcons/home.png')}
               />
             </TabTrigger>
-            <TabTrigger name="explore" href="/app/explore" asChild>
+            <TabTrigger name="calendar" href="/app/calendar" asChild>
               <WebTabButton
-                name="explore"
-                label="Explorar"
-                icon={require('@assets/images/tabIcons/explore.png')}
+                name="calendar"
+                label={t('tabs.calendar')}
+                icon={require('@assets/images/tabIcons/edit_calendar.png')}
+              />
+            </TabTrigger>
+            <TabTrigger name="diagnosis" href="/app/diagnosis" asChild>
+              <WebTabButton
+                name="diagnosis"
+                label={t('tabs.diagnosis')}
+                icon={require('@assets/images/tabIcons/diagnosis.png')}
               />
             </TabTrigger>
             <TabTrigger name="market" href="/app/market" asChild>
               <WebTabButton
                 name="market"
-                label="Mercat"
+                label={t('tabs.market')}
                 icon={require('@assets/images/tabIcons/market.png')}
               />
             </TabTrigger>
-            <TabTrigger name="settings" href="/app/settings" asChild>
+            <TabTrigger name="crops" href="/app/crops" asChild>
               <WebTabButton
-                name="settings"
-                label="Perfil"
-                icon={require('@assets/images/tabIcons/settings.png')}
+                name="Crops"
+                label={t('tabs.Crops')}
+                icon={require('@assets/images/brote.png')}
               />
             </TabTrigger>
           </TabList>
@@ -143,7 +168,7 @@ const styles = StyleSheet.create({
   tabList: {
     alignSelf: 'center',
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 420,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -152,8 +177,14 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingHorizontal: 10,
   },
+  tabListCompact: {
+    paddingTop: 3,
+    paddingBottom: 4,
+  },
   tab: {
     flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
@@ -171,11 +202,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
+  iconWrapCompact: {
+    width: 40,
+    height: 26,
+  },
   icon: {
     width: 22,
     height: 22,
   },
+  iconCompact: {
+    width: 19,
+    height: 19,
+  },
   label: {
     fontSize: 11,
+  },
+  labelCompact: {
+    fontSize: 10,
   },
 });

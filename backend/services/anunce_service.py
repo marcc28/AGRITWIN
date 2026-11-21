@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.schema import Anunce
@@ -17,7 +17,6 @@ class AnunceService:
         limit: int = 10,
     ) -> list[Anunce]:
         result = await self._db.execute(select(Anunce).offset(offset).limit(limit))
-
         return list(result.scalars().all())
 
     async def get_anunce_by_id(
@@ -25,7 +24,6 @@ class AnunceService:
         id: UUID,
     ) -> Anunce | None:
         result = await self._db.execute(select(Anunce).where(Anunce.id == id))
-
         return result.scalar_one_or_none()
 
     async def get_anunces_by_title(
@@ -33,7 +31,6 @@ class AnunceService:
         title: str,
     ) -> list[Anunce]:
         result = await self._db.execute(select(Anunce).where(Anunce.title.ilike(f"%{title}%")))
-
         return list(result.scalars().all())
 
     async def get_anunces_by_agent(
@@ -41,7 +38,6 @@ class AnunceService:
         agent: str,
     ) -> list[Anunce]:
         result = await self._db.execute(select(Anunce).where(Anunce.agent == agent))
-
         return list(result.scalars().all())
 
     async def create_anunce(
@@ -59,6 +55,30 @@ class AnunceService:
         )
 
         self._db.add(anunce)
+
+        await self._db.commit()
+        await self._db.refresh(anunce)
+
+        return anunce
+
+    async def count_anunces(self) -> int:
+        result = await self._db.execute(select(func.count()).select_from(Anunce))
+        return result.scalar_one()
+
+    async def update_image_url(
+        self,
+        anunce_id: UUID,
+        image_url: str,
+    ) -> Anunce:
+        anunce = await self.get_anunce_by_id(anunce_id)
+
+        if anunce is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Anunce not found",
+            )
+
+        anunce.image_url = image_url
 
         await self._db.commit()
         await self._db.refresh(anunce)

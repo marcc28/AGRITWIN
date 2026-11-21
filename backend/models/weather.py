@@ -60,6 +60,17 @@ class DailyForecast(BaseModel):
     sunset: datetime | None = None
 
 
+class WeatherAlert(BaseModel):
+    type: str
+    message: str
+    starts_at: datetime | None = None
+    day: date | None = None
+    rain_probability: float | None = None
+    rain_mm: float | None = None
+    temperature: float | None = None
+    wind_speed: float | None = None
+
+
 class WeatherForecastResponse(BaseModel):
     units: str
     lang: str = "ca"
@@ -70,3 +81,5 @@ class WeatherForecastResponse(BaseModel):
     current: CurrentWeather
     hourly: list[HourlyForecast] = []
     daily: list[DailyForecast]
+    current_alerts: list[WeatherAlert] = []
+    alerts: list[WeatherAlert] = []

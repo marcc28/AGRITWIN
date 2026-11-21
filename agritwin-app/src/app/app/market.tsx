@@ -1,19 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
+  Animated,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
   useColorScheme,
+  useWindowDimensions,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
 
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+
+import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/theme';
-import { getMarketStyles } from '../../styles/market.styles';
-import { getcontentfeed, getnews } from '@/services/api';
-
-type Tab = 'prices' | 'news';
+import { getMarketStyles, getMarketPalette } from '../../styles/market.styles';
+import { searchMarketProducts } from '@/services/api_market';
+import { prefetchImages } from '@/services/imagePrefetch';
+import {
+  MARKET_PAGE_SIZE,
+  marketCountQuery,
+  marketPageQuery,
+  queryKeys,
+} from '@/services/queries';
+import { queryClient } from '@/services/queryClient';
+import BannerAd from '@/components/adBanner/BannerAd';
+import MarketSkeleton from '@/components/market/MarketSkeleton';
 
 type Product = {
   id: string | number;
@@ -22,261 +36,845 @@ type Product = {
   price: number;
   price_per_kg: number;
   left_units: number;
+  image_url?: string | null;
+  url_image?: string | null;
 };
 
-type News = {
-  id: string | number;
-  title: string;
-  subtile: string;
-  agent: string;
-  content: string;
+const PAGE_SIZE = MARKET_PAGE_SIZE;
+type MarketViewState = {
+  searchQuery: string;
+  scrollY: number;
+  allProducts: Product[];
+  products: Product[];
 };
+const marketViewKey = (language: string) => ['market-view', language] as const;
+// Navigation state is session-only and is cleared with the account query cache.
+queryClient.setQueryDefaults(['market-view'], { meta: { persist: false } });
 
-const PAGE_SIZE = 5;
+function productImage(product: Product) {
+  return product.image_url ?? product.url_image;
+}
 
-export default function MarketScreen() {
-  const { t } = useTranslation();
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
-  const styles = getMarketStyles(colors);
-
-  const [tab, setTab] = useState<Tab>('prices');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [news, setNews] = useState<News[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-
-  const currentItems = tab === 'prices' ? products : news;
-  const totalPages = Math.ceil(currentItems.length / PAGE_SIZE);
-
-  const visibleProducts = products.slice(
-    page * PAGE_SIZE,
-    (page + 1) * PAGE_SIZE,
+/** Market data already in the cache (from this session or the last one). */
+function readCachedMarket(language: string) {
+  const total = queryClient.getQueryData<number>(queryKeys.marketCount);
+  const firstPage = queryClient.getQueryData<Product[]>(
+    queryKeys.marketPage(0, PAGE_SIZE, language),
   );
+  const ready = typeof total === 'number' && Array.isArray(firstPage);
+  return {
+    ready,
+    total: total ?? 0,
+    products: Array.isArray(firstPage) ? firstPage : [],
+    hasMore: ready ? firstPage.length < total : true,
+  };
+}
 
-  const visibleNews = news.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+// Per sota d'aquest estoc avisem que en queden poques unitats
+const LOW_STOCK = 50;
 
-  const canGoBack = page > 0;
-  const canGoForward = page + 1 < totalPages;
+const euros = (value: number, language: string) =>
+  new Intl.NumberFormat(language, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value));
+
+type ProductCardProps = {
+  product: Product;
+  language: string;
+  styles: ReturnType<typeof getMarketStyles>;
+  palette: ReturnType<typeof getMarketPalette>;
+  buyLabel: string;
+  outOfStockLabel: string;
+  lowStockLabel: (units: number) => string;
+  availableLabel: (units: number) => string;
+  viewProductLabel: (name: string) => string;
+  onPress: () => void;
+};
+
+type ProductPreviewProps = {
+  title: string;
+  imageUrl?: string | null;
+  styles: ReturnType<typeof getMarketStyles>;
+  children: ReactNode;
+  onPress: () => void;
+  onHover: (pageX: number, pageY: number) => void;
+  onHoverOut: () => void;
+  testID: string;
+  accessibilityLabel: string;
+};
+
+function ProductPreview({
+  title,
+  imageUrl,
+  styles,
+  children,
+  onPress,
+  onHover,
+  onHoverOut,
+  testID,
+  accessibilityLabel,
+}: ProductPreviewProps) {
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onHoverIn={(event) => {
+        if (imageUrl) {
+          onHover(event.nativeEvent.pageX, event.nativeEvent.pageY);
+        }
+      }}
+      onPointerMove={(event) => {
+        if (imageUrl && event.nativeEvent.pointerType === 'mouse') {
+          onHover(event.nativeEvent.pageX, event.nativeEvent.pageY);
+        }
+      }}
+      onHoverOut={onHoverOut}
+      onPress={onPress}
+      style={({ pressed }) => [styles.priceCard, pressed && { opacity: 0.75 }]}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
+function HeartbeatBuyButton({
+  product,
+  label,
+  styles,
+  outOfStockLabel,
+}: {
+  product: Product;
+  label: string;
+  styles: ReturnType<typeof getMarketStyles>;
+  outOfStockLabel: string;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const outOfStock = Number(product.left_units) <= 0;
 
   useEffect(() => {
+    if (outOfStock) {
+      scale.setValue(1);
+      return;
+    }
+
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: 1.08,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1.04,
+          duration: 140,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 160,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1200),
+      ]),
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+      scale.stopAnimation();
+    };
+  }, [scale, outOfStock]);
+
+  return (
+    <Animated.View
+      style={{
+        marginLeft: 'auto',
+        transform: [{ scale }],
+      }}
+    >
+      <View
+        testID={`buy-button-${product.id}`}
+        style={[styles.buyBtn, outOfStock && styles.buyBtnDisabled]}
+      >
+        <Text
+          testID={`buy-text-${product.id}`}
+          style={[styles.buyText, outOfStock && styles.buyTextDisabled]}
+        >
+          {outOfStock ? outOfStockLabel : label}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+function ProductCard({
+  product,
+  language,
+  styles,
+  palette,
+  buyLabel,
+  outOfStockLabel,
+  lowStockLabel,
+  availableLabel,
+  viewProductLabel,
+  onPress,
+  onHover,
+  onHoverOut,
+}: ProductCardProps & {
+  onHover: (pageX: number, pageY: number) => void;
+  onHoverOut: () => void;
+}) {
+  const imageUrl = product.image_url ?? product.url_image;
+
+  const units = Math.max(0, Math.trunc(Number(product.left_units)));
+
+  const outOfStock = units <= 0;
+  const lowStock = !outOfStock && units <= LOW_STOCK;
+
+  const stockColor = outOfStock
+    ? palette.muted
+    : lowStock
+      ? palette.warn
+      : palette.ok;
+
+  const stockLabel = outOfStock
+    ? outOfStockLabel
+    : lowStock
+      ? lowStockLabel(units)
+      : availableLabel(units);
+
+  return (
+    <ProductPreview
+      title={product.product}
+      imageUrl={imageUrl}
+      styles={styles}
+      testID={`product-item-${product.id}`}
+      accessibilityLabel={viewProductLabel(product.product)}
+      onHover={onHover}
+      onHoverOut={onHoverOut}
+      onPress={onPress}
+    >
+      <View style={styles.priceTop}>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.thumb}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+          />
+        ) : (
+          <View style={styles.thumbFallback}>
+            <Text style={styles.thumbFallbackText}>
+              {product.product.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.info}>
+          <Text
+            testID={`product-name-${product.id}`}
+            style={styles.productName}
+            numberOfLines={2}
+          >
+            {product.product}
+          </Text>
+
+          <Text
+            testID={`product-technical-name-${product.id}`}
+            style={styles.detail}
+            numberOfLines={1}
+          >
+            {product.tecnical_name}
+          </Text>
+
+          <View style={styles.stockRow}>
+            <View style={[styles.stockDot, { backgroundColor: stockColor }]} />
+
+            <Text
+              testID={`product-units-${product.id}`}
+              style={[styles.stockText, { color: stockColor }]}
+            >
+              {stockLabel}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.priceMain}>
+          <Text
+            testID={`product-price-${product.id}`}
+            style={styles.priceValue}
+          >
+            {euros(product.price, language)} €
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.priceBottom}>
+        <Text
+          testID={`product-price-kg-${product.id}`}
+          style={styles.smallInfo}
+        >
+          {euros(product.price_per_kg, language)} €/kg
+        </Text>
+
+        <HeartbeatBuyButton
+          product={product}
+          label={buyLabel}
+          styles={styles}
+          outOfStockLabel={outOfStockLabel}
+        />
+      </View>
+    </ProductPreview>
+  );
+}
+
+type MarketListContentProps = {
+  loading: boolean;
+  searching: boolean;
+  searchError: string;
+  products: Product[];
+  language: string;
+  isSearching: boolean;
+  searchQuery: string;
+  hasMore: boolean;
+  loadingPage: boolean;
+  styles: ReturnType<typeof getMarketStyles>;
+  palette: ReturnType<typeof getMarketPalette>;
+  skeletonCardWidth?: number;
+  skeletonGap: number;
+  compactSkeleton: boolean;
+  buyLabel: string;
+  outOfStockLabel: string;
+  lowStockLabel: (units: number) => string;
+  availableLabel: (units: number) => string;
+  noMatchLabel: (query: string) => string;
+  noProductsLabel: string;
+  viewProductLabel: (name: string) => string;
+  loadMoreAccessibilityLabel: string;
+  loadingLabel: string;
+  loadMoreLabel: string;
+  onLoadMore: () => void;
+  onOpenProduct: (productId: string | number) => void;
+  onHover: (
+    title: string,
+    imageUrl: string | null | undefined,
+    pageX: number,
+    pageY: number,
+  ) => void;
+  onHoverOut: () => void;
+};
+
+function MarketListContent({
+  loading,
+  searching,
+  searchError,
+  products,
+  language,
+  isSearching,
+  searchQuery,
+  hasMore,
+  loadingPage,
+  styles,
+  palette,
+  skeletonCardWidth,
+  skeletonGap,
+  compactSkeleton,
+  buyLabel,
+  outOfStockLabel,
+  lowStockLabel,
+  availableLabel,
+  noMatchLabel,
+  noProductsLabel,
+  viewProductLabel,
+  loadMoreAccessibilityLabel,
+  loadingLabel,
+  loadMoreLabel,
+  onLoadMore,
+  onOpenProduct,
+  onHover,
+  onHoverOut,
+}: MarketListContentProps) {
+  if (loading || searching) {
+    return (
+      <MarketSkeleton
+        count={PAGE_SIZE}
+        cardWidth={skeletonCardWidth}
+        gap={skeletonGap}
+        compact={compactSkeleton}
+      />
+    );
+  }
+
+  if (searchError) {
+    return <Text style={styles.statusText}>{searchError}</Text>;
+  }
+
+  if (products.length === 0) {
+    const emptyMessage = isSearching
+      ? noMatchLabel(searchQuery.trim())
+      : noProductsLabel;
+    return <Text style={styles.statusText}>{emptyMessage}</Text>;
+  }
+
+  return (
+    <>
+      {products.map((product) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          language={language}
+          styles={styles}
+          palette={palette}
+          buyLabel={buyLabel}
+          outOfStockLabel={outOfStockLabel}
+          lowStockLabel={lowStockLabel}
+          availableLabel={availableLabel}
+          viewProductLabel={viewProductLabel}
+          onPress={() => onOpenProduct(product.id)}
+          onHover={(pageX, pageY) =>
+            onHover(
+              product.product,
+              product.image_url ?? product.url_image,
+              pageX,
+              pageY,
+            )
+          }
+          onHoverOut={onHoverOut}
+        />
+      ))}
+      {Platform.OS === 'web' && !isSearching && hasMore && (
+        <View style={styles.loadMoreWrap}>
+          <Pressable
+            testID="market-load-more"
+            accessibilityRole="button"
+            accessibilityLabel={loadMoreAccessibilityLabel}
+            disabled={loadingPage}
+            onPress={onLoadMore}
+            style={({ pressed }) => [
+              styles.loadMoreButton,
+              pressed && !loadingPage && { opacity: 0.75 },
+              loadingPage && { opacity: 0.65 },
+            ]}
+          >
+            <Text style={styles.loadMoreText}>
+              {loadingPage ? loadingLabel : loadMoreLabel}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+      {loadingPage && !loading && (
+        <MarketSkeleton
+          cardWidth={skeletonCardWidth}
+          gap={skeletonGap}
+          compact={compactSkeleton}
+        />
+      )}
+    </>
+  );
+}
+
+export default function MarketScreen() {
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage || i18n.language || 'ca';
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const colors = Colors[isDark ? 'dark' : 'light'];
+  const { width, height } = useWindowDimensions();
+  const compactLandscape = width > height && height < 600;
+  const styles = getMarketStyles(colors, { width, height });
+  const palette = getMarketPalette(colors);
+  const skeletonCardWidth =
+    typeof styles.priceCard.width === 'number'
+      ? styles.priceCard.width
+      : undefined;
+  const skeletonGap =
+    typeof styles.list.gap === 'number' ? styles.list.gap : 12;
+  const compactSkeleton = width < 360 || compactLandscape;
+  const router = useRouter();
+  const marketRef = useRef<View>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const [savedView] = useState(() =>
+    queryClient.getQueryData<MarketViewState>(marketViewKey(language)),
+  );
+  const scrollY = useRef(savedView?.scrollY ?? 0);
+  const restoredScroll = useRef(false);
+
+  const [hoverPreview, setHoverPreview] = useState<{
+    title: string;
+    imageUrl: string;
+    left: number;
+    top: number;
+  } | null>(null);
+  const showImagePreview = (
+    title: string,
+    imageUrl: string | null | undefined,
+    pageX: number,
+    pageY: number,
+  ) => {
+    if (!imageUrl) return;
+
+    marketRef.current?.measureInWindow((x, y, width, height) => {
+      const previewWidth = 190;
+      const previewHeight = 155;
+      const offset = 16;
+
+      const cursorX = pageX - x;
+      const cursorY = pageY - y;
+      const maxLeft = Math.max(8, width - previewWidth - 8);
+      const maxTop = Math.max(8, height - previewHeight - 8);
+      const requestedLeft =
+        cursorX + offset + previewWidth > width - 8
+          ? cursorX - previewWidth - offset
+          : cursorX + offset;
+      const requestedTop =
+        cursorY + offset + previewHeight > height - 8
+          ? cursorY - previewHeight - offset
+          : cursorY + offset;
+
+      const left = Math.min(Math.max(8, requestedLeft), maxLeft);
+      const top = Math.min(Math.max(8, requestedTop), maxTop);
+
+      setHoverPreview({
+        title,
+        imageUrl,
+        left,
+        top,
+      });
+    });
+  };
+
+  // The first page and the total saved from the last visit are shown at
+  // once; they are refreshed from the server right after.
+  const [cached] = useState(() => readCachedMarket(language));
+
+  const [products, setProducts] = useState<Product[]>(
+    savedView?.products ?? cached.products,
+  );
+  const [allProducts, setAllProducts] = useState<Product[]>(
+    savedView?.allProducts ?? cached.products,
+  );
+  const [currentItems, setCurrentItems] = useState<Product[]>([]);
+  const [productsTotal, setProductsTotal] = useState(cached.total);
+
+  const [loading, setLoading] = useState(!cached.ready);
+  const [loadingPage, setLoadingPage] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState(savedView?.searchQuery ?? '');
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  const isSearching = Boolean(searchQuery.trim());
+  const loadingMoreRef = useRef(false);
+  const [hasMore, setHasMore] = useState(cached.hasMore);
+  // Càrrega inicial
+  useEffect(() => {
+    let active = true;
+    const localeCache = readCachedMarket(language);
+    const view = queryClient.getQueryData<MarketViewState>(
+      marketViewKey(language),
+    );
+    setProducts(view?.products ?? localeCache.products);
+    setAllProducts(view?.allProducts ?? localeCache.products);
+    setCurrentItems(view?.products ?? localeCache.products);
+    setProductsTotal(localeCache.total);
+    setHasMore(localeCache.hasMore);
+    setLoading(!localeCache.ready);
+
     async function loadData() {
       try {
-        const [productsData, newsData] = await Promise.all([
-          getcontentfeed(0, 10),
-          getnews(0, 10),
+        const [productsCount, productsData] = await Promise.all([
+          queryClient.query(marketCountQuery()),
+          queryClient.query(marketPageQuery(0, PAGE_SIZE, language)),
         ]);
 
-        setProducts(productsData);
-        setNews(newsData);
+        if (active) {
+          const firstPage = productsData as Product[];
+          // Fresh first page; pages already loaded further on are kept.
+          const previous =
+            queryClient.getQueryData<Product[]>(
+              queryKeys.marketPage(PAGE_SIZE, PAGE_SIZE, language),
+            ) ?? [];
+          const tail = view?.allProducts ?? previous;
+          const firstIds = new Set(
+            firstPage.map((product) => String(product.id)),
+          );
+          const merge = [
+            ...firstPage,
+            ...tail.filter((product) => !firstIds.has(String(product.id))),
+          ];
+
+          setProductsTotal(productsCount);
+          setAllProducts(merge);
+          setCurrentItems(merge);
+          if (!view?.searchQuery.trim()) setProducts(merge);
+          setHasMore(merge.length < productsCount);
+          prefetchImages(firstPage.map(productImage));
+        }
       } catch (error) {
-        console.error(t('market.errors.loadFailed'), error);
+        console.error('Error carregant les dades del mercat:', error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
 
     loadData();
-  }, [t]);
 
-  const changeTab = (nextTab: Tab) => {
-    setTab(nextTab);
-    setPage(0);
+    return () => {
+      active = false;
+    };
+  }, [language]);
+
+  // Cerca amb debounce
+  useEffect(() => {
+    if (loading) return;
+
+    const query = searchQuery.trim();
+    let active = true;
+
+    setSearchError('');
+
+    // Cerca buida: recuperem els productes originals
+    if (!query) {
+      setSearching(false);
+      setProducts(allProducts);
+      setCurrentItems(allProducts);
+      return () => {
+        active = false;
+      };
+    }
+
+    const timeout = setTimeout(async () => {
+      setSearching(true);
+
+      try {
+        const results = await searchMarketProducts(query, language);
+
+        if (active) {
+          setProducts(results);
+          setCurrentItems(results);
+        }
+      } catch (error) {
+        console.error('Error en la cerca:', error);
+
+        if (active) {
+          setSearchError(t('market.errors.searchFailed'));
+          setProducts([]);
+          setCurrentItems([]);
+        }
+      } finally {
+        if (active) setSearching(false);
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
+  }, [searchQuery, loading, allProducts, language, t]);
+
+  useEffect(() => {}, [searchQuery]);
+
+  const loadMoreProducts = async () => {
+    if (
+      loading ||
+      searching ||
+      isSearching ||
+      loadingMoreRef.current ||
+      !hasMore
+    ) {
+      return;
+    }
+
+    loadingMoreRef.current = true;
+    setLoadingPage(true);
+
+    try {
+      const offset = allProducts.length;
+
+      const batch = (await queryClient.query(
+        marketPageQuery(offset, PAGE_SIZE, language),
+      )) as Product[];
+      prefetchImages(batch.map(productImage));
+
+      if (batch.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      setAllProducts((previous) => [...previous, ...batch]);
+      setProducts((previous) => [...previous, ...batch]);
+
+      // Comprovem si encara queden productes per carregar
+      setHasMore(offset + batch.length < productsTotal);
+    } catch (error) {
+      console.error('Error carregant més productes:', error);
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingPage(false);
+    }
+  };
+  const handleScroll = ({
+    nativeEvent,
+  }: {
+    nativeEvent: {
+      layoutMeasurement: { height: number };
+      contentOffset: { y: number };
+      contentSize: { height: number };
+    };
+  }) => {
+    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+    scrollY.current = contentOffset.y;
+
+    const distanceFromBottom =
+      contentSize.height - (layoutMeasurement.height + contentOffset.y);
+
+    // Carreguem quan falten menys de 200 píxels per arribar al final
+    if (distanceFromBottom < 200) {
+      void loadMoreProducts();
+    }
   };
 
-  const goBack = () => {
-    setPage((current) => Math.max(0, current - 1));
-  };
-
-  const goForward = () => {
-    setPage((current) => Math.min(Math.max(0, totalPages - 1), current + 1));
+  const openProduct = (productId: string | number) => {
+    // Web scroll events can still be throttled when a product is clicked.
+    const node =
+      Platform.OS === 'web' ? scrollRef.current?.getScrollableNode() : null;
+    const offset =
+      typeof node?.scrollTop === 'number' ? node.scrollTop : scrollY.current;
+    queryClient.setQueryData<MarketViewState>(marketViewKey(language), {
+      searchQuery,
+      scrollY: offset,
+      allProducts,
+      products,
+    });
+    router.push({
+      pathname: '/product/[id]',
+      params: { id: String(productId) },
+    });
   };
 
   return (
     <View
+      ref={marketRef}
+      collapsable={false}
       testID="market-screen"
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={{
+        flex: 1,
+        position: 'relative',
+        backgroundColor: colors.background,
+      }}
     >
-      <View style={styles.trackWrap}>
-        <View style={styles.track}>
-          {(['prices', 'news'] as Tab[]).map((k) => {
-            const active = tab === k;
+      <View style={styles.searchWrap}>
+        <Image
+          source={require('@assets/images/search.png')}
+          style={{
+            width: compactLandscape ? 16 : 20,
+            height: compactLandscape ? 16 : 20,
+            marginRight: compactLandscape ? 6 : 10,
+          }}
+          resizeMode="contain"
+        />
 
-            return (
-              <Pressable
-                key={k}
-                testID={`market-tab-${k}`}
-                onPress={() => changeTab(k)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                style={[
-                  styles.segment,
-                  active ? styles.segmentOn : styles.segmentOff,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    { color: active ? '#fff' : colors.text },
-                  ]}
-                >
-                  {t(`market.${k}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t('market.searchPlaceholder')}
+          placeholderTextColor={palette.muted}
+          value={searchQuery}
+          onChangeText={(value) => {
+            scrollY.current = 0;
+            scrollRef.current?.scrollTo({ y: 0, animated: false });
+            setSearchQuery(value);
+          }}
+          returnKeyType="search"
+        />
+
+        {searchQuery.length > 0 && (
+          <Pressable
+            style={styles.clearButton}
+            accessibilityRole="button"
+            accessibilityLabel={t('market.clearSearch')}
+            onPress={() => setSearchQuery('')}
+          >
+            <Text style={styles.clearText}>×</Text>
+          </Pressable>
+        )}
       </View>
 
       <ScrollView
+        ref={scrollRef}
+        testID="market-scroll-view"
+        onContentSizeChange={(_width, contentHeight) => {
+          if (!restoredScroll.current && contentHeight > scrollY.current) {
+            scrollRef.current?.scrollTo({
+              y: scrollY.current,
+              animated: false,
+            });
+            restoredScroll.current = true;
+          }
+        }}
         style={styles.scroll}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={300}
       >
-        {loading ? (
-          <Text style={styles.statusText}>
-            {t('common.loading', 'Carregant...')}
-          </Text>
-        ) : tab === 'prices' ? (
-          visibleProducts.length > 0 ? (
-            visibleProducts.map((p) => (
-              <View
-                key={p.id}
-                testID={`product-item-${p.id}`}
-                style={styles.priceCard}
-              >
-                <View style={styles.priceTop}>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      testID={`product-name-${p.id}`}
-                      style={styles.productName}
-                    >
-                      {p.product}
-                    </Text>
-
-                    <Text
-                      testID={`product-technical-name-${p.id}`}
-                      style={styles.detail}
-                    >
-                      {p.tecnical_name}
-                    </Text>
-                  </View>
-
-                  <View style={styles.priceMain}>
-                    <Text
-                      testID={`product-price-${p.id}`}
-                      style={styles.priceValue}
-                    >
-                      {Number(p.price).toFixed(2)} €
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.priceBottom}>
-                  <Text
-                    testID={`product-price-kg-${p.id}`}
-                    style={styles.smallInfo}
-                  >
-                    {Number(p.price_per_kg).toFixed(2)} €/kg
-                  </Text>
-
-                  <Text
-                    testID={`product-units-${p.id}`}
-                    style={styles.smallInfo}
-                  >
-                    {Number(p.left_units).toFixed(2)} {t('market.units')}
-                  </Text>
-
-                  <Pressable
-                    testID={`buy-button-${p.id}`}
-                    onPress={() => {}}
-                    style={({ pressed }) => [
-                      styles.buyBtn,
-                      pressed && { opacity: 0.7 },
-                    ]}
-                  >
-                    <Text testID={`buy-text-${p.id}`} style={styles.buyText}>
-                      {t('market.buy')}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.statusText}>No hi ha productes.</Text>
-          )
-        ) : visibleNews.length > 0 ? (
-          visibleNews.map((n) => (
-            <View
-              key={n.id}
-              testID={`news-item-${n.id}`}
-              style={styles.priceCard}
-            >
-              <View style={styles.chip}>
-                <Text testID={`news-subtitle-${n.id}`} style={styles.chipText}>
-                  {n.subtile}
-                </Text>
-              </View>
-
-              <Text testID={`news-title-${n.id}`} style={styles.newsTitle}>
-                {n.title}
-              </Text>
-
-              <Text testID={`news-content-${n.id}`} style={styles.newsBody}>
-                {n.content}
-              </Text>
-
-              <Text style={styles.source}>{n.agent}</Text>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.statusText}>No hi ha notícies.</Text>
-        )}
+        <MarketListContent
+          loading={loading}
+          searching={searching}
+          searchError={searchError}
+          products={products}
+          language={language}
+          isSearching={isSearching}
+          searchQuery={searchQuery}
+          hasMore={hasMore}
+          loadingPage={loadingPage}
+          styles={styles}
+          palette={palette}
+          skeletonCardWidth={skeletonCardWidth}
+          skeletonGap={skeletonGap}
+          compactSkeleton={compactSkeleton}
+          buyLabel={t('market.buy')}
+          outOfStockLabel={t('market.stock.outOfStock')}
+          lowStockLabel={(units) => t('market.stock.low', { count: units })}
+          availableLabel={(units) =>
+            t('market.stock.available', { count: units })
+          }
+          noMatchLabel={(query) => t('market.noMatch', { query })}
+          noProductsLabel={t('market.noProducts')}
+          viewProductLabel={(name) => t('market.viewProduct', { name })}
+          loadMoreAccessibilityLabel={t('market.loadMore')}
+          loadingLabel={t('market.loading')}
+          loadMoreLabel={t('market.loadMore')}
+          onLoadMore={loadMoreProducts}
+          onOpenProduct={openProduct}
+          onHover={showImagePreview}
+          onHoverOut={() => setHoverPreview(null)}
+        />
       </ScrollView>
+      <View style={styles.bannerWrap}></View>
 
-      {!loading && totalPages > 1 && (
-        <View style={styles.pagination}>
-          <Pressable
-            testID="market-previous-page"
-            accessibilityRole="button"
-            accessibilityLabel="Cinc elements enrere"
-            disabled={!canGoBack}
-            onPress={goBack}
-            style={({ pressed }) => [
-              styles.arrowButton,
-              !canGoBack && styles.arrowDisabled,
-              pressed && canGoBack && styles.arrowPressed,
-            ]}
-          >
-            <Image
-              source={require('@assets/images/left_arrow.png')}
-              style={styles.arrowIcon}
-              resizeMode="contain"
-            />
-          </Pressable>
-
-          <Text testID="market-page-indicator" style={styles.pageText}>
-            {page + 1} / {totalPages}
-          </Text>
-
-          <Pressable
-            testID="market-next-page"
-            accessibilityRole="button"
-            accessibilityLabel="Cinc elements endavant"
-            disabled={!canGoForward}
-            onPress={goForward}
-            style={({ pressed }) => [
-              styles.arrowButton,
-              !canGoForward && styles.arrowDisabled,
-              pressed && canGoForward && styles.arrowPressed,
-            ]}
-          >
-            <Image
-              source={require('@assets/images/right_arrow.png')}
-              style={styles.arrowIcon}
-              resizeMode="contain"
-            />
-          </Pressable>
+      {hoverPreview && (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.imagePreview,
+            { left: hoverPreview.left, top: hoverPreview.top },
+          ]}
+        >
+          <Text style={styles.imagePreviewTitle}>{hoverPreview.title}</Text>
+          <Image
+            source={{ uri: hoverPreview.imageUrl }}
+            style={styles.imagePreviewImage}
+            resizeMode="cover"
+          />
         </View>
       )}
     </View>

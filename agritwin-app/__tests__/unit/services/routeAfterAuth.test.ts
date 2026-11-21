@@ -26,7 +26,7 @@ describe('routeAfterAuth', () => {
     expect(router.replace).toHaveBeenCalledWith('/create-field');
   });
 
-  it('opens home when the user already has a garden', async () => {
+  it('opens the field selection when the user already has a garden', async () => {
     mockedGetFields.mockResolvedValue([
       {
         id: 3,
@@ -39,6 +39,6 @@ describe('routeAfterAuth', () => {
       },
     ]);
     await routeAfterAuth();
-    expect(router.replace).toHaveBeenCalledWith('/app/home');
+    expect(router.replace).toHaveBeenCalledWith('/field-selection');
   });
 });

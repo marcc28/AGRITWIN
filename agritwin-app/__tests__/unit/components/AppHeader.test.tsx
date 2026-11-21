@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -8,13 +9,24 @@ import {
 } from '@testing-library/react-native';
 
 import AppHeader from '../../../src/components/AppHeader';
-import { getFields } from '../../../src/services/api';
-import { getAuth } from '../../../src/services/auth';
-import { getCurrentField } from '../../../src/services/currentField';
-import { setGardenPicker } from '../../../src/services/gardenPicker';
+import { getFields, isAuthError } from '../../../src/services/api';
+import { clearAuth, getAuth } from '../../../src/services/auth';
+import {
+  getCurrentField,
+  setCurrentField,
+  subscribeCurrentField,
+} from '../../../src/services/currentField';
+import {
+  getGardenPicker,
+  loadGardenPickerFields,
+  setGardenPicker,
+  subscribeGardenPicker,
+} from '../../../src/services/gardenPicker';
+import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
   router: {
+    push: jest.fn(),
     replace: jest.fn(),
   },
 }));
@@ -23,9 +35,15 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 jest.mock('../../../src/services/api', () => ({
   getFields: jest.fn(),
-  isAuthError: () => false,
+  isAuthError: jest.fn(() => false),
 }));
 
 jest.mock('../../../src/services/auth', () => ({
@@ -35,14 +53,20 @@ jest.mock('../../../src/services/auth', () => ({
 
 jest.mock('../../../src/services/currentField', () => ({
   getCurrentField: jest.fn(),
+  peekCurrentField: jest.fn(() => undefined),
   setCurrentField: jest.fn(),
-  subscribeCurrentField: () => () => undefined,
+  subscribeCurrentField: jest.fn(() => () => undefined),
 }));
 
 jest.mock('../../../src/services/gardenPicker', () => ({
-  getGardenPicker: () => ({ open: false, fields: [], currentId: null }),
+  getGardenPicker: jest.fn(() => ({
+    open: false,
+    fields: [],
+    currentId: null,
+  })),
+  loadGardenPickerFields: jest.fn(),
   setGardenPicker: jest.fn(),
-  subscribeGardenPicker: () => () => undefined,
+  subscribeGardenPicker: jest.fn(() => () => undefined),
 }));
 
 const mockedGetAuth = getAuth as jest.MockedFunction<typeof getAuth>;
@@ -50,16 +74,30 @@ const mockedGetFields = getFields as jest.MockedFunction<typeof getFields>;
 const mockedGetCurrentField = getCurrentField as jest.MockedFunction<
   typeof getCurrentField
 >;
+const mockedIsAuthError = isAuthError as jest.MockedFunction<
+  typeof isAuthError
+>;
+const mockedLoadGardenPickerFields =
+  loadGardenPickerFields as jest.MockedFunction<typeof loadGardenPickerFields>;
 
 describe('AppHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedIsAuthError.mockReturnValue(false);
+    (getGardenPicker as jest.Mock).mockReturnValue({
+      open: false,
+      fields: [],
+      currentId: null,
+    });
     mockedGetAuth.mockResolvedValue({
       token: 'token',
       refreshToken: null,
       username: 'ainhoa',
     });
     mockedGetCurrentField.mockResolvedValue({ id: 3, name: 'Hort' });
+    (clearAuth as jest.MockedFunction<typeof clearAuth>).mockResolvedValue(
+      undefined,
+    );
     mockedGetFields.mockResolvedValue([
       {
         id: 3,
@@ -80,6 +118,195 @@ describe('AppHeader', () => {
         device_count: 0,
       },
     ]);
+    mockedLoadGardenPickerFields.mockImplementation(() => mockedGetFields());
+  });
+
+  it('shows the Arduino dot from the garden list', async () => {
+    mockedGetFields.mockResolvedValue([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 2,
+        devices_online: 1,
+      },
+      {
+        id: 4,
+        name: 'Camp',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 0,
+        devices_online: 0,
+      },
+    ]);
+
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('device-health-partial')).toBeTruthy();
+      expect(
+        screen.getByLabelText('settings.deviceHealth.partial'),
+      ).toBeTruthy();
+    });
+  });
+
+  it('shows a green Arduino dot when every board is online', async () => {
+    mockedGetFields.mockResolvedValue([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 2,
+        devices_online: 2,
+      },
+      {
+        id: 4,
+        name: 'Camp',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 1,
+        devices_online: 0,
+      },
+    ]);
+
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('device-health-ok')).toBeTruthy();
+    });
+  });
+
+  it('shows a red Arduino dot when no board is online', async () => {
+    mockedGetFields.mockResolvedValue([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 0,
+        devices_online: 0,
+      },
+      {
+        id: 4,
+        name: 'Camp',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 1,
+        devices_online: 1,
+      },
+    ]);
+
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('device-health-down')).toBeTruthy();
+    });
+  });
+
+  it('hides the Arduino dot when devices_online is missing', async () => {
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Hort')).toBeTruthy();
+    });
+    expect(screen.queryByTestId('device-health-ok')).toBeNull();
+    expect(screen.queryByTestId('device-health-partial')).toBeNull();
+    expect(screen.queryByTestId('device-health-down')).toBeNull();
+  });
+
+  it('refreshes the garden list every 20 seconds while the header is open', async () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    try {
+      render(<AppHeader />);
+      await waitFor(() =>
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalled(),
+      );
+      mockedLoadGardenPickerFields.mockClear();
+
+      const refreshCall = setIntervalSpy.mock.calls.find(
+        (call) => call[1] === 20000,
+      );
+      expect(refreshCall).toBeTruthy();
+      const refresh = refreshCall?.[0] as () => void;
+
+      await act(async () => {
+        refresh();
+      });
+
+      await waitFor(() => {
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalledWith(true);
+      });
+    } finally {
+      setIntervalSpy.mockRestore();
+    }
+  });
+
+  it('routes to login if the periodic refresh finds an expired session', async () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    try {
+      render(<AppHeader />);
+      await waitFor(() =>
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalled(),
+      );
+      mockedLoadGardenPickerFields.mockRejectedValueOnce(new Error('expired'));
+      mockedIsAuthError.mockReturnValue(true);
+
+      const refreshCall = setIntervalSpy.mock.calls.find(
+        (call) => call[1] === 20000,
+      );
+      const refresh = refreshCall?.[0] as () => void;
+
+      await act(async () => {
+        refresh();
+      });
+
+      await waitFor(() => {
+        expect(clearAuth).toHaveBeenCalled();
+        expect(router.replace).toHaveBeenCalledWith('/auth/login');
+      });
+    } finally {
+      setIntervalSpy.mockRestore();
+    }
+  });
+
+  it('skips the periodic refresh when there is no session', async () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    try {
+      render(<AppHeader />);
+      await waitFor(() =>
+        expect(mockedLoadGardenPickerFields).toHaveBeenCalled(),
+      );
+      mockedLoadGardenPickerFields.mockClear();
+      mockedGetAuth.mockResolvedValueOnce(null);
+
+      const refreshCall = setIntervalSpy.mock.calls.find(
+        (call) => call[1] === 20000,
+      );
+      const refresh = refreshCall?.[0] as () => void;
+
+      await act(async () => {
+        refresh();
+        await Promise.resolve();
+      });
+
+      expect(mockedLoadGardenPickerFields).not.toHaveBeenCalled();
+    } finally {
+      setIntervalSpy.mockRestore();
+    }
   });
 
   it('shows AGRITWIN and the current garden', async () => {
@@ -89,6 +316,25 @@ describe('AppHeader', () => {
     await waitFor(() => {
       expect(screen.getByText('Hort')).toBeTruthy();
     });
+  });
+
+  it('opens the field selection from the logo', async () => {
+    render(<AppHeader />);
+    await waitFor(() => expect(screen.getByText('Hort')).toBeTruthy());
+
+    fireEvent.press(screen.getByTestId('header-logo'));
+
+    expect(router.push).toHaveBeenCalledWith('/field-selection');
+  });
+
+  it('shows the username instead of the garden and opens the profile', async () => {
+    render(<AppHeader showProfile />);
+    await waitFor(() => expect(screen.getByText('ainhoa')).toBeTruthy());
+    expect(screen.queryByLabelText('Hort')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('header-profile'));
+
+    expect(router.push).toHaveBeenCalledWith('/profile');
   });
 
   it('opens the garden picker when there are several gardens', async () => {
@@ -120,5 +366,227 @@ describe('AppHeader', () => {
     await waitFor(() => {
       expect(screen.getByText('Hort')).toBeTruthy();
     });
+  });
+
+  it('keeps the stored garden when it is still in the account', async () => {
+    mockedGetCurrentField.mockResolvedValue({ id: 4, name: 'Camp' });
+
+    render(<AppHeader />);
+
+    await waitFor(() => expect(screen.getByText('Camp')).toBeTruthy());
+    expect(setCurrentField).not.toHaveBeenCalled();
+  });
+
+  it('shows no garden button when the account has no gardens', async () => {
+    mockedGetCurrentField.mockResolvedValue(null);
+    mockedGetFields.mockResolvedValue([]);
+
+    render(<AppHeader />);
+
+    await waitFor(() => expect(getFields).toHaveBeenCalled());
+    expect(screen.queryByLabelText('Hort')).toBeNull();
+    expect(screen.getByText('AGRITWIN')).toBeTruthy();
+  });
+
+  it('closes the garden picker when the current garden button is pressed again', async () => {
+    render(<AppHeader />);
+    await waitFor(() => expect(screen.getByLabelText('Hort')).toBeTruthy());
+
+    fireEvent.press(screen.getByLabelText('Hort'));
+    await waitFor(() =>
+      expect(setGardenPicker).toHaveBeenCalledWith(
+        expect.objectContaining({ open: true }),
+      ),
+    );
+
+    fireEvent.press(screen.getByLabelText('Hort'));
+    expect(setGardenPicker).toHaveBeenLastCalledWith({ open: false });
+  });
+
+  it('opens the picker for a single garden', async () => {
+    mockedGetFields.mockResolvedValue([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 0,
+      },
+    ]);
+    render(<AppHeader />);
+    await waitFor(() => expect(screen.getByLabelText('Hort')).toBeTruthy());
+
+    fireEvent.press(screen.getByLabelText('Hort'));
+
+    await waitFor(() =>
+      expect(setGardenPicker).toHaveBeenCalledWith(
+        expect.objectContaining({ open: true, currentId: 3 }),
+      ),
+    );
+  });
+
+  it('clears an expired session and routes to login on an auth error', async () => {
+    mockedGetFields.mockRejectedValueOnce(new Error('expired'));
+    mockedIsAuthError.mockReturnValue(true);
+
+    render(<AppHeader />);
+
+    await waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/auth/login');
+    });
+  });
+
+  it('refreshes the current garden from its subscription', async () => {
+    let notifyCurrentField: (() => void) | undefined;
+    (subscribeCurrentField as jest.Mock).mockImplementationOnce(
+      (listener: () => void) => {
+        notifyCurrentField = listener;
+        return () => undefined;
+      },
+    );
+    render(<AppHeader />);
+    await waitFor(() => expect(screen.getByText('Hort')).toBeTruthy());
+
+    mockedGetCurrentField.mockResolvedValueOnce({ id: 4, name: 'Camp' });
+    await act(async () => notifyCurrentField?.());
+
+    expect(screen.getByText('Camp')).toBeTruthy();
+  });
+
+  it('updates picker state when the picker subscription changes', async () => {
+    let notifyPicker: (() => void) | undefined;
+    (subscribeGardenPicker as jest.Mock).mockImplementationOnce(
+      (listener: () => void) => {
+        notifyPicker = listener;
+        return () => undefined;
+      },
+    );
+    render(<AppHeader />);
+    await waitFor(() => expect(screen.getByLabelText('Hort')).toBeTruthy());
+
+    (getGardenPicker as jest.Mock).mockReturnValueOnce({
+      open: true,
+      fields: [],
+      currentId: 3,
+    });
+    await act(async () => notifyPicker?.());
+
+    expect(screen.getByLabelText('Hort')).toBeTruthy();
+  });
+
+  it('routes to login if switching gardens discovers an expired session', async () => {
+    render(<AppHeader />);
+    await waitFor(() => expect(screen.getByLabelText('Hort')).toBeTruthy());
+    mockedGetFields.mockRejectedValueOnce(new Error('expired'));
+    mockedIsAuthError.mockReturnValue(true);
+
+    fireEvent.press(screen.getByLabelText('Hort'));
+
+    await waitFor(() => {
+      expect(clearAuth).toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/auth/login');
+    });
+  });
+
+  it('ignores a pending auth response after unmount', async () => {
+    let resolveAuth:
+      ((value: Awaited<ReturnType<typeof getAuth>>) => void) | undefined;
+    mockedGetAuth.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveAuth = resolve;
+        }),
+    );
+    const screenResult = render(<AppHeader />);
+    screenResult.unmount();
+
+    await act(async () => {
+      resolveAuth?.({
+        token: 'late-token',
+        refreshToken: null,
+        username: 'late',
+      });
+    });
+
+    expect(getFields).not.toHaveBeenCalled();
+  });
+
+  it('ignores a pending stored garden response after unmount', async () => {
+    let resolveStored:
+      | ((value: Awaited<ReturnType<typeof getCurrentField>>) => void)
+      | undefined;
+    mockedGetCurrentField.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveStored = resolve;
+        }),
+    );
+    const screenResult = render(<AppHeader />);
+
+    await waitFor(() => expect(getCurrentField).toHaveBeenCalledTimes(1));
+    screenResult.unmount();
+    await act(async () => {
+      resolveStored?.(null);
+    });
+
+    expect(getFields).toHaveBeenCalledTimes(1);
+    expect(getCurrentField).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a pending garden response after unmount', async () => {
+    let resolveFields:
+      ((value: Awaited<ReturnType<typeof getFields>>) => void) | undefined;
+    mockedGetFields.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFields = resolve;
+        }),
+    );
+    const screenResult = render(<AppHeader />);
+
+    await waitFor(() => expect(getFields).toHaveBeenCalledTimes(1));
+    screenResult.unmount();
+    await act(async () => {
+      resolveFields?.([]);
+    });
+
+    expect(setCurrentField).not.toHaveBeenCalled();
+  });
+
+  it('ignores a garden loading error after unmount', async () => {
+    let rejectFields: ((error: Error) => void) | undefined;
+    mockedGetFields.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectFields = reject;
+        }),
+    );
+    const screenResult = render(<AppHeader />);
+
+    await waitFor(() => expect(getFields).toHaveBeenCalledTimes(1));
+    screenResult.unmount();
+    await act(async () => {
+      rejectFields?.(new Error('late error'));
+    });
+
+    expect(clearAuth).not.toHaveBeenCalled();
+  });
+
+  it('cleans up subscriptions when unmounted', async () => {
+    const unsubscribeField = jest.fn();
+    const unsubscribePicker = jest.fn();
+    (subscribeCurrentField as jest.Mock).mockReturnValueOnce(unsubscribeField);
+    (subscribeGardenPicker as jest.Mock).mockReturnValueOnce(unsubscribePicker);
+
+    const screenResult = render(<AppHeader />);
+    await waitFor(() => expect(getFields).toHaveBeenCalled());
+    screenResult.unmount();
+
+    expect(unsubscribeField).toHaveBeenCalled();
+    expect(unsubscribePicker).toHaveBeenCalled();
+    expect(setGardenPicker).toHaveBeenLastCalledWith({ open: false });
   });
 });

@@ -192,12 +192,37 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
   },
 
+  boundarySection: {
+    marginTop: 14,
+    padding: 14,
+    gap: 8,
+    borderRadius: 14,
+    backgroundColor: Colors.light.surfaceSecondary,
+  },
+  boundaryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.light.primaryDark,
+  },
+  boundaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+  },
   coords: {
     marginTop: 8,
     fontSize: 12,
     color: Colors.light.primaryDark,
   },
 
+  lookupText: {
+    color: Colors.light.primaryDark,
+    fontSize: 13,
+    marginTop: 8,
+    paddingVertical: 6,
+    textDecorationLine: 'underline',
+  },
   coordsHint: {
     marginTop: 8,
     fontSize: 12,

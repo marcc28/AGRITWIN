@@ -38,40 +38,10 @@ const passthroughArgs = process.argv.slice(3).filter((arg) => {
 
 const shouldBuild = process.argv.slice(3).includes('--build');
 
-const detoxTestArgs = ['detox', 'test', '-c', config, ...passthroughArgs];
-const detoxBuildArgs = ['detox', 'build', '-c', config];
 const metroStatusUrl = 'http://localhost:8081/status';
-const isWindows = process.platform === 'win32';
 const usesMetro = config.includes('debug');
 
 let metroProcess = null;
-
-function command(name) {
-  return isWindows ? `${name}.cmd` : name;
-}
-
-function spawnCommand(name, args) {
-  if (name !== 'npx') {
-    throw new Error(`Comanda no permesa: ${name}`);
-  }
-
-  const npxScript =
-    process.platform === 'win32'
-      ? path.join(
-          path.dirname(process.execPath),
-          'node_modules',
-          'npm',
-          'bin',
-          'npx-cli.js',
-        )
-      : require.resolve('npm/bin/npx-cli.js');
-
-  return spawn(process.execPath, [npxScript, ...args], {
-    shell: false,
-    stdio: 'inherit',
-    windowsHide: true,
-  });
-}
 
 function checkMetro() {
   return new Promise((resolve) => {

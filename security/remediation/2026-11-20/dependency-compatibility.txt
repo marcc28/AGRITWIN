@@ -1,0 +1,5 @@
+
+> agritwin@1.0.0 test:security-dependencies
+> node ./scripts/test-security-dependencies.cjs
+
+Security dependency regressions passed: URL decoding, Expo schemas, JSON logs, prototype safety, glob cancellation, ignore patterns and JSON schema validation.

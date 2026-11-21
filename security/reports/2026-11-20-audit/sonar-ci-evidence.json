@@ -1,0 +1,142 @@
+{
+  "collected_at": "2026-11-20T16:15:58.645436+00:00",
+  "analysis": {
+    "paging": {
+      "pageIndex": 1,
+      "pageSize": 1,
+      "total": 11
+    },
+    "analyses": [
+      {
+        "key": "31ff71c7-c111-4c23-884a-45ee2b090fa7",
+        "date": "2026-11-20T15:17:21+0000",
+        "events": [
+          {
+            "key": "AaH5igs7LTIj0ZWvN6fO",
+            "category": "VERSION",
+            "name": "not provided"
+          }
+        ],
+        "projectVersion": "not provided",
+        "manualNewCodePeriodBaseline": false,
+        "revision": "1963366877d4c58052842db6415c81e21ae98bca"
+      }
+    ]
+  },
+  "measures": {
+    "component": {
+      "id": "AaEX2x43zfbXOMBUAWUL",
+      "key": "marcc28_AGRITWIN",
+      "name": "AGRITWIN",
+      "qualifier": "TRK",
+      "measures": [
+        {
+          "metric": "coverage",
+          "value": "92.0",
+          "bestValue": false
+        },
+        {
+          "metric": "security_rating",
+          "value": "1.0",
+          "bestValue": true
+        },
+        {
+          "metric": "vulnerabilities",
+          "value": "0",
+          "bestValue": true
+        },
+        {
+          "metric": "security_hotspots_reviewed",
+          "value": "100.0",
+          "bestValue": true
+        },
+        {
+          "metric": "security_hotspots",
+          "value": "0",
+          "bestValue": true
+        }
+      ]
+    }
+  },
+  "quality_gate": {
+    "projectStatus": {
+      "status": "OK",
+      "conditions": [
+        {
+          "status": "OK",
+          "metricKey": "new_reliability_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_security_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_maintainability_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_coverage",
+          "comparator": "LT",
+          "periodIndex": 1,
+          "errorThreshold": "80",
+          "actualValue": "93.1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_duplicated_lines_density",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "3",
+          "actualValue": "0.6"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_security_hotspots_reviewed",
+          "comparator": "LT",
+          "periodIndex": 1,
+          "errorThreshold": "100",
+          "actualValue": "100.0"
+        }
+      ],
+      "periods": [
+        {
+          "index": 1,
+          "mode": "previous_version",
+          "date": "2026-10-07T19:33:27+0000"
+        }
+      ],
+      "ignoredConditions": false
+    }
+  },
+  "workflow": {
+    "id": 44761212933,
+    "url": "https://github.com/marcc28/AGRITWIN/actions/runs/44761212933",
+    "commit": "1963366877d4c58052842db6415c81e21ae98bca",
+    "backend_tests_passed": 947,
+    "frontend_tests_passed": 1169,
+    "frontend_suites_passed": 130
+  },
+  "paths_changed_to_reviewed_head": [
+    "reports/costes.xlsx"
+  ],
+  "fresh_local_scan": false,
+  "warnings": [
+    "LCOV _layout.tsx unresolved; layouts excluded",
+    "Image assets attempted as text; refine exclusions",
+    "PLSQL migration parsing incomplete",
+    "sonar.python.version unset"
+  ]
+}

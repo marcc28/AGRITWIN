@@ -1,0 +1,88 @@
+
+> agritwin@1.0.0 lint
+> eslint .
+
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/app/editar-crops.test.tsx
+   2:10  warning  'Pressable' is defined but never used                        @typescript-eslint/no-unused-vars
+   2:21  warning  'Text' is defined but never used                             @typescript-eslint/no-unused-vars
+   2:27  warning  'View' is defined but never used                             @typescript-eslint/no-unused-vars
+  48:22  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/auth/login.test.tsx
+  44:17  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  45:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  55:17  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  56:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  69:17  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  70:37  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  92:17  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  93:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/auth/social-oauth-callback.test.tsx
+  47:17  warning  A `require()` style import is forbidden       @typescript-eslint/no-require-imports
+  48:26  warning  A `require()` style import is forbidden       @typescript-eslint/no-require-imports
+  50:10  warning  Component definition is missing display name  react/display-name
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/components/AgritwinLoadingScreen.test.tsx
+   9:20  warning  A `require()` style import is forbidden                      @typescript-eslint/no-require-imports
+  19:23  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/components/BannerAd.native.test.tsx
+  8:23  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  9:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/components/MarketSkeleton.test.tsx
+  10:19  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/components/SocialLoginButtons.test.tsx
+  25:28  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/services/api-crops.test.ts
+  188:35  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/services/api-field-crops.test.ts
+  259:35  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/services/api-recommendations.test.ts
+  115:35  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/services/api_oauth.test.ts
+  5:1  warning  Import in body of module; reorder to top  import/first
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/__tests__/unit/services/auth-refresh.test.ts
+  120:27  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/app/app/home.tsx
+   8:10  warning  'FieldCropsCard' is defined but never used        @typescript-eslint/no-unused-vars
+  49:9   warning  'crops' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  50:9   warning  'openAddCrop' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/app/app/market.tsx
+   29:8   warning  'BannerAd' is defined but never used               @typescript-eslint/no-unused-vars
+  546:10  warning  'currentItems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/app/auth/login.tsx
+  1:10  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+  4:3   warning  'Image' is defined but never used      @typescript-eslint/no-unused-vars
+  5:3   warning  'Platform' is defined but never used   @typescript-eslint/no-unused-vars
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/app/auth/social-signup.tsx
+  154:12  warning  'handleLogIn' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/app/edit-field.tsx
+  3:3  warning  'ActivityIndicator' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/app/field-detail.tsx
+   86:9  warning  'fieldCrops' is assigned a value but never used   @typescript-eslint/no-unused-vars
+   87:9  warning  'cropCatalog' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  103:9  warning  'cropsError' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/components/adBanner/BannerAd.native.tsx
+  25:10  warning  'adLoaded' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN/agritwin-app/src/hooks/use-infinite-field-crops.ts
+  50:6  warning  React Hook useCallback has a missing dependency: 'query'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 41 problems (0 errors, 41 warnings)
+  0 errors and 4 warnings potentially fixable with the `--fix` option.

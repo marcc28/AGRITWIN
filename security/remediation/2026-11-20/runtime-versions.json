@@ -1,0 +1,23 @@
+{
+  "node": "22.17.0",
+  "npm": "10.9.2",
+  "python": "3.13.7",
+  "pytest": "9.2.0",
+  "ruff": "0.17.5",
+  "backend_initial": {
+    "fastapi": "0.163.2",
+    "starlette": "1.10.0",
+    "pydantic": "2.14.3"
+  },
+  "backend_repeat": {
+    "fastapi": "0.143.0",
+    "starlette": "1.7.0",
+    "pydantic": "2.14.3"
+  },
+  "repeat_scope": "Exact uv.lock FastAPI and Starlette wheels with lockfile hash verification; remaining packages from local environment; not a fresh uv sync --frozen",
+  "jest": "29.7.0",
+  "expo": "55.0.32",
+  "typescript": "5.9.3",
+  "eslint": "9.39.5",
+  "react-native": "0.83.10"
+}

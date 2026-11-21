@@ -27,6 +27,8 @@ COPY --chown=appuser:appuser db/ ./db/
 COPY --chown=appuser:appuser models/ ./models/
 COPY --chown=appuser:appuser services/ ./services/
 COPY --chown=appuser:appuser templates/ ./templates/
+COPY --chown=appuser:appuser prompts/ ./prompts/
+
 COPY --chown=root:root --chmod=644 main.py ./
 
 COPY PRIVACY.md PRIVACY.md 

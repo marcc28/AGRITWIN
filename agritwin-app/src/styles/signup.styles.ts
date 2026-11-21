@@ -9,7 +9,13 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     padding: 20,
   },
-
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+    marginTop: 5,
+  },
   container: {
     width: '100%',
     maxWidth: 350,
@@ -31,7 +37,7 @@ export const styles = StyleSheet.create({
   },
 
   socialContainer: {
-    marginTop: 25,
+    marginTop: 8,
   },
 
   socialTitle: {
@@ -113,7 +119,7 @@ export const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 20,
+    marginTop: -15,
   },
 
   buttonWrapper: {
@@ -152,26 +158,27 @@ export const styles = StyleSheet.create({
   },
 
   checkbox: {
-    width: 22,
-    height: 22,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 4,
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: Colors.light.primaryDark,
+    borderRadius: 5,
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   checkboxChecked: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primaryDark,
+    borderColor: Colors.light.primaryDark,
   },
 
   checkmark: {
     color: Colors.light.surface,
-    fontWeight: 'bold',
+    fontWeight: '900',
+    fontSize: 17,
+    lineHeight: 20,
   },
-
   legalText: {
     flex: 1,
     fontSize: 13,
@@ -181,6 +188,7 @@ export const styles = StyleSheet.create({
   link: {
     color: Colors.light.primary,
     fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 
   modalOverlay: {
@@ -241,12 +249,6 @@ export const styles = StyleSheet.create({
     padding: 20,
   },
 
-  legalDocumentText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: Colors.light.text,
-  },
-
   modalLoading: {
     flex: 1,
     alignItems: 'center',
@@ -283,5 +285,22 @@ export const styles = StyleSheet.create({
     color: Colors.light.surface,
     fontSize: 16,
     fontWeight: '600',
+  },
+  signUpTextContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+  },
+
+  signUpNormalText: {
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+  },
+
+  signUpLinkText: {
+    color: Colors.light.link,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserProfileCreate(BaseModel):
@@ -49,3 +49,19 @@ class PasswordUpdate(BaseModel):
     current_password: str
     new_password: str
     new_password_conf: str
+
+
+class SocialLoginRequest(BaseModel):
+    id_token: str = Field(min_length=1)
+
+
+class SocialSignupRequest(BaseModel):
+    signup_token: str = Field(min_length=1)
+    username: str = Field(min_length=1, max_length=255)
+    privacy_terms_accepted: bool
+    security_terms_accepted: bool
+    email: EmailStr | None = None
+
+
+class SocialTicketRequest(BaseModel):
+    ticket: str = Field(min_length=1, max_length=128)

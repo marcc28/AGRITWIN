@@ -3,7 +3,99 @@
     "error": "Error",
     "success": "Success"
   },
-
+  "home": {
+    "titleFirst": "Your garden,",
+    "titleSecond": "growing better every day.",
+    "subtitle": "Tasks, weather and crops tailored to your garden.",
+    "workingOn": "We will work on the field",
+    "devices": {
+      "title": "Devices",
+      "none": "None",
+      "error": "Could not load the devices",
+      "retry": "Try again"
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "explore": "Explore",
+    "market": "Market",
+    "profile": "Profile",
+    "calendar": "Calendar",
+    "diagnosis": "Diagnosis",
+    "Crops": "Crops"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "yesterday": "Yesterday",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "seen": "Seen",
+    "convert": "Turn into a task",
+    "add": "Add",
+    "placeholder": "New task",
+    "empty": "No tasks",
+    "noGarden": "Choose a garden to see its tasks.",
+    "loading": "Loading…",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "back": "Calendar",
+    "noSensors": "This garden has no sensors: you will only see weather tips and your own tasks.",
+    "complete": "Mark as done",
+    "reopen": "Mark as pending",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "errors": {
+      "load": "Could not load the tasks",
+      "create": "Could not create the task",
+      "update": "Could not update the task",
+      "delete": "The task could not be deleted"
+    },
+    "recommendations": "Notices",
+    "done": "Done",
+    "edit": "Edit task",
+    "aiBadge": "AI",
+    "addTask": "Add task",
+    "newTask": "New task",
+    "editTask": "Edit task",
+    "aiEditHint": "The AI created this task. If you change it, it becomes yours and the AI will not touch it again.",
+    "detailsLabel": "Details",
+    "detailsPlaceholder": "Notes (optional)",
+    "priorityLabel": "Priority",
+    "dayLabel": "Day",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete task",
+    "deleteConfirm": "Tap again to delete",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "moon": {
+      "new": "New moon",
+      "waxingCrescent": "Waxing crescent",
+      "firstQuarter": "First quarter",
+      "waxingGibbous": "Waxing gibbous",
+      "full": "Full moon",
+      "waningGibbous": "Waning gibbous",
+      "lastQuarter": "Last quarter",
+      "waningCrescent": "Waning crescent"
+    }
+  },
+  "fieldCrops": {
+    "title": "My crops",
+    "loadError": "Could not load crops.",
+    "retry": "Try again",
+    "empty": "You do not have any crops planted in this area yet.",
+    "crop": "Crop #{{id}}",
+    "planted": "Planted",
+    "noDate": "Date unavailable",
+    "expectedHarvest": "Expected harvest",
+    "status": "Status",
+    "statuses": {
+      "planned": "Planned",
+      "planted": "Planted",
+      "harvested": "Harvested"
+    }
+  },
   "login": {
     "title": "Log in",
     "username": "Username",
@@ -17,36 +109,30 @@
       "username": "Enter your username",
       "password": "Enter your password",
       "invalidCredentials": "Incorrect password. Sign up if you don't have an account."
-    }
+    },
+    "noAccount": "Don't have an account?"
   },
-
   "signup": {
     "title": "Create account",
     "username": "Username",
     "email": "Email",
     "password": "Password",
     "passwordConfirmation": "Repeat password",
-
     "acceptPrivacy": "I accept the Privacy Notice",
     "acceptSecurity": "I accept the Security Policy",
-
     "socialLogin": "Or sign up with",
-
     "logIn": "Log in",
     "signUp": "Create account",
     "creatingAccount": "Creating account...",
-
     "success": "Account created successfully",
-
+    "alreadyHaveAccount": "Already have an account?",
     "errors": {
       "requiredFields": "Fill in all fields",
       "invalidEmail": "Invalid email format",
       "passwordMismatch": "Passwords do not match",
-      "privacyRequired": "You must accept the Privacy Notice",
-      "securityRequired": "You must accept the Security Policy",
+      "legalRequired": "You must accept the Privacy Notice and Security Policy to create an account.",
       "createFailed": "The account could not be created"
     },
-
     "legal": {
       "privacy": "Privacy Notice",
       "security": "Security Policy",
@@ -56,10 +142,9 @@
       "loadError": "The document could not be loaded"
     }
   },
-
   "settings": {
-    "title": "Profile",
-    "eyebrow": "USER PROFILE",
+    "title": "Cultivos",
+    "eyebrow": "GESTIÓN AGRÍCOLA",
     "profile": "Profile",
     "preferences": "Preferences",
     "language": "Language",
@@ -112,6 +197,11 @@
     "size": "Size (m²)",
     "loading": "Loading…",
     "saving": "Saving…",
+    "deviceHealth": {
+      "ok": "All Arduino boards are working",
+      "partial": "Some Arduino boards are not working",
+      "down": "No Arduino board is working"
+    },
     "fieldDetail": {
       "back": "My gardens",
       "eyebrow": "FIELD INFORMATION",
@@ -119,6 +209,13 @@
       "edit": "Edit",
       "devices": "Devices",
       "noDevices": "This field has no device yet.",
+      "crops": "Crops",
+      "noCrops": "This field has no crops yet.",
+      "cropStatuses": {
+        "planned": "Planned",
+        "planted": "Planted",
+        "harvested": "Harvested"
+      },
       "devicePopupTitle": "Device details",
       "devicePopupClose": "Close",
       "deviceStatus": "Status",
@@ -174,6 +271,7 @@
       "loadData": "Could not load the data",
       "gardenNotFound": "Garden not found",
       "loadGarden": "Could not load the garden",
+      "loadCrops": "Could not load the crops",
       "invalidId": "Invalid identifier",
       "nameRequired": "Name is required",
       "sizeNumber": "Size must be a number",
@@ -190,31 +288,248 @@
       "namePlaceholder": "Give your garden a name",
       "locationPlaceholder": "City, town or address",
       "sizePlaceholder": "e.g. 20",
-      "coordsHint": "Look up the location to save latitude and longitude.",
+      "coordsHint": "Enter an address or select a point on the map.",
       "coords": "Coordinates: {{lat}}, {{lon}}",
       "arduinos": "Arduinos",
-      "arduinosHint": "You can link them now or leave it for later. We only ask what you can see on the device.",
-      "configureLater": "Configure later",
-      "addNow": "Add now",
-      "addAnother": "Add another Arduino",
       "removeDevice": "Remove",
-      "saveDevices": "Save devices",
       "deviceId": "Device ID",
-      "deviceIdPlaceholder": "e.g. esp32_sim_01",
       "deviceBrand": "Brand",
-      "deviceBrandPlaceholder": "e.g. ESP32",
       "deviceSerial": "Serial number",
-      "deviceSerialPlaceholder": "The one on the label",
-      "linkLater": "Link Arduinos →",
       "submitFirst": "Create my first garden",
       "submitNext": "Create garden",
       "errors": {
         "locationRequired": "Enter a location to geocode it",
         "locationNotFound": "This location was not found",
-        "deviceIdRequired": "Each Arduino needs ID, brand and serial number",
         "deviceSaveFailed": "Could not save the devices",
-        "createFailed": "Could not create the field"
+        "createFailed": "Could not create the field",
+        "addressUnavailable": "No nearby address was found. Coordinates are retained; you can enter the address manually."
+      },
+      "lookupAddress": "Find address",
+      "lookingUp": "Finding address…",
+      "map": {
+        "open": "Select location on the map",
+        "title": "Choose the field location",
+        "hint": "Tap or click the map to select a point. Zoom in to place it precisely.",
+        "noPoint": "No point selected yet.",
+        "selectedPoint": "Selected field location",
+        "cancel": "Cancel",
+        "confirm": "Use this location",
+        "loading": "Loading map…",
+        "loadError": "The map could not load. Check your connection or enter the address manually."
+      },
+      "areaLabel": "Area",
+      "areaUnitLabel": "Area unit",
+      "automaticArea": "Calculated from the boundary. Change the unit or remove the boundary to enter the area manually.",
+      "areaUnits": {
+        "m2": "m²",
+        "ha": "ha",
+        "acre": "acres",
+        "km2": "km²",
+        "ft2": "ft²"
+      },
+      "boundary": {
+        "section": "Field boundary",
+        "optional": "Optional: mark the corners to calculate the area.",
+        "draw": "Select field corners",
+        "edit": "Edit boundary",
+        "remove": "Remove boundary and enter area manually",
+        "title": "Draw your field",
+        "hint": "Mark corners in order. Then add excluded zones for buildings or other areas you do not want to count.",
+        "corners": "{{count}} corners selected",
+        "minimum": "Each outline needs at least three corners.",
+        "undo": "Undo point",
+        "clear": "Start again",
+        "confirm": "Use this field",
+        "errors": {
+          "tooFew": "Select at least three corners.",
+          "tooMany": "A maximum of 200 corners is supported.",
+          "invalid": "Invalid coordinates.",
+          "duplicate": "Do not repeat a corner.",
+          "crossing": "Boundary edges must not cross or touch.",
+          "empty": "The boundary must enclose an area.",
+          "tooLarge": "The maximum area is 10,000 hectares.",
+          "outside": "Excluded zones must stay strictly inside the field without touching its boundary.",
+          "overlap": "Excluded zones must not overlap or touch.",
+          "tooManyZones": "Maximum 20 excluded zones and 1,000 corners in total."
+        },
+        "outer": "Outer boundary",
+        "exclusion": "Exclusion {{number}}",
+        "addExclusion": "Add excluded zone",
+        "removeExclusion": "Remove this exclusion",
+        "view": "View field on map",
+        "viewTitle": "Field area",
+        "viewHint": "Green outlines the field. Red marks areas excluded from its usable area.",
+        "close": "Close",
+        "redraw": "Redraw field",
+        "replaceHint": "Confirming a new outline replaces the current one. Cancel keeps the previous boundary.",
+        "noBoundary": "No boundary has been drawn yet. A numeric area alone cannot locate the field outline.",
+        "areaSummary": "Total: {{gross}} {{unit}} · Excluded: {{excluded}} {{unit}} · Usable: {{net}} {{unit}}"
+      },
+      "netAreaLabel": "Usable area",
+      "retryAddress": "Retry address lookup"
+    },
+    "manageCrops": {
+      "title": "Crops",
+      "back": "Back to crops",
+      "hint": "Manage the crops in this field.",
+      "cropType": "Crop type",
+      "selectCrop": "Select a crop",
+      "noAvailableCrops": "There are no more crops to add.",
+      "plantedAt": "Planting date",
+      "expectedHarvestAt": "Expected harvest",
+      "selectDate": "Select a date",
+      "notes": "Notes",
+      "notesPlaceholder": "Details about this crop",
+      "adding": "Adding…",
+      "saveCrop": "Save crop",
+      "addCrop": "Add a crop",
+      "editCrops": "Edit crops",
+      "removeCrop": "Remove {{crop}}",
+      "errors": {
+        "selectCrop": "Select a crop first",
+        "invalidDate": "Dates must use the YYYY-MM-DD format",
+        "harvestBeforePlanting": "Expected harvest cannot be before planting",
+        "addFailed": "Error adding the crop",
+        "removeFailed": "Error removing the crop"
       }
+    },
+    "fieldForm": {
+      "next": "Next",
+      "previous": "Previous",
+      "progress": "Step {{current}} of {{total}}",
+      "steps": {
+        "details": {
+          "title": "Make it yours",
+          "hint": "Choose a photo and a name for your growing space."
+        },
+        "location": {
+          "title": "Where is your field?",
+          "hint": "Enter an address or select its location on the map."
+        },
+        "characteristics": {
+          "title": "Your field, in detail",
+          "hint": "Set the field type, soil and area. Draw its boundary if needed."
+        },
+        "crops": {
+          "title": "What are you growing?",
+          "hint": "View and manage the crops already linked to your field."
+        },
+        "devices": {
+          "title": "Connected to your field",
+          "hint": "Manage your devices and finish when you are ready."
+        }
+      },
+      "requiredHint": "Name, location, field type and area are required. Soil, crops and devices are optional.",
+      "unknownSoil": "I don’t know",
+      "errors": {
+        "nameTooLong": "Use 100 characters or fewer.",
+        "locationRequired": "Enter an address or select a point on the map.",
+        "typeRequired": "Select a field type.",
+        "areaRequired": "Enter the area or draw the field boundary."
+      }
+    }
+  },
+  "addDevice": {
+    "button": "Add device",
+    "back": "Back to the field",
+    "eyebrow": "ADD DEVICE",
+    "title": "Connect your AgriTwin board",
+    "scan": {
+      "title": "Find your board",
+      "instructions": "Turn the board on. The blue LED blinks slowly.",
+      "searching": "Searching for boards…",
+      "found": "Boards found",
+      "tapHint": "Tap yours to continue.",
+      "searchAgain": "Search again"
+    },
+    "noBoards": {
+      "title": "We could not find any board",
+      "instructions": "Check that the board is on and close to your phone.",
+      "tip": "If the LED stays on, hold the BOOT button on the board for 5 seconds and try again.",
+      "retry": "Try again"
+    },
+    "wifi": {
+      "title": "Connect the board to Wi-Fi",
+      "board": "Board: {{name}}",
+      "ssid": "Wi-Fi name",
+      "ssidPlaceholder": "The name of your network",
+      "password": "Password",
+      "passwordPlaceholder": "Your Wi-Fi password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "hint24": "Use a 2.4 GHz network. The board does not work with 5 GHz networks.",
+      "privacy": "We do not save your Wi-Fi name or password.",
+      "connect": "Connect"
+    },
+    "progress": {
+      "connectingBoard": "Connecting to the board…",
+      "connecting": "Connecting…",
+      "connectingHint": "It can take about 20 seconds. Keep the app open and stay close to the board.",
+      "saving": "Saving the board…"
+    },
+    "success": {
+      "title": "Board connected",
+      "hint": "Your board is now linked to this field and will start sending data.",
+      "alreadyLinked": "This board was already linked to this field.",
+      "done": "Finish",
+      "another": "Add another device"
+    },
+    "error": {
+      "retry": "Try again",
+      "back": "Back to the field",
+      "openSettings": "Open settings",
+      "groups": {
+        "wifi": {
+          "title": "Could not connect to Wi-Fi",
+          "hint": "Check the Wi-Fi name and the password. Remember that the board only works with 2.4 GHz networks."
+        },
+        "timeout": {
+          "title": "Time ran out",
+          "hint": "Move the board closer to the router and your phone, and try again."
+        },
+        "noInternet": {
+          "title": "Wi-Fi connected, but no internet",
+          "hint": "Check the internet connection of your router and try again."
+        },
+        "bluetoothOff": {
+          "title": "Bluetooth is off",
+          "hint": "Turn on Bluetooth on your phone and try again."
+        },
+        "permission": {
+          "title": "Bluetooth permission is missing",
+          "hint": "Allow AgriTwin to use Bluetooth in your phone settings and try again."
+        },
+        "link": {
+          "title": "Could not talk to the board",
+          "hint": "Move closer to the board, check that the LED blinks slowly and try again."
+        },
+        "alreadyRegistered": {
+          "title": "This board is already in another field",
+          "hint": "A board can only be linked to one field. Remove it from the other field before adding it here."
+        },
+        "sessionExpired": {
+          "title": "Your session has expired",
+          "hint": "Log in again and add the board again."
+        },
+        "saveFailed": {
+          "title": "Board connected, but not saved",
+          "hint": "The board connected to Wi-Fi, but we could not save it. Try again."
+        },
+        "generic": {
+          "title": "Something went wrong",
+          "hint": "Try again. If it keeps failing, restart the board."
+        }
+      }
+    },
+    "web": {
+      "title": "Only available on your phone",
+      "hint": "To add a board you need the AgriTwin app on your phone, because it uses Bluetooth."
+    },
+    "section": {
+      "title": "Devices",
+      "none": "This field has no devices yet.",
+      "createHint": "You can link your AgriTwin boards now. We save the field first.",
+      "saveAndAdd": "Save and add device"
     }
   },
   "languages": {
@@ -227,8 +542,59 @@
     "prices": "Prices",
     "news": "News",
     "buy": "Buy",
+    "loading": "Loading…",
+    "searchPlaceholder": "Search products",
+    "clearSearch": "Clear search",
+    "loadMore": "Load more products",
+    "noMatch": "No products match “{{query}}”.",
+    "noProducts": "There are no products in the market yet.",
+    "viewProduct": "View {{name}}",
+    "stock": {
+      "outOfStock": "Out of stock",
+      "low": "Only {{count}} kg left",
+      "available": "{{count}} kg available"
+    },
     "units": "units",
-    "errors": { "loadFailed": "Could not load market data" }
+    "errors": {
+      "loadFailed": "Could not load market data",
+      "searchFailed": "Could not search the market. Please try again."
+    },
+    "detail": {
+      "unavailable": "Product unavailable",
+      "missingProductId": "No product was specified.",
+      "loading": "Loading product…",
+      "loadingDescription": "Loading market information.",
+      "back": "Back to the market",
+      "eyebrow": "AGRITWIN · MARKET",
+      "price": "PRODUCT PRICE",
+      "perKg": "per kg",
+      "noStock": "Out of stock",
+      "available": "{{value}} kg available",
+      "availability": "Product availability",
+      "unavailableNow": "Currently unavailable",
+      "availableToBuy": "Available to buy",
+      "order": "Your order",
+      "quantity": "Quantity",
+      "quantityHint": "Select how many kg you want",
+      "reduceQuantity": "Reduce quantity",
+      "increaseQuantity": "Increase quantity",
+      "quantityInKg": "Quantity in kilograms",
+      "total": "ORDER TOTAL",
+      "footer": "AgriTwin · Smart agriculture",
+      "loadError": "Could not load product information."
+    },
+    "checkout": {
+      "error": "Payment error",
+      "missingApi": "The API URL is not configured.",
+      "incompleteResponse": "The server response is incomplete.",
+      "paymentIncomplete": "Payment not completed",
+      "paymentSent": "Payment submitted",
+      "paymentConfirmation": "Stripe completed the payment flow. The server will send the final order confirmation.",
+      "startFailed": "Could not start the payment.",
+      "preparing": "Preparing payment…",
+      "buy": "Buy"
+    },
+    "come_to_merkat": "Back to the market"
   },
   "weather": {
     "subtitle": "Weather forecast",
@@ -254,6 +620,9 @@
     "noField": "You don't have any field yet. Create one to see the weather.",
     "noData": "No weather data for this location",
     "back": "Home",
+    "alertsTitle": "Weather alerts",
+    "noAlerts": "No alerts for your garden",
+    "close": "Close",
     "uvLevels": {
       "low": "Low",
       "moderate": "Moderate",
@@ -263,5 +632,146 @@
     },
     "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "compass": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+  },
+  "recommendations": {
+    "screenTitle": "Recommendations",
+    "title": "Field recommendations",
+    "subtitle": "Practical advice based on your field data.",
+    "field": "Field",
+    "loading": "Loading recommendations…",
+    "loadError": "Could not load recommendations. Check your connection and try again.",
+    "retry": "Try again",
+    "emptyTitle": "No recommendations yet",
+    "emptyDescription": "Useful recommendations will appear here when enough field data is available.",
+    "results": "{{count}} recommendations",
+    "basedOn": "Based on",
+    "generatedAt": "Generated",
+    "expiresAt": "Expires",
+    "view": "View recommendations",
+    "open": "Open field recommendations",
+    "back": "Back",
+    "categories": {
+      "soil": "Soil",
+      "irrigation": "Irrigation",
+      "crops": "Crops",
+      "fertilization": "Fertilization",
+      "pests": "Pests",
+      "weather": "Weather",
+      "general": "General"
+    },
+    "severities": {
+      "info": "Info",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
+  },
+  "diagnosis": {
+    "title": "Plant diagnosis with AI",
+    "subtitle": "Detects pests, diseases, water, light and harvest.",
+    "placeholder": "You haven't chosen a photo yet",
+    "previewError": "This image can't be shown",
+    "enlarge": "Enlarge photo",
+    "close": "Close",
+    "takePhoto": "Take photo",
+    "choosePhoto": "Gallery",
+    "analyse": "Analyse",
+    "retry": "Try again",
+    "openSettings": "Open settings",
+    "loading": "Analysing the plant…",
+    "healthy": "Healthy",
+    "problem": "Needs attention",
+    "confidence": "Confidence: {{value}} %",
+    "statusTitle": "Plant status",
+    "waterLabel": "Water",
+    "lightLabel": "Light",
+    "harvestLabel": "Harvest",
+    "water": {
+      "lack": "Needs water",
+      "ok": "No symptoms",
+      "excess": "Overwatered",
+      "unknown": "Can't tell"
+    },
+    "light": {
+      "lack": "Needs more light",
+      "ok": "No symptoms",
+      "excess": "Too much sun",
+      "unknown": "Can't tell"
+    },
+    "harvest": {
+      "ready": "Ready to harvest",
+      "not_ready": "Not ready yet",
+      "no_fruit": "No fruit visible",
+      "unknown": "Can't tell"
+    },
+    "errors": {
+      "cameraDenied": "Camera permission is needed to take photos. Tap “Take photo” again to allow it.",
+      "cameraBlocked": "To take photos, turn on the camera permission in your phone settings.",
+      "photosDenied": "Photo access is needed. Tap “Gallery” again to allow it.",
+      "photosBlocked": "To choose photos, turn on photo access in your phone settings.",
+      "format": "The photo must be JPG or PNG.",
+      "tooLarge": "The photo is too large (5 MB max).",
+      "noPlant": "No plant was found in the photo. Try another one.",
+      "notFound": "This photo couldn't be diagnosed. Try a closer one.",
+      "tooMany": "Too many analyses. Wait a minute and try again.",
+      "unavailable": "The diagnosis service is unavailable. Try again later.",
+      "connection": "Couldn't connect. Check your connection and try again."
+    }
+  },
+  "deviceSetup": {
+    "errors": {
+      "bluetooth_off": "Turn on Bluetooth and try again.",
+      "permission_denied": "Turn on Bluetooth and allow the app to use it.",
+      "scan_failed": "Could not search for boards. Try again.",
+      "invalid_input": "Enter the Wi-Fi name.",
+      "connection_failed": "Could not connect to the board. Move closer and try again.",
+      "connection_lost": "Connection to the board lost. Try again.",
+      "no_answer": "The board is not answering. Check that the LED blinks slowly and try again.",
+      "missing_data": "Incomplete data. Try again.",
+      "bad_field_id": "Invalid field. Open this screen again from the field.",
+      "wifi_not_found": "Network not found. Check the name and use the 2.4 GHz network.",
+      "wrong_password": "Wrong password.",
+      "wifi_timeout": "The router is not answering. Move the board closer and try again.",
+      "no_internet": "Wi-Fi connected but no Internet.",
+      "session_expired": "Your session has expired. Log in again and try again.",
+      "already_registered_elsewhere": "This board is already linked to another field.",
+      "registration_failed": "Board connected, but it could not be saved. Try again.",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "forgotPassword": {
+    "title": "Recover password",
+    "subtitle": "Enter your email address and we will send you a link to reset your password.",
+    "email": "Email address",
+    "send": "Send recovery email",
+    "sending": "Sending...",
+    "back": "Back to login",
+    "successTitle": "Email sent",
+    "success": "If the email is registered, you will receive a password recovery link.",
+    "errors": {
+      "required": "Please enter your email address.",
+      "invalidEmail": "Please enter a valid email address.",
+      "sendFailed": "Could not send the recovery email."
+    }
+  },
+  "fieldSelection": {
+    "title": "Choose your garden",
+    "manage": "Edit",
+    "done": "Done",
+    "add": "Add garden",
+    "editField": "Edit {{name}}",
+    "deleteField": "Delete {{name}}",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteMessage": "Its crops and Arduinos will be lost. This cannot be undone.",
+    "deleteConfirm": "Delete",
+    "deleteError": "The garden could not be deleted",
+    "profile": "My profile",
+    "loadError": "The gardens could not be loaded",
+    "back": "Back",
+    "eyebrow": "MY GARDENS",
+    "allGardens": "See all gardens"
+  },
+  "startup": {
+    "loading": "Getting your data ready…"
   }
 }

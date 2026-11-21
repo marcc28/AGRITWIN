@@ -9,6 +9,7 @@ os.environ.setdefault(
     "postgresql+asyncpg://user:pass@localhost:5432/testdb",
 )
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import IntegrityError
@@ -27,6 +28,7 @@ FIELD = SimpleNamespace(
     soil_type="loam",
     size_m2=40.0,
     device_count=2,
+    devices_online=2,
 )
 
 FIELD_JSON = {
@@ -39,6 +41,9 @@ FIELD_JSON = {
     "soil_type": "loam",
     "size_m2": 40.0,
     "device_count": 2,
+    "boundary": None,
+    "excluded_zones": [],
+    "devices_online": 2,
 }
 
 
@@ -118,6 +123,67 @@ def test_list_fields():
     assert response.json() == [FIELD_JSON]
 
 
+def test_list_fields_counts_online_devices():
+    client = make_client()
+    mixed = SimpleNamespace(
+        id=5,
+        name="Camp mixt",
+        location=None,
+        lat=None,
+        lon=None,
+        field_type=None,
+        soil_type=None,
+        size_m2=None,
+        device_count=3,
+        devices_online=1,
+    )
+    offline = SimpleNamespace(
+        id=6,
+        name="Camp offline",
+        location=None,
+        lat=None,
+        lon=None,
+        field_type=None,
+        soil_type=None,
+        size_m2=None,
+        device_count=2,
+        devices_online=0,
+    )
+    session = FakeSession([FakeResult(rows=[mixed, offline])])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload[0]["device_count"] == 3
+    assert payload[0]["devices_online"] == 1
+    assert payload[1]["device_count"] == 2
+    assert payload[1]["devices_online"] == 0
+
+
+def test_list_fields_defaults_devices_online_when_missing():
+    client = make_client()
+    legacy = SimpleNamespace(
+        id=7,
+        name="Camp antic",
+        location=None,
+        lat=None,
+        lon=None,
+        field_type=None,
+        soil_type=None,
+        size_m2=None,
+        device_count=1,
+    )
+    session = FakeSession([FakeResult(rows=[legacy])])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields")
+
+    assert response.status_code == 200
+    assert response.json()[0]["devices_online"] == 0
+
+
 def test_list_fields_empty():
     client = make_client()
     session = FakeSession([FakeResult(rows=[])])
@@ -178,6 +244,7 @@ def test_get_field():
     assert response.status_code == 200
     assert response.json() == {
         **FIELD_JSON,
+        "devices_online": 1,
         "devices": [
             {
                 "id": "dev-1",
@@ -219,7 +286,49 @@ def test_get_field_without_devices():
 
     assert response.status_code == 200
     assert response.json()["device_count"] == 0
+    assert response.json()["devices_online"] == 0
     assert response.json()["devices"] == []
+
+
+def test_get_field_all_devices_online():
+    client = make_client()
+    field_row = SimpleNamespace(
+        id=3,
+        name="Hort de l'Ainhoa",
+        location="Andorra la Vella",
+        lat=42.5,
+        lon=1.5,
+        field_type="home_garden",
+        soil_type="loam",
+        size_m2=40.0,
+    )
+    devices = [
+        SimpleNamespace(
+            id="dev-1",
+            battery_status=True,
+            brand="ESP32",
+            serial_number="SN-1",
+        ),
+        SimpleNamespace(
+            id="dev-2",
+            battery_status=True,
+            brand="ESP32",
+            serial_number="SN-2",
+        ),
+    ]
+    session = FakeSession(
+        [
+            FakeResult(one=field_row),
+            FakeResult(rows=devices),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields/3")
+
+    assert response.status_code == 200
+    assert response.json()["device_count"] == 2
+    assert response.json()["devices_online"] == 2
 
 
 def test_get_field_not_found():
@@ -278,7 +387,12 @@ def test_update_field_not_found():
     with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
         response = client.put(
             "/fields/99",
-            json={"name": "Hort nou"},
+            json={
+                "name": "Hort nou",
+                "location": "Lleida",
+                "field_type": "home_garden",
+                "size_m2": 40,
+            },
         )
 
     assert response.status_code == 404
@@ -496,6 +610,39 @@ def test_delete_device_not_found():
     assert response.status_code == 404
 
 
+def test_delete_field():
+    client = make_client()
+    session = FakeSession([FakeResult(one=SimpleNamespace(id=3))])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.delete("/fields/3")
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    assert session.committed is True
+
+
+def test_delete_field_not_found():
+    client = make_client()
+    session = FakeSession([FakeResult(one=None)])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.delete("/fields/99")
+
+    assert response.status_code == 404
+    assert session.committed is False
+
+
+def test_delete_field_requires_auth():
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    response = client.delete("/fields/3")
+
+    assert response.status_code == 401
+
+
 def test_create_device_requires_auth():
     app = FastAPI()
     app.include_router(router)
@@ -600,3 +747,185 @@ def test_update_device_conflict():
         )
 
     assert response.status_code == 409
+
+
+def test_create_boundary_recomputes_area_and_center():
+    import json
+
+    from services.field_geometry_service import field_geometry
+
+    corners = [
+        {"lat": 0.0, "lon": 0.0},
+        {"lat": 0.0, "lon": 0.001},
+        {"lat": 0.001, "lon": 0.001},
+        {"lat": 0.001, "lon": 0.0},
+    ]
+    area, lat, lon = field_geometry(corners)
+    row = SimpleNamespace(
+        **{**vars(FIELD), "size_m2": area, "lat": lat, "lon": lon, "boundary": corners}
+    )
+
+    class CaptureSession(FakeSession):
+        async def execute(self, statement, params):
+            if "INSERT" in str(statement):
+                self.insert = params
+            return await super().execute(statement, params)
+
+    session = CaptureSession([FakeResult(one=SimpleNamespace(id=3)), FakeResult(one=row)])
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = make_client().post(
+            "/fields",
+            json={
+                "name": "Field",
+                "field_type": "orchard",
+                "size_m2": 99,
+                "lat": 40,
+                "lon": 2,
+                "boundary": corners,
+            },
+        )
+    assert response.status_code == 200
+    assert response.json()["size_m2"] == 12364.35
+    assert session.insert["size_m2"] == area
+    assert session.insert["lat"] == lat
+    assert json.loads(session.insert["boundary"]) == corners
+    assert session.committed
+
+
+def test_create_boundary_rejects_crossed_edges_before_database():
+    corners = [
+        {"lat": 0, "lon": 0},
+        {"lat": 0.001, "lon": 0.001},
+        {"lat": 0, "lon": 0.001},
+        {"lat": 0.001, "lon": 0},
+    ]
+    with patch("api.v1.fields.AsyncSessionLocal") as database:
+        response = make_client().post(
+            "/fields", json={"name": "Field", "field_type": "open_field", "boundary": corners}
+        )
+    assert response.status_code == 400
+    database.assert_not_called()
+
+
+def test_reverse_geocode_requires_authentication():
+    app = FastAPI()
+    app.include_router(router)
+    assert TestClient(app).get("/reverse-geocode?lat=41&lon=2").status_code == 401
+
+
+def test_reverse_geocode_validates_coordinates_and_preserves_result():
+    client = make_client()
+    assert client.get("/reverse-geocode?lat=91&lon=2").status_code == 422
+    with patch(
+        "api.v1.fields.reverse_location",
+        return_value={"lat": 41.0, "lon": 2.0, "label": "Field road"},
+    ) as lookup:
+        response = client.get("/reverse-geocode?lat=41&lon=2")
+    assert response.status_code == 200
+    assert response.json()["label"] == "Field road"
+    lookup.assert_called_once_with(41.0, 2.0)
+
+
+def test_update_replaces_geometry_and_subtracts_exclusions():
+    import json
+
+    from services.field_geometry_service import field_geometry
+
+    outer = [
+        {"lat": 0.0, "lon": 0.0},
+        {"lat": 0.0, "lon": 0.001},
+        {"lat": 0.001, "lon": 0.001},
+        {"lat": 0.001, "lon": 0.0},
+    ]
+    hole = [
+        {"lat": 0.0002, "lon": 0.0002},
+        {"lat": 0.0002, "lon": 0.0004},
+        {"lat": 0.0004, "lon": 0.0004},
+        {"lat": 0.0004, "lon": 0.0002},
+    ]
+    net, lat, lon = field_geometry(outer, [hole])
+    row = SimpleNamespace(
+        **{
+            **vars(FIELD),
+            "boundary": outer,
+            "excluded_zones": [hole],
+            "lat": lat,
+            "lon": lon,
+            "size_m2": net,
+        }
+    )
+
+    class Capture(FakeSession):
+        async def execute(self, statement, params):
+            if "UPDATE" in str(statement):
+                self.parameters = params
+            return await super().execute(statement, params)
+
+    session = Capture([FakeResult(one=SimpleNamespace(id=3)), FakeResult(one=row)])
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = make_client().put(
+            "/fields/3",
+            json={
+                "name": "Field",
+                "field_type": "orchard",
+                "size_m2": 999,
+                "boundary": outer,
+                "excluded_zones": [hole],
+            },
+        )
+    assert response.status_code == 200
+    assert response.json()["size_m2"] == 11869.78
+    assert json.loads(session.parameters["excluded_zones"]) == [hole]
+    assert session.parameters["lat"] == lat
+
+
+def test_update_explicitly_clears_boundary_and_exclusions():
+    class Capture(FakeSession):
+        async def execute(self, statement, params):
+            if "UPDATE" in str(statement):
+                self.parameters = params
+            return await super().execute(statement, params)
+
+    session = Capture([FakeResult(one=SimpleNamespace(id=3)), FakeResult(one=FIELD)])
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = make_client().put(
+            "/fields/3",
+            json={
+                "name": "Field",
+                "location": "Lleida",
+                "field_type": "open_field",
+                "size_m2": 40,
+                "boundary": None,
+                "excluded_zones": [],
+            },
+        )
+    assert response.status_code == 200
+    assert session.parameters["boundary"] is None
+    assert session.parameters["excluded_zones"] == "[]"
+    assert session.parameters["size_m2"] == 40
+
+
+@pytest.mark.parametrize("method,path", [("post", "/fields"), ("put", "/fields/3")])
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"name": " "},
+        {"name": "x" * 101},
+        {"location": None},
+        {"field_type": None},
+        {"field_type": "invented"},
+        {"size_m2": None},
+        {"size_m2": 0},
+        {"soil_type": "invented"},
+    ],
+)
+def test_required_field_data_is_enforced_on_all_writes(method, path, change):
+    body = {
+        "name": "Field",
+        "location": "Lleida",
+        "field_type": "open_field",
+        "size_m2": 25,
+        "soil_type": None,
+    }
+    response = getattr(make_client(), method)(path, json={**body, **change})
+    assert response.status_code == 400

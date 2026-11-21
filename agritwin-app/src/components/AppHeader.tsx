@@ -4,29 +4,50 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import { useTranslation } from 'react-i18next';
+
 import { Colors } from '@/constants/theme';
+import DeviceStatusDot from '@/components/DeviceStatusDot';
 import { clearAuth, getAuth } from '@/services/auth';
-import { getFields, isAuthError, type Field } from '@/services/api';
+import { isAuthError, type Field } from '@/services/api';
+import {
+  DEVICE_HEALTH_LABEL,
+  deviceHealthFromCounts,
+} from '@/services/deviceHealth';
 import {
   getCurrentField,
+  peekCurrentField,
   setCurrentField,
   subscribeCurrentField,
 } from '@/services/currentField';
 import {
   getGardenPicker,
+  loadGardenPickerFields,
   setGardenPicker,
   subscribeGardenPicker,
 } from '@/services/gardenPicker';
 
-export default function AppHeader() {
+type AppHeaderProps = Readonly<{
+  showProfile?: boolean;
+}>;
+
+export default function AppHeader({ showProfile = false }: AppHeaderProps) {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
-  const [fields, setFields] = useState<Field[]>([]);
-  const [currentId, setCurrentId] = useState<number | null>(null);
-  const [gardenName, setGardenName] = useState('');
+  // Start from what is already in memory so the header does not flicker
+  // empty every time a screen with it is opened.
+  const [fields, setFields] = useState<Field[]>(() => getGardenPicker().fields);
+  const [currentId, setCurrentId] = useState<number | null>(
+    () => peekCurrentField()?.id ?? null,
+  );
+  const [gardenName, setGardenName] = useState(
+    () => peekCurrentField()?.name ?? '',
+  );
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [username, setUsername] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +67,8 @@ export default function AppHeader() {
         return;
       }
 
+      setUsername(auth?.username ?? '');
+
       if (!auth?.token) {
         setFields([]);
         setCurrentId(null);
@@ -55,10 +78,12 @@ export default function AppHeader() {
         return;
       }
 
+      // Start loading the picker list as soon as authentication is known.
+      const fieldsPromise = loadGardenPickerFields();
       await applyStoredField();
 
       try {
-        const gardens = await getFields();
+        const gardens = await fieldsPromise;
         if (cancelled) {
           return;
         }
@@ -95,52 +120,72 @@ export default function AppHeader() {
       }
     }
 
-    void loadHeader();
+    const refreshTimer = setInterval(() => {
+      void getAuth()
+        .then((auth) => {
+          if (cancelled || !auth?.token) {
+            return;
+          }
+          return loadGardenPickerFields(true);
+        })
+        .catch((error) => {
+          if (!cancelled && isAuthError(error)) {
+            void clearAuth().then(() => router.replace('/auth/login'));
+          }
+        });
+    }, 20000);
+
     const unsubscribeField = subscribeCurrentField(() => {
       void applyStoredField();
     });
     const unsubscribePicker = subscribeGardenPicker(() => {
       const next = getGardenPicker();
       setPickerOpen(next.open);
+      setFields(next.fields);
     });
+    void loadHeader();
 
     return () => {
       cancelled = true;
+      clearInterval(refreshTimer);
       unsubscribeField();
       unsubscribePicker();
       setGardenPicker({ open: false });
     };
   }, []);
 
-  async function handleTogglePicker() {
+  function handleTogglePicker() {
+    if (!canOpen) {
+      return;
+    }
+
     if (pickerOpen) {
       setPickerOpen(false);
       setGardenPicker({ open: false });
       return;
     }
 
-    try {
-      const gardens = await getFields();
-      setFields(gardens);
-      if (gardens.length <= 1) {
-        setGardenPicker({ open: false, fields: gardens, currentId });
-        return;
-      }
-      setPickerOpen(true);
-      setGardenPicker({
-        open: true,
-        fields: gardens,
-        currentId,
-      });
-    } catch (error) {
+    const cached = getGardenPicker().fields;
+    setPickerOpen(true);
+    setGardenPicker({ open: true, fields: cached, currentId });
+
+    // Render the cached list immediately; refresh it without blocking the menu.
+    loadGardenPickerFields(true).catch((error) => {
       if (isAuthError(error)) {
-        await clearAuth();
-        router.replace('/auth/login');
+        void clearAuth().then(() => router.replace('/auth/login'));
       }
-    }
+    });
   }
 
-  const canSwitch = fields.length > 1;
+  const canOpen = fields.length > 0;
+  const currentField = fields.find((field) => field.id === currentId);
+  const health =
+    currentField?.devices_online == null
+      ? null
+      : deviceHealthFromCounts(
+          currentField.device_count,
+          currentField.devices_online,
+        );
 
   return (
     <View
@@ -162,21 +207,62 @@ export default function AppHeader() {
         shadowRadius: 4,
       }}
     >
-      <Text
-        numberOfLines={1}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          fontSize: 20,
-          fontWeight: '800',
-          letterSpacing: 0.6,
-          color: colors.primaryDark,
-        }}
+      <Pressable
+        testID="header-logo"
+        accessibilityRole="button"
+        onPress={() => router.push('/field-selection')}
+        style={{ flex: 1, minWidth: 0 }}
       >
-        AGRITWIN
-      </Text>
+        <Text
+          numberOfLines={1}
+          style={{
+            fontSize: 20,
+            fontWeight: '800',
+            letterSpacing: 0.6,
+            color: colors.primaryDark,
+          }}
+        >
+          AGRITWIN
+        </Text>
+      </Pressable>
 
-      {gardenName ? (
+      {showProfile ? (
+        <Pressable
+          testID="header-profile"
+          onPress={() => router.push('/profile')}
+          accessibilityRole="button"
+          accessibilityLabel={t('fieldSelection.profile')}
+          hitSlop={8}
+          style={({ pressed }) => ({
+            marginLeft: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 16,
+            backgroundColor: colors.surfaceSecondary,
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Ionicons
+            name="person-circle"
+            size={16}
+            color={colors.primaryDark}
+            style={{ marginRight: 6 }}
+          />
+          <Text
+            numberOfLines={1}
+            style={{
+              maxWidth: 160,
+              fontSize: 12,
+              fontWeight: '600',
+              color: colors.text,
+            }}
+          >
+            {username || t('settings.profile')}
+          </Text>
+        </Pressable>
+      ) : gardenName ? (
         <View>
           <Pressable
             onPress={() => void handleTogglePicker()}
@@ -184,7 +270,7 @@ export default function AppHeader() {
             accessibilityLabel={gardenName}
             hitSlop={8}
             style={({ pressed }) => ({
-              maxWidth: 160,
+              maxWidth: 220,
               marginLeft: 8,
               flexDirection: 'row',
               alignItems: 'center',
@@ -195,6 +281,15 @@ export default function AppHeader() {
               opacity: pressed ? 0.6 : 1,
             })}
           >
+            {health ? (
+              <View
+                accessible
+                accessibilityLabel={t(DEVICE_HEALTH_LABEL[health])}
+                style={{ marginRight: 6 }}
+              >
+                <DeviceStatusDot health={health} />
+              </View>
+            ) : null}
             <Text
               numberOfLines={1}
               style={{
@@ -206,7 +301,7 @@ export default function AppHeader() {
             >
               {gardenName}
             </Text>
-            {canSwitch ? (
+            {canOpen ? (
               <Ionicons
                 name={pickerOpen ? 'chevron-up' : 'chevron-down'}
                 size={14}

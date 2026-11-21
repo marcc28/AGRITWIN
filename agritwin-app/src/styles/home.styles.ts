@@ -38,4 +38,15 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.light.textSecondary,
   },
+
+  workingOn: {
+    marginTop: 12,
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+  },
+
+  workingOnName: {
+    fontWeight: '700',
+    color: Colors.light.primaryDark,
+  },
 });

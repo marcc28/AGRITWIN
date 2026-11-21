@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
   },
-  socialContainer: { marginTop: 25 },
+  socialContainer: { marginTop: 8 },
   socialTitle: {
     textAlign: 'center',
     fontSize: 11,
@@ -57,11 +57,6 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   socialText: { color: Colors.light.surface, fontWeight: 'bold', fontSize: 18 },
-  subtitle: {
-    textAlign: 'center',
-    marginTop: 8,
-    color: Colors.light.textSecondary,
-  },
   input: {
     width: '100%',
     height: 55,
@@ -86,7 +81,13 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: { color: Colors.light.surface, fontWeight: 'bold', fontSize: 16 },
+  subtitle: {
+    textAlign: 'center',
+    width: '100%',
+    marginTop: 8,
+    color: Colors.light.textSecondary,
+  },
+
   errorAlert: {
     width: '100%',
     backgroundColor: Colors.light.dangerBackground,
@@ -95,14 +96,23 @@ export const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 12,
     marginBottom: 15,
+    alignItems: 'center',
   },
+
   errorTitle: {
     color: Colors.light.dangerText,
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
+    textAlign: 'center',
   },
-  errorText: { color: Colors.light.dangerText, fontSize: 14 },
+
+  errorText: {
+    color: Colors.light.dangerText,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+
   successAlert: {
     width: '100%',
     backgroundColor: Colors.light.successBackground,
@@ -111,7 +121,58 @@ export const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 12,
     marginBottom: 15,
+    alignItems: 'center',
   },
-  successText: { color: Colors.light.successText, fontSize: 14 },
+
+  successText: {
+    color: Colors.light.successText,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+
+  linkText: {
+    color: Colors.light.link,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginVertical: 8,
+    marginTop: 25,
+  },
+  buttonText: { color: Colors.light.surface, fontWeight: 'bold', fontSize: 16 },
   socialIcon: { width: 24, height: 24 },
+  signUpButton: {
+    height: 55,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.light.surfaceSecondary,
+  },
+  loginButtonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 35,
+  },
+
+  signUpButtonText: {
+    color: Colors.light.text,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  signUpTextContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+  },
+
+  signUpNormalText: {
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+  },
+
+  signUpLinkText: {
+    color: Colors.light.link,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
 });

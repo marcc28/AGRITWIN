@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -15,13 +14,18 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import Alert from '../../components/Alert';
+import LegalDocumentContent from '../../components/LegalDocumentContent';
 import {
   getPrivacyPolicy,
   getSecurityPolicy,
+  login,
   signup,
 } from '../../services/api';
 import { styles } from '../../styles/signup.styles';
 import { Gradients } from '@/constants/colors';
+import SocialLoginButtons from '@/components/SocialLoginButtons';
+import { setAuth } from '@/services/auth';
+import { routeAfterAuth } from '@/services/routeAfterAuth';
 
 export default function SignupScreen() {
   const { t } = useTranslation();
@@ -33,9 +37,7 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const [securityAccepted, setSecurityAccepted] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   // -----------------------------
   // Legal document modal
@@ -123,13 +125,8 @@ export default function SignupScreen() {
     }
 
     // Acceptació legal
-    if (!privacyAccepted) {
-      setErrorMessage(t('signup.errors.privacyRequired'));
-      return;
-    }
-
-    if (!securityAccepted) {
-      setErrorMessage(t('signup.errors.securityRequired'));
+    if (!legalAccepted) {
+      setErrorMessage(t('signup.errors.legalRequired'));
       return;
     }
 
@@ -141,12 +138,14 @@ export default function SignupScreen() {
         trimmedEmail,
         trimmedPassword,
         trimmedPasswordConf,
-        privacyAccepted,
-        securityAccepted,
+        legalAccepted,
+        legalAccepted,
       );
 
       setSuccessMessage(t('signup.success'));
-      router.push('/auth/login');
+      const data = await login(trimmedUsername, trimmedPassword);
+      await setAuth(trimmedUsername, data.access_token, data.refresh_token);
+      await routeAfterAuth();
     } catch (error) {
       const message =
         error instanceof Error
@@ -283,28 +282,28 @@ export default function SignupScreen() {
           editable={!loading}
         />
 
-        {/* Legal */}
+        {/* Legal i  Security */}
+        {/* Acceptació legal */}
         <View style={styles.legalContainer}>
-          {/* Privacy */}
           <View style={styles.checkboxRow}>
             <Pressable
-              testID="privacy-checkbox-press"
-              onPress={() => setPrivacyAccepted(!privacyAccepted)}
+              testID="legal-checkbox"
+              onPress={() => setLegalAccepted((current) => !current)}
               disabled={loading}
               accessibilityRole="checkbox"
-              accessibilityLabel="Accept privacy notice"
+              accessibilityLabel="Acceptar Privacy Notice i Security Policy"
               accessibilityState={{
-                checked: privacyAccepted,
+                checked: legalAccepted,
                 disabled: loading,
               }}
             >
               <View
                 style={[
                   styles.checkbox,
-                  privacyAccepted && styles.checkboxChecked,
+                  legalAccepted && styles.checkboxChecked,
                 ]}
               >
-                {privacyAccepted && <Text style={styles.checkmark}>✓</Text>}
+                {legalAccepted && <Text style={styles.checkmark}>✓</Text>}
               </View>
             </Pressable>
 
@@ -314,41 +313,16 @@ export default function SignupScreen() {
                 testID="privacy-checkbox-open"
                 style={styles.link}
                 onPress={() => openLegalDocument('privacy')}
+                accessibilityRole="link"
               >
                 Privacy Notice
-              </Text>
-              .
-            </Text>
-          </View>
-
-          {/* Security */}
-          <View style={styles.checkboxRow}>
-            <Pressable
-              testID="security-checkbox-press"
-              onPress={() => setSecurityAccepted(!securityAccepted)}
-              disabled={loading}
-              accessibilityRole="checkbox"
-              accessibilityLabel="Accept security policy"
-              accessibilityState={{
-                checked: securityAccepted,
-                disabled: loading,
-              }}
-            >
-              <View
-                style={[
-                  styles.checkbox,
-                  securityAccepted && styles.checkboxChecked,
-                ]}
-              >
-                {securityAccepted && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-            </Pressable>
-
-            <Text style={styles.legalText}>
-              He llegit i accepto la{' '}
+              </Text>{' '}
+              <Text>&</Text>{' '}
               <Text
+                testID="security-checkbox-open"
                 style={styles.link}
                 onPress={() => openLegalDocument('security')}
+                accessibilityRole="link"
               >
                 Security Policy
               </Text>
@@ -356,56 +330,8 @@ export default function SignupScreen() {
             </Text>
           </View>
         </View>
-
-        {/* Login social */}
-        <View style={styles.socialContainer}>
-          <Text style={styles.socialTitle}>O inicia sessió amb</Text>
-
-          <View style={styles.socialAccounts}>
-            {/* Google */}
-            <Pressable style={styles.socialButton} disabled={loading}>
-              <Image
-                source={require('../../../assets/images/google.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            {/* Instagram */}
-            <Pressable style={styles.socialButton} disabled={loading}>
-              <Image
-                source={require('../../../assets/images/instagram.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            {/* Facebook */}
-            <Pressable style={styles.socialButton} disabled={loading}>
-              <Image
-                source={require('../../../assets/images/twitter.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Botons */}
+        {/* Botó principal Sign Up */}
         <View style={styles.buttonsContainer}>
-          {/* Login */}
-          <Pressable
-            testID="login-button"
-            style={styles.buttonWrapper}
-            onPress={handleLogIn}
-            disabled={loading}
-          >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>Log In</Text>
-            </LinearGradient>
-          </Pressable>
-
-          {/* Sign Up */}
           <Pressable
             testID="signup-button"
             style={styles.buttonWrapper}
@@ -413,76 +339,107 @@ export default function SignupScreen() {
             disabled={loading}
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {loading ? 'Creant compte...' : 'Sign Up'}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>{t('signup.signUp')}</Text>
+              )}
             </LinearGradient>
           </Pressable>
         </View>
-      </View>
 
-      {/* =====================================================
+        {/* Login social */}
+        <SocialLoginButtons
+          styles={styles}
+          loading={loading}
+          onLoadingChange={setLoading}
+          onError={setErrorMessage}
+          title={t('login.socialLogin')}
+        />
+
+        {/* Enllaç per iniciar sessió */}
+
+        <View style={styles.signUpTextContainer}>
+          <Text style={styles.signUpNormalText}>
+            {t('signup.alreadyHaveAccount')}
+          </Text>
+
+          <Pressable
+            testID="login-button"
+            onPress={handleLogIn}
+            disabled={loading}
+            accessibilityRole="button"
+          >
+            <Text style={styles.signUpLinkText}> {t('signup.logIn')}</Text>
+          </Pressable>
+        </View>
+
+        {/* =====================================================
           LEGAL MODAL
           ===================================================== */}
 
-      <Modal
-        visible={legalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeLegalDocument}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <View style={styles.modalTitleContainer}>
-                <Text style={styles.modalTitle}>{legalTitle}</Text>
+        <Modal
+          visible={legalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={closeLegalDocument}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <View style={styles.modalTitleContainer}>
+                  <Text style={styles.modalTitle}>{legalTitle}</Text>
 
-                {legalVersion !== '' && (
-                  <Text style={styles.modalVersion}>
-                    Version {legalVersion}
-                  </Text>
-                )}
+                  {legalVersion !== '' && (
+                    <Text style={styles.modalVersion}>
+                      Version {legalVersion}
+                    </Text>
+                  )}
+                </View>
+
+                <Pressable
+                  onPress={closeLegalDocument}
+                  style={styles.modalCloseButton}
+                >
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </Pressable>
               </View>
 
+              {/* Contingut */}
+              {legalLoading ? (
+                <View style={styles.modalLoading}>
+                  <ActivityIndicator size="large" />
+
+                  <Text style={styles.modalLoadingText}>
+                    Carregant document...
+                  </Text>
+                </View>
+              ) : legalError !== '' ? (
+                <View style={styles.modalError}>
+                  <Text style={styles.modalErrorText}>{legalError}</Text>
+                </View>
+              ) : (
+                <ScrollView
+                  style={styles.modalScroll}
+                  contentContainerStyle={styles.modalScrollContent}
+                  showsVerticalScrollIndicator={true}
+                >
+                  <LegalDocumentContent content={legalContent} />
+                </ScrollView>
+              )}
+
+              {/* Footer */}
               <Pressable
+                style={styles.modalButton}
                 onPress={closeLegalDocument}
-                style={styles.modalCloseButton}
               >
-                <Text style={styles.modalCloseText}>✕</Text>
+                <Text style={styles.modalButtonText}>Tancar</Text>
               </Pressable>
             </View>
-
-            {/* Contingut */}
-            {legalLoading ? (
-              <View style={styles.modalLoading}>
-                <ActivityIndicator size="large" />
-
-                <Text style={styles.modalLoadingText}>
-                  Carregant document...
-                </Text>
-              </View>
-            ) : legalError !== '' ? (
-              <View style={styles.modalError}>
-                <Text style={styles.modalErrorText}>{legalError}</Text>
-              </View>
-            ) : (
-              <ScrollView
-                style={styles.modalScroll}
-                contentContainerStyle={styles.modalScrollContent}
-                showsVerticalScrollIndicator={true}
-              >
-                <Text style={styles.legalDocumentText}>{legalContent}</Text>
-              </ScrollView>
-            )}
-
-            {/* Footer */}
-            <Pressable style={styles.modalButton} onPress={closeLegalDocument}>
-              <Text style={styles.modalButtonText}>Tancar</Text>
-            </Pressable>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </View>
     </View>
   );
 }

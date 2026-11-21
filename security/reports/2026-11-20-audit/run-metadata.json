@@ -1,0 +1,119 @@
+{
+  "run_id": "run-2026-11-20-security-audit",
+  "repo": "marcc28/AGRITWIN",
+  "target": "/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/AGRITWIN",
+  "source_ref": "5410a38fb8034cafd0374aef65761d8c9b069e21",
+  "branch": "security/dev-review-5410a38",
+  "profile": "standard",
+  "scope_paths": [
+    "backend",
+    "agritwin-app",
+    "iot",
+    ".github/workflows",
+    "scripts"
+  ],
+  "budget": null,
+  "execution_policy": "sandboxed-source-and-local-only",
+  "selected_companion_files": [
+    "AI-AND-LLM.md",
+    "CLIENT-SIDE.md",
+    "CLOUD-AND-DEPLOYMENT.md",
+    "DATA-ISOLATION-AND-LIFECYCLE.md",
+    "DESKTOP-MOBILE-AND-LOCAL-IPC.md",
+    "PROTOCOLS-RPC-AND-MESSAGING.md",
+    "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md",
+    "SUPPLY-CHAIN-AND-RELEASE.md",
+    "WEB-PROTOCOL-AND-AUTH.md"
+  ],
+  "prior_run_paths": [
+    "/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/security-reviews/run-2026-11-18/coverage-ledger.json",
+    "/Users/marccompanysgasulla/Documents/ChatGPT/PROJECTE IT ICT/security-reviews/run-2026-11-18-dev-4e8be50/coverage-ledger.json"
+  ],
+  "shared_file_owners": "parent",
+  "run_status": "incomplete",
+  "application_changes": false,
+  "worktree_untracked": [
+    "docs/security/"
+  ],
+  "dev_divergence": {
+    "ahead": 0,
+    "behind": 0,
+    "fetch_succeeded": true
+  },
+  "target_execution": "blocked until all skill sandbox controls established",
+  "methodology_revision": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+  "reconnaissance_agents": [
+    "recon_product",
+    "recon_authority",
+    "recon_surfaces",
+    "recon_execution"
+  ],
+  "planning": {
+    "seeded_units": 21,
+    "hunter_calls": 3,
+    "mandatory_critic_calls_reserved": 2,
+    "validation_reserve": "one fresh Phase3 and Phase5 agent per surviving candidate; no user budget set"
+  },
+  "tool_versions": {
+    "trufflehog_executed": "3.99.9",
+    "trufflehog_latest_observed": "3.100.0",
+    "bla_documentation": "3.5.2",
+    "node_available": "22.17.0",
+    "bla_node_required": "^22.23.4 || >=24.0.0",
+    "zap_ci": "2.17.0"
+  },
+  "cloudflare_skill_matches_download": true,
+  "source_execution_limitations": [
+    "No isolated target-specific loopback namespace",
+    "No enforced read-only target/toolchain and hidden host credentials",
+    "No established combined memory/process/disk resource quotas",
+    "No predeclared target execution artifacts"
+  ],
+  "incomplete_reason": "user_requested_report_finalization_before_coverage_critics_and_independent_candidate_validation",
+  "finalized_at": "2026-11-20T16:28:02.693687+00:00",
+  "final_findings": 0,
+  "preliminary_candidates": 15,
+  "independent_candidate_validation": "not_run",
+  "final_record_verification": "not_run",
+  "coverage_critics": "not_run",
+  "pushed": false,
+  "assurance": "Source review and tool/CI evidence completed; independent candidate validation incomplete; no final vulnerability verdicts",
+  "unvalidated_fingerprints": [
+    "agritwin-app/src/app/auth/oauth-callback.tsx:unbound_native_ticket",
+    "agritwin-app/src/services/auth.ts:authenticatedFetch_cross_account_retry",
+    "agritwin-app/src/services/auth.ts:refreshAuth_late_session_commit",
+    "agritwin-app/src/services/bleProvisioning.ts:sendWifiSettings:unverified-credential-recipient",
+    "agritwin-app/src/services/gardenPicker.ts:late_response_current_account_cache_key",
+    "backend/anunces/anonymous-shared-delete",
+    "backend/auth/reset-jwt-as-bearer",
+    "backend/crops/shared-catalog-write-authority",
+    "backend/market/anonymous-translation-budget",
+    "backend/services/device_status_monitor.py:register_message:unbounded-identity-retention",
+    "backend/services/mqtt_subscriber.py:on_message:unbound-device-authority",
+    "backend/services/mqtt_subscriber.py:on_message:uncontained-message-errors",
+    "backend/tasks/aggregate-inference-budget",
+    "backend/users/anonymous-email-directory",
+    "scripts/generate_costs_csv.py:write_xlsx:issue-title-as-formula"
+  ],
+  "agent_failure": {
+    "agent": "hunt_client",
+    "reason": "automatic possible cybersecurity-risk flag",
+    "resolution": "replaced by defensive client_controls source reviewer; result saved, no runtime execution"
+  },
+  "steps": {
+    "reconnaissance": "four_agents_completed",
+    "source_hunting": "21_units_source_results",
+    "coverage_critics": "not_run_user_requested_finalization",
+    "independent_validation": "not_run_user_requested_finalization",
+    "structured_output": "empty_final_findings_and_explicit_preliminary_candidates",
+    "reporting": "finalized_incomplete_with_gaps"
+  },
+  "validators": {
+    "coverage_ledger": "PASS: 22 units",
+    "findings": "PASS: 0 final records",
+    "meaning": "Format validation only, no independent candidate verdicts"
+  },
+  "candidate_count": 15,
+  "deferred_units": 1,
+  "blocked_units": 5
+}

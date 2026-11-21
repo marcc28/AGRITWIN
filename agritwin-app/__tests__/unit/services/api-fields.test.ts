@@ -1,11 +1,13 @@
-process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000';
-
 import { getAuth } from '../../../src/services/auth';
+import { queryClient } from '../../../src/services/queryClient';
+import { queryKeys } from '../../../src/services/queryKeys';
 import {
   createDevice,
   createField,
   deleteDevice,
+  deleteField,
   geocodeLocation,
+  reverseGeocodeLocation,
   getField,
   getFields,
   getMe,
@@ -15,10 +17,17 @@ import {
   updateMe,
   updateMyEmail,
   updateMyPassword,
+  getDashboard,
+  signup,
+  login,
+  getPrivacyPolicy,
+  getSecurityPolicy,
 } from '../../../src/services/api';
 
 jest.mock('../../../src/services/auth', () => ({
   getAuth: jest.fn(),
+  authenticatedFetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, init),
 }));
 
 const mockedGetAuth = getAuth as jest.MockedFunction<typeof getAuth>;
@@ -33,11 +42,190 @@ describe('fields api', () => {
     });
   });
 
+  it('invalidates field lists and detail only after an accepted update', async () => {
+    queryClient.setQueryData(queryKeys.fields, [{ id: 3 }]);
+    queryClient.setQueryData(queryKeys.fieldDetail(3), {
+      id: 3,
+      name: 'Before',
+    });
+    const payload = {
+      name: 'After',
+      location: 'Lleida',
+      field_type: 'open_field',
+      soil_type: null,
+      size_m2: 100,
+    };
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ detail: 'Unavailable' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 3, ...payload }),
+      }) as jest.Mock;
+
+    await expect(updateField(3, payload)).rejects.toThrow('Unavailable');
+    expect(queryClient.getQueryState(queryKeys.fields)?.isInvalidated).toBe(
+      false,
+    );
+    expect(
+      queryClient.getQueryState(queryKeys.fieldDetail(3))?.isInvalidated,
+    ).toBe(false);
+
+    await updateField(3, payload);
+    expect(queryClient.getQueryState(queryKeys.fields)?.isInvalidated).toBe(
+      true,
+    );
+    expect(
+      queryClient.getQueryState(queryKeys.fieldDetail(3))?.isInvalidated,
+    ).toBe(true);
+  });
+
+  it('signs up with policy acceptance and returns the created account', async () => {
+    const account = { id: 1, username: 'ainhoa' };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => account,
+    }) as jest.Mock;
+
+    await expect(
+      signup('ainhoa', 'a@test.com', 'password', 'password', true, true),
+    ).resolves.toEqual(account);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/users',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          username: 'ainhoa',
+          email: 'a@test.com',
+          password: 'password',
+          password_conf: 'password',
+          privacy_terms_accepted: true,
+          security_terms_accepted: true,
+        }),
+      }),
+    );
+  });
+
+  it('reports signup and login API errors with sensible fallbacks', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'Username already exists' }),
+    }) as jest.Mock;
+    await expect(
+      signup('ainhoa', 'a@test.com', 'password', 'password', true, true),
+    ).rejects.toThrow('Username already exists');
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    }) as jest.Mock;
+    await expect(login('ainhoa', 'bad')).rejects.toThrow(
+      'Error iniciant sessió',
+    );
+  });
+
+  it('submits login credentials as form data', async () => {
+    const token = { access_token: 'jwt', token_type: 'bearer' };
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => token,
+    }) as jest.Mock;
+
+    await expect(login('ainhoa', 'secret')).resolves.toEqual(token);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'username=ainhoa&password=secret',
+      },
+    );
+  });
+
+  it('loads legal policies and reports failures', async () => {
+    const privacy = { document_type: 'privacy', version: '1', content: 'Text' };
+    const security = {
+      document_type: 'security',
+      version: '1',
+      content: 'Text',
+    };
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => privacy })
+      .mockResolvedValueOnce({ ok: true, json: async () => security });
+
+    await expect(getPrivacyPolicy()).resolves.toEqual(privacy);
+    await expect(getSecurityPolicy()).resolves.toEqual(security);
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    }) as jest.Mock;
+    await expect(getPrivacyPolicy()).rejects.toThrow(
+      'No s’ha pogut carregar la Privacy Notice',
+    );
+    await expect(getSecurityPolicy()).rejects.toThrow(
+      'No s’ha pogut carregar la Security Policy',
+    );
+  });
+
   it('detects auth errors', () => {
     expect(isAuthError(new Error('Not authenticated'))).toBe(true);
     expect(isAuthError(new Error('Could not validate credentials'))).toBe(true);
     expect(isAuthError(new Error('oops'))).toBe(false);
     expect(isAuthError('nope')).toBe(false);
+  });
+
+  it('loads dashboard data and supports legacy device_id responses', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        field_name: 'Hort',
+        device_id: 'device-1',
+      }),
+    }) as jest.Mock;
+
+    await expect(getDashboard(3)).resolves.toEqual({
+      field_name: 'Hort',
+      device_ids: ['device-1'],
+      latest: null,
+      history: [],
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/dashboard?field_id=3',
+      { headers: { Authorization: 'Bearer token' } },
+    );
+  });
+
+  it('loads a dashboard without an optional field id', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ device_ids: ['d1', 'd2'], latest: {}, history: [] }),
+    }) as jest.Mock;
+
+    await expect(getDashboard()).resolves.toMatchObject({
+      field_name: null,
+      device_ids: ['d1', 'd2'],
+      latest: {},
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/dashboard',
+      expect.any(Object),
+    );
+  });
+
+  it('rejects dashboard requests without a token and reports API errors', async () => {
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(getDashboard()).rejects.toThrow('Not authenticated');
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'Dashboard unavailable' }),
+    }) as jest.Mock;
+    await expect(getDashboard()).rejects.toThrow('Dashboard unavailable');
   });
 
   it('throws when there is no token', async () => {
@@ -72,6 +260,66 @@ describe('fields api', () => {
         device_count: 1,
       },
     ]);
+  });
+
+  it('maps devices_online when the fields list includes it', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: '3',
+          name: 'Hort',
+          location: null,
+          field_type: null,
+          soil_type: null,
+          size_m2: null,
+          device_count: '2',
+          devices_online: '1',
+        },
+      ],
+    }) as jest.Mock;
+
+    await expect(getFields()).resolves.toEqual([
+      {
+        id: 3,
+        name: 'Hort',
+        location: null,
+        field_type: null,
+        soil_type: null,
+        size_m2: null,
+        device_count: 2,
+        devices_online: 1,
+      },
+    ]);
+  });
+
+  it('keeps devices_online omitted when the backend does not send it', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: 3,
+          name: 'Hort',
+          location: null,
+          field_type: null,
+          soil_type: null,
+          size_m2: null,
+          device_count: 0,
+        },
+      ],
+    }) as jest.Mock;
+
+    const fields = await getFields();
+    expect(fields[0]).toEqual({
+      id: 3,
+      name: 'Hort',
+      location: null,
+      field_type: null,
+      soil_type: null,
+      size_m2: null,
+      device_count: 0,
+    });
+    expect(fields[0]).not.toHaveProperty('devices_online');
   });
 
   it('loads one field', async () => {
@@ -193,6 +441,19 @@ describe('fields api', () => {
     await expect(deleteDevice(3, 'esp32_sim_01')).resolves.toBeUndefined();
   });
 
+  it('deletes a field', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    }) as jest.Mock;
+
+    await expect(deleteField(3)).resolves.toBeUndefined();
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/fields/3'),
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
   it('rejects a fields payload that is not a list', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -300,6 +561,8 @@ describe('fields api', () => {
     ).rejects.toThrow('Not authenticated');
     mockedGetAuth.mockResolvedValueOnce(null);
     await expect(deleteDevice(3, 'd1')).rejects.toThrow('Not authenticated');
+    mockedGetAuth.mockResolvedValueOnce(null);
+    await expect(deleteField(3)).rejects.toThrow('Not authenticated');
   });
 
   it('throws the api detail when field writes fail', async () => {
@@ -328,6 +591,80 @@ describe('fields api', () => {
     ).rejects.toThrow('This device is already registered');
     await expect(deleteDevice(3, 'd1')).rejects.toThrow(
       'This device is already registered',
+    );
+    await expect(deleteField(3)).rejects.toThrow(
+      'This device is already registered',
+    );
+  });
+});
+
+describe('boundary-capable field API', () => {
+  beforeEach(() =>
+    mockedGetAuth.mockResolvedValue({
+      token: 'token',
+      refreshToken: null,
+      username: 'owner',
+    }),
+  );
+  const payload = {
+    name: 'Field',
+    location: 'Field road',
+    field_type: 'open_field',
+    soil_type: 'loam',
+    size_m2: 1,
+    boundary: [
+      { lat: 0, lon: 0 },
+      { lat: 0, lon: 0.001 },
+      { lat: 0.001, lon: 0.001 },
+    ],
+  };
+  it('does not create a field if the backend would discard its boundary', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        components: {
+          schemas: { FieldCreate: { properties: { name: {} } } },
+        },
+      }),
+    });
+    await expect(createField(payload)).rejects.toThrow(
+      'backend must be updated',
+    );
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+  it('sends the boundary after verifying the backend schema', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          components: {
+            schemas: { FieldCreate: { properties: { boundary: {} } } },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 1, ...payload }),
+      });
+    await createField(payload);
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      'http://localhost:8000/api/v1/fields',
+      expect.objectContaining({ body: JSON.stringify(payload) }),
+    );
+  });
+  it('reverse geocodes the selected coordinates through the authenticated API', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ lat: 41, lon: 2, label: 'Field road' }),
+    });
+    await expect(reverseGeocodeLocation(41, 2)).resolves.toHaveProperty(
+      'label',
+      'Field road',
+    );
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/reverse-geocode?lat=41&lon=2',
+      expect.objectContaining({ headers: { Authorization: 'Bearer token' } }),
     );
   });
 });

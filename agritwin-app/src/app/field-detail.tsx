@@ -5,16 +5,17 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { FieldPhoto } from '../components/FieldPhoto';
+import { FieldCropsSection } from '../components/FieldCropsSection';
 import { SensorCard } from '../components/SensorCard';
-import {
-  getDashboard,
-  getField,
-  isAuthError,
-  type Dashboard,
-  type FieldDetail,
-  type FieldDevice,
-} from '../services/api';
+import { useCachedQuery } from '../hooks/use-cached-query';
+import { isAuthError, type FieldDevice } from '../services/api';
 import { clearAuth } from '../services/auth';
+import {
+  cropCatalogQuery,
+  dashboardQuery,
+  fieldCropsQuery,
+  fieldDetailQuery,
+} from '../services/queries';
 import { styles } from '../styles/field-detail.styles';
 import { Colors } from '../constants/theme';
 import { parseId } from '../utils/parseId';
@@ -26,8 +27,18 @@ function dash(value: string | number | null | undefined): string {
   return String(value);
 }
 
-function goToProfile() {
-  router.replace('/app/settings');
+function errorText(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function goBack() {
+  // Home, the profile and the forms all open this screen. Go back to the one
+  // that opened it. With no history, the home tab is the safe place.
+  if (router.canGoBack()) {
+    router.back();
+    return;
+  }
+  router.replace('/app/home');
 }
 
 function optionLabel(
@@ -46,61 +57,82 @@ export default function FieldDetailScreen() {
   const params = useLocalSearchParams<{ id: string | string[] }>();
   const fieldId = parseId(params.id);
 
-  const [field, setField] = useState<FieldDetail | null>(null);
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [dashboardError, setDashboardError] = useState('');
-  const [loading, setLoading] = useState(true);
   const [selectedDevice, setSelectedDevice] = useState<FieldDevice | null>(
     null,
   );
 
+  // Garden, crops and sensor data load in parallel. What is in the cache is
+  // shown at once and refreshed in the background.
+  const validId = Number.isFinite(fieldId);
+  const fieldResult = useCachedQuery({
+    ...fieldDetailQuery(fieldId),
+    enabled: validId,
+  });
+  const cropsResult = useCachedQuery({
+    ...fieldCropsQuery(fieldId),
+    enabled: validId,
+  });
+  const catalogResult = useCachedQuery({
+    ...cropCatalogQuery(),
+    enabled: validId,
+  });
+  const dashboardResult = useCachedQuery({
+    ...dashboardQuery(fieldId),
+    enabled: validId,
+  });
+
+  const field = fieldResult.data ?? null;
+  const dashboard = dashboardResult.data ?? null;
+  const fieldCrops = cropsResult.data ?? [];
+  const cropCatalog = catalogResult.data ?? [];
+
+  let errorMessage = '';
+  if (!validId) {
+    errorMessage = t('settings.errors.invalidId');
+  } else if (!field && fieldResult.isError) {
+    errorMessage = errorText(
+      fieldResult.error,
+      t('settings.errors.loadGarden'),
+    );
+  }
+  const loading = validId && !field && !fieldResult.isError;
+
+  const cropsFailure =
+    (!cropsResult.data && cropsResult.error) ||
+    (!catalogResult.data && catalogResult.error);
+  const cropsError = cropsFailure
+    ? errorText(cropsFailure, t('settings.errors.loadCrops'))
+    : '';
+  const dashboardError =
+    !dashboard && dashboardResult.isError
+      ? errorText(dashboardResult.error, t('settings.errors.loadData'))
+      : '';
+
+  const sessionExpired = [fieldResult, cropsResult, catalogResult].some(
+    (result) => isAuthError(result.error),
+  );
+
   useEffect(() => {
-    async function load() {
-      if (!Number.isFinite(fieldId)) {
-        setErrorMessage(t('settings.errors.invalidId'));
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const nextField = await getField(fieldId);
-        setField(nextField);
-      } catch (error) {
-        if (isAuthError(error)) {
-          await clearAuth();
-          router.replace('/auth/login');
-          return;
-        }
-        const message =
-          error instanceof Error
-            ? error.message
-            : t('settings.errors.loadGarden');
-        setErrorMessage(message);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const nextDashboard = await getDashboard(fieldId);
-        setDashboard(nextDashboard);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : t('settings.errors.loadData');
-        setDashboardError(message);
-      } finally {
-        setLoading(false);
-      }
+    if (!sessionExpired) {
+      return;
     }
-
-    void load();
-  }, [fieldId, t]);
+    async function logOut() {
+      await clearAuth();
+      router.replace('/auth/login');
+    }
+    void logOut();
+  }, [sessionExpired]);
 
   function goToEdit() {
     router.push({
       pathname: '/edit-field',
+      params: { id: String(fieldId) },
+    });
+  }
+
+  function goToAddDevice() {
+    router.push({
+      pathname: '/add-device',
       params: { id: String(fieldId) },
     });
   }
@@ -119,7 +151,7 @@ export default function FieldDetailScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.container}>
-          <Pressable style={styles.backRow} onPress={goToProfile}>
+          <Pressable style={styles.backRow} onPress={goBack}>
             <Ionicons
               name="chevron-back"
               size={18}
@@ -184,6 +216,8 @@ export default function FieldDetailScreen() {
                 </View>
               </View>
 
+              <FieldCropsSection fieldId={fieldId} responsive />
+
               <View style={styles.card}>
                 <Text style={styles.sectionTitle}>
                   {t('settings.fieldDetail.devices')}
@@ -217,6 +251,17 @@ export default function FieldDetailScreen() {
                     </Pressable>
                   ))
                 )}
+                <Pressable
+                  testID="add-device-button"
+                  style={styles.addDeviceButton}
+                  onPress={goToAddDevice}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="add" size={18} color={Colors.light.surface} />
+                  <Text style={styles.addDeviceText}>
+                    {t('addDevice.button')}
+                  </Text>
+                </Pressable>
               </View>
 
               <SensorCard
@@ -235,6 +280,7 @@ export default function FieldDetailScreen() {
       {selectedDevice ? (
         <View style={styles.popupWrap} pointerEvents="box-none">
           <Pressable
+            testID="device-popup-backdrop"
             style={styles.popupBackdrop}
             onPress={() => setSelectedDevice(null)}
           />

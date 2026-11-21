@@ -3,7 +3,99 @@
     "error": "Errore",
     "success": "Successo"
   },
-
+  "home": {
+    "titleFirst": "Il tuo orto,",
+    "titleSecond": "ogni giorno migliore.",
+    "subtitle": "Attività, meteo e colture per il tuo orto.",
+    "workingOn": "Lavoreremo nel campo",
+    "devices": {
+      "title": "Dispositivi",
+      "none": "Nessuno",
+      "error": "Impossibile caricare i dispositivi",
+      "retry": "Riprova"
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "explore": "Esplora",
+    "market": "Mercato",
+    "profile": "Profilo",
+    "calendar": "Calendario",
+    "diagnosis": "Diagnosi",
+    "Crops": "Colture"
+  },
+  "tasks": {
+    "title": "Attività",
+    "yesterday": "Ieri",
+    "today": "Oggi",
+    "tomorrow": "Domani",
+    "seen": "Visto",
+    "convert": "Trasforma in attività",
+    "add": "Aggiungi",
+    "placeholder": "Nuova attività",
+    "empty": "Nessuna attività",
+    "noGarden": "Scegli un orto per vedere le attività.",
+    "loading": "Caricamento…",
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Bassa",
+    "back": "Calendario",
+    "noSensors": "Questo orto non ha sensori: vedrai solo i consigli sul meteo e le tue attività.",
+    "complete": "Segna come fatta",
+    "reopen": "Segna come da fare",
+    "previousMonth": "Mese precedente",
+    "nextMonth": "Mese successivo",
+    "errors": {
+      "load": "Impossibile caricare le attività",
+      "create": "Impossibile creare l'attività",
+      "update": "Impossibile aggiornare l'attività",
+      "delete": "Non è stato possibile eliminare l'attività"
+    },
+    "recommendations": "Avvisi",
+    "done": "Fatte",
+    "edit": "Modifica attività",
+    "aiBadge": "IA",
+    "addTask": "Aggiungi attività",
+    "newTask": "Nuova attività",
+    "editTask": "Modifica attività",
+    "aiEditHint": "Questa attività l'ha creata l'IA. Se la cambi, diventa tua e l'IA non la toccherà più.",
+    "detailsLabel": "Dettagli",
+    "detailsPlaceholder": "Note (facoltativo)",
+    "priorityLabel": "Priorità",
+    "dayLabel": "Giorno",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "delete": "Elimina attività",
+    "deleteConfirm": "Tocca di nuovo per eliminare",
+    "previousDay": "Giorno precedente",
+    "nextDay": "Giorno successivo",
+    "moon": {
+      "new": "Luna nuova",
+      "waxingCrescent": "Luna crescente",
+      "firstQuarter": "Primo quarto",
+      "waxingGibbous": "Gibbosa crescente",
+      "full": "Luna piena",
+      "waningGibbous": "Gibbosa calante",
+      "lastQuarter": "Ultimo quarto",
+      "waningCrescent": "Luna calante"
+    }
+  },
+  "fieldCrops": {
+    "title": "Le mie colture",
+    "loadError": "Impossibile caricare le colture.",
+    "retry": "Riprova",
+    "empty": "Non hai ancora colture piantate in quest’area.",
+    "crop": "Coltura n. {{id}}",
+    "planted": "Piantata",
+    "noDate": "Data non disponibile",
+    "expectedHarvest": "Raccolta prevista",
+    "status": "Stato",
+    "statuses": {
+      "planned": "Pianificata",
+      "planted": "Piantata",
+      "harvested": "Raccolta"
+    }
+  },
   "login": {
     "title": "Accedi",
     "username": "Nome utente",
@@ -17,36 +109,30 @@
       "username": "Inserisci il nome utente",
       "password": "Inserisci la password",
       "invalidCredentials": "Password errata. Registrati se non hai un account."
-    }
+    },
+    "noAccount": "Non hai un account?"
   },
-
   "signup": {
     "title": "Crea account",
     "username": "Nome utente",
     "email": "Email",
     "password": "Password",
     "passwordConfirmation": "Ripeti la password",
-
-    "acceptPrivacy": "Accetto l'Informativa sulla privacy",
-    "acceptSecurity": "Accetto la Politica di sicurezza",
-
     "socialLogin": "Oppure registrati con",
-
     "logIn": "Accedi",
     "signUp": "Crea account",
     "creatingAccount": "Creazione account...",
-
+    "acceptPrivacy": "Accetto l'Informativa sulla privacy",
+    "acceptSecurity": "Accetto la Politica di sicurezza",
     "success": "Account creato con successo",
-
+    "alreadyHaveAccount": "Hai già un account?",
     "errors": {
       "requiredFields": "Compila tutti i campi",
       "invalidEmail": "Formato email non valido",
       "passwordMismatch": "Le password non coincidono",
-      "privacyRequired": "Devi accettare l'Informativa sulla privacy",
-      "securityRequired": "Devi accettare la Politica di sicurezza",
+      "legalRequired": "Devi accettare la Privacy Notice e la Security Policy per creare un account.",
       "createFailed": "Non è stato possibile creare l'account"
     },
-
     "legal": {
       "privacy": "Informativa sulla privacy",
       "security": "Politica di sicurezza",
@@ -56,10 +142,9 @@
       "loadError": "Non è stato possibile caricare il documento"
     }
   },
-
   "settings": {
-    "title": "Profilo",
-    "eyebrow": "PROFILO UTENTE",
+    "title": "Colture",
+    "eyebrow": "GESTIONE AGRICOLA",
     "profile": "Profilo",
     "preferences": "Preferenze",
     "language": "Lingua",
@@ -112,6 +197,11 @@
     "size": "Dimensione (m²)",
     "loading": "Caricamento…",
     "saving": "Salvataggio…",
+    "deviceHealth": {
+      "ok": "Tutti gli Arduino funzionano",
+      "partial": "Qualche Arduino non funziona",
+      "down": "Nessun Arduino funziona"
+    },
     "fieldDetail": {
       "back": "I miei giardini",
       "eyebrow": "INFORMAZIONI DEL CAMPO",
@@ -119,6 +209,13 @@
       "edit": "Modifica",
       "devices": "Dispositivi",
       "noDevices": "Questo campo non ha ancora nessun dispositivo.",
+      "crops": "Colture",
+      "noCrops": "Questo campo non ha ancora nessuna coltura.",
+      "cropStatuses": {
+        "planned": "Pianificata",
+        "planted": "Piantata",
+        "harvested": "Raccolta"
+      },
       "devicePopupTitle": "Dettagli del dispositivo",
       "devicePopupClose": "Chiudi",
       "deviceStatus": "Stato",
@@ -174,6 +271,7 @@
       "loadData": "Impossibile caricare i dati",
       "gardenNotFound": "Giardino non trovato",
       "loadGarden": "Impossibile caricare il giardino",
+      "loadCrops": "Impossibile caricare le colture",
       "invalidId": "Identificatore non valido",
       "nameRequired": "Il nome è obbligatorio",
       "sizeNumber": "La dimensione deve essere un numero",
@@ -190,31 +288,248 @@
       "namePlaceholder": "Dai un nome al giardino",
       "locationPlaceholder": "Città, paese o indirizzo",
       "sizePlaceholder": "es. 20",
-      "coordsHint": "Cerca la posizione per salvare latitudine e longitudine.",
+      "coordsHint": "Inserisci un indirizzo o seleziona un punto sulla mappa.",
       "coords": "Coordinate: {{lat}}, {{lon}}",
       "arduinos": "Arduino",
-      "arduinosHint": "Puoi collegarli ora o lasciarlo a dopo. Chiediamo solo ciò che vedi sul dispositivo.",
-      "configureLater": "Configura dopo",
-      "addNow": "Aggiungi ora",
-      "addAnother": "Aggiungi un altro Arduino",
       "removeDevice": "Rimuovi",
-      "saveDevices": "Salva dispositivi",
       "deviceId": "ID del dispositivo",
-      "deviceIdPlaceholder": "es. esp32_sim_01",
       "deviceBrand": "Marca",
-      "deviceBrandPlaceholder": "es. ESP32",
       "deviceSerial": "Numero di serie",
-      "deviceSerialPlaceholder": "Quello sull’etichetta",
-      "linkLater": "Collega Arduino →",
       "submitFirst": "Crea il mio primo giardino",
       "submitNext": "Crea giardino",
       "errors": {
         "locationRequired": "Inserisci una posizione per geolocalizzarla",
         "locationNotFound": "Posizione non trovata",
-        "deviceIdRequired": "Ogni Arduino ha bisogno di ID, marca e numero di serie",
         "deviceSaveFailed": "Impossibile salvare i dispositivi",
-        "createFailed": "Impossibile creare il campo"
+        "createFailed": "Impossibile creare il campo",
+        "addressUnavailable": "Nessun indirizzo vicino trovato. Le coordinate sono conservate; puoi inserire l’indirizzo manualmente."
+      },
+      "lookupAddress": "Cerca indirizzo",
+      "lookingUp": "Ricerca indirizzo…",
+      "map": {
+        "open": "Seleziona la posizione sulla mappa",
+        "title": "Scegli la posizione del campo",
+        "hint": "Tocca o fai clic sulla mappa per selezionare un punto. Ingrandisci per posizionarlo con precisione.",
+        "noPoint": "Nessun punto selezionato.",
+        "selectedPoint": "Posizione selezionata del campo",
+        "cancel": "Annulla",
+        "confirm": "Usa questa posizione",
+        "loading": "Caricamento della mappa…",
+        "loadError": "Impossibile caricare la mappa. Controlla la connessione o inserisci l’indirizzo manualmente."
+      },
+      "areaLabel": "Superficie",
+      "areaUnitLabel": "Unità di superficie",
+      "automaticArea": "Superficie calcolata dai confini. Cambia unità o rimuovi i confini per inserirla manualmente.",
+      "areaUnits": {
+        "m2": "m²",
+        "ha": "ha",
+        "acre": "acres",
+        "km2": "km²",
+        "ft2": "ft²"
+      },
+      "boundary": {
+        "section": "Confini del campo",
+        "optional": "Facoltativo: segna gli angoli per calcolare la superficie.",
+        "draw": "Seleziona gli angoli",
+        "edit": "Modifica confini",
+        "remove": "Rimuovi i confini e inserisci la superficie manualmente",
+        "title": "Delinea il tuo campo",
+        "hint": "Segna gli angoli in ordine. Poi aggiungi zone escluse per edifici o parti da non conteggiare.",
+        "corners": "{{count}} angoli selezionati",
+        "minimum": "Ogni contorno richiede almeno tre angoli.",
+        "undo": "Annulla punto",
+        "clear": "Ricomincia",
+        "confirm": "Usa questo campo",
+        "errors": {
+          "tooFew": "Seleziona almeno tre angoli.",
+          "tooMany": "Sono consentiti al massimo 200 angoli.",
+          "invalid": "Coordinate non valide.",
+          "duplicate": "Non ripetere un angolo.",
+          "crossing": "I lati non possono incrociarsi o toccarsi.",
+          "empty": "Il contorno deve racchiudere una superficie.",
+          "tooLarge": "La superficie massima è di 10.000 ettari.",
+          "outside": "Le zone escluse devono restare completamente dentro il campo senza toccarne il confine.",
+          "overlap": "Le zone escluse non possono sovrapporsi o toccarsi.",
+          "tooManyZones": "Massimo 20 zone escluse e 1.000 angoli in totale."
+        },
+        "outer": "Confine esterno",
+        "exclusion": "Esclusione {{number}}",
+        "addExclusion": "Aggiungi zona esclusa",
+        "removeExclusion": "Rimuovi questa esclusione",
+        "view": "Vedi il campo sulla mappa",
+        "viewTitle": "Superficie del campo",
+        "viewHint": "Il verde delimita il campo. Il rosso indica le zone escluse dalla superficie utile.",
+        "close": "Chiudi",
+        "redraw": "Ridisegna il campo",
+        "replaceHint": "Confermare un nuovo contorno sostituisce quello attuale. Annullare conserva il confine precedente.",
+        "noBoundary": "Non è stato ancora disegnato un confine. Una superficie numerica non descrive la forma del campo.",
+        "areaSummary": "Totale: {{gross}} {{unit}} · Esclusa: {{excluded}} {{unit}} · Utile: {{net}} {{unit}}"
+      },
+      "netAreaLabel": "Superficie utile",
+      "retryAddress": "Riprova la ricerca dell’indirizzo"
+    },
+    "manageCrops": {
+      "title": "Colture",
+      "back": "Torna alle colture",
+      "hint": "Gestisci le colture di questo campo.",
+      "cropType": "Tipo di coltura",
+      "selectCrop": "Seleziona una coltura",
+      "noAvailableCrops": "Non ci sono altre colture da aggiungere.",
+      "plantedAt": "Data di piantagione",
+      "expectedHarvestAt": "Raccolta prevista",
+      "selectDate": "Seleziona una data",
+      "notes": "Note",
+      "notesPlaceholder": "Dettagli su questa coltura",
+      "adding": "Aggiunta…",
+      "saveCrop": "Salva coltura",
+      "addCrop": "Aggiungi una coltura",
+      "editCrops": "Modifica colture",
+      "removeCrop": "Rimuovi {{crop}}",
+      "errors": {
+        "selectCrop": "Seleziona prima una coltura",
+        "invalidDate": "Le date devono essere nel formato AAAA-MM-GG",
+        "harvestBeforePlanting": "La raccolta prevista non può precedere la piantagione",
+        "addFailed": "Errore durante l’aggiunta della coltura",
+        "removeFailed": "Errore durante la rimozione della coltura"
       }
+    },
+    "fieldForm": {
+      "next": "Avanti",
+      "previous": "Indietro",
+      "progress": "Passaggio {{current}} di {{total}}",
+      "steps": {
+        "details": {
+          "title": "Personalizza il tuo campo",
+          "hint": "Scegli una foto e un nome per il tuo spazio di coltivazione."
+        },
+        "location": {
+          "title": "Dove si trova il campo?",
+          "hint": "Inserisci un indirizzo o seleziona la posizione sulla mappa."
+        },
+        "characteristics": {
+          "title": "Il tuo campo, in dettaglio",
+          "hint": "Indica il tipo, il terreno e la superficie. Disegna il perimetro se necessario."
+        },
+        "crops": {
+          "title": "Cosa stai coltivando?",
+          "hint": "Consulta e gestisci le colture associate al tuo campo."
+        },
+        "devices": {
+          "title": "Connettiti al tuo campo",
+          "hint": "Gestisci i dispositivi e termina quando sei pronto."
+        }
+      },
+      "requiredHint": "Nome, posizione, tipo e superficie sono obbligatori. Terreno, colture e dispositivi sono facoltativi.",
+      "unknownSoil": "Non lo so",
+      "errors": {
+        "nameTooLong": "Usa un massimo di 100 caratteri.",
+        "locationRequired": "Inserisci un indirizzo o seleziona un punto sulla mappa.",
+        "typeRequired": "Seleziona un tipo di campo.",
+        "areaRequired": "Inserisci la superficie o disegna il perimetro del campo."
+      }
+    }
+  },
+  "addDevice": {
+    "button": "Aggiungi dispositivo",
+    "back": "Torna al campo",
+    "eyebrow": "AGGIUNGI DISPOSITIVO",
+    "title": "Collega la tua scheda AgriTwin",
+    "scan": {
+      "title": "Cerca la tua scheda",
+      "instructions": "Accendi la scheda. Il LED blu lampeggia lentamente.",
+      "searching": "Ricerca delle schede…",
+      "found": "Schede trovate",
+      "tapHint": "Tocca la tua per continuare.",
+      "searchAgain": "Cerca di nuovo"
+    },
+    "noBoards": {
+      "title": "Non abbiamo trovato nessuna scheda",
+      "instructions": "Controlla che la scheda sia accesa e vicina al telefono.",
+      "tip": "Se il LED è fisso, tieni premuto il pulsante BOOT della scheda per 5 secondi e riprova.",
+      "retry": "Riprova"
+    },
+    "wifi": {
+      "title": "Collega la scheda al Wi-Fi",
+      "board": "Scheda: {{name}}",
+      "ssid": "Nome del Wi-Fi",
+      "ssidPlaceholder": "Il nome della tua rete",
+      "password": "Password",
+      "passwordPlaceholder": "La password del tuo Wi-Fi",
+      "showPassword": "Mostra password",
+      "hidePassword": "Nascondi password",
+      "hint24": "Usa una rete a 2,4 GHz. La scheda non funziona con reti a 5 GHz.",
+      "privacy": "Non salviamo il nome né la password del tuo Wi-Fi.",
+      "connect": "Collega"
+    },
+    "progress": {
+      "connectingBoard": "Connessione alla scheda…",
+      "connecting": "Connessione…",
+      "connectingHint": "Può richiedere circa 20 secondi. Tieni l'app aperta e resta vicino alla scheda.",
+      "saving": "Salvataggio della scheda…"
+    },
+    "success": {
+      "title": "Scheda collegata",
+      "hint": "La tua scheda è ora collegata a questo campo e inizierà a inviare dati.",
+      "alreadyLinked": "Questa scheda era già collegata a questo campo.",
+      "done": "Fine",
+      "another": "Aggiungi un altro dispositivo"
+    },
+    "error": {
+      "retry": "Riprova",
+      "back": "Torna al campo",
+      "openSettings": "Apri impostazioni",
+      "groups": {
+        "wifi": {
+          "title": "Impossibile connettersi al Wi-Fi",
+          "hint": "Controlla il nome del Wi-Fi e la password. Ricorda che la scheda funziona solo con reti a 2,4 GHz."
+        },
+        "timeout": {
+          "title": "Tempo scaduto",
+          "hint": "Avvicina la scheda al router e al telefono e riprova."
+        },
+        "noInternet": {
+          "title": "Wi-Fi connesso, ma senza internet",
+          "hint": "Controlla la connessione a internet del router e riprova."
+        },
+        "bluetoothOff": {
+          "title": "Il Bluetooth è spento",
+          "hint": "Attiva il Bluetooth del telefono e riprova."
+        },
+        "permission": {
+          "title": "Manca il permesso Bluetooth",
+          "hint": "Consenti ad AgriTwin di usare il Bluetooth nelle impostazioni del telefono e riprova."
+        },
+        "link": {
+          "title": "Impossibile comunicare con la scheda",
+          "hint": "Avvicinati alla scheda, controlla che il LED lampeggi lentamente e riprova."
+        },
+        "alreadyRegistered": {
+          "title": "Questa scheda è già in un altro campo",
+          "hint": "Una scheda può essere collegata a un solo campo. Rimuovila dall'altro campo prima di aggiungerla qui."
+        },
+        "sessionExpired": {
+          "title": "La sessione è scaduta",
+          "hint": "Accedi di nuovo e aggiungi di nuovo la scheda."
+        },
+        "saveFailed": {
+          "title": "Scheda collegata, ma non salvata",
+          "hint": "La scheda si è collegata al Wi-Fi, ma non siamo riusciti a salvarla. Riprova."
+        },
+        "generic": {
+          "title": "Qualcosa è andato storto",
+          "hint": "Riprova. Se continua a fallire, riavvia la scheda."
+        }
+      }
+    },
+    "web": {
+      "title": "Disponibile solo sul telefono",
+      "hint": "Per aggiungere una scheda serve l'app AgriTwin sul telefono, perché usa il Bluetooth."
+    },
+    "section": {
+      "title": "Dispositivi",
+      "none": "Questo campo non ha ancora dispositivi.",
+      "createHint": "Puoi collegare subito le tue schede AgriTwin. Prima salviamo il campo.",
+      "saveAndAdd": "Salva e aggiungi dispositivo"
     }
   },
   "languages": {
@@ -227,10 +542,59 @@
     "prices": "Prezzi",
     "news": "Notizie",
     "buy": "Acquista",
+    "loading": "Caricamento…",
+    "searchPlaceholder": "Cerca prodotti",
+    "clearSearch": "Cancella ricerca",
+    "loadMore": "Carica altri prodotti",
+    "noMatch": "Nessun prodotto corrisponde a “{{query}}”.",
+    "noProducts": "Non ci sono ancora prodotti nel mercato.",
+    "viewProduct": "Visualizza {{name}}",
+    "stock": {
+      "outOfStock": "Esaurito",
+      "low": "Ne restano solo {{count}} kg",
+      "available": "{{count}} kg disponibili"
+    },
     "units": "unità",
     "errors": {
-      "loadFailed": "Non è stato possibile caricare i dati del mercato"
-    }
+      "loadFailed": "Non è stato possibile caricare i dati del mercato",
+      "searchFailed": "Ricerca non riuscita. Riprova."
+    },
+    "detail": {
+      "unavailable": "Prodotto non disponibile",
+      "missingProductId": "Nessun prodotto specificato.",
+      "loading": "Caricamento prodotto…",
+      "loadingDescription": "Stiamo recuperando i dati del mercato.",
+      "back": "Torna al mercato",
+      "eyebrow": "AGRITWIN · MERCATO",
+      "price": "PREZZO DEL PRODOTTO",
+      "perKg": "al kg",
+      "noStock": "Esaurito",
+      "available": "{{value}} kg disponibili",
+      "availability": "Disponibilità del prodotto",
+      "unavailableNow": "Al momento non disponibile",
+      "availableToBuy": "Disponibile per l'acquisto",
+      "order": "Il tuo ordine",
+      "quantity": "Quantità",
+      "quantityHint": "Seleziona i kg che desideri",
+      "reduceQuantity": "Riduci quantità",
+      "increaseQuantity": "Aumenta quantità",
+      "quantityInKg": "Quantità in chilogrammi",
+      "total": "TOTALE ORDINE",
+      "footer": "AgriTwin · Agricoltura intelligente",
+      "loadError": "Impossibile caricare i dati del prodotto."
+    },
+    "checkout": {
+      "error": "Errore di pagamento",
+      "missingApi": "L’URL dell’API non è configurato.",
+      "incompleteResponse": "La risposta del server è incompleta.",
+      "paymentIncomplete": "Pagamento non completato",
+      "paymentSent": "Pagamento inviato",
+      "paymentConfirmation": "Stripe ha completato il pagamento. Il server invierà la conferma definitiva dell’ordine.",
+      "startFailed": "Impossibile avviare il pagamento.",
+      "preparing": "Preparazione del pagamento…",
+      "buy": "Acquista"
+    },
+    "come_to_merkat": "Torna al mercato"
   },
   "weather": {
     "subtitle": "Previsioni meteo",
@@ -256,6 +620,9 @@
     "noField": "Non hai ancora nessun campo. Creane uno per vedere il meteo.",
     "noData": "Nessun dato meteo per questa posizione",
     "back": "Home",
+    "alertsTitle": "Avvisi meteorologici",
+    "noAlerts": "Nessun avviso per il tuo orto",
+    "close": "Chiudi",
     "uvLevels": {
       "low": "Basso",
       "moderate": "Moderato",
@@ -265,5 +632,146 @@
     },
     "weekdays": ["dom", "lun", "mar", "mer", "gio", "ven", "sab"],
     "compass": ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
+  },
+  "recommendations": {
+    "screenTitle": "Raccomandazioni",
+    "title": "Consigli per il campo",
+    "subtitle": "Consigli pratici basati sui dati del tuo campo.",
+    "field": "Campo",
+    "loading": "Caricamento dei consigli…",
+    "loadError": "Impossibile caricare i consigli. Controlla la connessione e riprova.",
+    "retry": "Riprova",
+    "emptyTitle": "Nessun consiglio disponibile",
+    "emptyDescription": "I consigli utili appariranno qui quando saranno disponibili dati sufficienti sul campo.",
+    "results": "{{count}} consigli",
+    "basedOn": "Basato su",
+    "generatedAt": "Generato",
+    "expiresAt": "Scade",
+    "view": "Vedi consigli",
+    "open": "Apri i consigli per il campo",
+    "back": "Indietro",
+    "categories": {
+      "soil": "Suolo",
+      "irrigation": "Irrigazione",
+      "crops": "Colture",
+      "fertilization": "Fertilizzazione",
+      "pests": "Parassiti",
+      "weather": "Meteo",
+      "general": "Generale"
+    },
+    "severities": {
+      "info": "Informazione",
+      "low": "Bassa",
+      "medium": "Media",
+      "high": "Alta"
+    }
+  },
+  "diagnosis": {
+    "title": "Diagnosi della pianta con IA",
+    "subtitle": "Rileva parassiti, malattie, acqua, luce e raccolto.",
+    "placeholder": "Non hai ancora scelto nessuna foto",
+    "previewError": "Impossibile mostrare questa immagine",
+    "enlarge": "Ingrandisci la foto",
+    "close": "Chiudi",
+    "takePhoto": "Scatta foto",
+    "choosePhoto": "Galleria",
+    "analyse": "Analizza",
+    "retry": "Riprova",
+    "openSettings": "Apri le impostazioni",
+    "loading": "Analisi della pianta in corso…",
+    "healthy": "Sana",
+    "problem": "Richiede attenzione",
+    "confidence": "Affidabilità: {{value}} %",
+    "statusTitle": "Stato della pianta",
+    "waterLabel": "Acqua",
+    "lightLabel": "Luce",
+    "harvestLabel": "Raccolto",
+    "water": {
+      "lack": "Le manca acqua",
+      "ok": "Nessun sintomo",
+      "excess": "Troppa acqua",
+      "unknown": "Non si può sapere"
+    },
+    "light": {
+      "lack": "Le manca luce",
+      "ok": "Nessun sintomo",
+      "excess": "Troppo sole",
+      "unknown": "Non si può sapere"
+    },
+    "harvest": {
+      "ready": "Pronta per il raccolto",
+      "not_ready": "Non è ancora pronta",
+      "no_fruit": "Nessun frutto visibile",
+      "unknown": "Non si può sapere"
+    },
+    "errors": {
+      "cameraDenied": "Serve il permesso della fotocamera per scattare foto. Premi di nuovo «Scatta foto» per consentirlo.",
+      "cameraBlocked": "Per scattare foto attiva il permesso della fotocamera nelle impostazioni del telefono.",
+      "photosDenied": "Serve l'accesso alle foto. Premi di nuovo «Galleria» per consentirlo.",
+      "photosBlocked": "Per scegliere le foto attiva l'accesso alle foto nelle impostazioni del telefono.",
+      "format": "La foto deve essere JPG o PNG.",
+      "tooLarge": "La foto è troppo grande (massimo 5 MB).",
+      "noPlant": "Nessuna pianta trovata nella foto. Prova con un'altra.",
+      "notFound": "Non è stato possibile diagnosticare questa foto. Prova con una più vicina.",
+      "tooMany": "Troppe analisi. Aspetta un minuto e riprova.",
+      "unavailable": "Il servizio di diagnosi non è disponibile. Riprova più tardi.",
+      "connection": "Impossibile connettersi. Controlla la connessione e riprova."
+    }
+  },
+  "deviceSetup": {
+    "errors": {
+      "bluetooth_off": "Attiva il Bluetooth e riprova.",
+      "permission_denied": "Attiva il Bluetooth e consenti l'accesso all'app.",
+      "scan_failed": "Non è stato possibile cercare le schede. Riprova.",
+      "invalid_input": "Scrivi il nome del Wi-Fi.",
+      "connection_failed": "Non è stato possibile collegarsi alla scheda. Avvicinati e riprova.",
+      "connection_lost": "Collegamento con la scheda perso. Riprova.",
+      "no_answer": "La scheda non risponde. Controlla che il LED lampeggi lentamente e riprova.",
+      "missing_data": "Dati incompleti. Riprova.",
+      "bad_field_id": "Campo non valido. Riapri la schermata dal campo.",
+      "wifi_not_found": "Rete non trovata. Controlla il nome e usa la rete a 2,4 GHz.",
+      "wrong_password": "Password errata.",
+      "wifi_timeout": "Il router non risponde. Avvicina la scheda e riprova.",
+      "no_internet": "Wi-Fi collegato ma senza internet.",
+      "session_expired": "Sessione scaduta. Accedi di nuovo e riprova.",
+      "already_registered_elsewhere": "Questa scheda è già collegata a un altro campo.",
+      "registration_failed": "Scheda collegata, ma non è stato possibile salvarla. Riprova.",
+      "unknown": "Qualcosa è andato storto. Riprova."
+    }
+  },
+  "forgotPassword": {
+    "title": "Recupera la password",
+    "subtitle": "Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.",
+    "email": "Indirizzo email",
+    "send": "Invia email di recupero",
+    "sending": "Invio in corso...",
+    "back": "Torna al Accedi",
+    "successTitle": "Email inviata",
+    "success": "Se l'indirizzo email è registrato, riceverai un link per recuperare la password.",
+    "errors": {
+      "required": "Inserisci il tuo indirizzo email.",
+      "invalidEmail": "Inserisci un indirizzo email valido.",
+      "sendFailed": "Impossibile inviare l'email di recupero."
+    }
+  },
+  "fieldSelection": {
+    "title": "Scegli il tuo orto",
+    "manage": "Modifica",
+    "done": "Fatto",
+    "add": "Aggiungi orto",
+    "editField": "Modifica {{name}}",
+    "deleteField": "Elimina {{name}}",
+    "deleteTitle": "Eliminare {{name}}?",
+    "deleteMessage": "Si perderanno le sue colture e i suoi Arduino. Questa azione non si può annullare.",
+    "deleteConfirm": "Elimina",
+    "deleteError": "Impossibile eliminare l'orto",
+    "profile": "Il mio profilo",
+    "loadError": "Non è stato possibile caricare gli orti",
+    "back": "Indietro",
+    "eyebrow": "I MIEI ORTI",
+    "allGardens": "Vedi tutti gli orti"
+  },
+  "startup": {
+    "loading": "Preparazione dei tuoi dati…"
   }
 }

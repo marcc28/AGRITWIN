@@ -1,5 +1,13 @@
-import { useState } from 'react';
-import { Image, Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +18,8 @@ import { login } from '../../services/api';
 import { setAuth } from '../../services/auth';
 import { routeAfterAuth } from '../../services/routeAfterAuth';
 import { Gradients } from '../../constants/theme';
+import SocialLoginButtons from '../../components/SocialLoginButtons';
+import AgritwinLoadingScreen from '../../components/AgritwinLoadingScreen';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -17,8 +27,9 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
-
   async function handleLogin() {
     setErrorMessage('');
 
@@ -42,10 +53,14 @@ export default function LoginScreen() {
 
     try {
       setLoading(true);
+      setLoginLoading(true);
+      setLoadingProgress(0.1);
 
       const data = await login(trimmedUsername, trimmedPassword);
 
+      setLoadingProgress(0.55);
       await setAuth(trimmedUsername, data.access_token, data.refresh_token);
+      setLoadingProgress(0.75);
 
       await routeAfterAuth();
     } catch (error) {
@@ -57,6 +72,7 @@ export default function LoginScreen() {
       setErrorMessage(message);
     } finally {
       setLoading(false);
+      setLoginLoading(false);
     }
   }
 
@@ -78,6 +94,15 @@ export default function LoginScreen() {
     if (errorMessage) {
       setErrorMessage('');
     }
+  }
+
+  if (loginLoading) {
+    return (
+      <AgritwinLoadingScreen
+        label={t('login.loggingIn')}
+        progress={loadingProgress}
+      />
+    );
   }
 
   return (
@@ -122,60 +147,7 @@ export default function LoginScreen() {
           editable={!loading}
         />
 
-        <View testID="social-login" style={styles.socialContainer}>
-          <Text style={styles.socialTitle}>{t('login.socialLogin')}</Text>
-
-          <View style={styles.socialAccounts}>
-            <Pressable
-              testID="google-button"
-              style={styles.socialButton}
-              disabled={loading}
-            >
-              <Image
-                source={require('../../../assets/images/google.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            <Pressable
-              testID="instagram-button"
-              style={styles.socialButton}
-              disabled={loading}
-            >
-              <Image
-                source={require('../../../assets/images/instagram.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-
-            <Pressable
-              testID="twitter-button"
-              style={styles.socialButton}
-              disabled={loading}
-            >
-              <Image
-                source={require('../../../assets/images/twitter.png')}
-                style={styles.socialIcon}
-                resizeMode="contain"
-              />
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.buttonsContainer}>
-          <Pressable
-            testID="signup-button"
-            style={styles.buttonWrapper}
-            onPress={handleSignUp}
-            disabled={loading}
-          >
-            <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>{t('login.signUp')}</Text>
-            </LinearGradient>
-          </Pressable>
-
+        <View style={styles.loginButtonContainer}>
           <Pressable
             testID="login-button"
             style={styles.buttonWrapper}
@@ -183,10 +155,40 @@ export default function LoginScreen() {
             disabled={loading}
           >
             <LinearGradient colors={Gradients.primary} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {loading ? t('login.loggingIn') : t('login.logIn')}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>{t('login.logIn')}</Text>
+              )}
             </LinearGradient>
+          </Pressable>
+        </View>
+        <View testID="social-login" style={styles.socialContainer}>
+          <SocialLoginButtons
+            styles={styles}
+            loading={loading}
+            onLoadingChange={setLoading}
+            onError={setErrorMessage}
+            title={t('login.socialLogin')}
+          />
+        </View>
+        {/* FORGOT PASSWORD */}
+        <Pressable
+          testID="forgot-password-link"
+          onPress={() => router.push('/auth/forgot-password')}
+          disabled={loading}
+        >
+          <Text style={styles.linkText}>Has oblidat la contrasenya?</Text>
+        </Pressable>
+        <View style={styles.signUpTextContainer}>
+          <Text style={styles.signUpNormalText}>{t('login.noAccount')} </Text>
+
+          <Pressable
+            testID="signup-button"
+            onPress={handleSignUp}
+            disabled={loading}
+          >
+            <Text style={styles.signUpLinkText}>{t('login.signUp')}</Text>
           </Pressable>
         </View>
       </View>

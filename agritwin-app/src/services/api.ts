@@ -1,4 +1,5 @@
-import { getAuth } from './auth';
+import { authenticatedFetch, getAuth } from './auth';
+import { forgetField, invalidateField } from './cacheInvalidation';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -12,13 +13,6 @@ export type LegalDocument = {
   content: string;
 };
 
-export type News = {
-  id: string | number;
-  title: string;
-  subtile: string;
-  agent: string;
-  content: string;
-};
 // --------------------------------------------------
 // SIGN UP
 // --------------------------------------------------
@@ -77,66 +71,6 @@ export async function login(username: string, password: string) {
 
   if (!response.ok) {
     throw new Error(data.detail || 'Error iniciant sessió');
-  }
-
-  return data;
-}
-
-export async function getnews(offset: number, limite: number): Promise<News[]> {
-  const response = await fetch(
-    `${API_URL}/api/v1/anunces?offset=${offset}&limite=${limite}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'Error obtenint les notícies');
-  }
-
-  return data;
-}
-
-export async function getanunces(offset: number, limite: number) {
-  const response = await fetch(
-    `${API_URL}/api/v1/anunces?offset=${offset}&limite=${limite}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'Error obtenint els anuncis');
-  }
-
-  return data;
-}
-
-export async function getcontentfeed(offset: number, limite: number) {
-  const response = await fetch(
-    `${API_URL}/api/v1/conte_mercat?offset=${offset}&limite=${limite}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.detail || 'Error obtenint els anuncis');
   }
 
   return data;
@@ -204,7 +138,7 @@ export async function getDashboard(fieldId?: number): Promise<Dashboard> {
       ? `${API_URL}/api/v1/dashboard`
       : `${API_URL}/api/v1/dashboard?field_id=${fieldId}`;
 
-  const response = await fetch(url, {
+  const response = await authenticatedFetch(url, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -256,6 +190,17 @@ function errorDetail(data: unknown, fallback: string): string {
   return fallback;
 }
 
+type MeListener = (me: Me) => void;
+
+const meListeners = new Set<MeListener>();
+
+export function subscribeMe(listener: MeListener) {
+  meListeners.add(listener);
+  return () => {
+    meListeners.delete(listener);
+  };
+}
+
 export async function getMe(): Promise<Me> {
   const auth = await getAuth();
 
@@ -263,7 +208,7 @@ export async function getMe(): Promise<Me> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me`, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -285,7 +230,7 @@ export async function updateMe(payload: MeUpdate): Promise<Me> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -300,6 +245,7 @@ export async function updateMe(payload: MeUpdate): Promise<Me> {
     throw new Error(errorDetail(data, 'No s’ha pogut guardar el perfil'));
   }
 
+  meListeners.forEach((listener) => listener(data as Me));
   return data as Me;
 }
 
@@ -310,7 +256,7 @@ export async function updateMyEmail(email: string): Promise<Me> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me/email`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me/email`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -339,7 +285,7 @@ export async function updateMyPassword(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/me/password`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/me/password`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -368,7 +314,10 @@ export type Field = {
   field_type: string | null;
   soil_type: string | null;
   size_m2: number | null;
+  boundary?: { lat: number; lon: number }[] | null;
+  excluded_zones?: { lat: number; lon: number }[][];
   device_count: number;
+  devices_online?: number;
 };
 
 export type FieldPayload = {
@@ -379,6 +328,8 @@ export type FieldPayload = {
   field_type: string | null;
   soil_type: string | null;
   size_m2: number | null;
+  boundary?: { lat: number; lon: number }[] | null;
+  excluded_zones?: { lat: number; lon: number }[][];
 };
 
 export type GeoLocation = {
@@ -411,7 +362,7 @@ export async function getField(id: number): Promise<FieldDetail> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${id}`, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -443,7 +394,7 @@ export async function getFields(): Promise<Field[]> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields`, {
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields`, {
     headers: {
       Authorization: `Bearer ${auth.token}`,
     },
@@ -468,6 +419,9 @@ export async function getFields(): Promise<Field[]> {
     ...field,
     id: Number(field.id),
     device_count: Number(field.device_count),
+    ...(field.devices_online == null
+      ? {}
+      : { devices_online: Number(field.devices_online) }),
   }));
 }
 
@@ -482,7 +436,7 @@ export async function updateDevice(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
     {
       method: 'PUT',
@@ -502,6 +456,7 @@ export async function updateDevice(
     );
   }
 
+  invalidateField(fieldId);
   return data as FieldDevice;
 }
 
@@ -515,7 +470,7 @@ export async function deleteDevice(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/fields/${fieldId}/devices/${encodeURIComponent(deviceId)}`,
     {
       method: 'DELETE',
@@ -529,6 +484,8 @@ export async function deleteDevice(
     const data = await response.json();
     throw new Error(errorDetail(data, 'No s’ha pogut treure el dispositiu'));
   }
+
+  invalidateField(fieldId);
 }
 
 export async function createDevice(
@@ -541,14 +498,17 @@ export async function createDevice(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields/${fieldId}/devices`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${auth.token}`,
+  const response = await authenticatedFetch(
+    `${API_URL}/api/v1/fields/${fieldId}/devices`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${auth.token}`,
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+  );
 
   const data = await response.json();
 
@@ -556,6 +516,7 @@ export async function createDevice(
     throw new Error(errorDetail(data, 'No s’ha pogut enllaçar el dispositiu'));
   }
 
+  invalidateField(fieldId);
   return data as FieldDevice;
 }
 
@@ -566,7 +527,13 @@ export async function createField(payload: FieldPayload): Promise<Field> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields`, {
+  if (payload.boundary)
+    await requireGeometrySupport(
+      'FieldCreate',
+      !!payload.excluded_zones?.length,
+    );
+
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -581,6 +548,7 @@ export async function createField(payload: FieldPayload): Promise<Field> {
     throw new Error(errorDetail(data, 'No s’ha pogut crear el camp'));
   }
 
+  invalidateField();
   return data as Field;
 }
 
@@ -591,7 +559,7 @@ export async function geocodeLocation(query: string): Promise<GeoLocation> {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/geocode?q=${encodeURIComponent(query)}`,
     {
       headers: {
@@ -619,7 +587,13 @@ export async function updateField(
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/fields/${id}`, {
+  if ('boundary' in payload)
+    await requireGeometrySupport(
+      'FieldUpdate',
+      !!payload.excluded_zones?.length,
+    );
+
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -634,7 +608,30 @@ export async function updateField(
     throw new Error(data.detail || 'No s’ha pogut guardar el camp');
   }
 
+  invalidateField(id);
   return data as Field;
+}
+
+export async function deleteField(id: number): Promise<void> {
+  const auth = await getAuth();
+
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await authenticatedFetch(`${API_URL}/api/v1/fields/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(errorDetail(data, 'No s’ha pogut esborrar el camp'));
+  }
+
+  forgetField(id);
 }
 
 // --------------------------------------------------
@@ -673,6 +670,17 @@ export type DailyWeather = {
   sunset: string | null;
 };
 
+export type WeatherAlert = {
+  type: string;
+  message: string;
+  starts_at: string | null;
+  day: string | null;
+  rain_probability: number | null;
+  rain_mm: number | null;
+  temperature: number | null;
+  wind_speed: number | null;
+};
+
 export type FieldWeather = {
   units: string;
   lang: string;
@@ -703,6 +711,8 @@ export type FieldWeather = {
   };
   hourly: HourlyWeather[];
   daily: DailyWeather[];
+  current_alerts?: WeatherAlert[];
+  alerts?: WeatherAlert[];
 };
 
 export class WeatherRequestError extends Error {
@@ -725,7 +735,7 @@ export async function getFieldWeather(
     throw new WeatherRequestError('Not authenticated', 401);
   }
 
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${API_URL}/api/v1/weather/fields/${fieldId}?days=${days}&lang=${encodeURIComponent(lang)}`,
     {
       method: 'GET',
@@ -744,4 +754,206 @@ export async function getFieldWeather(
   }
 
   return data as FieldWeather;
+}
+
+export async function reverseGeocodeLocation(
+  lat: number,
+  lon: number,
+): Promise<GeoLocation> {
+  const auth = await getAuth();
+  if (!auth?.token) throw new Error('Not authenticated');
+  const response = await authenticatedFetch(
+    `${API_URL}/api/v1/reverse-geocode?lat=${lat}&lon=${lon}`,
+    { headers: { Authorization: `Bearer ${auth.token}` } },
+  );
+  const data = await response.json();
+  if (!response.ok)
+    throw new Error(errorDetail(data, 'Address not found for this location'));
+  return data as GeoLocation;
+}
+
+async function requireGeometrySupport(model: string, exclusions: boolean) {
+  const specification = await fetch(`${API_URL}/openapi.json`);
+  const schema = await specification.json();
+  const properties = schema?.components?.schemas?.[model]?.properties;
+  if (
+    !specification.ok ||
+    !properties?.boundary ||
+    (exclusions && !properties.excluded_zones)
+  ) {
+    throw new Error(
+      'The backend must be updated before saving field boundaries',
+    );
+  }
+}
+
+// --------------------------------------------------
+// FORGOT PASSWORD
+// --------------------------------------------------
+
+export async function forgotPassword(email: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/v1/password/forget-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      errorDetail(data, 'No s’ha pogut enviar el correu de recuperació'),
+    );
+  }
+}
+
+export type TaskPriority = 'high' | 'medium' | 'low';
+
+export type GardenTask = {
+  id: number;
+  title: string;
+  details: string | null;
+  due_on: string | null;
+  source: 'ai' | 'user';
+  priority: TaskPriority;
+  completion_reason: string | null;
+  completed: boolean;
+  can_delete: boolean;
+  created_at: string;
+};
+
+// What the user can change in a task. Only the sent fields change.
+export type TaskChanges = {
+  completed?: boolean;
+  title?: string;
+  details?: string | null;
+  priority?: TaskPriority;
+  due_on?: string;
+};
+
+export type GardenRecommendation = {
+  id: number;
+  title: string;
+  details: string | null;
+  due_on: string;
+  signature: string;
+};
+
+export type GardenTaskList = {
+  today: string;
+  has_sensors: boolean;
+  refresh: boolean;
+  tasks: GardenTask[];
+  recommendations: GardenRecommendation[];
+};
+
+async function taskRequest(
+  path: string,
+  fallback: string,
+  init: { method?: string; body?: unknown } = {},
+): Promise<unknown> {
+  const auth = await getAuth();
+  if (!auth?.token) {
+    throw new Error('Not authenticated');
+  }
+
+  const response = await authenticatedFetch(`${API_URL}/api/v1/tasks${path}`, {
+    method: init.method ?? 'GET',
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+      ...(init.body === undefined
+        ? {}
+        : { 'Content-Type': 'application/json' }),
+    },
+    ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+  });
+  if (response.status === 204) {
+    return null;
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(errorDetail(data, fallback));
+  }
+  return data;
+}
+
+export async function getGardenTasks(
+  fieldId: number,
+  lang: string,
+): Promise<GardenTaskList> {
+  const data = await taskRequest(
+    `?field_id=${fieldId}&lang=${encodeURIComponent(lang)}`,
+    'No s’han pogut carregar les tasques',
+  );
+  return data as GardenTaskList;
+}
+
+export async function createGardenTask(
+  fieldId: number,
+  title: string,
+  dueOn: string,
+  priority: TaskPriority,
+  details?: string,
+): Promise<GardenTask> {
+  const data = await taskRequest('', 'No s’ha pogut crear la tasca', {
+    method: 'POST',
+    body: {
+      field_id: fieldId,
+      title,
+      due_on: dueOn,
+      priority,
+      details: details?.trim() || null,
+    },
+  });
+  return data as GardenTask;
+}
+
+export async function updateGardenTask(
+  fieldId: number,
+  taskId: number,
+  changes: TaskChanges,
+): Promise<GardenTask> {
+  const data = await taskRequest(
+    `/${taskId}?field_id=${fieldId}`,
+    'No s’ha pogut actualitzar la tasca',
+    { method: 'PATCH', body: changes },
+  );
+  return data as GardenTask;
+}
+
+export async function deleteGardenTask(
+  fieldId: number,
+  taskId: number,
+): Promise<void> {
+  await taskRequest(
+    `/${taskId}?field_id=${fieldId}`,
+    'No s’ha pogut esborrar la tasca',
+    { method: 'DELETE' },
+  );
+}
+
+export async function dismissRecommendation(
+  fieldId: number,
+  recommendationId: number,
+): Promise<void> {
+  await taskRequest(
+    `/recommendations/${recommendationId}/seen?field_id=${fieldId}`,
+    'No s’ha pogut actualitzar la recomanació',
+    { method: 'POST' },
+  );
+}
+
+export async function convertRecommendation(
+  fieldId: number,
+  recommendationId: number,
+): Promise<void> {
+  await taskRequest(
+    `/recommendations/${recommendationId}/task?field_id=${fieldId}`,
+    'No s’ha pogut actualitzar la recomanació',
+    { method: 'POST' },
+  );
 }

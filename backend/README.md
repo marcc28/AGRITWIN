@@ -18,6 +18,25 @@
    uv run uvicorn main:app --reload
    ```
 
+Per traduir les recomanacions, configura `MODEL_USE_IN_TRANSLATION` al fitxer
+`backend/.env` amb el model de Gemini destinat a traduccions. El text original
+es genera i es desa en català; cada resposta es tradueix a l'idioma demanat
+amb aquest model.
+
+## Límits d'ús
+
+Configura aquests valors al fitxer `backend/.env`:
+
+```env
+AI_LIMIT_USAGE=20/minute
+FORUM_RATE_LIMIT=10/minute
+```
+
+`AI_LIMIT_USAGE` limita per usuari les consultes de recomanacions i les peticions
+de regeneració. `FORUM_RATE_LIMIT` limita per adreça IP la creació d'anuncis.
+Quan se supera un límit, l'API retorna `429 Too Many Requests` i una capçalera
+`Retry-After`.
+
 ## Executar el linter
 
 ```bash

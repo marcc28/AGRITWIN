@@ -24,7 +24,7 @@ def reload_database_module(
         ("DATABASE_URL", local_url),
         ("DSQL_HOST", external_url),
         ("SUPABASE_URL", supabase_url),
-        ("SUPABASE_SECRET_KEY", supabase_key)
+        ("SUPABASE_SECRET_KEY", supabase_key),
     ):
         if value is None:
             monkeypatch.delenv(name, raising=False)
@@ -88,6 +88,7 @@ async def test_database_uses_dsql_in_production(monkeypatch):
         user="admin",
         database="postgres",
     )
+
 
 def test_database_raises_when_url_is_missing(monkeypatch):
     monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)

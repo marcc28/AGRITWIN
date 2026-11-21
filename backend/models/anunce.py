@@ -19,4 +19,5 @@ class AnunceRead(BaseModel):
     subtile: str | None
     agent: str | None
     content: str | None
+    image_url: str | None = None
     created_at: datetime

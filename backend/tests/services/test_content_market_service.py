@@ -3,13 +3,16 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from fastapi import HTTPException
 
 from services.content_market_service import ConteMercatService
 
 
 @pytest.fixture
 def db():
-    return AsyncMock()
+    mock_db = AsyncMock()
+    mock_db.add = MagicMock()
+    return mock_db
 
 
 @pytest.fixture
@@ -214,7 +217,7 @@ async def test_delete_conte_mercat(service, db):
 async def test_delete_conte_mercat_not_found(service, db):
     service.get_conte_mercat_by_id = AsyncMock(return_value=None)
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(HTTPException) as exc_info:
         await service.delete_conte_mercat(999)
 
     assert exc_info.value.status_code == 404
@@ -224,3 +227,77 @@ async def test_delete_conte_mercat_not_found(service, db):
 
     db.delete.assert_not_awaited()
     db.commit.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_count_content_market(service, db):
+    result_mock = MagicMock()
+    result_mock.scalar_one.return_value = 25
+    db.execute.return_value = result_mock
+
+    result = await service.count_content_market()
+
+    assert result == 25
+    db.execute.assert_awaited_once()
+    result_mock.scalar_one.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_count_content_market_empty(service, db):
+    result_mock = MagicMock()
+    result_mock.scalar_one.return_value = 0
+    db.execute.return_value = result_mock
+
+    result = await service.count_content_market()
+
+    assert result == 0
+    db.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_update_image_url(service, db):
+    from uuid import uuid4
+
+    conte_mercat_id = uuid4()
+    conte_mercat = MagicMock()
+    conte_mercat.image_url = None
+
+    service.get_conte_mercat_by_id = AsyncMock(return_value=conte_mercat)
+
+    image_url = "https://example.com/tomata.png"
+
+    result = await service.update_image_url(
+        conte_mercat_id=conte_mercat_id,
+        image_url=image_url,
+    )
+
+    assert result is conte_mercat
+    assert result.image_url == image_url
+
+    service.get_conte_mercat_by_id.assert_awaited_once_with(conte_mercat_id)
+    db.commit.assert_awaited_once()
+    db.refresh.assert_awaited_once_with(conte_mercat)
+
+
+@pytest.mark.asyncio
+async def test_update_image_url_not_found(service, db):
+    from uuid import uuid4
+
+    from fastapi import HTTPException
+
+    conte_mercat_id = uuid4()
+
+    service.get_conte_mercat_by_id = AsyncMock(return_value=None)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await service.update_image_url(
+            conte_mercat_id=conte_mercat_id,
+            image_url="https://example.com/tomata.png",
+        )
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "Conte mercat not found"
+
+    service.get_conte_mercat_by_id.assert_awaited_once_with(conte_mercat_id)
+    db.commit.assert_not_awaited()
+    db.refresh.assert_not_awaited()

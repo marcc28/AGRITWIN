@@ -1,10 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-
-import {
-  FieldWeather,
-  WeatherRequestError,
-  getFieldWeather,
-} from '@/services/api';
+import { FieldWeather, WeatherRequestError } from '@/services/api';
+import { weatherQuery } from '@/services/queries';
+import { useCachedQuery, useRetry } from './use-cached-query';
 
 export type FieldWeatherState =
   | { status: 'loading' }
@@ -22,6 +18,9 @@ const NO_LOCATION_ERRORS = new Set([
 
 function stateForError(error: unknown): FieldWeatherState {
   if (error instanceof WeatherRequestError && error.status === 404) {
+    if (error.message === 'Not Found') {
+      return { status: 'error' };
+    }
     return NO_LOCATION_ERRORS.has(error.message)
       ? { status: 'no-location' }
       : { status: 'no-data' };
@@ -29,54 +28,32 @@ function stateForError(error: unknown): FieldWeatherState {
   return { status: 'error' };
 }
 
+/**
+ * Forecast and alerts of a field. The last forecast is shown at once from
+ * the cache and it is always revalidated (and every 10 minutes while the
+ * screen is open), so alerts are never out of date.
+ */
 export function useFieldWeather(fieldId: number | null, lang: string) {
-  const [attempt, setAttempt] = useState(0);
-  const [result, setResult] = useState<{
-    key: string;
-    state: FieldWeatherState;
-  } | null>(null);
-
-  const requestKey = fieldId === null ? null : `${fieldId}:${lang}:${attempt}`;
-
-  useEffect(() => {
-    if (fieldId === null || requestKey === null) {
-      return;
-    }
-
-    let active = true;
-
-    getFieldWeather(fieldId, lang)
-      .then((weather) => {
-        if (active) {
-          setResult({
-            key: requestKey,
-            state:
-              weather.daily.length > 0
-                ? { status: 'ready', weather }
-                : { status: 'no-data' },
-          });
-        }
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          setResult({ key: requestKey, state: stateForError(error) });
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [fieldId, lang, requestKey]);
-
-  const retry = useCallback(() => setAttempt((current) => current + 1), []);
+  const query = useCachedQuery({
+    ...weatherQuery(fieldId ?? -1, lang),
+    enabled: fieldId !== null,
+  });
+  const { data, error, isError, isFetching, refetch } = query;
+  const { retrying, retry } = useRetry(refetch);
 
   let state: FieldWeatherState;
   if (fieldId === null) {
     state = { status: 'no-field' };
-  } else if (result?.key !== requestKey) {
-    state = { status: 'loading' };
+  } else if (data && !retrying) {
+    // A failed background refresh keeps the forecast already on screen.
+    state =
+      data.daily.length > 0
+        ? { status: 'ready', weather: data }
+        : { status: 'no-data' };
+  } else if (isError && !isFetching && !retrying) {
+    state = stateForError(error);
   } else {
-    state = result.state;
+    state = { status: 'loading' };
   }
 
   return { state, retry };
