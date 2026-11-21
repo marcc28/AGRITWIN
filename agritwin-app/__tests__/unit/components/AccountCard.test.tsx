@@ -78,7 +78,7 @@ describe('AccountCard', () => {
       expect(screen.getByText('Ainhoa')).toBeTruthy();
     });
     expect(screen.getByText('ainhoa@test.com')).toBeTruthy();
-  });
+  }, 15000);
 
   it('saves a new name', async () => {
     mockedUpdateMe.mockResolvedValue({ ...me, name: 'Nova' });

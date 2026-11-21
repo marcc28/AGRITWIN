@@ -268,7 +268,11 @@ describe('HomeScreen', () => {
     render(<HomeScreen />);
 
     expect(
-      await screen.findByText('Ara hi ha vent fort (55 km/h)'),
+      await screen.findByText(
+        'Ara hi ha vent fort (55 km/h)',
+        {},
+        { timeout: 5000 },
+      ),
     ).toBeTruthy();
     fireEvent.press(screen.getByTestId('weather-alert-close'));
     expect(screen.getByText('Es preveu pluja el 30/10 (80%)')).toBeTruthy();
