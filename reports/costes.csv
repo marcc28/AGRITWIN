@@ -29,7 +29,7 @@ SPRINT 2,AI crop recommendation,11,flaviaserret04,11,100%,165,165,165,0,,,,,,,,
 SPRINT 2,Crop recommendation on the profile page,0.7,flaviaserret04,0.7,100%,10.5,10.5,10.5,0,,,,,,,,
 SPRINT 2,Field location on a map,13,marcc28,13,100%,195,195,195,0,,,,,,,,
 SPRINT 2,Field selection screen and personal profile,9.5,atnic15,10,100%,142.5,150,142.5,-7.5,,,,,,,,
-SPRINT 2,Final documentation,8,flaviaserret04 & Tigre44 & ainhoaaf & marcc28 & atnic15,0,0%,120,0,0,120,,,,,,,,
+SPRINT 2,Final documentation,8,flaviaserret04 & Tigre44 & ainhoaaf & marcc28 & atnic15,8,100%,120,120,120,0,,,,,,,,
 SPRINT 2,Google sign-in: Let the user sign in or sign up with a Google account,11,flaviaserret04,15,100%,165,225,165,-60,,,,,,,,
 SPRINT 2,Implement Arduino/ESP32 IoT Sensor Node,45,Tigre44 & marcc28,50,100%,675,750,675,-75,,,,,,,,
 SPRINT 2,IoT device status,12,ainhoaaf,11,100%,180,165,180,15,,,,,,,,
@@ -44,4 +44,4 @@ SPRINT 2,"Security of the data, the broker and the API",17,marcc28,17,100%,255,2
 SPRINT 2,Task list for the current garden,22,ainhoaaf,18.5,100%,330,277.5,330,52.5,,,,,,,,
 SPRINT 2,Weather alerts for the current garden,9,atnic15,9.5,100%,135,142.5,135,-7.5,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,231.9,,232.2,,3478.5,3483,3358.5,-4.5,10168,0.964255,0.965502,-124.5,-120,10544.928986,7061.928986,-376.928986
+SPRINT 2,TOTAL SPRINT 2,231.9,,240.2,,3478.5,3603,3478.5,-124.5,10168,0.965445,1,-124.5,0,10531.92583,6928.92583,-363.92583
