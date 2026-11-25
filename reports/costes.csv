@@ -36,6 +36,7 @@ SPRINT 2,IoT device status,12,ainhoaaf,11,100%,180,165,180,15,,,,,,,,
 SPRINT 2,Load the app in one go,16,Tigre44,16,100%,240,240,240,0,,,,,,,,
 SPRINT 2,"Login improvements, password recovery and menu clean-up",1,flaviaserret04,1,100%,15,15,15,0,,,,,,,,
 SPRINT 2,Marked redirection,9.2,flaviaserret04,9.2,100%,138,138,138,0,,,,,,,,
+SPRINT 2,Marked redirection,9.2,flaviaserret04,9.2,100%,138,138,138,0,,,,,,,,
 SPRINT 2,Market infinite scroll,1,flaviaserret04,0.7,100%,15,10.5,15,4.5,,,,,,,,
 SPRINT 2,Planning commitment from Sprint 2,8.5,Tigre44 & atnic15,9,100%,127.5,135,127.5,-7.5,,,,,,,,
 SPRINT 2,Plant photo diagnosis,12,atnic15,14,100%,180,210,180,-30,,,,,,,,
@@ -53,5 +54,5 @@ SPRINT 3,Save MQTT readings on Render,0,,0,0%,0,0,0,0,,,,,,,,
 SPRINT 3,Scrum master - Facilitate the Sprint 3,0,ainhoaaf,0,0%,0,0,0,0,,,,,,,,
 SPRINT 3,"Security of the API, the broker and the code",0,,0,0%,0,0,0,0,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,231.9,,240.2,,3478.5,3603,3478.5,-124.5,10168,0.965445,1,-124.5,0,10531.92583,6928.92583,-363.92583
+SPRINT 2,TOTAL SPRINT 2,241.1,,249.4,,3616.5,3741,3616.5,-124.5,10168,0.96672,1,-124.5,0,10518.038988,6777.038988,-350.038988
 SPRINT 3,TOTAL SPRINT 3,0,,0,,0,0,0,0,10168,,,0,0,,,
