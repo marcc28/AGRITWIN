@@ -25,6 +25,7 @@ SPRINT 1,Implement SignUp System,13,flaviaserret04,13,100%,195,195,195,0,,,,,,,,
 SPRINT 1,MockUp Figma,15,marcc28,16,100%,225,240,225,-15,,,,,,,,
 SPRINT 1,Risk Analysis,7,marcc28,7,100%,105,105,105,0,,,,,,,,
 SPRINT 2,Add a device to a field,22,Tigre44 & ainhoaaf,24,100%,330,360,330,-30,,,,,,,,
+SPRINT 2,Add a device to a field,22,Tigre44 & ainhoaaf,24,100%,330,360,330,-30,,,,,,,,
 SPRINT 2,AI crop recommendation,11,flaviaserret04,11,100%,165,165,165,0,,,,,,,,
 SPRINT 2,Crop recommendation on the profile page,0.7,flaviaserret04,0.7,100%,10.5,10.5,10.5,0,,,,,,,,
 SPRINT 2,Field location on a map,13,marcc28,13,100%,195,195,195,0,,,,,,,,
@@ -59,5 +60,5 @@ SPRINT 3,Scrum master - Facilitate the Sprint 3,0,ainhoaaf,0,0%,0,0,0,0,,,,,,,,
 SPRINT 3,"Security of the API, the broker and the code",0,,0,0%,0,0,0,0,,,,,,,,
 SPRINT 3,Simulated data without a device,0,,0,0%,0,0,0,0,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
-SPRINT 2,TOTAL SPRINT 2,231.9,,240.2,,3478.5,3603,3478.5,-124.5,10168,0.965445,1,-124.5,0,10531.92583,6928.92583,-363.92583
+SPRINT 2,TOTAL SPRINT 2,253.9,,264.2,,3808.5,3963,3808.5,-154.5,10168,0.961014,1,-154.5,0,10580.486806,6617.486806,-412.486806
 SPRINT 3,TOTAL SPRINT 3,0,,0,,0,0,0,0,10168,,,0,0,,,
