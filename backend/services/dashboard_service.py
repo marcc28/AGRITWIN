@@ -4,13 +4,19 @@ from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.dashboard import DashboardResponse, Reading
+from services.simulated_readings_service import SimulatedReadingsService
 
 HISTORY_LIMIT = 50
 
 
 class DashboardService:
-    def __init__(self, session: AsyncSession):
+    def __init__(
+        self,
+        session: AsyncSession,
+        simulated: SimulatedReadingsService | None = None,
+    ):
         self._db = session
+        self._simulated = simulated or SimulatedReadingsService(session)
 
     async def get_dashboard(
         self,
@@ -57,7 +63,13 @@ class DashboardService:
                 history=[],
             )
 
-        # 2. Obtenir els dispositius del camp.
+        # 2. A garden without real devices shows simulated readings: create the
+        #    simulated device if needed and add the readings missing until now.
+        simulated_device = await self._simulated.ensure_for_field(field.id)
+        if simulated_device is not None:
+            await self._db.commit()
+
+        # 3. Obtenir els dispositius del camp.
         result = await self._db.execute(
             text(
                 """
@@ -78,9 +90,10 @@ class DashboardService:
                 device_ids=[],
                 latest=None,
                 history=[],
+                simulated=simulated_device is not None,
             )
 
-        # 3. Obtenir les lectures agrupades per minut.
+        # 4. Obtenir les lectures agrupades per minut.
         query = text(
             """
             SELECT
@@ -127,4 +140,6 @@ class DashboardService:
             device_ids=device_ids,
             latest=latest,
             history=history,
+            simulated=simulated_device is not None,
         )
+    

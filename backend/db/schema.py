@@ -351,6 +351,12 @@ class Device(Base):
     battery_status: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=text("FALSE")
     )
+    # True for the device the backend creates for a garden without real
+    # devices, so the garden can show simulated readings. It is deleted, with
+    # its readings, when the first real device is registered in the garden.
+    is_simulated: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("FALSE")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -643,3 +649,4 @@ class GardenTask(Base):
         nullable=False,
         server_default=func.current_timestamp(),
     )
+    

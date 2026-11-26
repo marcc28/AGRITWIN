@@ -1,6 +1,6 @@
 import os
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 os.environ.setdefault("SECRET_KEY", "test-secret")
@@ -44,6 +44,7 @@ FIELD_JSON = {
     "boundary": None,
     "excluded_zones": [],
     "devices_online": 2,
+    "simulated_data": False,
 }
 
 
@@ -84,6 +85,17 @@ class FakeSession:
 
     async def __aexit__(self, *_args):
         return False
+
+
+@pytest.fixture(autouse=True)
+def simulated_service():
+    """Fake simulated readings service (#286): no database needed in these tests."""
+    service = SimpleNamespace(
+        ensure_for_field=AsyncMock(return_value="sim-field-8"),
+        remove_for_field=AsyncMock(return_value=0),
+    )
+    with patch("api.v1.fields.SimulatedReadingsService", return_value=service):
+        yield service
 
 
 def make_client() -> TestClient:
@@ -288,6 +300,7 @@ def test_get_field_without_devices():
     assert response.json()["device_count"] == 0
     assert response.json()["devices_online"] == 0
     assert response.json()["devices"] == []
+    assert response.json()["simulated_data"] is True
 
 
 def test_get_field_all_devices_online():
@@ -408,7 +421,7 @@ def test_update_field_name_required():
     assert response.json()["detail"] == "Name is required"
 
 
-def test_create_field():
+def test_create_field(simulated_service):
     client = make_client()
     created = SimpleNamespace(
         id=8,
@@ -446,6 +459,10 @@ def test_create_field():
     assert response.json()["id"] == 8
     assert response.json()["lat"] == 42.5
     assert session.committed is True
+    # A new garden starts with simulated readings.
+    simulated_service.ensure_for_field.assert_awaited_once_with(8)
+    assert response.json()["device_count"] == 0
+    assert response.json()["simulated_data"] is True
 
 
 def test_create_field_requires_auth():
@@ -499,7 +516,7 @@ def test_geocode_requires_auth():
     assert response.status_code == 401
 
 
-def test_create_device():
+def test_create_device(simulated_service):
     client = make_client()
     session = FakeSession(
         [
@@ -522,6 +539,8 @@ def test_create_device():
     assert response.json()["id"] == "esp32_sim_01"
     assert response.json()["battery_status"] is False
     assert session.committed is True
+    # The first real device removes the simulated data of the garden.
+    simulated_service.remove_for_field.assert_awaited_once_with(3)
 
 
 def test_create_device_requires_id():
@@ -929,3 +948,97 @@ def test_required_field_data_is_enforced_on_all_writes(method, path, change):
     }
     response = getattr(make_client(), method)(path, json={**body, **change})
     assert response.status_code == 400
+
+
+class CaptureSession(FakeSession):
+    """FakeSession that also keeps the SQL of every statement."""
+
+    def __init__(self, results):
+        super().__init__(results)
+        self.statements = []
+
+    async def execute(self, statement, *args, **kwargs):
+        self.statements.append(str(statement))
+        return await super().execute(statement, *args, **kwargs)
+
+
+def test_list_fields_counts_only_real_devices():
+    client = make_client()
+    session = CaptureSession(
+        [
+            FakeResult(
+                rows=[SimpleNamespace(**{**vars(FIELD), "device_count": 0, "devices_online": 0})]
+            )
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields")
+
+    assert "is_simulated IS FALSE" in session.statements[0]
+    assert response.json()[0]["device_count"] == 0
+    assert response.json()[0]["simulated_data"] is True
+
+
+def test_get_field_hides_the_simulated_device():
+    client = make_client()
+    session = CaptureSession([FakeResult(one=FIELD), FakeResult(rows=[])])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.get("/fields/3")
+
+    assert "is_simulated IS FALSE" in session.statements[1]
+    assert response.json()["devices"] == []
+
+
+def test_create_device_conflict_keeps_simulated_data(simulated_service):
+    client = make_client()
+    session = FakeSession(
+        [
+            FakeResult(one=SimpleNamespace(id=3)),
+            IntegrityError("INSERT", {}, Exception("duplicate")),
+        ]
+    )
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.post(
+            "/fields/3/devices",
+            json={"id": "esp32_sim_01", "brand": "ESP32", "serial_number": "SN-1"},
+        )
+
+    assert response.status_code == 409
+    simulated_service.remove_for_field.assert_not_awaited()
+
+
+def test_create_device_in_missing_field_keeps_simulated_data(simulated_service):
+    client = make_client()
+    session = FakeSession([FakeResult(one=None)])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=session):
+        response = client.post(
+            "/fields/3/devices",
+            json={"id": "esp32_sim_01", "brand": "ESP32", "serial_number": "SN-1"},
+        )
+
+    assert response.status_code == 404
+    simulated_service.remove_for_field.assert_not_awaited()
+
+
+def test_simulated_device_cannot_be_edited_or_deleted():
+    client = make_client()
+    update_session = CaptureSession([FakeResult(one=SimpleNamespace(id=3)), FakeResult(one=None)])
+    delete_session = CaptureSession([FakeResult(one=SimpleNamespace(id=3)), FakeResult(one=None)])
+
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=update_session):
+        updated = client.put(
+            "/fields/3/devices/sim-field-3",
+            json={"brand": "Fake", "serial_number": "SN-X"},
+        )
+    with patch("api.v1.fields.AsyncSessionLocal", return_value=delete_session):
+        deleted = client.delete("/fields/3/devices/sim-field-3")
+
+    assert updated.status_code == 404
+    assert deleted.status_code == 404
+    assert "is_simulated IS FALSE" in update_session.statements[1]
+    assert "is_simulated IS FALSE" in delete_session.statements[1]
+    
