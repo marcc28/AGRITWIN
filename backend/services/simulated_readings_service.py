@@ -258,4 +258,3 @@ class SimulatedReadingsService:
             )
         )
         await self._db.flush()
-        

@@ -217,4 +217,3 @@ def test_dashboard_garden_without_device_shows_simulated_readings(simulated_serv
     assert body["latest"]["soil_humidity"] == 48.3
     # The new simulated readings are saved before they are read.
     assert session.committed is True
-    

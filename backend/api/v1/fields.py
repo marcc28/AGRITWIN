@@ -587,4 +587,3 @@ async def update_field(
             raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND)
         await session.commit()
         return await _load_field(session, field_id, current_user.id)
-    

@@ -142,4 +142,3 @@ class DashboardService:
             history=history,
             simulated=simulated_device is not None,
         )
-    

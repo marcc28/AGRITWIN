@@ -1041,4 +1041,3 @@ def test_simulated_device_cannot_be_edited_or_deleted():
     assert deleted.status_code == 404
     assert "is_simulated IS FALSE" in update_session.statements[1]
     assert "is_simulated IS FALSE" in delete_session.statements[1]
-    
