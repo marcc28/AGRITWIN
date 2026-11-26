@@ -184,6 +184,11 @@ CREATE TABLE devices (
     -- telemetry from the board.
     battery_status BOOLEAN NOT NULL DEFAULT FALSE,
 
+    -- TRUE for the device the backend creates for a garden without real
+    -- devices, so the garden shows simulated readings. It is deleted, with
+    -- its readings, when the first real device is registered.
+    is_simulated BOOLEAN NOT NULL DEFAULT FALSE,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_devices_field
