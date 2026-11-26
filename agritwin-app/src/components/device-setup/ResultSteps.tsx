@@ -11,10 +11,13 @@ import { errorGroup, needsSettings } from './errorGroups';
 /** The board is connected and linked to the field. */
 export function SuccessStep({
   alreadyLinked,
+  replacedSimulatedData = false,
   onDone,
   onAddAnother,
 }: Readonly<{
   alreadyLinked: boolean;
+  /** The board replaced the simulated data of the field. */
+  replacedSimulatedData?: boolean;
   onDone: () => void;
   /** Starts the flow again to link one more board. */
   onAddAnother: () => void;
@@ -36,6 +39,11 @@ export function SuccessStep({
             ? t('addDevice.success.alreadyLinked')
             : t('addDevice.success.hint')}
         </Text>
+        {replacedSimulatedData ? (
+          <Text testID="simulated-data-replaced" style={styles.cardText}>
+            {t('simulatedData.addDeviceDone')}
+          </Text>
+        ) : null}
       </View>
       <Pressable style={styles.primaryButton} onPress={onDone}>
         <Text style={styles.primaryText}>{t('addDevice.success.done')}</Text>

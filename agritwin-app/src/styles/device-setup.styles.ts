@@ -152,6 +152,21 @@ export const styles = StyleSheet.create({
     borderColor: Colors.light.border,
   },
 
+  // Simulated data notice, above the current step of the flow.
+  noticeBox: {
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 12,
+    gap: 4,
+    backgroundColor: Colors.light.surfaceSecondary,
+  },
+
+  noticeTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.light.primaryDark,
+  },
+
   tipText: {
     fontSize: 13,
     lineHeight: 18,

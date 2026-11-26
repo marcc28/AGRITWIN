@@ -775,5 +775,14 @@
   },
   "startup": {
     "loading": "Preparant les teves dades…"
+  },
+  "simulatedData": {
+    "badge": "Dades simulades",
+    "sensorHint": "Connecta una placa per veure les lectures reals del teu camp.",
+    "fieldDevices": "Mentre no connectis una placa, aquest camp mostra dades simulades perquè puguis provar l'app.",
+    "homeDevices": "Encara no hi ha cap placa: estàs veient dades simulades.",
+    "addDeviceTitle": "Aquest camp fa servir dades simulades",
+    "addDeviceWarning": "Quan connectis la placa, les dades simulades i els consells de la IA basats en elles s'esborraran i se substituiran per les dades reals.",
+    "addDeviceDone": "A partir d'ara veuràs les dades reals de la teva placa."
   }
 }

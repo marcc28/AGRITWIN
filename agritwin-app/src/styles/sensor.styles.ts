@@ -50,6 +50,35 @@ export const styles = StyleSheet.create({
     color: Colors.light.textMuted,
   },
 
+  /* ---------- Simulated data notice ---------- */
+  simulatedBox: {
+    marginTop: 8,
+    gap: 4,
+  },
+
+  simulatedBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: Colors.light.surfaceSecondary,
+  },
+
+  simulatedBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.light.primaryDark,
+  },
+
+  simulatedHint: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.light.textSecondary,
+  },
+
   emptyText: {
     marginTop: 12,
     fontSize: 14,

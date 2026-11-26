@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import {
   MEASURES,
@@ -37,6 +38,7 @@ export function SensorCard({
   subtitle,
   hint,
 }: Props) {
+  const { t } = useTranslation();
   const heading = title ?? 'Dades del camp';
 
   if (errorMessage) {
@@ -82,6 +84,24 @@ export function SensorCard({
             Darrera lectura · {formatDateTime(latest.timestamp)}
           </Text>
           {hint ? <Text style={styles.cardHint}>{hint}</Text> : null}
+          {dashboard.simulated ? (
+            // The garden has no real board yet: the readings are simulated.
+            <View testID="sensor-simulated" style={styles.simulatedBox}>
+              <View style={styles.simulatedBadge}>
+                <Ionicons
+                  name="flask-outline"
+                  size={12}
+                  color={Colors.light.primaryDark}
+                />
+                <Text style={styles.simulatedBadgeText}>
+                  {t('simulatedData.badge')}
+                </Text>
+              </View>
+              <Text style={styles.simulatedHint}>
+                {t('simulatedData.sensorHint')}
+              </Text>
+            </View>
+          ) : null}
         </View>
         <Ionicons
           name="chevron-forward"
