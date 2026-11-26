@@ -781,6 +781,9 @@
     "homeDevices": "Todavía no hay ninguna placa: estás viendo datos simulados.",
     "addDeviceTitle": "Este campo usa datos simulados",
     "addDeviceWarning": "Cuando conectes la placa, los datos simulados y los consejos de la IA basados en ellos se borrarán y se sustituirán por los datos reales.",
-    "addDeviceDone": "A partir de ahora verás los datos reales de tu placa."
+    "addDeviceDone": "A partir de ahora verás los datos reales de tu placa.",
+    "createField": "Si ahora no conectas ninguna placa, el campo mostrará datos simulados para que puedas probar la app. Cuando conectes una placa, los datos simulados y los consejos de la IA basados en ellos se borrarán y se sustituirán por los datos reales.",
+    "dataNotice": "Estas lecturas son simuladas porque el campo todavía no tiene ninguna placa. Cuando conectes una, se borrarán y verás los datos reales.",
+    "footnote": "Lecturas simuladas: el campo todavía no tiene ninguna placa conectada."
   }
 }

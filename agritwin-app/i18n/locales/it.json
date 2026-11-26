@@ -781,6 +781,9 @@
     "homeDevices": "Nessuna scheda ancora: stai vedendo dati simulati.",
     "addDeviceTitle": "Questo campo usa dati simulati",
     "addDeviceWarning": "Quando colleghi la scheda, i dati simulati e i consigli dell'IA basati su di essi verranno eliminati e sostituiti da quelli reali.",
-    "addDeviceDone": "Da ora vedrai i dati reali della tua scheda."
+    "addDeviceDone": "Da ora vedrai i dati reali della tua scheda.",
+    "createField": "Se ora non colleghi nessuna scheda, il campo mostrerà dati simulati per farti provare l'app. Quando collegherai una scheda, i dati simulati e i consigli dell'IA basati su di essi verranno eliminati e sostituiti da quelli reali.",
+    "dataNotice": "Queste letture sono simulate perché il campo non ha ancora nessuna scheda. Quando ne collegherai una, verranno eliminate e vedrai i dati reali.",
+    "footnote": "Letture simulate: il campo non ha ancora nessuna scheda collegata."
   }
 }

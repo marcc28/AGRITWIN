@@ -309,4 +309,22 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.light.dangerText,
   },
+
+  // Simulated data notice in the devices step.
+  simulatedNotice: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: Colors.light.surfaceSecondary,
+  },
+
+  simulatedNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.light.primaryDark,
+  },
 });

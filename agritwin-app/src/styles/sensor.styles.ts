@@ -73,6 +73,23 @@ export const styles = StyleSheet.create({
     color: Colors.light.primaryDark,
   },
 
+  simulatedNotice: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    padding: 12,
+    borderRadius: BOX_RADIUS,
+    backgroundColor: Colors.light.surfaceSecondary,
+  },
+
+  simulatedNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.light.primaryDark,
+  },
+
   simulatedHint: {
     fontSize: 12,
     lineHeight: 16,

@@ -783,6 +783,9 @@
     "homeDevices": "Encara no hi ha cap placa: estàs veient dades simulades.",
     "addDeviceTitle": "Aquest camp fa servir dades simulades",
     "addDeviceWarning": "Quan connectis la placa, les dades simulades i els consells de la IA basats en elles s'esborraran i se substituiran per les dades reals.",
-    "addDeviceDone": "A partir d'ara veuràs les dades reals de la teva placa."
+    "addDeviceDone": "A partir d'ara veuràs les dades reals de la teva placa.",
+    "createField": "Si ara no connectes cap placa, el camp mostrarà dades simulades perquè puguis provar l'app. Quan connectis una placa, les dades simulades i els consells de la IA basats en elles s'esborraran i se substituiran per les dades reals.",
+    "dataNotice": "Aquestes lectures són simulades perquè el camp encara no té cap placa. Quan en connectis una, s'esborraran i veuràs les dades reals.",
+    "footnote": "Lectures simulades: el camp encara no té cap placa connectada."
   }
 }

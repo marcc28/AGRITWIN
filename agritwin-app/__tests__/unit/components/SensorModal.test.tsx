@@ -4,6 +4,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { SensorModal } from '../../../src/components/SensorModal';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
 const dashboard = {
   field_name: 'Hort',
   device_ids: ['dev-1'],
@@ -84,5 +88,43 @@ describe('SensorModal', () => {
 
     fireEvent.press(screen.getByText('Llum'));
     expect(screen.getAllByText(/k lux/).length).toBeGreaterThan(0);
+  });
+
+  it('says when the readings are simulated', () => {
+    render(
+      <SensorModal
+        visible
+        asScreen
+        dashboard={{
+          ...dashboard,
+          device_ids: ['sim-field-3'],
+          simulated: true,
+        }}
+        latest={dashboard.latest}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(screen.getByTestId('sensor-modal-simulated')).toBeTruthy();
+    expect(screen.getByText('simulatedData.badge')).toBeTruthy();
+    expect(screen.getByText('simulatedData.dataNotice')).toBeTruthy();
+    expect(screen.getByText('simulatedData.footnote')).toBeTruthy();
+    // It never calls simulated readings "real".
+    expect(screen.queryByText(/Lectures reals/)).toBeNull();
+  });
+
+  it('keeps the real data texts for a real board', () => {
+    render(
+      <SensorModal
+        visible
+        asScreen
+        dashboard={{ ...dashboard, simulated: false }}
+        latest={dashboard.latest}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('sensor-modal-simulated')).toBeNull();
+    expect(
+      screen.getByText(/Lectures reals del dispositiu dev-1/),
+    ).toBeTruthy();
   });
 });

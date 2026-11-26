@@ -544,6 +544,20 @@ export default function CreateFieldScreen() {
                     : () => void handleCreate(true)
                 }
               />
+              {/* Without a board the new field shows simulated data (#286). */}
+              <View
+                testID="create-field-simulated-notice"
+                style={styles.simulatedNotice}
+              >
+                <Ionicons
+                  name="flask-outline"
+                  size={18}
+                  color={Colors.light.primaryDark}
+                />
+                <Text style={styles.simulatedNoticeText}>
+                  {t('simulatedData.createField')}
+                </Text>
+              </View>
             </View>
             {fromProfile ? null : (
               <Pressable onPress={() => void logoutToLogin()} disabled={saving}>
