@@ -16,3 +16,6 @@ class DashboardResponse(BaseModel):
     device_ids: list[str]
     latest: Reading | None
     history: list[Reading]
+    # True when the readings come from the simulated device of the garden
+    # (the garden has no real device yet).
+    simulated: bool = False
