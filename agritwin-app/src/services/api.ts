@@ -124,6 +124,8 @@ export type Dashboard = {
   device_ids: string[];
   latest: Reading | null;
   history: Reading[];
+  /** True when the readings come from the simulated device of the garden. */
+  simulated?: boolean;
 };
 
 export async function getDashboard(fieldId?: number): Promise<Dashboard> {
@@ -161,6 +163,7 @@ export async function getDashboard(fieldId?: number): Promise<Dashboard> {
     device_ids: deviceIds,
     latest: data.latest ?? null,
     history: data.history ?? [],
+    simulated: data.simulated === true,
   };
 }
 
@@ -318,6 +321,8 @@ export type Field = {
   excluded_zones?: { lat: number; lon: number }[][];
   device_count: number;
   devices_online?: number;
+  /** True while the garden has no real board and shows simulated data. */
+  simulated_data?: boolean;
 };
 
 export type FieldPayload = {
@@ -422,6 +427,9 @@ export async function getFields(): Promise<Field[]> {
     ...(field.devices_online == null
       ? {}
       : { devices_online: Number(field.devices_online) }),
+    ...(field.simulated_data == null
+      ? {}
+      : { simulated_data: field.simulated_data === true }),
   }));
 }
 

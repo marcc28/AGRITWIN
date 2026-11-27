@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { styles } from '@/styles/device-setup.styles';
 import type { DeviceSetup } from '@/types/device-setup';
 
 import { NoBoardsStep, ScanStep } from './ScanSteps';
@@ -11,6 +13,11 @@ import { ProgressStep, WifiFormStep } from './WifiSteps';
 type Props = Readonly<{
   /** State and actions of the flow (see `use-device-setup.ts`). */
   setup: DeviceSetup;
+  /**
+   * True when the field still shows simulated data. Linking the first real
+   * board deletes it, so the user is told before and after.
+   */
+  simulatedData?: boolean;
   /** Back to the field screen. */
   onClose: () => void;
   /** Opens the system settings of the app (Bluetooth permission). */
@@ -21,8 +28,16 @@ type Props = Readonly<{
  * "Add device" screens. It only draws the current step: all the Bluetooth and
  * backend work is behind `setup`.
  */
-export function DeviceSetupScreen({ setup, onClose, onOpenSettings }: Props) {
+export function DeviceSetupScreen({
+  setup,
+  simulatedData = false,
+  onClose,
+  onOpenSettings,
+}: Props) {
   const { t } = useTranslation();
+  // Remembered once seen: after the board is saved the field reloads without
+  // simulated data, but the success screen must still say it was replaced.
+  const [hadSimulatedData, setHadSimulatedData] = useState(simulatedData);
   // The Wi-Fi data lives here, not in the form, so it is still there when the
   // user comes back to the form after an error. It is never saved.
   const [ssid, setSsid] = useState('');
@@ -33,6 +48,12 @@ export function DeviceSetupScreen({ setup, onClose, onOpenSettings }: Props) {
       setPassword('');
     }
   }, [setup.step]);
+
+  useEffect(() => {
+    if (simulatedData) {
+      setHadSimulatedData(true);
+    }
+  }, [simulatedData]);
 
   const busy = setup.step === 'provisioning' || setup.step === 'registering';
 
@@ -72,6 +93,9 @@ export function DeviceSetupScreen({ setup, onClose, onOpenSettings }: Props) {
         return (
           <SuccessStep
             alreadyLinked={setup.registration === 'already_linked'}
+            replacedSimulatedData={
+              hadSimulatedData && setup.registration !== 'already_linked'
+            }
             onDone={onClose}
             onAddAnother={() => void addAnother()}
           />
@@ -101,6 +125,16 @@ export function DeviceSetupScreen({ setup, onClose, onOpenSettings }: Props) {
 
   return (
     <SetupLayout onBack={onClose} backDisabled={busy}>
+      {hadSimulatedData && setup.step !== 'success' ? (
+        <View testID="simulated-data-notice" style={styles.noticeBox}>
+          <Text style={styles.noticeTitle}>
+            {t('simulatedData.addDeviceTitle')}
+          </Text>
+          <Text style={styles.tipText}>
+            {t('simulatedData.addDeviceWarning')}
+          </Text>
+        </View>
+      ) : null}
       {renderStep()}
     </SetupLayout>
   );

@@ -12,6 +12,7 @@ from api.v1.auth import get_current_user
 from db import AsyncSessionLocal, User
 from services.field_geometry_service import BORDER_FIELD_TYPES, MAX_AREA, field_geometry
 from services.geocode_service import lookup_location, reverse_location
+from services.simulated_readings_service import SimulatedReadingsService
 
 
 class BoundaryPoint(BaseModel):
@@ -32,6 +33,8 @@ class FieldRead(BaseModel):
     boundary: list[BoundaryPoint] | None = None
     excluded_zones: list[list[BoundaryPoint]] = PydanticField(default_factory=list)
     devices_online: int = 0
+    # True while the garden has no real device: the dashboard shows simulated readings.
+    simulated_data: bool = False
 
 
 class FieldCreate(BaseModel):
@@ -85,11 +88,15 @@ SELECT_PREFIX = "SELECT "
 FIELD_NOT_FOUND = "Field not found"
 DEVICE_NOT_FOUND = "Device not found"
 DEVICE_CONFLICT = "This device is already registered"
+# Only real devices are counted: the simulated device of a garden is hidden.
 DEVICE_COUNTS = (
-    ", COUNT(devices.id) AS device_count, "
-    "COALESCE(SUM(CASE WHEN devices.battery_status IS TRUE THEN 1 ELSE 0 END), 0) "
+    ", COALESCE(SUM(CASE WHEN devices.is_simulated IS FALSE THEN 1 ELSE 0 END), 0) "
+    "AS device_count, "
+    "COALESCE(SUM(CASE WHEN devices.is_simulated IS FALSE "
+    "AND devices.battery_status IS TRUE THEN 1 ELSE 0 END), 0) "
     "AS devices_online "
 )
+REAL_DEVICE = "is_simulated IS FALSE"
 HTTP_400 = {400: {"description": "Invalid request"}}
 HTTP_404 = {404: {"description": "Not found"}}
 HTTP_409 = {409: {"description": "Conflict"}}
@@ -104,6 +111,7 @@ def _read_boundary(value):
 
 
 def _read_field(row) -> FieldRead:
+    device_count = int(row.device_count)
     return FieldRead(
         id=row.id,
         name=row.name,
@@ -113,10 +121,11 @@ def _read_field(row) -> FieldRead:
         field_type=row.field_type,
         soil_type=row.soil_type,
         size_m2=row.size_m2,
-        device_count=int(row.device_count),
+        device_count=device_count,
         boundary=_read_boundary(getattr(row, "boundary", None)),
         excluded_zones=_read_boundary(getattr(row, "excluded_zones", None)) or [],
         devices_online=int(getattr(row, "devices_online", 0) or 0),
+        simulated_data=device_count == 0,
     )
 
 
@@ -272,6 +281,8 @@ async def create_field(
             },
         )
         created = result.one()
+        # A new garden has no device yet: it starts with simulated readings.
+        await SimulatedReadingsService(session).ensure_for_field(created.id)
         await session.commit()
         return await _load_field(session, created.id, current_user.id)
 
@@ -300,7 +311,7 @@ async def get_field(
         devices_result = await session.execute(
             text(
                 SELECT_PREFIX + "id, battery_status, brand, serial_number "
-                "FROM devices WHERE field_id = :field_id ORDER BY id"
+                "FROM devices WHERE field_id = :field_id AND " + REAL_DEVICE + " ORDER BY id"
             ),
             {"field_id": field_id},
         )
@@ -319,6 +330,7 @@ async def get_field(
         boundary=_read_boundary(getattr(row, "boundary", None)),
         excluded_zones=_read_boundary(getattr(row, "excluded_zones", None)) or [],
         devices_online=sum(1 for device in devices if device.battery_status),
+        simulated_data=not devices,
         devices=[
             FieldDeviceRead(
                 id=device.id,
@@ -379,6 +391,9 @@ async def create_device(
                     "serial_number": serial,
                 },
             )
+            # The first real device replaces the simulated data of the garden.
+            # Same transaction: if the insert fails, nothing is removed.
+            await SimulatedReadingsService(session).remove_for_field(field_id)
             await session.commit()
         except IntegrityError:
             await session.rollback()
@@ -428,7 +443,7 @@ async def update_device(
                 text(
                     "UPDATE devices SET brand = :brand, "
                     "serial_number = :serial_number "
-                    "WHERE id = :id AND field_id = :field_id "
+                    "WHERE id = :id AND field_id = :field_id AND " + REAL_DEVICE + " "
                     "RETURNING id, battery_status, brand, serial_number"
                 ),
                 {
@@ -472,7 +487,11 @@ async def delete_device(
         except FieldAccessError:
             raise HTTPException(status_code=404, detail=FIELD_NOT_FOUND) from None
         result = await session.execute(
-            text("DELETE FROM devices WHERE id = :id AND field_id = :field_id RETURNING id"),
+            text(
+                "DELETE FROM devices WHERE id = :id AND field_id = :field_id AND "
+                + REAL_DEVICE
+                + " RETURNING id"
+            ),
             {"id": device_id, "field_id": field_id},
         )
         deleted = result.one_or_none()

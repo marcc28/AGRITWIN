@@ -609,6 +609,10 @@ describe('CreateFieldScreen', () => {
     expect(
       onStep(3, () => screen.getByText('addDevice.section.saveAndAdd')),
     ).toBeTruthy();
+    // Without a board the new field shows simulated data (#286).
+    expect(
+      onStep(3, () => screen.getByText('simulatedData.createField')),
+    ).toBeTruthy();
 
     fireEvent.changeText(
       onStep(0, () =>

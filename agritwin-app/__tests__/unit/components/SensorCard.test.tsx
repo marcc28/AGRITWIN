@@ -4,6 +4,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { SensorCard } from '../../../src/components/SensorCard';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
 const dashboard = {
   field_name: 'Hort',
   device_ids: ['dev-1'],
@@ -101,5 +105,33 @@ describe('SensorCard', () => {
     );
     fireEvent.press(screen.getByText('Dades'));
     expect(onPress).toHaveBeenCalled();
+  });
+
+  it('shows the simulated data notice', () => {
+    render(
+      <SensorCard
+        dashboard={{
+          ...dashboard,
+          device_ids: ['sim-field-3'],
+          simulated: true,
+        }}
+        errorMessage=""
+        onPress={jest.fn()}
+      />,
+    );
+    expect(screen.getByTestId('sensor-simulated')).toBeTruthy();
+    expect(screen.getByText('simulatedData.badge')).toBeTruthy();
+    expect(screen.getByText('simulatedData.sensorHint')).toBeTruthy();
+  });
+
+  it('hides the notice with real data', () => {
+    render(
+      <SensorCard
+        dashboard={{ ...dashboard, simulated: false }}
+        errorMessage=""
+        onPress={jest.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('sensor-simulated')).toBeNull();
   });
 });

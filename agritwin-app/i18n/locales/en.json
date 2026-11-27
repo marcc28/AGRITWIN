@@ -773,5 +773,17 @@
   },
   "startup": {
     "loading": "Getting your data ready…"
+  },
+  "simulatedData": {
+    "badge": "Simulated data",
+    "sensorHint": "Connect a board to see the real readings of your field.",
+    "fieldDevices": "Until you connect a board, this field shows simulated data so you can try the app.",
+    "homeDevices": "No board yet: you are seeing simulated data.",
+    "addDeviceTitle": "This field uses simulated data",
+    "addDeviceWarning": "When you connect the board, the simulated data and the AI advice based on it will be deleted and replaced with real data.",
+    "addDeviceDone": "From now on you will see the real data from your board.",
+    "createField": "If you do not connect a board now, the field will show simulated data so you can try the app. When you connect a board, the simulated data and the AI advice based on it will be deleted and replaced with real data.",
+    "dataNotice": "These readings are simulated because the field has no board yet. When you connect one, they will be deleted and you will see real data.",
+    "footnote": "Simulated readings: the field has no board connected yet."
   }
 }
