@@ -23,6 +23,12 @@ These files validate the weather forecast of a field (#55). Open-Meteo is replac
 * **Weather routes (`backend/api/v1/weather.py`):** Checks the query parameters, the error codes and that the field weather is requested for the logged user.
 * **Full flow (`unit/router/test_weather_flow.py`):** Calls `GET /api/v1/weather/fields/{field_id}` with a real login token, going through the route, the service, the database and the mocked Open-Meteo: valid location, town without coordinates, missing location, field of another user, external API unavailable and request without login.
 
+## Simulated Readings Tests (`unit/services/test_simulated_readings_service.py`, `unit/router/test_simulated_readings_flow.py`)
+These files validate the simulated readings of a garden without a device (#285, #286, #288). The database is an in-memory SQLite:
+
+* **Simulated readings service (`backend/services/simulated_readings_service.py`):** Verifies the realistic values (daily cycle, irrigation cycle, longitude of the garden), that a garden without devices gets one simulated device with its readings, the top-up without duplicates, the deletion of old readings, and that the first real device deletes the simulated device, its readings and the pending AI work.
+* **Full flow (`unit/router/test_simulated_readings_flow.py`):** Calls the real routes `POST /api/v1/fields`, `GET /api/v1/fields/{id}`, `POST /api/v1/fields/{id}/devices`, `DELETE /api/v1/fields/{id}/devices/{device_id}` and `GET /api/v1/dashboard` with a login token. It covers a garden with no device (simulated readings), the first device deleting the simulated readings, and a second device leaving the real readings in place.
+
 ## How to run the tests
 From the `backend` directory, run the IoT test suites using `uv`:
 ```bash
@@ -32,4 +38,9 @@ uv run pytest tests/unit/test_mqtt_subscriber.py tests/unit/test_device_status_m
 To run the weather forecast tests:
 ```bash
 uv run pytest tests/unit/test_weather_service.py tests/unit/test_field_weather_service.py tests/unit/router/test_weather_router.py tests/unit/router/test_weather_flow.py
+```
+
+To run the simulated readings tests:
+```bash
+uv run pytest tests/unit/services/test_simulated_readings_service.py tests/unit/router/test_simulated_readings_flow.py
 ```
