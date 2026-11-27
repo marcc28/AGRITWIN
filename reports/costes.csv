@@ -60,8 +60,8 @@ SPRINT 3,Save MQTT readings on Render,0,Tigre44,0,0%,0,0,0,0,,,,,,,,
 SPRINT 3,Scrum master - Facilitate the Sprint 3,0,ainhoaaf,0,0%,0,0,0,0,,,,,,,,
 SPRINT 3,Security audit,8,marcc28,0,0%,120,0,0,120,,,,,,,,
 SPRINT 3,"Security of the API, the broker and the code",0,,0,0%,0,0,0,0,,,,,,,,
-SPRINT 3,Simulated data without a device,20,Tigre44,0,25%,300,0,75,300,,,,,,,,
+SPRINT 3,Simulated data without a device,20,Tigre44,4,50%,300,60,150,240,,,,,,,,
 SPRINT 3,UI and UX improvements,0,,0,0%,0,0,0,0,,,,,,,,
 SPRINT 1,TOTAL SPRINT 1,153,,154.5,,2295,2317.5,2295,-22.5,10168,0.990291,1,-22.5,0,10267.686275,7950.186275,-99.686275
 SPRINT 2,TOTAL SPRINT 2,231.9,,240.2,,3478.5,3603,3478.5,-124.5,10168,0.965445,1,-124.5,0,10531.92583,6928.92583,-363.92583
-SPRINT 3,TOTAL SPRINT 3,36,,0,,540,0,75,540,10168,,0.138889,75,-465,,,
+SPRINT 3,TOTAL SPRINT 3,36,,4,,540,60,150,480,10168,2.5,0.277778,90,-390,4067.2,4007.2,6100.8
