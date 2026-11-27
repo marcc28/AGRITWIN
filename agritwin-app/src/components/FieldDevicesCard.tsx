@@ -67,7 +67,9 @@ export function FieldDevicesCard({ state, onPress, onRetry }: Props) {
 
       {state.devices.length === 0 ? (
         <Text testID="field-devices-none" style={fieldDevicesStyles.none}>
-          {t('home.devices.none')}
+          {state.simulatedData
+            ? t('simulatedData.homeDevices')
+            : t('home.devices.none')}
         </Text>
       ) : (
         <View style={fieldDevicesStyles.list}>

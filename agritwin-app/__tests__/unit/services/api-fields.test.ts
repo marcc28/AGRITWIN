@@ -193,11 +193,27 @@ describe('fields api', () => {
       device_ids: ['device-1'],
       latest: null,
       history: [],
+      simulated: false,
     });
     expect(global.fetch).toHaveBeenCalledWith(
       'http://localhost:8000/api/v1/dashboard?field_id=3',
       { headers: { Authorization: 'Bearer token' } },
     );
+  });
+
+  it('tells when the dashboard shows simulated data', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        field_name: 'Hort',
+        device_ids: ['sim-field-3'],
+        latest: null,
+        history: [],
+        simulated: true,
+      }),
+    }) as jest.Mock;
+
+    await expect(getDashboard(3)).resolves.toMatchObject({ simulated: true });
   });
 
   it('loads a dashboard without an optional field id', async () => {
@@ -320,6 +336,23 @@ describe('fields api', () => {
       device_count: 0,
     });
     expect(fields[0]).not.toHaveProperty('devices_online');
+  });
+
+  it('maps simulated_data when the fields list includes it', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { id: 3, name: 'Hort', device_count: 0, simulated_data: true },
+        { id: 4, name: 'Camp', device_count: 1, simulated_data: false },
+        { id: 5, name: 'Vell', device_count: 0 },
+      ],
+    }) as jest.Mock;
+
+    const fields = await getFields();
+
+    expect(fields[0].simulated_data).toBe(true);
+    expect(fields[1].simulated_data).toBe(false);
+    expect(fields[2]).not.toHaveProperty('simulated_data');
   });
 
   it('loads one field', async () => {

@@ -223,8 +223,10 @@ export default function FieldDetailScreen() {
                   {t('settings.fieldDetail.devices')}
                 </Text>
                 {field.devices.length === 0 ? (
-                  <Text style={styles.emptyText}>
-                    {t('settings.fieldDetail.noDevices')}
+                  <Text testID="field-no-devices" style={styles.emptyText}>
+                    {field.simulated_data
+                      ? t('simulatedData.fieldDevices')
+                      : t('settings.fieldDetail.noDevices')}
                   </Text>
                 ) : (
                   field.devices.map((device) => (

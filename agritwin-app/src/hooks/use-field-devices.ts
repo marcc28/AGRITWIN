@@ -9,7 +9,12 @@ import {
 export type FieldDevicesState =
   | { status: 'loading' }
   | { status: 'error' }
-  | { status: 'ready'; devices: FieldDevice[] };
+  | {
+      status: 'ready';
+      devices: FieldDevice[];
+      /** No real board yet: the field shows simulated data. */
+      simulatedData?: boolean;
+    };
 
 /**
  * Devices of a field with their status. The last known list is shown at
@@ -30,7 +35,13 @@ export function useFieldDevices(fieldId: number | null) {
   let state: FieldDevicesState;
   if (data) {
     // Keep what is already on screen if only a refresh fails.
-    state = { status: 'ready', devices: data.devices };
+    state = {
+      status: 'ready',
+      devices: data.devices,
+      ...(data.simulated_data == null
+        ? {}
+        : { simulatedData: data.simulated_data === true }),
+    };
   } else if (isError && !isFetching && !retrying) {
     state = { status: 'error' };
   } else {

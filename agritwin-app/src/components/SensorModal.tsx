@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { ReadingChart } from '@/components/ReadingChart';
 import {
@@ -32,6 +33,9 @@ export function SensorModal({
   onClose,
   asScreen = false,
 }: Props) {
+  const { t } = useTranslation();
+  // The field has no real board yet: the readings come from the simulated device.
+  const simulated = dashboard.simulated === true;
   const [selectedKey, setSelectedKey] = useState<MeasureKey>('temperature');
   const [chartWidth, setChartWidth] = useState(CHART_WIDTH);
 
@@ -52,9 +56,11 @@ export function SensorModal({
         <View>
           <Text style={styles.modalTitle}>{dashboard.field_name}</Text>
           <Text style={styles.cardSubtitle}>
-            {dashboard.device_ids.length === 1
-              ? `Dades del sensor · ${dashboard.device_ids[0]}`
-              : `Dades del camp · ${dashboard.device_ids.length} sensors`}
+            {simulated
+              ? t('simulatedData.badge')
+              : dashboard.device_ids.length === 1
+                ? `Dades del sensor · ${dashboard.device_ids[0]}`
+                : `Dades del camp · ${dashboard.device_ids.length} sensors`}
           </Text>
         </View>
         {asScreen ? null : (
@@ -63,6 +69,19 @@ export function SensorModal({
           </Pressable>
         )}
       </View>
+
+      {simulated ? (
+        <View testID="sensor-modal-simulated" style={styles.simulatedNotice}>
+          <Ionicons
+            name="flask-outline"
+            size={18}
+            color={Colors.light.primaryDark}
+          />
+          <Text style={styles.simulatedNoticeText}>
+            {t('simulatedData.dataNotice')}
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.hero}>
         <View style={styles.heroLeft}>
@@ -188,10 +207,16 @@ export function SensorModal({
       </View>
 
       <Text style={styles.footnote}>
-        {dashboard.device_ids.length === 1
-          ? `Lectures reals del dispositiu ${dashboard.device_ids[0]}.`
-          : `Mitjana de ${dashboard.device_ids.length} sensors del camp.`}{' '}
-        No inclou previsió meteorològica.
+        {simulated ? (
+          t('simulatedData.footnote')
+        ) : (
+          <>
+            {dashboard.device_ids.length === 1
+              ? `Lectures reals del dispositiu ${dashboard.device_ids[0]}.`
+              : `Mitjana de ${dashboard.device_ids.length} sensors del camp.`}{' '}
+            No inclou previsió meteorològica.
+          </>
+        )}
       </Text>
     </>
   );
