@@ -27,10 +27,10 @@ concurrency:
 
 # Change only these values at the start of each sprint.
 env:
-  SPRINT_MILESTONE: 'Sprint 2'
-  SPRINT_SLUG: 'sprint-2'
-  SPRINT_START: '2026-10-28'
-  SPRINT_END: '2026-11-22'
+  SPRINT_MILESTONE: 'Sprint 3'
+  SPRINT_SLUG: 'sprint-3'
+  SPRINT_START: '2026-11-23'
+  SPRINT_END: '2026-12-22'
 
 jobs:
   generate:
